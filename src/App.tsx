@@ -5,6 +5,10 @@ import {
 import Login from "@/pages/auth/login.page";
 import Code from "@/pages/auth/code.page";
 import ChangePassword from "./pages/auth/changepassword.page";
+import AdminLogin from "./pages/auth/adminlogin.page";
+import RecoveryPassword from "./pages/auth/recoverypassword.page";
+import AdminChangePassword from "./pages/auth/adminchangepassword.page";
+import Sidebar from "./components/agent/common/sidebar";
 
 
 const App = () => {
@@ -12,9 +16,20 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+
+      {/* auth pages  */}
+
     {/* <Login/> */}
     {/* <Code/> */}
-    <ChangePassword/>
+    {/* <ChangePassword/> */}
+    {/* <AdminLogin/> */}
+    {/* <RecoveryPassword/> */}
+    {/* <AdminChangePassword/> */}
+
+    {/* agent pages  */}
+
+    <Sidebar/>
+
     </QueryClientProvider>
   );
 }
