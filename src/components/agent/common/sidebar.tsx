@@ -3,9 +3,9 @@ import logo from "@/assets/logo.png";
 import { BiSolidDashboard } from "react-icons/bi";
 import { FiMenu, FiX } from "react-icons/fi";
 
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+const Sidebar = ({isOpen,setIsOpen,isMobile,setIsMobile}) => {
+  // const [isOpen, setIsOpen] = useState(true);
+  // const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {

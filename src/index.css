@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -117,4 +118,51 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.work-sans {
+  font-family: "Work Sans", sans-serif;
+
+}
+
+/* === Custom Scrollbar (No Arrows) === */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track (background area) */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+/* Thumb (the draggable part) */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888888;
+  border-radius: 10px;
+}
+rgb(228, 212, 192)
+/* Thumb hover effect */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #817b72;
+}
+
+/* 🚫 Completely remove scrollbar arrows */
+.custom-scrollbar::-webkit-scrollbar-button:single-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* For safety, also disable any leftover button space */
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6d6d6d #f1f1f1;
 }
