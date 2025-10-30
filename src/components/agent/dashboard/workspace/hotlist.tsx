@@ -16,7 +16,7 @@ const HotList = () => {
     ]
 
     return (
-        <section className='bg-white flex flex-col gap-5 rounded-xl px-7 py-5 w-full md:w-[50%] '>
+        <section className='bg-white flex h-fit md:h-[35vh] lg:h-[50vh] flex-col gap-5 rounded-4xl px-6 py-5  lg:w-[45%] w-full'>
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-[20px] font-[500]">Hotlist</h1>
@@ -28,9 +28,9 @@ const HotList = () => {
             </div>
 
 
-            <div className='flex flex-col gap-5 h-[30vh] lg:h-[45vh] overflow-auto custom-scrollbar'>
+            <div className='flex flex-col gap-5 overflow-auto custom-scrollbar'>
                 {contacts.map((cont) => (
-                    <div key={cont.id} className='flex mx-2 rounded-md border gap-2 items-center border-gray-200'>
+                    <div key={cont.id} className='flex mx-2 rounded-md border gap-2 items-center border-gray-100'>
                         <div  className='bg-[#FFF7DB] rounded-tr-md rounded-br-md  text-[#D66400] text-[18px] font-[500] px-3 py-3'>{cont.number}</div>
                         <div className="flex justify-between w-full pr-3 items-center">
                             <div>

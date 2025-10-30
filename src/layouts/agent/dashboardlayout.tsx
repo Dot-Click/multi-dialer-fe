@@ -13,7 +13,7 @@ const DashboardLayout = () => {
             <div className="fixed top-0 z-[1000]">
                 <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />
             </div>
-            <div className="fixed top-0 w-full">
+            <div className="fixed z-[999] top-0 w-full">
                 <Navbar />
             </div>
 

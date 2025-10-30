@@ -17,7 +17,7 @@ const GoToCalender = () => {
 
 
     return (
-        <section className='bg-white flex flex-col gap-5 rounded-xl px-7 py-5 w-full md:w-[50%] '>
+        <section className='bg-white  h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-4xl px-6 py-5  w-full lg:w-[55%] '>
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-[14px] font-[500]">Thursday</h1>
@@ -29,7 +29,7 @@ const GoToCalender = () => {
                 </div>
             </div>
 
-            <div className="flex gap-8 h-[35vh] lg:h-[41vh] items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-8 lg:items-center lg:justify-between">
 
             <div className=" flex flex-col gap-2">
                 <h1 className="text-[14px] font-[600] text-[#495057]">Today</h1>

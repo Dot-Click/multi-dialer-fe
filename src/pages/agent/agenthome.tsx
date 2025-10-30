@@ -32,7 +32,7 @@ const AgentHome = () => {
             >
               <img src={comp.icon} className="h-4 w-4" alt={comp.name} />
               <span
-                className={`text-[10px] md:text-[13px] lg:text-[14px] font-semibold ${active === comp.name ? "text-[#0E1011]" : "text-[#495057]"
+                className={`text-[10px] cursor-pointer md:text-[13px] lg:text-[14px] font-semibold ${active === comp.name ? "text-[#0E1011]" : "text-[#495057]"
                   }`}
               >
                 {comp.name}

@@ -1,13 +1,31 @@
+import CallStatisctics from '@/components/agent/dashboard/workspace/callstatistics'
+import DialerHealth from '@/components/agent/dashboard/workspace/dialerhealth'
+import FoldersList from '@/components/agent/dashboard/workspace/folderlist'
 import GoToCalender from '@/components/agent/dashboard/workspace/gotocalender'
+import Group from '@/components/agent/dashboard/workspace/Group'
 import HotList from '@/components/agent/dashboard/workspace/hotlist'
+import RecentActivity from '@/components/agent/dashboard/workspace/recentactivity'
 import React from 'react'
 
 const Workspace = () => {
   return (
-    <div>
-      <div className='flex gap-6 md:flex-row flex-col justify-between items-center'>
-      <GoToCalender/>
-      <HotList/>
+    <div className='flex flex-col gap-3'>
+      <div className='flex gap-3 md:flex-row flex-col justify-between items-start'>
+        <GoToCalender />
+        <HotList />
+      </div>
+      <div className='flex flex-col md:flex-row gap-2'>
+        <div className='flex flex-col w-full md:w-[45%] gap-5'>
+          <Group />
+          <DialerHealth />
+        </div>
+        <div className='w-full md:w-[55%]'>
+          <CallStatisctics />
+        </div>
+      </div>
+      <div className='flex gap-6 md:flex-row flex-col justify-between items-start'>
+        <FoldersList />
+        <RecentActivity/>
       </div>
     </div>
   )
