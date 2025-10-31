@@ -5,7 +5,6 @@ import GoToCalender from '@/components/agent/dashboard/workspace/gotocalender'
 import Group from '@/components/agent/dashboard/workspace/Group'
 import HotList from '@/components/agent/dashboard/workspace/hotlist'
 import RecentActivity from '@/components/agent/dashboard/workspace/recentactivity'
-import React from 'react'
 
 const Workspace = () => {
   return (
