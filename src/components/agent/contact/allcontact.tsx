@@ -138,11 +138,11 @@ const columns = [
 
 const AllContact = () => {
   return (
-    <Box className="rounded-xl h-full bg-white shadow-sm">
+    <Box className="mt-3 w-full h-full">
     
 
       {/* Table Section */}
-      <main className="mt-6">
+      <main>
         <TableProvider data={contacts} columns={columns}>
           {() => <TableComponent />}
         </TableProvider>

@@ -38,7 +38,7 @@
 //                 <AllContactComponent />
 //             </div>
 
-            
+
 //         </section>
 //     )
 // }
@@ -58,16 +58,16 @@ import ManageColumnsModal from "@/components/modal/managecolumnmodal"
 
 const AllContact = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [showColumnsModal, setShowColumnsModal] = useState(false);
+  const [showColumnsModal, setShowColumnsModal] = useState(false);
 
 
   return (
-    <section className='pr-7 flex flex-col gap-2 h-screen'>
+    <section className='pr-7  bg-[#EBEDF0] flex flex-col gap-2 min-h-screen'>
       <div className='flex justify-between items-center'>
         <h1 className='text-[28px] font-[500]'>Data & Dialer</h1>
         <div className='flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-2 py-1 items-center'>
           <span><GrSplits className='text-[17px] text-[#495057]' /></span>
-          <span className='text-[16px] font-[500] text-[#495057]' 
+          <span className='text-[16px] font-[500] text-[#495057]'
             onClick={() => setShowColumnsModal(true)}
           >Manage Columns</span>
         </div>
@@ -96,7 +96,7 @@ const AllContact = () => {
         </div>
       </div>
 
-      <div className='flex-1 overflow-auto'>
+      <div className='flex-1 -ml-10'>
         <AllContactComponent />
       </div>
 
@@ -104,9 +104,11 @@ const AllContact = () => {
         <FilterModal onClose={() => setIsFilterOpen(false)} />
       )}
 
-       {showColumnsModal && (
+      {showColumnsModal && (
         <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
       )}
+
+     
     </section>
   );
 };

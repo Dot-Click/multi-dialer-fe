@@ -5,6 +5,7 @@ import AgentHome from "@/pages/agent/agenthome"
 import AllContactSidebar from "./components/agent/common/allcontactsidebar";
 import ContactLayout from "./layouts/agent/contactlayout";
 import AllContact from "./pages/agent/allcontact";
+import ContactDetail from "./pages/agent/contactdetail";
 
 const Router: React.FC = () => {
   return (
@@ -19,7 +20,7 @@ const Router: React.FC = () => {
           
         </Route>
 
-        <Route path="/" element={<AllContactSidebar/>} />
+        <Route path="/contact-detail" element={<ContactDetail/>} />
         
 
       </Routes>
