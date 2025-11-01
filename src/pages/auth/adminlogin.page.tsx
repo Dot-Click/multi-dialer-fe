@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
+import { Link, useNavigate } from "react-router-dom";
 
 const AdminLogin: React.FC = () => {
-  const [isAdminLogin, setIsAdminLogin] = useState<boolean>(false);
+  const [isAdminLogin, setIsAdminLogin] = useState<boolean>(true);
   const [showCurrent, setShowCurrent] = useState(false);
 
+
+  const navigate = useNavigate()
 
   return (
     <div
@@ -35,13 +38,16 @@ const AdminLogin: React.FC = () => {
 
         {/* Toggle Buttons */}
         <div className="flex gap-3 my-2">
-          <Button
+          <Button 
             className={`${
               !isAdminLogin
                 ? "bg-gray-950 text-white"
                 : "bg-transparent text-gray-950 hover:text-gray-100"
             } border border-gray-400 hover:bg-gray-950 cursor-pointer`}
-            onClick={() => setIsAdminLogin(false)}
+            onClick={() => {setIsAdminLogin(false)
+              navigate("/agent/login")
+
+            }}
           >
             As Agent
           </Button>
@@ -52,7 +58,10 @@ const AdminLogin: React.FC = () => {
                 ? "bg-gray-950 text-white"
                 : "bg-transparent text-gray-950 hover:text-gray-100"
             } border border-gray-400 hover:bg-gray-950 cursor-pointer`}
-            onClick={() => setIsAdminLogin(true)}
+            onClick={() => {setIsAdminLogin(true)
+              navigate("/admin/login")
+
+            }}
           >
             As Admin
           </Button>

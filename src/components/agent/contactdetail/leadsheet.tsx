@@ -63,52 +63,52 @@ const LeadSheet = () => {
         </div>
 
         <div className="flex gap-3">
-             <select className=" bg-gray-200 border-gray-30 rounded-md px-3 py-1 text-sm  outline-none">
+             <select className=" bg-gray-200 w-fit border-gray-30 rounded-md px-4 py-2 text-sm  outline-none">
             <option>Expired Property</option>
             <option>New Listing</option>
             <option>Referral</option>
           </select>
-          <button className="bg-gray-200 rounded-md px-4 py-1 text-sm hover:bg-gray-100">
+          <button className="bg-gray-200 rounded-md px-4 py-2  text-sm hover:bg-gray-100">
             Print
           </button>
-          <button className="bg-gray-200 rounded-md px-4 py-1 text-sm hover:bg-gray-100">
+          <button className="bg-gray-200 rounded-md px-4 py-2  text-sm hover:bg-gray-100">
             Download
-          </button>
-          <button className="bg-gray-200 rounded-md px-4 py-1 text-sm hover:bg-gray-100">
-            Send As Email
+          </button>                   
+          <button className="bg-gray-200   rounded-md px-4 py-2  text-sm hover:bg-gray-100">
+            Send As Email 
           </button>
         </div>
       </div>
 
       {/* Questions */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col  gap-6">
         {questions.map((q) => (
-          <div key={q.id} className="flex flex-col gap-2">
-            <label className="text-gray-800 font-medium text-sm md:text-base">
+          <div key={q.id} className="flex px-3 py-3 rounded-md bg-gray-100 flex-col gap-2">
+            <label className="text-gray-800 font-medium text-sm md:text-sm">
               {q.question}
             </label>
 
             {q.type === "text" ? (
               <textarea
                 placeholder="Type your note here"
-                className="w-full border border-gray-300 rounded-md p-3 text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 outline-none resize-none"
-                rows={2}
+                className="w-full  rounded-md  text-sm text-gray-800 placeholder-gray-400  outline-none resize-none"
+                rows={1}
               ></textarea>
             ) : (
-              <div className="flex gap-6 mt-1">
-                <label className="flex items-center gap-2 text-gray-700">
+              <div className="flex flex-col gap-2 mt-1">
+                <label className="flex text-sm  items-center gap-2 text-gray-700">
                   <input
                     type="radio"
                     name={`question-${q.id}`}
-                    className="accent-yellow-400"
+                    className=" accent-yellow-400"
                   />
                   Yes
                 </label>
-                <label className="flex items-center gap-2 text-gray-700">
+                <label className="flex text-sm items-center gap-2 text-gray-700">
                   <input
                     type="radio"
                     name={`question-${q.id}`}
-                    className="accent-yellow-400"
+                    className=" accent-yellow-400"
                   />
                   No
                 </label>

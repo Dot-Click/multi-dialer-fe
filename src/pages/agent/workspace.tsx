@@ -26,6 +26,9 @@ const Workspace = () => {
         <FoldersList />
         <RecentActivity/>
       </div>
+
+  
+
     </div>
   )
 }
