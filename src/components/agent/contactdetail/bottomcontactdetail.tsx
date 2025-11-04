@@ -53,6 +53,7 @@ import Misc from "./misc";
 import Activities from "./activities";
 import History from "./history";
 import LeadSheet from "./leadsheet";
+import AiCallSentiment from "./aicallsentiment";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Notes");
@@ -73,7 +74,7 @@ const BottomContactDetail = () => {
     return (
         <section className="bg-white flex flex-col gap-8 shadow-2xl px-6 py-5 w-[96%] mx-auto rounded-[24px]">
             {/* Tabs */}
-            <div className="flex bg-[#F3F4F7] gap-4 rounded-lg justify-between items-center">
+            <div className="flex bg-[#F3F4F7] max-w-screen overflow-x-auto gap-4 rounded-lg justify-between items-center">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
@@ -86,7 +87,7 @@ const BottomContactDetail = () => {
             </div>
 
             {/* Content Section */}
-            <div className="">
+            <div className="w-full">
                 {openStatus === "Notes" && (<Notes />)}
                 {openStatus === "Misc" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}
@@ -94,11 +95,9 @@ const BottomContactDetail = () => {
                 {openStatus === "Emails" && (<Email />)}
                 {openStatus === "SMS" && (<SMS />)}
                 {openStatus === "Action Plans" && (<ActionPlans />)}
-                {openStatus === "Lead Sheet" && (<LeadSheet/> )}
+                {openStatus === "Lead Sheet" && (<LeadSheet />)}
                 {openStatus === "Attachments" && (<Attachments />)}
-                {openStatus === "AI Sidekick" && (
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2">AI Sidekick Section</h2>
-                )}
+                {openStatus === "AI Sidekick" && (<AiCallSentiment />)}
             </div>
         </section>
     );

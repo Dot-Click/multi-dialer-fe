@@ -12,6 +12,8 @@ import { IoCallOutline } from "react-icons/io5";
 import { CiMobile1 } from "react-icons/ci";
 import { PiDotsSixVertical } from "react-icons/pi";
 import EditModal from '@/components/modal/editmodal';
+import PhoneModal from '@/components/modal/phonemodal';
+import EmailModal from '@/components/modal/emailmodal';
 
 
 
@@ -19,6 +21,9 @@ import EditModal from '@/components/modal/editmodal';
 
 const Detail = () => {
     const [showModal, setShowModal] = useState(false);
+        const [phoneModal, setPhoneModal] = useState(false);
+        const [emailModal, setEmailModal] = useState(false);
+
 
     const data = [
         { id: 1, name: "Calls", number: 23 },
@@ -65,12 +70,12 @@ const Detail = () => {
     return (
         <section className='bg-white flex flex-col gap-8 shadow-2xl  px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
 
-            <div className='flex justify-between items-center'>
+            <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
 
-                <div className='flex gap-14 items-center'>
+                <div className='flex  flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col   gap-1'>
-                        <div className='flex items-center gap-2'>
-                            <h1 className='text-[24px] text-[#0E1011] font-[500]'>Contact Name</h1>
+                        <div className='flex  items-center gap-2'>
+                            <h1 className='text-[20px] md:text-[24px] text-[#0E1011] font-[500]'>Contact Name</h1>
                             <span onClick={() => setShowModal(true)} className='border bg-[#EBEDF0] cursor-pointer rounded-[8px] border-[#EBEDF0] py-[6px] px-1 hover:bg-[#d8d8d8]'><FaRegEdit className='text-[#838383] text-[18px]' /></span>
                         </div>
                         <div className='flex items-center gap-2'>
@@ -100,9 +105,9 @@ const Detail = () => {
 
 
 
-            <div className='flex justify-between gap-8 items-start'>
+            <div className='flex lg:flex-row flex-col justify-between gap-8 items-start'>
 
-                <div className='flex  w-1/3  flex-col gap-5'>
+                <div className='flex w-full  lg:w-1/3  flex-col gap-5'>
                     <div className='flex gap-2 items-start'>
                         <h1><LuMapPin className='text-[18px] font-[500] text-[#0E1011]' /></h1>
                         <div className='flex flex-col gap-1'>
@@ -142,10 +147,10 @@ const Detail = () => {
                 </div>
 
 
-                <div className='flex  w-1/3  flex-col gap-4'>
+                <div className='flex w-full  lg:w-1/3  flex-col gap-4'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[15px] font-[500] text-[#0E1011]'>Phones:</h1>
-                        <span className='border p-1 rounded-lg bg-gray-100 border-gray-200'><IoAddOutline className='text-[#717171] text-[18px]' /></span>
+                        <span onClick={() => setPhoneModal(true)} className='border p-1 rounded-lg bg-gray-100 border-gray-200'><IoAddOutline className='text-[#717171] text-[18px]' /></span>
                     </div>
                     <div className='flex flex-col gap-3 '>
                         {phones.map((phone) => (
@@ -166,10 +171,10 @@ const Detail = () => {
                 </div>
 
 
-                <div className='flex w-1/3 flex-col gap-4'>
+                <div className='flex w-full lg:w-1/3 flex-col gap-4'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[15px] font-[500] text-[#0E1011]'>E-mails:</h1>
-                        <span className='border p-1 rounded-lg bg-gray-100 border-gray-200'><IoAddOutline className='text-[#717171] text-[18px]' /></span>
+                        <span onClick={() => setEmailModal(true)} className='border p-1 rounded-lg bg-gray-100 border-gray-200'><IoAddOutline className='text-[#717171] text-[18px]' /></span>
                     </div>
                     <div className='flex flex-col gap-3 '>
                         {emails.map((email) => (
@@ -193,14 +198,14 @@ const Detail = () => {
 
             </div>
 
-            <div className='flex  w-[60%] items-center gap-4'>
-                <div className='flex w-[50%] items-center gap-2'>
+            <div className='flex  flex-col lg:flex-row w-full md:w-[60%]  lg:items-center gap-4'>
+                <div className='flex w-full md:w-full items-center gap-2'>
                     <label htmlFor="list" className='text-md text-gray-900 font-[500]'>List :</label>
                     <input type="text" id="list" placeholder='List Number 1'
                         className='border-b py-1 px-2 border-gray-300 flex-1 text-gray-950 placeholder:text-sm text-sm outline-none' />
                 </div>
 
-                <div className='flex w-[50%] items-center gap-2'>
+                <div className='flex w-full md:w-full items-center gap-2'>
                     <label htmlFor="group" className='text-md text-gray-900 font-[500]'>Group :</label>
                     <input type="text" id="group" placeholder='Working'
                         className='border-b py-1 px-2 border-gray-300 flex-1  text-gray-950 placeholder:text-sm text-sm outline-none' />
@@ -208,9 +213,9 @@ const Detail = () => {
             </div>
 
 
-            <div className='flex flex-col gap-3'>
+            <div className='flex  flex-col gap-3'>
                 <h1 className='text-md text-gray-900 font-[500]'>Dispositions:</h1>
-                <div className='flex gap-4 items-center'>
+                <div className='flex gap-4 flex-wrap items-center'>
                     {despositions.map((disp) => (
                         <button key={disp.id} className='bg-[#EBEDF0] cursor-pointer rounded-md text-sm text-[#18181B] px-3 py-1.5 font-[500]'>{disp.name}</button>
                     ))}
@@ -219,7 +224,7 @@ const Detail = () => {
 
             <div className="border-t  border-gray-100 w-full"></div>
 
-            <div className="flex gap-4 justify-around items-center">
+            <div className="flex gap-4 flex-wrap justify-center md:justify-around items-center">
                 {status.map((stat) => (
                     <div key={stat.id} className="flex items-center flex-col gap-2">
                         <span className='border border-gray-700 h-2 w-2 p-2 rounded'></span>
@@ -227,11 +232,15 @@ const Detail = () => {
                     </div>
                 ))}
             </div>
-
             {showModal && <EditModal onClose={() => setShowModal(false)} />}
+            {phoneModal && <PhoneModal isOpen={phoneModal} onClose={() => setPhoneModal(false)} />}
+            {emailModal && <EmailModal isOpen={emailModal} onClose={() => setEmailModal(false)} />}
+
+
+
 
         </section>
     )
 }
 
-export default Detail
+export default Detail 

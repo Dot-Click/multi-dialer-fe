@@ -1,16 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { RiSubtractFill } from "react-icons/ri";
 import { IoIosAdd } from "react-icons/io";
+import TaskForContact from '@/components/modal/taskforcontact';
 
 
 
 const Activities = () => {
+  const [isTaskModalOpen, setTaskModalOpen] = useState(false);
+
     return (
-        <div className='flex gap-6 w-full  min-h-40'>
-            <div className='flex w-[50%] gap-6 flex-col'>
+        <div className='flex flex-col md:flex-row gap-6 w-full  min-h-40'>
+            <div className='flex w-full md:w-[50%] gap-6 flex-col'>
                 <h1 className='test-[#0E1011] text-[18px] font-[500]'>Activities:</h1>
 
-                <div className='flex justify-center items-center w-  flex-col'>
+                <div className='flex justify-center items-center w-full  flex-col'>
                     <h1 className='text-[#000000] text-[14px] font-[500]'>No Data Available</h1>
                     <p className='text-[#848C94] text-[14px] font-[400]'>There are no activities for this contact</p>
 
@@ -19,7 +22,7 @@ const Activities = () => {
 
 
         
-    <div className="flex w-full md:w-[50%] flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <h1 className="text-[#0E1011] text-[18px] font-[600]">Information:</h1>
 
       <div className="flex flex-col gap-4">
@@ -57,7 +60,7 @@ const Activities = () => {
         </div>
 
         {/* Last Call Result + Mark As Contact */}
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full flex  flex-col lg:flex-row lg:justify-between lg:items-center">
           <div className="flex items-center">
             <label
               htmlFor="lastCall"
@@ -115,7 +118,7 @@ const Activities = () => {
         </div>
 
         {/* Tasks + View Tasks */}
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full flex flex-col lg:flex-row lg:flow-row lg:justify-between lg:items-center">
           <div className="flex items-center">
             <label
               htmlFor="tasks"
@@ -130,7 +133,7 @@ const Activities = () => {
               className=" text-[14px] w-[320px] outline-none px-2 py-1"
             />
           </div>
-          <div className="bg-[#EBEDF0] px-3 py-1.5 rounded-sm">
+          <div onClick={() => setTaskModalOpen(true)} className="bg-[#EBEDF0] w-fit px-3 py-1.5 rounded-sm">
             <button className="text-[11px] text-[#0E1011] font-[500]">
               View Tasks
             </button>
@@ -179,7 +182,7 @@ const Activities = () => {
           </label>
           <input
             id="modified"
-            value="09/09/2025 by Cameron Williamson"
+            value="09/09/2025 by John"
             readOnly
             className=" text-[14px] w-[320px] outline-none px-2 py-1"
           />
@@ -187,6 +190,11 @@ const Activities = () => {
       </div>
     </div>
 
+<TaskForContact 
+  isOpen={isTaskModalOpen} 
+  onClose={() => setTaskModalOpen(false)} 
+  contactName="John Doe" // Optional: Contact ka naam yahan se pass karein
+/>
 
         </div>
     )

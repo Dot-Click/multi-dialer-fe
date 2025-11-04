@@ -5,7 +5,7 @@ import React from 'react'
 
 const ContactDetail = () => {
   return (
-    <section className='flex flex-col gap-6'>
+    <section className='flex flex-col max-w-screen overflow-auto gap-6'>
         <ContactDetailHeader/>
         <Detail/>
         <BottomContactDetail/>

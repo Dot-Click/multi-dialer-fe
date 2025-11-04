@@ -63,18 +63,18 @@ const LeadSheet = () => {
         </div>
 
         <div className="flex gap-3">
-             <select className=" bg-gray-200 w-fit border-gray-30 rounded-md px-4 py-2 text-sm  outline-none">
+             <select className=" bg-gray-200 w-fit border-gray-30 rounded-md md:px-4 md:py-2 px-2 py-1 text-[10px] md:text-sm  outline-none">
             <option>Expired Property</option>
             <option>New Listing</option>
             <option>Referral</option>
           </select>
-          <button className="bg-gray-200 rounded-md px-4 py-2  text-sm hover:bg-gray-100">
+          <button className="bg-gray-200 rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
             Print
           </button>
-          <button className="bg-gray-200 rounded-md px-4 py-2  text-sm hover:bg-gray-100">
+          <button className="bg-gray-200 rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
             Download
           </button>                   
-          <button className="bg-gray-200   rounded-md px-4 py-2  text-sm hover:bg-gray-100">
+          <button className="bg-gray-200   rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
             Send As Email 
           </button>
         </div>

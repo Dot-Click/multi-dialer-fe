@@ -218,13 +218,13 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
           <div className="border-t border-gray-200"></div>
 
           {/* 🔹 Sidebar Links */}
-          <div className="flex flex-col gap-2 justify-center">
+          <div className="flex flex-col gap-1 justify-center">
             {sidebarLinks.map((slinks) => (
               <NavLink
                 key={slinks.id}
                 to={slinks.link}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
+                  `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
                   ${
                     isActive
@@ -233,9 +233,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
                   }`
                 }
               >
-                <img src={slinks.icon} className="h-5 w-5 object-contain" />
+                <img src={slinks.icon} className="h-4 w-4 object-contain" />
                 {isOpen && (
-                  <span className="text-base font-medium">{slinks.name}</span>
+                  <span className="text-[12px] font-medium">{slinks.name}</span>
                 )}
               </NavLink>
             ))}
