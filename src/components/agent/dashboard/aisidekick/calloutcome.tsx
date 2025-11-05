@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Data for the Keyword Optimization Score progress bar and legend
 const keywordData = [

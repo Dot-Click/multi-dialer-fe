@@ -1,8 +1,14 @@
-// components/modals/AppointmentModal.js
-import React from 'react';
-import { IoClose } from 'react-icons/io5'; // Icon ke liye: npm install react-icons
+// src/components/modal/taskmodal.tsx
 
-const TaskModal = ({ isOpen, onClose }) => {
+import { IoClose } from 'react-icons/io5';
+
+// Props کی اقسام کی وضاحت کے لیے ایک انٹرفیس بنائیں
+interface TaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const TaskModal = ({ isOpen, onClose }: TaskModalProps) => {
     if (!isOpen) {
         return null;
     }
@@ -36,16 +42,13 @@ const TaskModal = ({ isOpen, onClose }) => {
 
                     <div className="grid grid-cols-[100px_1fr] items-start gap-4">
                         <label htmlFor="description"  className="text-sm font-[600] text-gray-900 mt-1">Description:</label>
-                        <textarea id="description" rows="1" className="w-full resize-none border-b-2 border-gray-200 focus:border-yellow-500 focus:ring-0 outline-none py-1"></textarea>
+                        <textarea id="description" rows={1} className="w-full resize-none border-b-2 border-gray-200 focus:border-yellow-500 focus:ring-0 outline-none py-1"></textarea>
                     </div>
 
                     <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                         <label htmlFor="starts" className="text-sm font-[600] text-gray-900">Date:</label>
                         <input type="text" id="starts" placeholder="DD/MM/YYYY" className="w-full border-b-2 border-gray-200 focus:border-yellow-500 focus:ring-0 outline-none py-1" />
                     </div>
-
-                
-        
 
                     <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                         <label htmlFor="assign" className="text-sm font-[600] text-gray-900">Assign Activity To</label>

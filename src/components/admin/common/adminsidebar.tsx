@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import logo from "@/assets/logo.png";
-import sidebaricon from "@/assets/sidebaricon.png";
-import dashboardicon from "@/assets/dashboardicon.png";
-import settingicon from "@/assets/settingicon.png";
-import reporticon from "@/assets/reporticon.png";
-import libraryicon from "@/assets/libraryicon.png";
-import calendericon from "@/assets/calendericon.png";
-import dataicon from "@/assets/dataicon.png";
-import billingicon from "@/assets/admin/billingicon.png";
-import bulbicon from "@/assets/admin/bulbicon.png";
-import usericon from "@/assets/admin/usericon.png";
-import { BiSolidDashboard } from "react-icons/bi";
+import logo from "../../../assets/logo.png";
+import sidebaricon from "../../../assets/sidebaricon.png";
+import dashboardicon from "../../../assets/dashboardicon.png";
+import settingicon from "../../../assets/settingicon.png";
+import reporticon from "../../../assets/reporticon.png";
+import libraryicon from "../../../assets/libraryicon.png";
+import calendericon from "../../../assets/calendericon.png";
+import dataicon from "../../../assets/dataicon.png";
+import billingicon from "../../../assets/admin/billingicon.png";
+import bulbicon from "../../../assets/admin/bulbicon.png";
+import usericon from "../../../assets/admin/usericon.png";
 import { FiMenu } from "react-icons/fi";
 
-const AdminSidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
+
+interface AdminSidebarProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  isMobile: boolean;
+  setIsMobile: (mobile: boolean) => void;
+}
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -31,7 +37,7 @@ const AdminSidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
   }, []);
 
   const sidebarLinks = [
-    { id: 1, name: "Dashboard", link: "/", icon:dashboardicon  },
+    { id: 1, name: "Dashboard", link: "/", icon: dashboardicon },
     { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
     { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
     { id: 4, name: "Library", link: "/library", icon: libraryicon },
@@ -67,9 +73,8 @@ const AdminSidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
             <img
               src={logo}
               alt="Logo"
-              className={`object-contain transition-all duration-300 ${
-                isOpen ? "w-36" : "w-8"
-              }`}
+              className={`object-contain transition-all duration-300 ${isOpen ? "w-36" : "w-8"
+                }`}
             />
 
             {/* 🔹 Toggle icon */}
@@ -105,10 +110,9 @@ const AdminSidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
-                  ${
-                    isActive
-                      ? "bg-[#FFCA06] font-[600] text-gray-900"
-                      : "hover:bg-[#FFCA06] text-gray-700"
+                  ${isActive
+                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    : "hover:bg-[#FFCA06] text-gray-700"
                   }`
                 }
               >

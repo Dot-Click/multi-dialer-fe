@@ -1,6 +1,4 @@
-import React from 'react'
-import { IoIosArrowForward } from 'react-icons/io'
-import { BsThreeDots } from "react-icons/bs";
+
 import CallStatisticChart from '@/components/charts/callstatisticschart';
 
 

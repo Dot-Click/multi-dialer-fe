@@ -1,7 +1,11 @@
 import React from "react";
 import { IoClose } from "react-icons/io5";
 
-const FilterModal = ({ onClose }) => {
+interface FilterModalProps {
+  onClose: () => void;
+}
+
+const FilterModal: React.FC<FilterModalProps> = ({ onClose }) => {
   const dateOptions = ["Today", "Last 7 days", "This Month", "Last Month", "This Year"];
   const listOptions = ["Leads", "Prospects", "Customers", "Cold Leads"];
   const tagOptions = ["Hot Lead", "Follow Up", "Interested", "Not Interested"];

@@ -44,16 +44,16 @@
 // export default BottomContactDetail
 
 import { useState } from "react";
-import Notes from "./notes";
-import Email from "./email";
-import SMS from "./sms";
-import ActionPlans from "./actionplans";
-import Attachments from "./attachments";
-import Misc from "./misc";
-import Activities from "./activities";
-import History from "./history";
-import LeadSheet from "./leadsheet";
-import AiCallSentiment from "./aicallsentiment";
+import Notes from "@/components/agent/contactdetail/notes";
+import Email from "@/components/agent/contactdetail/email";
+import SMS from "@/components/agent/contactdetail/sms";
+import ActionPlans from "@/components/agent/contactdetail/actionplans";
+import Attachments from "@/components/agent/contactdetail/attachments";
+import Misc from "@/components/agent/contactdetail/misc";
+import Activities from "@/components/agent/contactdetail/activities";
+import History from "@/components/agent/contactdetail/history";
+import LeadSheet from "@/components/agent/contactdetail/leadsheet";
+import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Notes");

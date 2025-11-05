@@ -14,10 +14,13 @@ import {
 } from "lucide-react";
 import {
   flexRender,
-  type Header,
-  type CellContext,
-  type HeaderContext,
 } from "@tanstack/react-table";
+import type {
+  Header,
+  CellContext,
+  HeaderContext,
+} from "@tanstack/table-core";
+
 import { useDebounceCallback, useIntersectionObserver } from "usehooks-ts";
 import { forwardRef, useEffect, useState, memo, type FC } from "react";
 import { Input, type InputProps } from "@/components/ui/input";

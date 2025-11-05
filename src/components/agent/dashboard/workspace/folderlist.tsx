@@ -1,6 +1,3 @@
-import React from 'react'
-import { IoIosArrowForward } from 'react-icons/io'
-import { BsThreeDots } from "react-icons/bs";
 
 
 const FoldersList = () => {

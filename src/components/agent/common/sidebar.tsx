@@ -106,8 +106,8 @@
 //           </div>
 //         </div>
 
-        
-      
+
+
 //       </aside>
 
 //       {/* 🔹 Overlay for mobile */}
@@ -125,7 +125,7 @@
 
 
 
-import React, { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import sidebaricon from "@/assets/sidebaricon.png";
@@ -135,10 +135,16 @@ import reporticon from "@/assets/reporticon.png";
 import libraryicon from "@/assets/libraryicon.png";
 import calendericon from "@/assets/calendericon.png";
 import dataicon from "@/assets/dataicon.png";
-import { BiSolidDashboard } from "react-icons/bi";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiMenu } from "react-icons/fi";
 
-const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
+interface SidebarProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  isMobile: boolean;
+  setIsMobile: (mobile: boolean) => void;
+} 
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -155,7 +161,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
   }, []);
 
   const sidebarLinks = [
-    { id: 1, name: "Dashboard", link: "/", icon:dashboardicon  },
+    { id: 1, name: "Dashboard", link: "/", icon: dashboardicon },
     { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
     { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
     { id: 4, name: "Library", link: "/library", icon: libraryicon },
@@ -188,9 +194,8 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
             <img
               src={logo}
               alt="Logo"
-              className={`object-contain transition-all duration-300 ${
-                isOpen ? "w-36" : "w-8"
-              }`}
+              className={`object-contain transition-all duration-300 ${isOpen ? "w-36" : "w-8"
+                }`}
             />
 
             {/* 🔹 Toggle icon */}
@@ -226,10 +231,9 @@ const Sidebar = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
-                  ${
-                    isActive
-                      ? "bg-[#FFCA06] font-[600] text-gray-900"
-                      : "hover:bg-[#FFCA06] text-gray-700"
+                  ${isActive
+                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    : "hover:bg-[#FFCA06] text-gray-700"
                   }`
                 }
               >

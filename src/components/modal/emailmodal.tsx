@@ -1,15 +1,18 @@
-// components/modal/phonemodal.js
-import React from 'react';
 import { IoClose } from 'react-icons/io5';
+import React from 'react';
 
-const EmailModal = ({ isOpen, onClose }) => {
-  // Yahan isOpen prop check kar rahe hain
+interface EmailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
     <div 
       className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 p-4"
-      onClick={onClose} // Bahar click karne par modal band hoga
+      onClick={onClose}
     >
       <div 
         className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md transform transition-all"
@@ -19,7 +22,7 @@ const EmailModal = ({ isOpen, onClose }) => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">Add New Email</h2>
           <button 
-            onClick={onClose} // Close button click karne par modal band hoga
+            onClick={onClose}
             className="text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 transition-colors"
           >
             <IoClose size={20} />
@@ -28,8 +31,7 @@ const EmailModal = ({ isOpen, onClose }) => {
 
         {/* Form */}
         <div className="space-y-5">
-
-          {/* email */}
+          {/* Email Input */}
           <div className="bg-gray-100/70 p-3 rounded-lg w-full">
             <label htmlFor="email" className="text-xs text-gray-500 block">
               Email
@@ -41,7 +43,6 @@ const EmailModal = ({ isOpen, onClose }) => {
               className="w-full bg-transparent text-gray-900 text-xs placeholder:text-xs focus:outline-none placeholder:text-gray-400"
             />
           </div>
-
 
           {/* Primary Checkbox */}
           <div className="flex items-center gap-3">
@@ -59,7 +60,7 @@ const EmailModal = ({ isOpen, onClose }) => {
         {/* Footer */}
         <div className="flex justify-center items-center gap-3 pt-6 mt-6 border-t border-gray-200">
           <button
-            onClick={onClose} // Cancel button click karne par modal band hoga
+            onClick={onClose}
             className="bg-gray-200 w-full hover:bg-gray-300 text-gray-800 font-semibold py-2.5 px-6 rounded-lg"
           >
             Cancel

@@ -405,7 +405,6 @@
 // export default LeadIntelligence;
 
 // LeadIntelligence.js
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 // Data...
@@ -443,7 +442,7 @@ const LeadIntelligence = () => {
                     <div className="flex items-center justify-center gap-4 w-full">
                         <div className="w-40 h-40 relative">
                             <ResponsiveContainer width="100%" height="100%">
-                                <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={70} fill="#8884d8" paddingAngle={5} dataKey="value">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Pie></PieChart>
+                                <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={70} fill="#8884d8" paddingAngle={5} dataKey="value">{pieData.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Pie></PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex items-center justify-center"><span className="text-3xl font-bold text-gray-800">72%</span></div>
                         </div>

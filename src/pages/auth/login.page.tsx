@@ -2,8 +2,6 @@ import { useState } from "react";
 import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {

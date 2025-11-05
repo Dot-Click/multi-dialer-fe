@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FiChevronUp } from 'react-icons/fi'; // Icon ke liye: npm install react-icons
 
 const Setting = () => {

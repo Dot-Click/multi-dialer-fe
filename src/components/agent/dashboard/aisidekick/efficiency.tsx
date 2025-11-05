@@ -1,4 +1,3 @@
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 // Data for the AI-Handled Conversations donut chart
@@ -73,7 +72,7 @@ const Efficiency = () => {
                                     startAngle={90} // Starts from the top
                                     endAngle={-270} // Goes clockwise
                                 >
-                                    {aiHandledData.map((entry, index) => (
+                                    {aiHandledData.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>

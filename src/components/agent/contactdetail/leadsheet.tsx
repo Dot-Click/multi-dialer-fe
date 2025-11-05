@@ -1,5 +1,3 @@
-import React from "react";
-
 const LeadSheet = () => {
   // All questions in one array
   const questions = [

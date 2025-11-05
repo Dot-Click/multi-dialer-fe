@@ -1,15 +1,22 @@
-import React from "react";
-import { TableProvider } from "@/providers/table.provider";
-import { TableComponent, SortedHeader, checkBoxProps } from "@/components/common/tablecomponent";
-import { Checkbox } from "@/components/ui/checkbox";
+
+import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
 import { Box } from "@/components/ui/box";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter as FilterIcon, ArrowUpDown } from "lucide-react";
-// import { type ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TableProvider } from "@/providers/table.provider";
+
+
+interface Contact {
+  id: number;
+  name: string;
+  lastDialedDate: string;
+  phone: string;
+  email: string;
+  list: string;
+  tags: string;
+}
 
 // Static data (same as screenshot)
-const contacts = [
+const contacts: Contact[] = [
   {
     id: 1,
     name: "Kathryn Murphy",
@@ -103,38 +110,75 @@ const contacts = [
 ];
 
 // Table columns
+// const columns = [
+//   {
+//     id: "select",
+//     header: (info) => <Checkbox {...checkBoxProps(info)} />,
+//     cell: (info) => <Checkbox {...checkBoxProps(info)} />,
+//     enableSorting: false,
+//   },
+//   {
+//     accessorKey: "name",
+//     header: (info) => <SortedHeader header={info.header} label="Name" />,
+//   },
+//   {
+//     accessorKey: "lastDialedDate",
+//     header: (info) => <SortedHeader header={info.header} label="Last Dialed Date" />,
+//   },
+//   {
+//     accessorKey: "phone",
+//     header: (info) => <SortedHeader header={info.header} label="Phone Number" />,
+//   },
+//   {
+//     accessorKey: "email",
+//     header: (info) => <SortedHeader header={info.header} label="Email" />,
+//   },
+//   {
+//     accessorKey: "list",
+//     header: (info) => <SortedHeader header={info.header} label="List" />,
+//   },
+//   {
+//     accessorKey: "tags",
+//     header: (info) => <SortedHeader header={info.header} label="Tags" />,
+//   },
+// ];
+
 const columns = [
   {
     id: "select",
-    header: (info) => <Checkbox {...checkBoxProps(info)} />,
-    cell: (info) => <Checkbox {...checkBoxProps(info)} />,
+    header: () => <Checkbox />, // removed "info"
+    cell: () => <Checkbox />,   // removed "info"
     enableSorting: false,
   },
   {
     accessorKey: "name",
-    header: (info) => <SortedHeader header={info.header} label="Name" />,
+    header: (info: any) => <SortedHeader header={info.header} label="Name" />,
   },
   {
     accessorKey: "lastDialedDate",
-    header: (info) => <SortedHeader header={info.header} label="Last Dialed Date" />,
+    header: (info: any) => <SortedHeader header={info.header} label="Last Dialed Date" />,
   },
   {
     accessorKey: "phone",
-    header: (info) => <SortedHeader header={info.header} label="Phone Number" />,
+    header: (info: any) => <SortedHeader header={info.header} label="Phone Number" />,
   },
   {
     accessorKey: "email",
-    header: (info) => <SortedHeader header={info.header} label="Email" />,
+    header: (info: any) => <SortedHeader header={info.header} label="Email" />,
   },
   {
     accessorKey: "list",
-    header: (info) => <SortedHeader header={info.header} label="List" />,
+    header: (info: any) => <SortedHeader header={info.header} label="List" />,
   },
   {
     accessorKey: "tags",
-    header: (info) => <SortedHeader header={info.header} label="Tags" />,
+    header: (info: any) => <SortedHeader header={info.header} label="Tags" />,
   },
 ];
+
+
+
+
 
 const AllContact = () => {
   return (

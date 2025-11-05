@@ -10,42 +10,38 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-// import {
-//   CalendarComponent,
-//   type CalendarComponentProps,
-// } from "../ui/calendarcomponent";
 import { useGlobalTable } from "../../providers/table.provider";
-import { DebouncedInput } from "../common/tablecomponent";
-import type { Table } from "@tanstack/react-table";
-import { Button } from "../../components/ui/button";
+import { DebouncedInput } from "./tablecomponent";
+// 'Table' اور 'Column' کی اقسام کو @tanstack/react-table سے امپورٹ کریں
+import type { Table, Column } from "@tanstack/react-table";
+import { Button } from "../ui/button";
 import type { PropsWithChildren } from "react";
 import { Filter } from "lucide-react";
 import { Flex } from "../ui/flex";
-interface TableHeaderFnProps<T> {
-  //   extends
-  //   Pick<CalendarComponentProps, "onApply" | "onReset">
-  //   withCalendarFilter?: boolean;
+
+// پروپس کے لیے ایک انٹرفیس بنائیں
+interface TableHeaderProps<TData> {
   withColumnFilter?: boolean;
-  table: Table<T>;
+  table: Table<TData>;
 }
-type TableHeaderFn = <T>(
-  FnProps: TableHeaderFnProps<T> & PropsWithChildren
-) => React.ReactNode;
-export const TableHeader: TableHeaderFn = ({
-  //   withCalendarFilter = true,
+
+// کمپوننٹ کو ایک جنرک فنکشن کے طور پر واضح کریں
+export function TableHeader<TData extends object>({
   withColumnFilter = true,
   children,
   table,
-}) => {
-  const { globalFilter, setGlobalFilter } = useGlobalTable();
+}: PropsWithChildren<TableHeaderProps<TData>>) {
+  // useGlobalTable کو بھی جنرک قسم فراہم کریں
+  const { globalFilter, setGlobalFilter } = useGlobalTable<TData>();
+
   return (
     <Flex className="justify-between py-4 max-md:flex-col items-start">
       <DebouncedInput
-        value={globalFilter}
-        onChange={(value) => setGlobalFilter(value)}
+        // یقینی بنائیں کہ ویلیو کبھی undefined نہ ہو
+        value={globalFilter ?? ""}
+        onChange={(value) => setGlobalFilter(String(value))}
       />
       <Flex className="max-md:w-full">
-        {/* {withCalendarFilter && <CalendarComponent />} */}
         {withColumnFilter && (
           <DropdownMenu>
             <TooltipProvider>
@@ -53,27 +49,28 @@ export const TableHeader: TableHeaderFn = ({
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="cursor-pointer">
-                      <Filter />
+                      <Filter className="mr-2 h-4 w-4" />
                       Filter
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent className="mb-0.5">
-                  <p>Filter Table</p>
+                  <p>Filter Table Columns</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <DropdownMenuContent align="end">
               {table
                 .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
+                // 'column' کی قسم کو واضح کریں
+                .filter((column: Column<TData, unknown>) => column.getCanHide())
+                .map((column: Column<TData, unknown>) => {
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
                       className="capitalize"
                       checked={column.getIsVisible()}
-                      onCheckedChange={(value: any) =>
+                      onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
                       }
                     >
@@ -88,4 +85,4 @@ export const TableHeader: TableHeaderFn = ({
       </Flex>
     </Flex>
   );
-};
+}

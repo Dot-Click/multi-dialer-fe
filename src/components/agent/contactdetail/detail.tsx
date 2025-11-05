@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FaRegEdit } from "react-icons/fa";
 import mapIcon from "@/assets/mapicon.png"
 import streeticon from "@/assets/streeticon.png"

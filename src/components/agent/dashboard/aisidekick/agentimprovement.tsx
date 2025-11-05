@@ -1,4 +1,3 @@
-import React from 'react';
 
 const AgentImprovement = () => {
     // The width of the progress bar, derived from the "Current Performance"

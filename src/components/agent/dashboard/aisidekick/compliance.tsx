@@ -1,4 +1,3 @@
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 // Data for the Risk Phrase Detection Rate donut chart
@@ -61,7 +60,7 @@ const Compliance = () => {
                                     startAngle={90}
                                     endAngle={-270}
                                 >
-                                    {riskData.map((entry, index) => (
+                                    {riskData.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>

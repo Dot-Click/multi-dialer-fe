@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Sample data for the calling groups list
 const callingGroupsData = [
@@ -12,7 +11,7 @@ const callingGroupsData = [
 ];
 
 // Helper function to get tag styles based on tag name
-const getTagStyles = (tag) => {
+const getTagStyles = (tag:any) => {
     switch (tag) {
         case 'Hot Lead':
             return 'bg-red-100 text-red-700';

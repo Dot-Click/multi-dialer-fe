@@ -2,10 +2,8 @@ import { useState } from "react";
 import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AdminLogin: React.FC = () => {
   const [isAdminLogin, setIsAdminLogin] = useState<boolean>(true);

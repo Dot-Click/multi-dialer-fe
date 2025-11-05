@@ -73,10 +73,10 @@
 // //                 <h1 className="text-[#495057] font-[500] text-[14px]">Groups</h1>
 // //                 <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
 // //                     {group.map((gro) => (
-                        
+
 // //                             <div className="flex gap-2  bg-gray-50 rounded-xl px-2 py-2 items-center">
 // //                                 <h1 className="text-[#495057] font-[500] text-[14px]">{gro.name}</h1>
-                           
+
 // //                         </div>
 // //                     ))}
 // //                 </div>
@@ -228,13 +228,19 @@
 
 
 
-import React, { useState, useEffect } from "react";
-import {Link} from "react-router-dom"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom"
 import { IoIosArrowBack } from "react-icons/io";
 import { BiSolidContact } from "react-icons/bi";
 import { VscFolderOpened } from "react-icons/vsc";
 
-const AllContactSidebar = ({ onSelectItem }) => {
+
+interface AllContactSidebarProps {
+  onSelectItem: (item: string) => void;
+}
+
+
+const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
 
   useEffect(() => {
@@ -263,7 +269,7 @@ const AllContactSidebar = ({ onSelectItem }) => {
     { id: 5, name: "group" },
   ];
 
-  const handleClick = (item) => {
+  const handleClick = (item: string) => {
     setActiveItem(item);
     onSelectItem(item);
   };
@@ -301,10 +307,9 @@ const AllContactSidebar = ({ onSelectItem }) => {
               <div
                 onClick={() => handleClick(list.folder)}
                 className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                  ${
-                    activeItem === list.folder
-                      ? "bg-[#FFCA06]"
-                      : "bg-gray-50 hover:bg-[#FFCA06]"
+                  ${activeItem === list.folder
+                    ? "bg-[#FFCA06]"
+                    : "bg-gray-50 hover:bg-[#FFCA06]"
                   }`}
               >
                 <VscFolderOpened className="text-lg" />
@@ -342,10 +347,9 @@ const AllContactSidebar = ({ onSelectItem }) => {
               key={gro.id}
               onClick={() => handleClick(gro.name + gro.id)}
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${
-                  activeItem === gro.name + gro.id
-                    ? "bg-[#FFCA06]"
-                    : "bg-gray-50 hover:bg-[#FFCA06]"
+                ${activeItem === gro.name + gro.id
+                  ? "bg-[#FFCA06]"
+                  : "bg-gray-50 hover:bg-[#FFCA06]"
                 }`}
             >
               <h1 className="text-[#495057] font-[500] text-[14px]">

@@ -2,19 +2,20 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "@/layouts/agent/dashboardlayout"
 import AgentHome from "@/pages/agent/agenthome"
-import AllContactSidebar from "./components/agent/common/allcontactsidebar";
-import ContactLayout from "./layouts/agent/contactlayout";
-import AllContact from "./pages/agent/allcontact";
-import ContactDetail from "./pages/agent/contactdetail";
-import Login from "./pages/auth/login.page";
-import AdminLogin from "./pages/auth/adminlogin.page";
-import AdminChangePassword from "./pages/auth/adminchangepassword.page";
-import RecoveryPassword from "./pages/auth/recoverypassword.page";
-import ChangePassword from "./pages/auth/changepassword.page";
-import Code from "./pages/auth/code.page";
-import Setting from "./pages/agent/setting";
-import AdminDashboardLayout from "./layouts/admin/admindashboardlayout";
-import AdminHome from "./pages/admin/adminhome";
+
+import ContactLayout from "@/layouts/agent/contactlayout";
+import AllContact from "@/pages/agent/allcontact";
+import ContactDetail from "@/pages/agent/contactdetail";
+import Login from "@/pages/auth/login.page";
+import AdminLogin from "@/pages/auth/adminlogin.page";
+import AdminChangePassword from "@/pages/auth/adminchangepassword.page";
+import RecoveryPassword from "@/pages/auth/recoverypassword.page";
+import ChangePassword from "@/pages/auth/changepassword.page";
+import Code from "@/pages/auth/code.page";
+import Setting from "@/pages/agent/setting";
+import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
+import AdminHome from "@/pages/admin/adminhome";
+import Library from "./pages/agent/library";
 
 const Router: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const Router: React.FC = () => {
 
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<AgentHome />} />
+          <Route path="/library" element={<Library />} />
           <Route path="/settings" element={<Setting />} />
         </Route>
 

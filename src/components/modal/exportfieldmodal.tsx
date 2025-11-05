@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { IoClose, IoSearch } from "react-icons/io5";
+import React from "react";
 
-const ExportFieldsModal = ({ onClose }) => {
+interface ExportFieldsModalProps {
+  onClose: () => void;
+}
+
+const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({ onClose }) => {
   const [search, setSearch] = useState("");
   const fields = [
     "Name",
