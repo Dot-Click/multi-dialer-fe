@@ -9,7 +9,7 @@ const Script = () => {
     { id: 3, name: "Script #3", createdBy: "Devon Lane", createdOn: "07/09/2025", modifiedOn: "07/09/2025", status: false },
   ]);
 
-  // Toggle status function
+  // Toggle status
   const handleToggleStatus = (id: number) => {
     setScripts((prev) =>
       prev.map((script) =>
@@ -19,59 +19,61 @@ const Script = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Search + Add button */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative  w-full sm:w-auto mb-4 sm:mb-0">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      {/* 🔍 Search + Add button */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
+        <div className="relative w-full sm:w-auto">
           <input
             type="text"
             placeholder="Search by script name"
-            className="w-full sm:w-96 pl-4 bg-white pr-10 py-2 border border-gray-300 rounded-4xl placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="w-full sm:w-96 pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
-        <button className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center">
+
+        <button className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center transition-all">
           <HiPlus className="h-5 w-5 mr-2" />
           Add Script
         </button>
       </div>
 
-      {/* Script cards */}
+      {/* 📄 Script cards */}
       <div className="space-y-4">
         {scripts.map((script) => (
           <div
             key={script.id}
-            className="bg-white p-4 rounded-lg shadow-md flex flex-col lg:flex-row items-start lg:items-center justify-between"
+            className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between transition-all"
           >
             {/* Script Name */}
-            <div className="font-medium text-base mb-4 lg:mb-0 w-full lg:w-1/4">
+            <div className="font-semibold text-base text-gray-900 w-full lg:w-1/4">
               {script.name}
             </div>
 
-            {/* Info section (aligned grid) */}
-            <div className="w-full lg:w-3/4 grid grid-cols-4 gap-6 text-sm text-gray-600 items-center">
+            {/* Info section */}
+            <div className="w-full lg:w-3/4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+              {/* Created By */}
               <div className="flex flex-col">
-                <div className="text-gray-500 text-xs">Created by</div>
-                <div className="font-medium text-black">{script.createdBy}</div>
+                <span className="text-gray-500 text-xs">Created by</span>
+                <span className="font-medium text-gray-900">{script.createdBy}</span>
               </div>
 
+              {/* Created On */}
               <div className="flex flex-col">
-                <div className="text-gray-500 text-xs">Created on</div>
-                <div className="font-medium text-black">{script.createdOn}</div>
+                <span className="text-gray-500 text-xs">Created on</span>
+                <span className="font-medium text-gray-900">{script.createdOn}</span>
               </div>
 
+              {/* Modified On */}
               <div className="flex flex-col">
-                <div className="text-gray-500 text-xs">Modified on</div>
-                <div className="font-medium text-black">{script.modifiedOn}</div>
+                <span className="text-gray-500 text-xs">Modified on</span>
+                <span className="font-medium text-gray-900">{script.modifiedOn}</span>
               </div>
 
-              {/* Status + Dot + Menu */}
-              <div className="flex items-center justify-between lg:justify-end gap-4">
-                
-
+              {/* Status + Menu */}
+              <div className="flex items-center justify-between md:justify-end gap-3">
                 <label
                   htmlFor={`toggle-${script.id}`}
-                  className="flex items-center cursor-pointer"
+                  className="flex items-center cursor-pointer select-none"
                 >
                   <div className="relative">
                     <input
@@ -82,13 +84,13 @@ const Script = () => {
                       onChange={() => handleToggleStatus(script.id)}
                     />
                     <div
-                      className={`block ${
+                      className={`block w-11 h-6 rounded-full transition-colors duration-300 ${
                         script.status ? "bg-black" : "bg-gray-300"
-                      } w-12 h-6 rounded-full transition-colors duration-300`}
+                      }`}
                     ></div>
                     <div
                       className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${
-                        script.status ? "translate-x-6" : ""
+                        script.status ? "translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
