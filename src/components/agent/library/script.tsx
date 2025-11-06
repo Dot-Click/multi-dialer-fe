@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HiOutlineSearch, HiPlus } from "react-icons/hi";
 import { BsThreeDots } from "react-icons/bs";
+import ScriptModal from "@/components/modal/scriptmodal";
 
 const Script = () => {
   const [scripts, setScripts] = useState([
@@ -8,6 +9,15 @@ const Script = () => {
     { id: 2, name: "Script #2", createdBy: "Brooklyn Simmons", createdOn: "08/09/2025", modifiedOn: "08/09/2025", status: true },
     { id: 3, name: "Script #3", createdBy: "Devon Lane", createdOn: "07/09/2025", modifiedOn: "07/09/2025", status: false },
   ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   // Toggle status
   const handleToggleStatus = (id: number) => {
@@ -31,7 +41,8 @@ const Script = () => {
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
-        <button className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center transition-all">
+        <button onClick={openModal}
+          className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center transition-all">
           <HiPlus className="h-5 w-5 mr-2" />
           Add Script
         </button>
@@ -84,14 +95,12 @@ const Script = () => {
                       onChange={() => handleToggleStatus(script.id)}
                     />
                     <div
-                      className={`block w-11 h-6 rounded-full transition-colors duration-300 ${
-                        script.status ? "bg-black" : "bg-gray-300"
-                      }`}
+                      className={`block w-11 h-6 rounded-full transition-colors duration-300 ${script.status ? "bg-black" : "bg-gray-300"
+                        }`}
                     ></div>
                     <div
-                      className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${
-                        script.status ? "translate-x-5" : ""
-                      }`}
+                      className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${script.status ? "translate-x-5" : ""
+                        }`}
                     ></div>
                   </div>
                 </label>
@@ -104,6 +113,12 @@ const Script = () => {
           </div>
         ))}
       </div>
+
+
+      <ScriptModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
     </div>
   );
 };

@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { HiOutlineSearch, HiPlus } from "react-icons/hi";
 import { BsThreeDots } from "react-icons/bs";
+import EmailTemplateModal from "@/components/modal/emailtemplatemodal";
 
 const EmailTemplate = () => {
+  const [isEmailModalOpen, setEmailModalOpen] = useState(false);
+
   const [email, setEmails] = useState([
     {
       id: 1,
@@ -30,6 +33,20 @@ const EmailTemplate = () => {
     },
   ]);
 
+
+  // Modal ko kholne ke liye function
+  const openEmailModal = () => {
+    setEmailModalOpen(true);
+  };
+
+  // Modal ko band karne ke liye function
+  const closeEmailModal = () => {
+    setEmailModalOpen(false);
+  };
+
+
+
+
   // Toggle status function
   const handleToggleStatus = (id: number) => {
     setEmails((prev) =>
@@ -52,7 +69,8 @@ const EmailTemplate = () => {
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
-        <button className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center">
+        <button onClick={openEmailModal}
+          className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center">
           <HiPlus className="h-5 w-5 mr-2" />
           Add Template
         </button>
@@ -109,14 +127,12 @@ const EmailTemplate = () => {
                       onChange={() => handleToggleStatus(email.id)}
                     />
                     <div
-                      className={`block w-12 h-6 rounded-full transition-colors duration-300 ${
-                        email.status ? "bg-black" : "bg-gray-300"
-                      }`}
+                      className={`block w-12 h-6 rounded-full transition-colors duration-300 ${email.status ? "bg-black" : "bg-gray-300"
+                        }`}
                     ></div>
                     <div
-                      className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${
-                        email.status ? "translate-x-6" : ""
-                      }`}
+                      className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${email.status ? "translate-x-6" : ""
+                        }`}
                     ></div>
                   </div>
                 </label>
@@ -129,6 +145,10 @@ const EmailTemplate = () => {
           </div>
         ))}
       </div>
+      <EmailTemplateModal
+        isOpen={isEmailModalOpen}
+        onClose={closeEmailModal}
+      />
     </div>
   );
 };

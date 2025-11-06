@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { HiOutlineSearch, HiPlus } from "react-icons/hi";
 import { BsThreeDots } from "react-icons/bs";
+import SMSTemplateModal from "@/components/modal/smstemplatemodal";
 
 const SMSTemplate = () => {
+  const [isSMSModalOpen, setSMSModalOpen] = useState(false);
+
   const [SMS, setSMS] = useState([
     {
       id: 1,
@@ -30,6 +33,19 @@ const SMSTemplate = () => {
     },
   ]);
 
+
+  // Modal ko kholne ke liye function
+  const openSMSModal = () => {
+    setSMSModalOpen(true);
+  };
+
+  // Modal ko band karne ke liye function
+  const closeSMSModal = () => {
+    setSMSModalOpen(false);
+  };
+
+
+
   // Toggle status function
   const handleToggleStatus = (id: number) => {
     setSMS((prev) =>
@@ -50,7 +66,7 @@ const SMSTemplate = () => {
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
-        <button className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center">
+        <button onClick={openSMSModal} className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center">
           <HiPlus className="h-5 w-5 mr-2" />
           Add Template
         </button>
@@ -100,14 +116,12 @@ const SMSTemplate = () => {
                       onChange={() => handleToggleStatus(sms.id)}
                     />
                     <div
-                      className={`block w-12 h-6 rounded-full transition-colors duration-300 ${
-                        sms.status ? "bg-black" : "bg-gray-300"
-                      }`}
+                      className={`block w-12 h-6 rounded-full transition-colors duration-300 ${sms.status ? "bg-black" : "bg-gray-300"
+                        }`}
                     ></div>
                     <div
-                      className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${
-                        sms.status ? "translate-x-6" : ""
-                      }`}
+                      className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ${sms.status ? "translate-x-6" : ""
+                        }`}
                     ></div>
                   </div>
                 </label>
@@ -120,6 +134,10 @@ const SMSTemplate = () => {
           </div>
         ))}
       </div>
+      <SMSTemplateModal
+        isOpen={isSMSModalOpen}
+        onClose={closeSMSModal}
+      />
     </div>
   );
 };

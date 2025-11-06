@@ -15,7 +15,7 @@ interface Contact {
   tags: string;
 }
 
-// Static data (same as screenshot)
+
 const contacts: Contact[] = [
   {
     id: 1,
@@ -109,39 +109,6 @@ const contacts: Contact[] = [
   },
 ];
 
-// Table columns
-// const columns = [
-//   {
-//     id: "select",
-//     header: (info) => <Checkbox {...checkBoxProps(info)} />,
-//     cell: (info) => <Checkbox {...checkBoxProps(info)} />,
-//     enableSorting: false,
-//   },
-//   {
-//     accessorKey: "name",
-//     header: (info) => <SortedHeader header={info.header} label="Name" />,
-//   },
-//   {
-//     accessorKey: "lastDialedDate",
-//     header: (info) => <SortedHeader header={info.header} label="Last Dialed Date" />,
-//   },
-//   {
-//     accessorKey: "phone",
-//     header: (info) => <SortedHeader header={info.header} label="Phone Number" />,
-//   },
-//   {
-//     accessorKey: "email",
-//     header: (info) => <SortedHeader header={info.header} label="Email" />,
-//   },
-//   {
-//     accessorKey: "list",
-//     header: (info) => <SortedHeader header={info.header} label="List" />,
-//   },
-//   {
-//     accessorKey: "tags",
-//     header: (info) => <SortedHeader header={info.header} label="Tags" />,
-//   },
-// ];
 
 const columns = [
   {

@@ -187,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
     { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
     { id: 4, name: "Library", link: "/library", icon: libraryicon },
-    { id: 5, name: "Reports & Analytics", link: "/reports", icon: reporticon },
+    { id: 5, name: "Reports & Analytics", link: "/reports-analytics", icon: reporticon },
     { id: 6, name: "Settings", link: "/settings", icon: settingicon },
   ];
 

@@ -29,7 +29,7 @@ const Library = () => {
 
   return (
     <div className=" pr-10">
-      <h1 className="text-3xl sm:text-4xl font-[500] text-gray-800">Library</h1>
+      <h1 className="text-2xl sm:text-4xl font-medium text-gray-800">Library</h1>
 
       <div className="mt-4 rounded-md w-fit bg-gray-200">
         <nav className="flex  flex-wrap gap-4">

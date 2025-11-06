@@ -15,7 +15,8 @@ import Code from "@/pages/auth/code.page";
 import Setting from "@/pages/agent/setting";
 import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import AdminHome from "@/pages/admin/adminhome";
-import Library from "./pages/agent/library";
+import Library from "@/pages/agent/library";
+import ReportAnalytics from "@/pages/agent/reportanalytics";
 
 const Router: React.FC = () => {
   return (
@@ -29,6 +30,7 @@ const Router: React.FC = () => {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<AgentHome />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/reports-analytics" element={<ReportAnalytics />} />
           <Route path="/settings" element={<Setting />} />
         </Route>
 
