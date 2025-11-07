@@ -1,5 +1,6 @@
 
 import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
@@ -113,8 +114,8 @@ const contacts: Contact[] = [
 const columns = [
   {
     id: "select",
-    header: () => <Checkbox />, // removed "info"
-    cell: () => <Checkbox />,   // removed "info"
+    header: () => <Checkbox />,
+    cell: () => <Checkbox />,
     enableSorting: false,
   },
   {
@@ -140,6 +141,19 @@ const columns = [
   {
     accessorKey: "tags",
     header: (info: any) => <SortedHeader header={info.header} label="Tags" />,
+    cell: (info: any) => (
+      <Badge
+        bg="#E8EDF2"
+        color="#144AE6"
+        px={4}
+        py={1}
+        fontSize={"xs"}
+        borderRadius="full"
+        fontWeight="medium"
+      >
+        {info.getValue()}
+      </Badge>
+    ),
   },
 ];
 
@@ -150,7 +164,7 @@ const columns = [
 const AllContact = () => {
   return (
     <Box className="mt-3 w-full h-full">
-    
+
 
       {/* Table Section */}
       <main>

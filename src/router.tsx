@@ -17,6 +17,7 @@ import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import AdminHome from "@/pages/admin/adminhome";
 import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
+import ContactInfo from "./pages/agent/contactinfo";
 
 const Router: React.FC = () => {
   return (
@@ -38,6 +39,7 @@ const Router: React.FC = () => {
           <Route index element={<AllContact />} />
         </Route>
         <Route path="/contact-detail" element={<ContactDetail />} />
+        <Route path="/contact-info" element={<ContactInfo />} />
 
 
 

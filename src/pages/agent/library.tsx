@@ -48,7 +48,7 @@ const Library = () => {
         </nav>
       </div>
 
-      <div className="content-area mt-8">
+      <div className="content-area mt-5">
         {renderContent()}
       </div>
     </div>

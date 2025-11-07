@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Sample data that matches the structure in the image
 const eventData = [

@@ -7,7 +7,7 @@ interface AnalyticCardProps {
 
 const AnalyticCard: React.FC<AnalyticCardProps> = ({ icon, label, value }) => {
     return (
-        <div className="bg-white border border-gray-200 rounded-xl px-2 py-3 shadow-sm flex gap-2 items-center pl-5 gap-2">
+        <div className="bg-white border border-gray-200 rounded-xl px-2 py-3 shadow-sm flex  items-center pl-5 gap-2">
             <div className="bg-gray-100 p-2 rounded-full">
                 <img src={icon} alt={"icon"} className="h-5 w-5 object-contain" />
             </div>
