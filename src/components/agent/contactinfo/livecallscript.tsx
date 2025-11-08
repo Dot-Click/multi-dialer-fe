@@ -1,4 +1,5 @@
-import scripticon from "../../../assets/scripticon.png"
+import livecallscripticon from "../../../assets/livecallscripticon.png"
+
 
 const scriptContent = [
   "Hi, is this [First Name]?",
@@ -8,12 +9,12 @@ const scriptContent = [
   "Would that be something you'd like me to send over?",
 ];
 
-const ContactInfoScript = () => {
+const LiveContactScript = () => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-3 w-full h-full flex flex-col">
-      <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-        <img src={scripticon} alt="scripticon"  className="w-3 object-contain"/>
-        <h3 className="text-base font-medium text-gray-700">Script</h3>
+    <div className="bg-white h-full rounded-2xl shadow-sm p-3 w-full  flex flex-col">
+      <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+        <img src={livecallscripticon} alt="livecallscripticon" className="w-4 object-contain" />
+        <h3 className="text-base font-medium text-gray-700">Live Call Script</h3>
       </div>
       <div className="flex-grow overflow-y-auto pr-2">
         <div className="space-y-4">
@@ -28,4 +29,4 @@ const ContactInfoScript = () => {
   );
 };
 
-export default ContactInfoScript;
+export default LiveContactScript;

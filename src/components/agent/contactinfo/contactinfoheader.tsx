@@ -1,7 +1,9 @@
-import { IoPaperPlaneOutline } from "react-icons/io5";
+import { IoPaperPlaneOutline,IoPlayOutline } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
-import { FaPlay, FaPhoneSlash } from "react-icons/fa";
+import { LuSendHorizontal } from "react-icons/lu";
 import { BsRecord2 } from "react-icons/bs";
+import contactinfoheadericon from "../../../assets/contactinfoheadericon.png"
+
 
 const ContactInfoHeader = () => {
   return (
@@ -22,12 +24,12 @@ const ContactInfoHeader = () => {
           {/* Action Buttons */}
           <div className="flex gap-2 flex-wrap">
             <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-200/80 text-gray-900 font-medium text-xs rounded-lg hover:bg-gray-300 transition">
-              <IoPaperPlaneOutline className="text-sm" />
+              <LuSendHorizontal className="text-base" />
               <span className="hidden sm:inline">Send Leads</span>
             </button>
 
             <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-200/80 text-gray-900 font-medium text-xs rounded-lg hover:bg-gray-300 transition">
-              <HiPlus className="text-sm" />
+              <HiPlus className="text-base" />
               <span className="hidden sm:inline">Appointment</span>
             </button>
           </div>
@@ -46,13 +48,13 @@ const ContactInfoHeader = () => {
 
           {/* Start Button */}
           <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-200/80 text-gray-900 font-medium text-xs rounded-lg hover:bg-gray-300 transition">
-            <FaPlay className="text-sm" />
+            <IoPlayOutline className="text-base" />
             <span className="hidden sm:inline">Start</span>
           </button>
 
           {/* Hang Up */}
           <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-200/80 text-gray-900 font-medium text-xs rounded-lg hover:bg-gray-300 transition">
-            <FaPhoneSlash className="text-sm" />
+            <img src={contactinfoheadericon} alt="contactinfoheadericon" className="w-4 object-contain" />
             <span className="hidden sm:inline">Hang Up & Leave</span>
           </button>
 

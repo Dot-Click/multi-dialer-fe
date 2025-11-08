@@ -125,44 +125,78 @@
 
 }
 
-/* === Custom Scrollbar (No Arrows) === */
-.custom-scrollbar::-webkit-scrollbar {
+
+ /* .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
 
-/* Track (background area) */
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
 
-/* Thumb (the draggable part) */
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #888888;
   border-radius: 10px;
 }
 rgb(228, 212, 192)
-/* Thumb hover effect */
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #817b72;
 }
 
-/* 🚫 Completely remove scrollbar arrows */
+
 .custom-scrollbar::-webkit-scrollbar-button:single-button {
   display: none;
   width: 0;
   height: 0;
 }
 
-/* For safety, also disable any leftover button space */
+
 .custom-scrollbar::-webkit-scrollbar-button {
   display: none;
   width: 0;
   height: 0;
 }
 
-/* Firefox support */
+
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #6d6d6d #f1f1f1;
+}
+
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}  */
+
+
+.custom-scrollbar {
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #a9a9a9 #f0f0f0; /* Darker thumb, lighter track */
+
+  /* For WebKit Browsers */
+}
+
+/* Hiding arrows in WebKit */
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Styling the rest of the scrollbar in WebKit for consistency */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Make scrollbar width similar to Firefox 'thin' */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a9a9a9;
+  border-radius: 10px;
+  border: 2px solid #f0f0f0;
 }

@@ -1,6 +1,10 @@
 import React from 'react';
-import { FaBriefcase, FaMicrophoneSlash, FaPhoneAlt, FaPhoneSlash } from 'react-icons/fa';
-import { IoSwapHorizontal } from 'react-icons/io5';
+import {  FaPhoneAlt } from 'react-icons/fa';
+import calliconcontactinfo from "../../../assets/calliconcontactinfo.png"
+import contactinfothirdicon from "../../../assets/contactinfothirdicon.png"
+import callsectionicon from "../../../assets/callsectionicon.png"
+import { BsMicMute } from "react-icons/bs";
+
 
 // ✅ Type define kiya
 type CallStatus = "disconnected" | "active" | "calling" | "next" | "queued";
@@ -34,7 +38,7 @@ const getStatusBadgeStyle = (status: CallStatus) => {
 const CallSection = () => {
   return (
     <div className="w-full">
-      <div className="flex space-x-4 custom-scrollbar overflow-x-auto pb-4">
+      <div className="flex space-x-4 custom-scrollbar overflow-x-auto pb-2">
 
         {callData.map((call) => {
 
@@ -48,18 +52,18 @@ const CallSection = () => {
                 rounded-2xl p-5 shadow-sm
                 transition-all duration-300 flex flex-col text-center
 
-                ${isActive 
-                  ? 'justify-between bg-gray-900 text-white items-center' 
+                ${isActive
+                  ? 'justify-between bg-gray-950 text-white items-center'
                   : 'justify-center bg-white text-gray-800 items-center'}
               `}
             >
 
               {/* Name + Phone (Always centered except active) */}
               <div className={`flex flex-col items-center gap-1 ${isActive ? '' : 'mb-3'}`}>
-                <h3 className="font-bold text-lg">{call.name}</h3>
-                <div className={`flex items-center gap-1 text-sm ${isActive ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <FaBriefcase />
-                  <span>{call.phone}</span>
+                <h3 className="font-medium text-lg">{call.name}</h3>
+                <div className={`flex items-center gap-2 text-sm ${isActive ? 'text-gray-100' : 'text-gray-500'}`}>
+                    <img src={callsectionicon} alt="callsectionicon" className="w-4 object-contain  " />
+                  <span className={`text-[16px] ${isActive ? 'text-gray-100' : "text-gray-950"}`}>{call.phone}</span>
                 </div>
               </div>
 
@@ -69,14 +73,14 @@ const CallSection = () => {
                   <div className="w-full text-center bg-gray-700/50 rounded-full py-1 text-sm">00:01</div>
 
                   <div className="flex justify-around w-full mt-2">
-                    <button className="h-10 w-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600"><FaMicrophoneSlash size={16} /></button>
-                    <button className="h-10 w-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600"><FaPhoneAlt size={16} /></button>
-                    <button className="h-10 w-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600"><IoSwapHorizontal size={18} /></button>
-                    <button className="h-10 w-10 flex items-center justify-center bg-red-600 rounded-full hover:bg-red-500"><FaPhoneSlash size={16} /></button>
+                    <button className="h-10 w-10 flex items-center text-gray-950 justify-center bg-gray-200 rounded-md px-3 py-1"><BsMicMute size={16} /></button>
+                    <button className="h-10 w-10 flex items-center text-gray-950 justify-center bg-gray-200 rounded-md px-3 py-1"><FaPhoneAlt size={16} /></button>
+                    <img src={contactinfothirdicon} alt="contactinfothirdicon" className="w-10 object-contain bg-gray-200 rounded-md px-3 py-1" />
+                    <img src={calliconcontactinfo} alt="calliconcontactinfo" className="w-10 object-contain bg-red-600 rounded-md px-3 py-1" />
                   </div>
                 </div>
               ) : (
-                <div className={`mt-1 px-5 py-2 rounded-full font-semibold text-sm ${getStatusBadgeStyle(call.status)}`}>
+                <div className={`mt-1 px-5 py-1 rounded-full font-normal w-full text-sm ${getStatusBadgeStyle(call.status)}`}>
                   {call.status.charAt(0).toUpperCase() + call.status.slice(1)}{call.status === 'calling' && '...'}
                 </div>
               )}
@@ -86,12 +90,6 @@ const CallSection = () => {
         })}
 
       </div>
-
-      {/* Progress Bar (same) */}
-      <div className="w-full h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
-        <div className="h-full bg-gray-400" style={{ width: '30%' }}></div>
-      </div>
-
     </div>
   );
 };

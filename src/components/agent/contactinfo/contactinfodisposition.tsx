@@ -17,12 +17,12 @@ const ContactInfoDisposition = () => {
 
   return (
     // Main Container
-    <div className="bg-white rounded-2xl shadow-md p-6 w-full">
+    <div className="bg-white rounded-2xl shadow-md px-3 py-5 w-full">
       <div className="space-y-6">
         
         {/* Dispositions Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <h3 className="text-sm font-semibold text-gray-700 min-w-[90px]">Dispositions:</h3>
+        <div className="flex flex-col gap-2 sm:gap-4">
+          <h3 className="text-sm font-semibold text-gray-900 min-w-[90px]">Dispositions:</h3>
           <div className="flex flex-wrap gap-2">
             {dispositionOptions.map((option) => (
               <button
@@ -42,8 +42,8 @@ const ContactInfoDisposition = () => {
         </div>
 
         {/* Group Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <h3 className="text-sm font-semibold text-gray-700 min-w-[90px]">Group:</h3>
+        <div className="flex flex-col gap-2 sm:gap-4">
+          <h3 className="text-sm font-semibold text-gray-900 min-w-[90px]">Group:</h3>
           <div className="flex flex-wrap gap-2">
             {groupOptions.map((option) => (
               <button
@@ -63,7 +63,7 @@ const ContactInfoDisposition = () => {
         </div>
 
         {/* Divider (Optional, for better separation) */}
-        <div className="border-t border-gray-100 my-4"></div>
+        <div className="border-t border-gray-100 my-2"></div>
 
         {/* Checkboxes Section */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 pt-4">
