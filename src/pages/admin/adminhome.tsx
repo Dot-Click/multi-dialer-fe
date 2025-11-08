@@ -1,8 +1,8 @@
 import { useState } from "react";
 import AiIcon from "@/assets/Ai_icon.png";
 import WorkspaceIcon from "@/assets/workspace_icon.png";
-import Workspace from "@/pages/agent/workspace";
-import Aisidekick from "@/pages/agent/aisidekick";
+import AdminWorkspace from "@/pages/admin/adminworkspace";
+import AdminAisidekick from "@/pages/admin/adminaisidekick";
 
 
 const AdminHome = () => {
@@ -45,8 +45,8 @@ const AdminHome = () => {
 
 
       <div className="mt-3   pr-6">
-        {active === "Workspace" && <Workspace />}
-        {active === "AI Sidekick" && <Aisidekick />}
+        {active === "Workspace" && <AdminWorkspace />}
+        {active === "AI Sidekick" && <AdminAisidekick />}
       </div>
     </section>
   );

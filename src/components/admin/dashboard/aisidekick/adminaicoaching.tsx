@@ -14,7 +14,7 @@ const confidencePieData = [
 ];
 const CONFIDENCE_COLORS = ['#22C55E', '#FBBF24', '#DC2626'];
 
-const AiCoaching = () => {
+const AdminAiCoaching = () => {
   return (
     <section className='bg-white rounded-2xl w-full shadow-sm p-5 flex flex-col h-full'>
       <h1 className="text-xl font-medium text-gray-800">AI Coaching & Call Analysis</h1>
@@ -167,4 +167,4 @@ const AiCoaching = () => {
   );
 };
 
-export default AiCoaching;
+export default AdminAiCoaching;
