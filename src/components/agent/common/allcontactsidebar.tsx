@@ -277,7 +277,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   return (
     <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen shadow-2xl">
       <Link
-        to={'/'}
+        to={'/admin'}
         className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
       >
         <IoIosArrowBack className="text-2xl" />

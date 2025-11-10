@@ -47,15 +47,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
   };
 
   const sidebarLinks = [
-    { id: 1, name: "Dashboard", link: "/", icon: dashboardicon },
-    { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
-    { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
-    { id: 4, name: "Library", link: "/library", icon: libraryicon },
-    { id: 5, name: "Reports & Analytics", link: "/reports", icon: reporticon },
-    { id: 6, name: "Compliance & DNC", link: "/settings", icon: bulbicon },
-    { id: 7, name: "User Management", link: "/settings", icon: usericon },
-    { id: 8, name: "System Settings", link: "/settings", icon: settingicon },
-    { id: 9, name: "Billing", link: "/settings", icon: billingicon },
+    { id: 1, name: "Dashboard", link: "/admin", icon: dashboardicon },
+    { id: 2, name: "Data & Dialer", link: "/admin/data-dialer", icon: dataicon },
+    { id: 3, name: "Calendar", link: "/admin/calendar", icon: calendericon },
+    { id: 4, name: "Library", link: "/admin/library", icon: libraryicon },
+    { id: 5, name: "Reports & Analytics", link: "/admin/reports", icon: reporticon },
+    { id: 6, name: "Compliance & DNC", link: "/admin/compliance", icon: bulbicon },
+    { id: 7, name: "User Management", link: "/admin/user-management", icon: usericon },
+    { id: 8, name: "System Settings", link: "/admin/settings", icon: settingicon },
+    { id: 9, name: "Billing", link: "/admin/billing", icon: billingicon },
   ];
 
   const bottomLinks = [

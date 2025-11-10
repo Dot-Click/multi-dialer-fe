@@ -62,4 +62,4 @@ const GoToCalender = () => {
     )
 }
 
-export default GoToCalender
+export default GoToCalender;

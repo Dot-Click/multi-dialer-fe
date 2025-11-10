@@ -3,6 +3,7 @@ import EmailTemplate from '@/components/agent/library/emailtemplate';
 import Script from '@/components/agent/library/script';
 import SMSTemplate from '@/components/agent/library/smstemplate';
 import MediaCenter from '@/components/agent/library/mediacenter';
+import AdminSidebar from '@/components/admin/common/adminsidebar';
 
 
 
@@ -28,7 +29,8 @@ const Library = () => {
   };
 
   return (
-    <div className=" pr-10">
+  <div className=" pr-10">
+      
       <h1 className="text-2xl sm:text-4xl font-medium text-gray-800">Library</h1>
 
       <div className="mt-4 rounded-md w-fit bg-gray-200">
@@ -52,6 +54,7 @@ const Library = () => {
         {renderContent()}
       </div>
     </div>
+    
   );
 };
 
