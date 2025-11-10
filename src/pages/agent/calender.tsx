@@ -30,7 +30,6 @@
 // export default Calender;
 
 
-import React from 'react';
 
 const Calender = () => {
     // Google Calendar ka embed URL jismein header hide karne ke parameters add kiye gaye hain.
