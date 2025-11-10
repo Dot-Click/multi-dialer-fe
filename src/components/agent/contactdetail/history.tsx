@@ -13,13 +13,7 @@ const History = () => {
         { id: 5, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
         { id: 6, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
         { id: 7, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 22, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 222, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 322, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 422, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 522, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 622, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
-        { id: 72, history: "Created custom field Co-Owner Birthday to 09/24/2025", date: "9/16/2025", time: "10:35:45 PM" },
+       
     ]
 
 
@@ -29,13 +23,15 @@ const History = () => {
             <div className="flex w-full md:w-[50%] flex-col gap-6">
                 <h1 className="text-[#0E1011] text-[18px] font-[600]">History View:</h1>
 
-                <div className="flex h-72 overflow-y-auto custom-scrollbar flex-col gap-4">
 
-                    {historyViews.map((history)=>(
+                {/*  h-72 overflow-y-auto  custom-scrollbar*/}
+                <div className="flex  flex-col gap-4">
+
+                    {historyViews.map((history) => (
                         <div key={history.id} className='flex items-start gap-2 justify-between border-b border-gray-200'>
                             <div className='flex flex-col gap-1 md:gap-2'>
                                 <h1 className='text-[#2B3034] text-[10px] md:text-[12px] font-[500]'>Agent Name</h1>
-                                <p className='text-[#0E1011] pb-1 font-[400] text-[10px] md:text-[15px]'>{history.history}</p>
+                                <p className='text-[#0E1011] pb-1 font-[500] text-[10px] md:text-[15px]'>{history.history}</p>
                             </div>
                             <div className='flex items-center flex-col md:flex-row  text-center md:gap-2'>
                                 <p className='text-[#495057] text-[9px] md:text-[12px] font-[400]'>{history.date}</p>

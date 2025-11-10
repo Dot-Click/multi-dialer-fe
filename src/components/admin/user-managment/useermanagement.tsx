@@ -1,5 +1,4 @@
-"use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Search, Filter, MoreHorizontal, ChevronDown, Plus, X } from "lucide-react";
 
 export default function Page() {

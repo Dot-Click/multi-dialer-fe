@@ -1,4 +1,4 @@
-import { IoPaperPlaneOutline,IoPlayOutline } from "react-icons/io5";
+import {IoPlayOutline } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
 import { LuSendHorizontal } from "react-icons/lu";
 import { BsRecord2 } from "react-icons/bs";

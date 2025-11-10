@@ -20,12 +20,8 @@ const MediaCenter = () => {
     <div className="">
       {/* Search + Add button */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="Search by template name"
-            className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+       <div className="relative w-full sm:w-[40%]">
+          <input type="text" placeholder="Search by template name" className="w-full sm:w- pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 

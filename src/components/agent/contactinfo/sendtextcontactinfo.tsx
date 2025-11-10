@@ -1,4 +1,3 @@
-import React from 'react';
 // Step 1: Import the desired icon from the react-icons library
 import { IoChevronDown } from 'react-icons/io5';
 

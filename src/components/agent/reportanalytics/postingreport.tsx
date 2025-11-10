@@ -97,9 +97,9 @@ const columns = [
         cell: ({ row }: any) => (
             <div className="flex items-center">
                 <img
-                    src={tableCellIcon} 
+                    src={tableCellIcon}
                     alt={row.original.vendorName}
-                    
+
                     className="w-60"
                 />
             </div>
@@ -118,6 +118,48 @@ const columns = [
 const PostingReport = () => {
     return (
         <Box className="mt-3 w-full h-full">
+            <style>
+                {`
+          /* Remove header background */
+          table thead tr th,
+          table thead {
+            background: #F7F7F7 !important;
+            box-shadow: none !important;
+          }
+          table thead tr th > div {
+            background: transparent !important;
+          }
+
+          /* Reduce padding & tighten rows */
+          table thead tr th {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            font-size: 14px;
+            border-bottom: 1px solid #EBEDF0 !important;
+            color:#0E1011;
+
+          }
+          /* Reduce padding & tighten rows */
+          table tbody tr td {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            font-size: 14px;
+          }
+
+          /* Add darker border to rows */
+          table tbody tr {
+            border-bottom: 1px solid #EBEDF0 !important;
+          }
+
+          table tbody tr:last-child {
+            border-bottom: none !important;
+          }
+        `}
+            </style>
             <main>
                 {/* Step 4: TableProvider aur TableComponent ko data aur columns ke saath render karein */}
                 <TableProvider data={reportData} columns={columns}>

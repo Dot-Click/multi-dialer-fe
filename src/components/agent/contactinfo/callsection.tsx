@@ -1,4 +1,3 @@
-import React from 'react';
 import {  FaPhoneAlt } from 'react-icons/fa';
 import calliconcontactinfo from "../../../assets/calliconcontactinfo.png"
 import contactinfothirdicon from "../../../assets/contactinfothirdicon.png"

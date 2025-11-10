@@ -92,6 +92,38 @@ const columns = [
 const CallRecording = () => {
     return (
         <Box className="mt-3 w-full h-full">
+            <style>
+                {`
+          table thead tr th,
+          table thead {
+            background: #F7F7F7 !important;
+            box-shadow: none !important;
+          }
+          table thead tr th > div {
+            background: transparent !important;
+          }
+
+          table thead tr th {
+            padding: 10px !important;
+            font-size: 14px;
+            border-bottom: 1px solid #EBEDF0 !important;
+            color: #0E1011;
+          }
+
+          table tbody tr td {
+            padding: 10px !important;
+            font-size: 14px;
+          }
+
+          table tbody tr {
+            border-bottom: 1px solid #EBEDF0 !important;
+          }
+
+          table tbody tr:last-child {
+            border-bottom: none !important;
+          }
+        `}
+            </style>
             <main>
                 {/* Step 4: TableProvider aur TableComponent ko data aur columns ke saath render karein */}
                 <TableProvider data={callRecordingData} columns={columns}>

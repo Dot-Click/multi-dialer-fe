@@ -6,8 +6,8 @@ const Setting = () => {
     const [isNotificationsOpen, setNotificationsOpen] = useState(true);
 
     return (
-        <section className="w-full min-h-screen p-4 sm:p-6 lg:p-8">
-            <div className="mr-10">
+        <section className="w-full min-h-screen px-4 py-2">
+            <div className="">
                 {/* Header */}
                 <header className="flex items-baseline gap-4 mb-6">
                     <h1 className="text-[#0E1011] text-[20px] md:text-[26px] lg:text-[28px] font-bold">Settings</h1>

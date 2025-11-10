@@ -69,28 +69,26 @@ const sessionData = [
 ];
 
 const Session = () => {
-    const [openRow, setOpenRow] = useState(4); // Keep track of the open row's id
+    const [openRow, setOpenRow] = useState<number | null>(4); // type specified
 
-    const handleRowClick = (id) => {
-        // If the clicked row is already open, close it. Otherwise, open the new row.
+    const handleRowClick = (id: number) => { // ✅ id type number
         setOpenRow(openRow === id ? null : id);
     };
 
     return (
-        <div className=" min-h-screen py-2 flex flex-col gap-2">
-                <div className="border w-fit rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-                    <FaChevronLeft className="text-[12px] text-gray-400" />
-                    <span className="text-xs">All Dates</span>
-                    <FaChevronRight className="text-[12px] text-gray-400" />
-                </div>
-            <div className=" bg-white rounded-lg shadow-md overflow-hidden">
-                {/* Header */}
-                {/* Table */}
+        <div className="min-h-screen py-2 flex flex-col gap-2">
+            <div className="border w-fit rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
+                <FaChevronLeft className="text-[12px] text-gray-400" />
+                <span className="text-xs">All Dates</span>
+                <FaChevronRight className="text-[12px] text-gray-400" />
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-gray-600">
                         <thead className="bg-gray-50 text-sm text-gray-900 uppercase">
                             <tr>
-                                <th scope="col" className="px-6 font-semibold py-3 "></th>
+                                <th scope="col" className="px-6 font-semibold py-3"></th>
                                 <th scope="col" className="px-6 font-semibold py-3">Date</th>
                                 <th scope="col" className="px-6 font-semibold py-3">Agent</th>
                                 <th scope="col" className="px-6 font-semibold py-3">Type</th>
@@ -99,6 +97,7 @@ const Session = () => {
                                 <th scope="col" className="px-6 font-semibold py-3">Appt</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {sessionData.map((item) => (
                                 <React.Fragment key={item.id}>
@@ -124,25 +123,24 @@ const Session = () => {
                                                 ></path>
                                             </svg>
                                         </td>
-                                        <td className="px-6 py-4  text-gray-900">{item.date}</td>
-                                        <td className="px-6 font-semibold text-gray-900 py-4 ">{item.agent}</td>
-                                        <td className="px-6 py-4 ">{item.type}</td>
-                                        <td className="px-6 py-4 ">{item.list}</td>
-                                        <td className="px-6 py-4 ">{item.calls}</td>
-                                        <td className="px-6 py-4 ">{item.appt}</td>
+                                        <td className="px-6 py-4 text-gray-900">{item.date}</td>
+                                        <td className="px-6 font-semibold text-gray-900 py-4">{item.agent}</td>
+                                        <td className="px-6 py-4">{item.type}</td>
+                                        <td className="px-6 py-4">{item.list}</td>
+                                        <td className="px-6 py-4">{item.calls}</td>
+                                        <td className="px-6 py-4">{item.appt}</td>
                                     </tr>
 
                                     {/* Expanded Details Row */}
                                     {openRow === item.id && (
                                         <tr className="bg-gray-100">
-                                            <td colSpan="7" className="p-2">
+                                            <td colSpan={7} className="p-2"> {/* ✅ colSpan number */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2">
-                                                    {/* Left Side Details */}
                                                     <div>
                                                         <h3 className="text-xs text-gray-500 mb-4">
                                                             Group/List Dialed: {item.list}
                                                         </h3>
-                                                        <div className=" p-4">
+                                                        <div className="p-4">
                                                             <div className="grid grid-cols-4 border-b p-2 gap-4 items-center mb-2">
                                                                 <span className="font-semibold text-gray-700">Result</span>
                                                                 <span className="font-semibold text-gray-700">Total Calls</span>
@@ -163,15 +161,14 @@ const Session = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {/* Right Side Details */}
                                                     <div>
                                                         <h3 className="text-xs text-gray-500 mb-4">&nbsp;</h3>
-                                                        <div className="p-4 ">
+                                                        <div className="p-4">
                                                             <div className="grid border-b p-2 grid-cols-2 gap-4 items-center mb-2">
                                                                 <span className="font-bold text-gray-700">Appts / Leads</span>
                                                                 <span className="font-bold text-gray-700">Dial Time</span>
                                                             </div>
-                                                            <div className="grid grid-cols-2  gap-8 items-center">
+                                                            <div className="grid grid-cols-2 gap-8 items-center">
                                                                 <div>
                                                                     <div className="flex justify-between items-center py-1">
                                                                         <span>Appointments</span>
@@ -183,7 +180,7 @@ const Session = () => {
                                                                     </div>
                                                                 </div>
                                                                 <div>
-                                                                    {/* Placeholder for right side dial time if needed */}
+                                                                    {/* Placeholder */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -194,9 +191,10 @@ const Session = () => {
                                     )}
                                 </React.Fragment>
                             ))}
+
                             {/* Total Footer Row */}
                             <tr className="bg-white font-semibold">
-                                <td className="px-6 py-4" colSpan="2">TOTAL</td>
+                                <td className="px-6 py-4" colSpan={2}>TOTAL</td> {/* ✅ colSpan number */}
                                 <td className="px-6 py-4">Bertha Wiza</td>
                                 <td className="px-6 py-4">-</td>
                                 <td className="px-6 py-4">-</td>

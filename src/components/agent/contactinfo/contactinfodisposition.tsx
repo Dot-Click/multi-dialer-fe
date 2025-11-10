@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 
 // Step 1: Buttons aur Checkboxes ke liye dynamic data banayein
 const dispositionOptions = [
@@ -12,8 +12,8 @@ const checkboxOptions = ["Permission", "Want", "Why", "Status Quo", "Timeline", 
 
 const ContactInfoDisposition = () => {
   // Step 2: Selected buttons ko track karne ke liye state banayein
-  const [selectedDisposition, setSelectedDisposition] = useState(null);
-  const [selectedGroup, setSelectedGroup] = useState("Working"); // Default selected value
+  const [selectedDisposition, setSelectedDisposition] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string>("Working"); // Default selected value
 
   return (
     // Main Container

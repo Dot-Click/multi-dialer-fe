@@ -1,4 +1,3 @@
-import React from 'react';
 
 const AdminCallMetrics = () => {
   // Sample data for sales agents

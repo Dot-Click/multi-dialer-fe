@@ -1,114 +1,86 @@
 
-// Sample data that matches the structure in the image
+
+import { Box } from "@/components/ui/box";
+import { TableProvider } from "@/providers/table.provider";
+import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+
 const eventData = [
+  { name: "Kathryn Murphy", startDate: "18/06/2021 09:13", repeat: 2, type: "Email" },
+  { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
+  { name: "Annette Black", startDate: "2021/11/2013 20:01", repeat: 1, type: "Call back" },
+  { name: "Dianne Russell", startDate: "10/06/2021 19:30", repeat: 0, type: "Email" },
+  { name: "Kathryn Murphy", startDate: "18/06/2021 09:13", repeat: 2, type: "Email" },
+  { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
+  { name: "Annette Black", startDate: "2021/11/2013 20:01", repeat: 1, type: "Call back" },
+  { name: "Dianne Russell", startDate: "10/06/2021 19:30", repeat: 0, type: "Email" },
+];
+
+const columns = [
   {
-    name: 'Kathryn Murphy',
-    startDate: '18/06/2021 09:13',
-    repeat: 2,
-    type: 'Email',
+    accessorKey: "name",
+    header: (info: any) => <SortedHeader header={info.header} label="Name" />,
+    cell: (info: any) => (
+      <span style={{ color: "#1D85F0", fontWeight: 500 }}>{info.getValue()}</span>
+    ),
   },
   {
-    name: 'Robert Fox',
-    startDate: '29/10/2024 15:36',
-    repeat: 3,
-    type: 'SMS',
+    accessorKey: "startDate",
+    header: (info: any) => <SortedHeader header={info.header} label="Start Date" />,
   },
   {
-    name: 'Annette Black',
-    startDate: '2021/11/2013 20:01',
-    repeat: 1,
-    type: 'Call back',
+    accessorKey: "repeat",
+    header: (info: any) => <SortedHeader header={info.header} label="Repeat" />,
   },
   {
-    name: 'Dianne Russell',
-    startDate: '10/06/2021 19:30',
-    repeat: 0,
-    type: 'Email',
-  },
-  {
-    name: 'Kathryn Murphy',
-    startDate: '18/06/2021 09:13',
-    repeat: 2,
-    type: 'Email',
-  },
-  {
-    name: 'Robert Fox',
-    startDate: '29/10/2024 15:36',
-    repeat: 3,
-    type: 'SMS',
-  },
-  {
-    name: 'Annette Black',
-    startDate: '2021/11/2013 20:01',
-    repeat: 1,
-    type: 'Call back',
-  },
-  {
-    name: 'Dianne Russell',
-    startDate: '10/06/2021 19:30',
-    repeat: 0,
-    type: 'Email',
-  },
-  {
-    name: 'Kathryn Murphy',
-    startDate: '18/06/2021 09:13',
-    repeat: 2,
-    type: 'Email',
-  },
-  {
-    name: 'Robert Fox',
-    startDate: '29/10/2024 15:36',
-    repeat: 3,
-    type: 'SMS',
+    accessorKey: "type",
+    header: (info: any) => <SortedHeader header={info.header} label="Type" />,
   },
 ];
 
 const RecurringEvent = () => {
   return (
-    <div className="py-4 px-3 min-h-screen">
-      <div className=" bg-white overflow-hidden">
-        <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: '80vh' }}>
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="sticky top-0 bg-gray-200">
-              <tr>
-                <th scope="col" className="px-3 py-2 font-semibold text-gray-950">
-                  Name
-                </th>
-                <th scope="col" className="px-3 py-2 font-semibold text-gray-950">
-                  Start Date
-                </th>
-                <th scope="col" className="px-3 py-2 font-semibold text-gray-950">
-                  Repeat
-                </th>
-                <th scope="col" className="px-3 py-2 font-semibold text-gray-950">
-                  Type
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {eventData.map((event, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    <a href="#" className="text-blue-600 hover:underline">
-                      {event.name}
-                    </a>
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    {event.startDate}
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    {event.repeat}
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap">
-                    {event.type}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <Box className="mt-3 w-full h-full">
+
+      {/* ✅ Same table style jaisa pehle pages me kiya tha */}
+    <style>
+                {`
+          table thead tr th,
+          table thead {
+            background: #F7F7F7 !important;
+            box-shadow: none !important;
+          }
+          table thead tr th > div {
+            background: transparent !important;
+          }
+
+          table thead tr th {
+            padding: 10px !important;
+            font-size: 14px;
+            border-bottom: 1px solid #EBEDF0 !important;
+            color: #0E1011;
+          }
+
+          table tbody tr td {
+            padding: 10px !important;
+            font-size: 14px;
+          }
+
+          table tbody tr {
+            border-bottom: 1px solid #EBEDF0 !important;
+          }
+
+          table tbody tr:last-child {
+            border-bottom: none !important;
+          }
+        `}
+            </style>
+
+      <main>
+        <TableProvider data={eventData} columns={columns}>
+          {() => <TableComponent />}
+        </TableProvider>
+      </main>
+    </Box>
   );
 };
 

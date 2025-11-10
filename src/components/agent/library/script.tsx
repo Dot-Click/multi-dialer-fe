@@ -181,8 +181,8 @@ const Script = () => {
     <div className="">
       {/* Search + Add button */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
-        <div className="relative w-full sm:w-auto">
-          <input type="text" placeholder="Search by script name" className="w-full sm:w-96 pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+        <div className="relative w-full sm:w-[40%]">
+          <input type="text" placeholder="Search by script name" className="w-full sm:w- pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
         <button onClick={handleAddClick} className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center transition-all">

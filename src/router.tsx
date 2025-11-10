@@ -18,9 +18,9 @@ import AdminHome from "@/pages/admin/adminhome";
 import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
 import ContactInfo from "./pages/agent/contactinfo";
-import Compliance from "./components/agent/dashboard/aisidekick/compliance";
-import Usermanagement from "./components/admin/user-managment/useermanagement";
-import Billing from "./components/admin/billing/billing";
+// import Compliance from "./components/agent/dashboard/aisidekick/compliance";
+// import Usermanagement from "./components/admin/user-managment/useermanagement";
+// import Billing from "./components/admin/billing/billing";
 
 
 const Router: React.FC = () => {
@@ -61,13 +61,12 @@ const Router: React.FC = () => {
 
         <Route path="/admin/" element={<AdminDashboardLayout />}>
           <Route index element={<AdminHome />} />
-          <Route path="/admin/library" element={<Library/>} />
-          
+          {/* <Route path="/admin/library" element={<Library/>} />
           <Route path="/admin/reports" element={<ReportAnalytics/>} />
           <Route path="/admin/compliance" element={<Compliance/>} />
-          <Route path="/admin/settings" element={<Setting/>} />
+          <Route path="/admin/settings" element={<Setting/>} /> */}
           {/* <Route path="/admin/user-management" element={<Usermanagement/>} /> */}
-          <Route path="/admin/billing" element={<Billing/>} />
+          {/* <Route path="/admin/billing" element={<Billing/>} /> */}
         </Route>
 
 

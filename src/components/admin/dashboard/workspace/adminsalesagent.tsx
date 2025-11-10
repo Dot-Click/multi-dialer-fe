@@ -1,4 +1,3 @@
-import React from 'react';
 
 const AdminSalesAgent = () => {
   // Sample data for sales agents
