@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
-import { IoCallOutline } from "react-icons/io5";
 import { BsBell } from "react-icons/bs";
+import callIcon from "../../../assets/callsicon.png"
 
 
 const Navbar = () => {
@@ -9,13 +9,13 @@ const Navbar = () => {
       <div>
 
         <Button className='bg-transparent text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-200 border border-gray-400'>
-          <span className=''><IoCallOutline /></span>
+          <img src={callIcon} className='w-3 object-contain' alt="callIcon" />
           <span>Quick Call</span>
         </Button>
       </div>
 
-      <div  className='border border-gray-400 cursor-pointer hover:text-gray-900 hover:bg-gray-200  rounded-full p-1.5'>
-        <span><BsBell  className='text-gray-600 text-xl'/></span>
+      <div className='border border-gray-400 cursor-pointer hover:text-gray-900 hover:bg-gray-200  rounded-full p-1.5'>
+        <span><BsBell className='text-gray-600 text-xl' /></span>
       </div>
     </nav>
   )

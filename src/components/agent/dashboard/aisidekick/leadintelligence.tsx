@@ -62,7 +62,56 @@ const LeadIntelligence = () => {
                     </div>
                 </div>
                 <div style={{ width: '100%', height: 280 }}>
-                    <ResponsiveContainer><LineChart data={lineChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} /><Tooltip /><Line type="monotone" dataKey="Positive" stroke="#22C55E" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} /><Line type="monotone" dataKey="Neutral" stroke="#FBBF24" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} /><Line type="monotone" dataKey="Negative" stroke="#EF4444" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} /></LineChart></ResponsiveContainer>
+                    <ResponsiveContainer>
+                        <LineChart
+                            data={lineChartData}
+                            margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                tick={{ fill: '#6B7280', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                tick={{ fill: '#6B7280', fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip />
+
+                            {/* Positive Line: Dot me fill color add kiya gaya hai */}
+                            <Line
+                                type="monotone"
+                                dataKey="Positive"
+                                stroke="#22C55E"
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: '#22C55E' }} // BADLAAV YAHAN HAI
+                                activeDot={{ r: 6 }}
+                            />
+
+                            {/* Neutral Line: Dot me fill color add kiya gaya hai */}
+                            <Line
+                                type="monotone"
+                                dataKey="Neutral"
+                                stroke="#FBBF24"
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: '#FBBF24' }} // BADLAAV YAHAN HAI
+                                activeDot={{ r: 6 }}
+                            />
+
+                            {/* Negative Line: Dot me fill color add kiya gaya hai */}
+                            <Line
+                                type="monotone"
+                                dataKey="Negative"
+                                stroke="#EF4444"
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: '#EF4444' }} // BADLAAV YAHAN HAI
+                                activeDot={{ r: 6 }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
             {/* Bottom Section */}
