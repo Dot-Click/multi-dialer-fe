@@ -1,131 +1,311 @@
-// const Calender = () => {
-//     // Google Calendar ka embed URL jismein header hide karne ke parameters add kiye gaye hain.
-//     // &showTitle=0 -> Google ka title hide karega
-//     // &showNav=0 -> Google ke navigation buttons hide karega
-//     // &showPrint=0 -> Print icon hide karega
-//     // &showTz=0 -> Timezone hide karega
-//     const calendarSrc = "https://calendar.google.com/calendar/embed?src=8566360054522a35136b68f916cd27e6fe5c20d36379b9628ce322579ad6b7e1%40group.calendar.google.com&ctz=Asia%2FKarachi&showTitle=0&showNav=0&showPrint=0&showTz=0";
+
+
+
+// import { useState } from "react";
+// import { Calendar, ConfigProvider, Modal } from "antd";
+// import enGB from "antd/locale/en_GB";
+// import { IoFilterOutline } from "react-icons/io5";
+// import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+// import dayjs from "dayjs";
+// import "dayjs/locale/en-gb";
+// import AddEventForm from "@/components/modal/addeventmodal"; // Import the new form component
+
+// // Event data
+// const events = {
+//     "2025-11-01": [
+//       { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
+//       { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
+//     ],
+//     "2025-11-03": [{ color: "#60A5FA", title: "Task", time: "10:10 - 10:25" }],
+//     "2025-11-05": [
+//       { color: "#60A5FA", title: "Task", time: "10:10 - 10:25" },
+//       { color: "#60A5FA", title: "Task", time: "11:00 - 11:45" },
+//     ],
+//     "2025-11-07": [
+//       { color: "#34D399", title: "Follow-Up Call", time: "10:10 - 10:25" },
+//     ],
+//     "2025-11-08": [
+//       { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
+//       { color: "#34D399", title: "Follow-Up Call", time: "11:00 - 11:45" },
+//     ],
+//     "2025-11-11": [
+//       { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
+//     ],
+// };
+
+// const getEventData = (date) => {
+//   const key = date.format("YYYY-MM-DD");
+//   return events[key] || [];
+// };
+
+// const CustomCalendar = () => {
+//   const [currentDate, setCurrentDate] = useState(dayjs("2025-11-01"));
+//   const [selectedDate, setSelectedDate] = useState(null);
+//   const [optionsModalOpen, setOptionsModalOpen] = useState(false);
+//   const [addEventModalOpen, setAddEventModalOpen] = useState(false); // State for the new modal
+
+//   const dateCellRender = (value) => {
+//     const listData = getEventData(value);
+//     const maxEventsToShow = 2;
+//     const remaining = listData.length - maxEventsToShow;
 
 //     return (
-//         // Main container bilkul image jaisa
-//         <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-
-//             {/* Step 1: Custom Header banayein */}
-//             <div className="flex items-center justify-between mb-4">
-                
-//                 {/* Left Side: Title aur Navigation */}
-//                 <div className="flex items-center gap-4">
-//                     <h2 className="text-xl font-semibold text-gray-800">
-//                         September 2025
-//                     </h2>
-//                     <div className="flex items-center gap-2">
-//                         <button 
-//                           type="button" 
-//                           className="p-2 border rounded-md hover:bg-gray-100 text-gray-600"
-//                           aria-label="Previous month"
-//                         >
-//                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//                                 <path d="M15 18l-6-6 6-6"/>
-//                             </svg>
-//                         </button>
-//                         <button 
-//                           type="button" 
-//                           className="p-2 border rounded-md hover:bg-gray-100 text-gray-600"
-//                           aria-label="Next month"
-//                         >
-//                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//                                 <path d="M9 18l6-6-6-6"/>
-//                             </svg>
-//                         </button>
-//                     </div>
-//                 </div>
-
-//                 {/* Right Side: Filter Button */}
-//                 <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border rounded-md hover:bg-gray-100">
-//                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-//                         <path d="M5 10H15M2.5 5H17.5M7.5 15H12.5" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-//                     </svg>
-//                     Filter
-//                 </button>
+//       <div className="flex flex-col gap-1">
+//         {listData.slice(0, maxEventsToShow).map((item, index) => (
+//           <div key={index} className="flex items-start gap-1 text-[11px] leading-tight">
+//             <div className="w-1 rounded-full self-stretch" style={{ backgroundColor: item.color }} />
+//             <div>
+//               <p className="font-medium text-gray-700">{item.title}</p>
+//               <p className="text-gray-500">{item.time}</p>
 //             </div>
-
-//             {/* Step 2: Google Calendar ka Iframe Container */}
-//             <div className="w-full h-[85vh] overflow-hidden rounded-md">
-//                 <iframe 
-//                     src={calendarSrc} 
-//                     style={{ border: 0 }}
-//                     width="100%"
-//                     height="100%"
-//                     frameBorder="0" 
-//                     scrolling="no"
-//                 ></iframe>
-//             </div>
-
-//         </div>
+//           </div>
+//         ))}
+//         {remaining > 0 && (
+//           <div className="mt-1 text-center bg-gray-100 rounded-md py-1 text-xs text-gray-600">
+//             +{remaining}
+//           </div>
+//         )}
+//       </div>
 //     );
-// }
+//   };
 
-// export default Calender;
+//   const onDateClick = (value) => {
+//     setSelectedDate(value);
+//     setOptionsModalOpen(true);
+//   };
+  
+//   const handleShowAddEventForm = () => {
+//     setOptionsModalOpen(false);
+//     setAddEventModalOpen(true);
+//   };
 
+//   const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
+//   const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
+
+//   return (
+//     <div className="mr-10">
+//       {/* Header */}
+//       <div className="flex items-center justify-between mb-4">
+//         <div className="flex items-center gap-3">
+//           <h2 className="text-lg font-semibold text-gray-800">
+//             {currentDate.format("MMMM YYYY")}
+//           </h2>
+//           <div className="flex gap-2">
+//             <button className="p-2 border rounded-md hover:bg-gray-100" onClick={prevMonth}>
+//               <IoIosArrowBack />
+//             </button>
+//             <button className="p-2 border rounded-md hover:bg-gray-100" onClick={nextMonth}>
+//               <IoIosArrowForward />
+//             </button>
+//           </div>
+//         </div>
+//         <button className="flex items-center gap-2 px-3 py-2 text-base font-medium text-gray-700 border rounded-md hover:bg-gray-100">
+//           <IoFilterOutline />
+//           Filter
+//         </button>
+//       </div>
+
+//       {/* Calendar Box */}
+//       <ConfigProvider locale={enGB}>
+//         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 overflow-x-auto">
+//           <Calendar
+//             value={currentDate}
+//             onPanelChange={setCurrentDate}
+//             dateCellRender={dateCellRender}
+//             onSelect={onDateClick}
+//             headerRender={() => null}
+//             className="custom-calendar"
+//           />
+//         </div>
+//       </ConfigProvider>
+
+//       {/* Options Modal */}
+//       <Modal
+//         open={optionsModalOpen}
+//         footer={null}
+//         onCancel={() => setOptionsModalOpen(false)}
+//         title={selectedDate ? selectedDate.format("DD MMM, YYYY") : ""}
+//       >
+//         <div className="flex flex-col gap-3">
+//           <button className="py-2 rounded-md bg-gray-100 hover:bg-gray-200">Show All Events</button>
+//           <button className="py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={handleShowAddEventForm}>Add Event</button>
+//           <button className="py-2 rounded-md bg-red-100 hover:bg-red-200" onClick={() => setOptionsModalOpen(false)}>Close</button>
+//         </div>
+//       </Modal>
+
+//       {/* Add Event Form Modal */}
+//       <AddEventForm 
+//         open={addEventModalOpen}
+//         onClose={() => setAddEventModalOpen(false)}
+//       />
+
+//       <style jsx global>{`
+//         .custom-calendar .ant-picker-cell {
+//           height: 120px;
+//           border: 1px solid #f3f4f6;
+//         }
+//         .custom-calendar .ant-picker-cell-today .ant-picker-cell-inner {
+//           background-color: #fef3c7 !important;
+//           border-radius: 8px;
+//         }
+//       `}</style>
+//     </div>
+//   );
+// };
+
+// export default CustomCalendar;
 
 import { useState } from "react";
+import { Calendar, ConfigProvider, Modal } from "antd";
+import enGB from "antd/locale/en_GB";
+import { IoFilterOutline } from "react-icons/io5";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/en-gb";
+import AddEventForm from "@/components/modal/addeventmodal"; // Import the new form component
 
-const Calendar = () => {
-  const [month, setMonth] = useState("September 2025");
+// Event data
+const events: Record<string, { color: string; title: string; time: string }[]> = {
+  "2025-11-01": [
+    { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
+    { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
+  ],
+  "2025-11-03": [{ color: "#60A5FA", title: "Task", time: "10:10 - 10:25" }],
+  "2025-11-05": [
+    { color: "#60A5FA", title: "Task", time: "10:10 - 10:25" },
+    { color: "#60A5FA", title: "Task", time: "11:00 - 11:45" },
+  ],
+  "2025-11-07": [{ color: "#34D399", title: "Follow-Up Call", time: "10:10 - 10:25" }],
+  "2025-11-08": [
+    { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
+    { color: "#34D399", title: "Follow-Up Call", time: "11:00 - 11:45" },
+  ],
+  "2025-11-11": [{ color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" }],
+};
 
-  // Google Calendar Embed URL
-  const calendarSrc = "https://calendar.google.com/calendar/embed?src=8566360054522a35136b68f916cd27e6fe5c20d36379b9628ce322579ad6b7e1%40group.calendar.google.com&ctz=Asia%2FKarachi&showTitle=0&showNav=0&showPrint=0&showTz=0";
+// Get events for a specific date
+const getEventData = (date: Dayjs) => {
+  const key = date.format("YYYY-MM-DD");
+  return events[key as keyof typeof events] || [];
+};
+
+const CustomCalendar = () => {
+  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs("2025-11-01"));
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [optionsModalOpen, setOptionsModalOpen] = useState(false);
+  const [addEventModalOpen, setAddEventModalOpen] = useState(false);
+
+  const dateCellRender = (value: Dayjs) => {
+    const listData = getEventData(value);
+    const maxEventsToShow = 2;
+    const remaining = listData.length - maxEventsToShow;
+
+    return (
+      <div className="flex flex-col gap-1">
+        {listData.slice(0, maxEventsToShow).map((item, index) => (
+          <div key={index} className="flex items-start gap-1 text-[11px] leading-tight">
+            <div className="w-1 rounded-full self-stretch" style={{ backgroundColor: item.color }} />
+            <div>
+              <p className="font-medium text-gray-700">{item.title}</p>
+              <p className="text-gray-500">{item.time}</p>
+            </div>
+          </div>
+        ))}
+        {remaining > 0 && (
+          <div className="mt-1 text-center bg-gray-100 rounded-md py-1 text-xs text-gray-600">
+            +{remaining}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const onDateClick = (value: Dayjs) => {
+    setSelectedDate(value);
+    setOptionsModalOpen(true);
+  };
+
+  const handleShowAddEventForm = () => {
+    setOptionsModalOpen(false);
+    setAddEventModalOpen(true);
+  };
+
+  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
+  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
 
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-2xl shadow-md">
-
-      {/* Header with Month and Navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-800">{month}</h2>
+    <div className="mr-10">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-800">{currentDate.format("MMMM YYYY")}</h2>
           <div className="flex gap-2">
-            <button
-              className="p-2 border rounded-md hover:bg-gray-100 text-gray-600"
-              onClick={() => console.log("Previous month clicked")}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
+            <button className="p-2 border rounded-md hover:bg-gray-100" onClick={prevMonth}>
+              <IoIosArrowBack />
             </button>
-            <button
-              className="p-2 border rounded-md hover:bg-gray-100 text-gray-600"
-              onClick={() => console.log("Next month clicked")}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+            <button className="p-2 border rounded-md hover:bg-gray-100" onClick={nextMonth}>
+              <IoIosArrowForward />
             </button>
           </div>
         </div>
-
-        {/* Filter Button */}
-        <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border rounded-md hover:bg-gray-100">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M5 10H15M2.5 5H17.5M7.5 15H12.5" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <button className="flex items-center gap-2 px-3 py-2 text-base font-medium text-gray-700 border rounded-md hover:bg-gray-100">
+          <IoFilterOutline />
           Filter
         </button>
       </div>
 
-      {/* Calendar iframe */}
-      <div className="w-full h-[80vh] overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-        <iframe
-          src={calendarSrc}
-          width="100%"
-          height="100%"
-          style={{ border: "0" }}
-          frameBorder="0"
-          scrolling="no"
-          className="rounded-lg"
-        ></iframe>
-      </div>
+      {/* Calendar Box */}
+      <ConfigProvider locale={enGB}>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 overflow-x-auto">
+          <Calendar
+            value={currentDate}
+            onPanelChange={setCurrentDate}
+            dateCellRender={dateCellRender}
+            onSelect={onDateClick}
+            headerRender={() => null}
+            className="custom-calendar"
+          />
+        </div>
+      </ConfigProvider>
+
+      {/* Options Modal */}
+      <Modal
+        open={optionsModalOpen}
+        footer={null}
+        onCancel={() => setOptionsModalOpen(false)}
+        title={selectedDate ? selectedDate.format("DD MMM, YYYY") : ""}
+      >
+        <div className="flex flex-col gap-3">
+          <button className="py-2 rounded-md bg-gray-100 hover:bg-gray-200">Show All Events</button>
+          <button
+            className="py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            onClick={handleShowAddEventForm}
+          >
+            Add Event
+          </button>
+          <button className="py-2 rounded-md bg-red-100 hover:bg-red-200" onClick={() => setOptionsModalOpen(false)}>
+            Close
+          </button>
+        </div>
+      </Modal>
+
+      {/* Add Event Form Modal */}
+      <AddEventForm open={addEventModalOpen} onClose={() => setAddEventModalOpen(false)} />
+
+      {/* Calendar custom styles */}
+      {/* @ts-ignore */}
+      <style jsx global>{`
+        .custom-calendar .ant-picker-cell {
+          height: 120px;
+          border: 1px solid #f3f4f6;
+        }
+        .custom-calendar .ant-picker-cell-today .ant-picker-cell-inner {
+          background-color: #fef3c7 !important;
+          border-radius: 8px;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default Calendar;
+export default CustomCalendar;

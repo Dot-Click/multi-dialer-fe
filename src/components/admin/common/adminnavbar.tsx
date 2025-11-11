@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { IoCallOutline } from "react-icons/io5";
 import { BsBell } from "react-icons/bs";
 import callIcon from "../../../assets/callsicon.png"
 
