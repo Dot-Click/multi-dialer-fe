@@ -1,5 +1,6 @@
 import { IoIosArrowForward } from 'react-icons/io'
 import { BsThreeDots } from "react-icons/bs";
+import { Link } from 'react-router-dom';
 
 
 const HotList = () => {
@@ -20,10 +21,10 @@ const HotList = () => {
                 <div>
                     <h1 className="text-[20px] font-[500]">Hotlist</h1>
                 </div>
-                <div className="flex gap-1 items-center ">
+                <Link to="/data-dialer" className="flex gap-1 items-center ">
                     <span className="text-[16px] font-[500]">See all contacts</span>
                     <span ><IoIosArrowForward className="text-[19px] font-[400]" /></span>
-                </div>
+                </Link>
             </div>
 
 

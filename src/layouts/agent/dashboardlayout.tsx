@@ -18,7 +18,7 @@ const DashboardLayout = () => {
             </div>
 
             <div
-                className={`absolute top-16 pt-[1rem] min-h-full bg-[#EBEDF0] w-full   transition-all duration-300
+                className={`absolute top-16 pt-[1rem] min-h-full bg-[#F7F7F7] w-full   transition-all duration-300
                      ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"} `}
             >
                 <Outlet />

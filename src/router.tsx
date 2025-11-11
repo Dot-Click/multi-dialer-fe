@@ -19,6 +19,7 @@ import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
 import ContactInfo from "@/pages/agent/contactinfo";
 import Calender from "@/pages/agent/calender";
+import AdminAllContact from "@/pages/admin/adminallcontact";
 // import Compliance from "./components/agent/dashboard/aisidekick/compliance";
 // import Usermanagement from "./components/admin/user-managment/useermanagement";
 // import Billing from "./components/admin/billing/billing";
@@ -56,9 +57,10 @@ const Router: React.FC = () => {
         <Route path="/admin/create-password" element={<AdminChangePassword />} />
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
         <Route path="/admin/contact-info" element={<ContactInfo />} />
-        
-        <Route path="/admin/data-dialer" element={<ContactLayout/>}>
-         <Route index element={<AllContact />} /></Route>
+
+        <Route path="/admin/data-dialer" element={<ContactLayout />}>
+          <Route index element={<AdminAllContact />} />
+        </Route>
 
 
         <Route path="/admin/" element={<AdminDashboardLayout />}>
