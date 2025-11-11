@@ -51,7 +51,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
     { id: 2, name: "Data & Dialer", link: "/admin/data-dialer", icon: dataicon },
     { id: 3, name: "Calendar", link: "/admin/calendar", icon: calendericon },
     { id: 4, name: "Library", link: "/admin/library", icon: libraryicon },
-    { id: 5, name: "Reports & Analytics", link: "/admin/reports", icon: reporticon },
+    { id: 5, name: "Reports & Analytics", link: "/admin/reports-analytics", icon: reporticon },
     { id: 6, name: "Compliance & DNC", link: "/admin/compliance", icon: bulbicon },
     { id: 7, name: "User Management", link: "/admin/user-management", icon: usericon },
     { id: 8, name: "System Settings", link: "/admin/settings", icon: settingicon },
@@ -60,7 +60,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
 
   const bottomLinks = [
     { id: 10, name: "Training", link: "/training", icon: trainingicon },
-    { id: 11, name: "Lead Store", link: "/lead-store", icon: dataicon },
+    { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
   ];
 
   return (
@@ -75,7 +75,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
       )}
 
       <aside
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 shadow-2xl flex flex-col justify-between transition-all duration-300 z-40
+        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-300 z-40
           ${isOpen ? "w-64" : "w-16"}
           ${isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"}
         `}

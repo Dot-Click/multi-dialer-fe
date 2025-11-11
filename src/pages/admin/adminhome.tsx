@@ -14,7 +14,7 @@ const AdminHome = () => {
   ];
 
   return (
-    <section className="w-full min-h-full">
+    <section className="w-full min-h-full ">
       {/* Header */}
       <div className="flex justify-between items-center pr-3 lg:pr-6">
         <div>

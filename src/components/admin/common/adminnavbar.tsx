@@ -5,7 +5,7 @@ import callIcon from "../../../assets/callsicon.png"
 
 const AdminNavbar = () => {
   return (
-    <nav className="shadow-2xl w-full h-16  bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
+    <nav className=" w-full h-16  bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
       <div>
 
         <Button className='bg-transparent text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-200 border border-gray-400'>

@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 shadow-2xl flex flex-col justify-between transition-all duration-300 z-40
+        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200  flex flex-col justify-between transition-all duration-300 z-40
           ${isOpen ? "w-64" : "w-16"}
           ${isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"}
         `}

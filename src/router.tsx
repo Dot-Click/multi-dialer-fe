@@ -19,7 +19,17 @@ import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
 import ContactInfo from "@/pages/agent/contactinfo";
 import Calender from "@/pages/agent/calender";
-import AdminAllContact from "@/pages/admin/adminallcontact";
+import AdminContact from "@/layouts/admin/contactlayout";
+import AdminAllContact from "@/pages/admin/allcontact";
+import AdminCalender from "@/pages/admin/calender"
+import AdminLibrary from "@/pages/admin/library";
+import AdminReportAnalytics from "@/pages/admin/reportanalytics";
+import AdminSetting from "@/pages/admin/setting";
+import AdminUserManagment from "../src/components/admin/user-managment/useermanagement"
+import Billing from "@/pages/admin/billing";
+import Upgrade from "@/pages/admin/upgrade";
+import LeadStore from "@/pages/admin/leadstore";
+import Compliance from "@/pages/admin/compliance";
 // import Compliance from "./components/agent/dashboard/aisidekick/compliance";
 // import Usermanagement from "./components/admin/user-managment/useermanagement";
 // import Billing from "./components/admin/billing/billing";
@@ -57,14 +67,24 @@ const Router: React.FC = () => {
         <Route path="/admin/create-password" element={<AdminChangePassword />} />
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
         <Route path="/admin/contact-info" element={<ContactInfo />} />
+        
 
-        <Route path="/admin/data-dialer" element={<ContactLayout />}>
-          <Route index element={<AdminAllContact />} />
+        <Route path="/admin/data-dialer" element={<AdminContact />}>
+          <Route index element={<AdminAllContact/>} />
         </Route>
 
 
         <Route path="/admin/" element={<AdminDashboardLayout />}>
+        <Route path="/admin/reports-analytics" element={<AdminReportAnalytics />} />  
           <Route index element={<AdminHome />} />
+          <Route path="/admin/calendar" element={<AdminCalender />} />
+          <Route path="/admin/library" element={<AdminLibrary />} />
+        <Route path="/admin/settings" element={<AdminSetting />} />
+        <Route path="/admin/user-management" element={<AdminUserManagment />} />
+        <Route path="/admin/billing" element={<Billing />} />
+        <Route path="/admin/upgrade" element={<Upgrade />} />
+        <Route path="/admin/lead-store" element={<LeadStore/>} />
+        <Route path="/admin/compliance" element={<Compliance />} />
           {/* <Route path="/admin/library" element={<Library/>} />
           <Route path="/admin/reports" element={<ReportAnalytics/>} />
           <Route path="/admin/compliance" element={<Compliance/>} />
