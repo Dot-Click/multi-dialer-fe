@@ -20,79 +20,72 @@ import ReportAnalytics from "@/pages/agent/reportanalytics";
 import ContactInfo from "@/pages/agent/contactinfo";
 import Calender from "@/pages/agent/calender";
 import AdminContact from "@/layouts/admin/contactlayout";
-import AdminAllContact from "@/pages/admin/allcontact";
+import AdminAllContact from "@/pages/admin/adminallcontact";
 import AdminCalender from "@/pages/admin/calender"
 import AdminLibrary from "@/pages/admin/library";
 import AdminReportAnalytics from "@/pages/admin/reportanalytics";
-import AdminSetting from "@/pages/admin/setting";
-import AdminUserManagment from "../src/components/admin/user-managment/useermanagement"
+import AdminUserManagment from "@/components/admin/user-managment/useermanagement"
 import Billing from "@/pages/admin/billing";
 import Upgrade from "@/pages/admin/upgrade";
 import LeadStore from "@/pages/admin/leadstore";
 import Compliance from "@/pages/admin/compliance";
-// import Compliance from "./components/agent/dashboard/aisidekick/compliance";
-// import Usermanagement from "./components/admin/user-managment/useermanagement";
-// import Billing from "./components/admin/billing/billing";
-
+import AdminFindDuplicate from "@/pages/admin/adminfindduplicate";
+import AdminCreateContact from "@/pages/admin/admincreatecontact";
+import AdminSystemSetting from "@/pages/admin/adminsystemsetting";
 
 const Router: React.FC = () => {
   return (
     <div className="min-h-screen w-full work-sans">
       <Routes>
-        {/* agent routes */}
 
+        {/* ✅ Agent Routes */}
         <Route path="/agent/login" element={<Login />} />
         <Route path="/agent/code" element={<Code />} />
 
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<AgentHome />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/calendar" element={<Calender />} />
-          <Route path="/reports-analytics" element={<ReportAnalytics />} />
-          <Route path="/settings" element={<Setting />} />
+          <Route path="library" element={<Library />} />
+          <Route path="calendar" element={<Calender />} />
+          <Route path="reports-analytics" element={<ReportAnalytics />} />
+          <Route path="settings" element={<Setting />} />
         </Route>
 
         <Route path="/data-dialer" element={<ContactLayout />}>
           <Route index element={<AllContact />} />
         </Route>
+
         <Route path="/contact-detail" element={<ContactDetail />} />
         <Route path="/contact-info" element={<ContactInfo />} />
 
-
-
-        {/* admin routes  */}
+        {/* ✅ Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/change-password" element={<ChangePassword />} />
         <Route path="/admin/password-recovery" element={<RecoveryPassword />} />
         <Route path="/admin/create-password" element={<AdminChangePassword />} />
-        <Route path="/admin/contact-detail" element={<ContactDetail />} />
-        <Route path="/admin/contact-info" element={<ContactInfo />} />
-        
 
-        <Route path="/admin/data-dialer" element={<AdminContact />}>
-          <Route index element={<AdminAllContact/>} />
+        {/* ✅ Admin Contact / Data Dialer Area */}
+        <Route path="/admin" element={<AdminContact />}>
+          <Route path="data-dialer" element={<AdminAllContact />} />
+          <Route path="find-duplicate" element={<AdminFindDuplicate />} />
         </Route>
 
-
-        <Route path="/admin/" element={<AdminDashboardLayout />}>
-        <Route path="/admin/reports-analytics" element={<AdminReportAnalytics />} />  
+        {/* ✅ Admin Dashboard Section */}
+        <Route path="/admin" element={<AdminDashboardLayout />}>
           <Route index element={<AdminHome />} />
-          <Route path="/admin/calendar" element={<AdminCalender />} />
-          <Route path="/admin/library" element={<AdminLibrary />} />
-        <Route path="/admin/settings" element={<AdminSetting />} />
-        <Route path="/admin/user-management" element={<AdminUserManagment />} />
-        <Route path="/admin/billing" element={<Billing />} />
-        <Route path="/admin/upgrade" element={<Upgrade />} />
-        <Route path="/admin/lead-store" element={<LeadStore/>} />
-        <Route path="/admin/compliance" element={<Compliance />} />
-          {/* <Route path="/admin/library" element={<Library/>} />
-          <Route path="/admin/reports" element={<ReportAnalytics/>} />
-          <Route path="/admin/compliance" element={<Compliance/>} />
-          <Route path="/admin/settings" element={<Setting/>} /> */}
-          {/* <Route path="/admin/user-management" element={<Usermanagement/>} /> */}
-          {/* <Route path="/admin/billing" element={<Billing/>} /> */}
+          <Route path="calendar" element={<AdminCalender />} />
+          <Route path="library" element={<AdminLibrary />} />
+          <Route path="reports-analytics" element={<AdminReportAnalytics />} />
+          <Route path="user-management" element={<AdminUserManagment />} />
+          <Route path="system-settings" element={<AdminSystemSetting />} />
+          <Route path="billing" element={<Billing />} />
+          <Route path="upgrade" element={<Upgrade />} />
+          <Route path="lead-store" element={<LeadStore />} />
+          <Route path="compliance" element={<Compliance />} />
+          <Route path="create-contact" element={<AdminCreateContact />} />
+
         </Route>
 
+          <Route path="/admin/contact-detail" element={<ContactDetail />} />
 
       </Routes>
     </div>

@@ -54,7 +54,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
     { id: 5, name: "Reports & Analytics", link: "/admin/reports-analytics", icon: reporticon },
     { id: 6, name: "Compliance & DNC", link: "/admin/compliance", icon: bulbicon },
     { id: 7, name: "User Management", link: "/admin/user-management", icon: usericon },
-    { id: 8, name: "System Settings", link: "/admin/settings", icon: settingicon },
+    { id: 8, name: "System Settings", link: "/admin/system-settings", icon: settingicon },
     { id: 9, name: "Billing", link: "/admin/billing", icon: billingicon },
   ];
 

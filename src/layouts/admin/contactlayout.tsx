@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { TfiDownload } from "react-icons/tfi";
-
-import AllContactSidebar from "@/components/agent/common/allcontactsidebar";
+import movetoicon from "../../assets/movetoicon.png"
+import duplicatesicon from "../../assets/duplicatesicon.png"
 import Navbar from "@/components/agent/common/navbar";
 import ExportFieldsModal from "@/components/modal/exportfieldmodal";
+import { FaChevronUp } from "react-icons/fa6";
+import { FaChevronDown } from "react-icons/fa";
+import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
+
 
 const ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -37,7 +41,7 @@ const ContactLayout = () => {
         <div className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
     ${isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
   `}>
-          <AllContactSidebar onSelectItem={setActiveItem} />
+          <AdminAllContactSidebar onSelectItem={setActiveItem} />
         </div>
       )}
 
@@ -72,15 +76,41 @@ const ContactLayout = () => {
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex w-full bottom-0 fixed bg-white shadow-2xl py-4 items-center gap-2
+        className={`flex w-full gap-7 bottom-0 fixed bg-white shadow-2xl py-4 items-center
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <button
           className="flex items-center gap-2"
           onClick={() => setShowExportModal(true)}
         >
+          <img src={movetoicon} className="w-4" alt="movetoicon" />
+          <span className="text-[14px] text-[#495057] font-[500]">Move To</span>
+          <span className="text-sm text-gray-700"><FaChevronUp /></span>
+        </button>
+
+        <button
+          className="flex items-center gap-2"
+          onClick={() => setShowExportModal(true)}
+        >
           <TfiDownload className="text-[17px] text-[#495057]" />
-          <span className="text-[16px] text-[#495057] font-[500]">Export</span>
+          <span className="text-[14px] text-[#495057] font-[500]">Export</span>
+        </button>
+
+        <Link
+          className="flex items-center gap-2"
+          to="/admin/find-duplicate"
+        >
+          <img src={duplicatesicon} className="w-4" alt="duplicatesicon" />
+          <span className="text-[14px] text-[#495057] font-[500]">Find Duplicates</span>
+          <span className="text-sm text-gray-700"><FaChevronDown /></span>
+        </Link>
+
+
+        <button
+          className="flex items-center gap-2"
+          onClick={() => setShowExportModal(true)}
+        >
+          <span className="text-[14px] text-[#D43435] font-[500]">Delete</span>
         </button>
       </div>
 
