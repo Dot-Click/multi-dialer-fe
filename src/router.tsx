@@ -32,6 +32,8 @@ import Compliance from "@/pages/admin/compliance";
 import AdminFindDuplicate from "@/pages/admin/adminfindduplicate";
 import AdminCreateContact from "@/pages/admin/admincreatecontact";
 import AdminSystemSetting from "@/pages/admin/adminsystemsetting";
+import AddSettingPage from "@/pages/admin/addsetting";
+import AddLeadSheetPage from "@/pages/admin/addleadsheet";
 
 const Router: React.FC = () => {
   return (
@@ -82,11 +84,11 @@ const Router: React.FC = () => {
           <Route path="lead-store" element={<LeadStore />} />
           <Route path="compliance" element={<Compliance />} />
           <Route path="create-contact" element={<AdminCreateContact />} />
-
+          <Route path="add-setting" element={<AddSettingPage />} />
+          <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
         </Route>
 
-          <Route path="/admin/contact-detail" element={<ContactDetail />} />
-
+        <Route path="/admin/contact-detail" element={<ContactDetail />} />
       </Routes>
     </div>
   );

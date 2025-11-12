@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiPlus, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
+import { Link } from 'react-router-dom';
 
 // ✅ Interfaces for type safety
 interface NumberData {
@@ -142,10 +143,13 @@ const CallSetting: React.FC = () => {
         {/* Header */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Call Settings</h1>
-          <button className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-yellow-500 transition">
-            <FiPlus size={18} />
-            Add Setting
-          </button>
+            <Link 
+              to="/admin/add-setting"
+              className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-yellow-500 transition"
+            >
+              <FiPlus size={18} />
+              Add Setting
+            </Link>
         </header>
 
         {/* Search + Sort */}

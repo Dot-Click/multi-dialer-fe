@@ -60,6 +60,7 @@
 // Icons from react-icons library
 import { FiPlus } from "react-icons/fi";
 import { BsThreeDots } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 // Dummy Data for the list of lead sheets
 const leadSheetsData = [
@@ -100,10 +101,13 @@ const LeadSheet: React.FC = () => {
         {/* Header */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-gray-900">Lead Sheet</h1>
-          <button className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm shadow-sm">
+          <Link
+            to="/admin/add-lead-sheet"
+            className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm shadow-sm"
+          >
             <FiPlus size={18} />
             Add Lead Sheet
-          </button>
+          </Link>
         </header>
 
         {/* List of Lead Sheets */}
