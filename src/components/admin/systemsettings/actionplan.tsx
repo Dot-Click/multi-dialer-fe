@@ -5,6 +5,7 @@ import { TableProvider } from "@/providers/table.provider";
 // Icons from react-icons
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots } from 'react-icons/bs';
+import { useNavigate } from "react-router-dom";
 
 
 // --- Interface and Data for the Action Plan Table ---
@@ -56,6 +57,9 @@ const columns = [
 
 // --- Main ActionPlan Component ---
 const ActionPlan = () => {
+
+  const navigate = useNavigate()
+
   return (
     <div className="px-4 py-5 bg-white rounded-lg min-h-screen">
       <Box className="  w-full h-full ">
@@ -96,7 +100,7 @@ const ActionPlan = () => {
         {/* Header Section */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
           <h1 className="text-2xl font-bold text-gray-900">Action Plan</h1>
-          <button className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
+          <button onClick={()=>navigate("/admin/action-plan")} className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
             <FiPlus size={18} />
             Create Action Plan
           </button>

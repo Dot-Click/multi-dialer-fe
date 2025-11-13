@@ -22,7 +22,12 @@ interface AdminSidebarProps {
   setIsMobile: (mobile: boolean) => void;
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile, setIsMobile }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({
+  isOpen,
+  setIsOpen,
+  isMobile,
+  setIsMobile,
+}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,8 +46,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
   }, []);
 
   const handleLogout = () => {
-    // Yaha agar token remove karna ho to kar lo
-    // localStorage.removeItem("token");
     navigate("/admin/login");
   };
 
@@ -65,6 +68,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
 
   return (
     <>
+      {/* Mobile Menu Button */}
       {isMobile && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -74,6 +78,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
         </button>
       )}
 
+      {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-300 z-40
           ${isOpen ? "w-64" : "w-16"}
@@ -81,18 +86,29 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
         `}
       >
         <div className="flex flex-col px-3 py-4 gap-4">
+          {/* Logo + Toggle */}
           <div className="flex items-center justify-between">
             <img
               src={logo}
               alt="Logo"
-              className={`object-contain transition-all duration-300 ${isOpen ? "w-36" : "w-8"}`}
+              className={`object-contain transition-all duration-300 ${
+                isOpen ? "w-36" : "w-8"
+              }`}
             />
 
-            <button onClick={() => setIsOpen(!isOpen)} className="p-1 bg-gray-100 hover:bg-gray-200 rounded-md transition">
-              {isOpen ? <img src={sidebaricon} className="h-5 w-5 object-contain" /> : <FiMenu size={20} />}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+            >
+              {isOpen ? (
+                <img src={sidebaricon} className="h-5 w-5 object-contain" />
+              ) : (
+                <FiMenu size={20} />
+              )}
             </button>
           </div>
 
+          {/* User Info */}
           {isOpen && (
             <div className="flex bg-gray-50 border border-gray-200 px-3 py-2 rounded-md flex-col">
               <h1 className="font-semibold text-gray-950 text-sm">John Lee</h1>
@@ -102,19 +118,27 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
 
           <div className="border-t border-gray-200"></div>
 
+          {/* Top Links */}
           <div className="flex flex-col gap-1 justify-center">
             {sidebarLinks.map((slinks) => (
               <NavLink
                 key={slinks.id}
                 to={slinks.link}
+                end={slinks.link === "/admin"} // ✅ exact match for Dashboard only
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
-                  ${isActive ? "bg-[#FFCA06] font-[600] text-gray-900" : "hover:bg-[#FFCA06] text-gray-700"}`
+                  ${
+                    isActive
+                      ? "bg-[#FFCA06] font-[600] text-gray-900"
+                      : "hover:bg-[#FFCA06] text-gray-700"
+                  }`
                 }
               >
                 <img src={slinks.icon} className="h-4 w-4 object-contain" />
-                {isOpen && <span className="text-[12px] font-medium">{slinks.name}</span>}
+                {isOpen && (
+                  <span className="text-[12px] font-medium">{slinks.name}</span>
+                )}
               </NavLink>
             ))}
           </div>
@@ -126,14 +150,21 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
             <NavLink
               key={item.id}
               to={item.link}
+              end // ✅ make these exact too
               className={({ isActive }) =>
                 `flex items-center gap-2 px-2 py-2 rounded-md transition-all
                 ${!isOpen ? "justify-center" : ""}
-                ${isActive ? "bg-[#FFCA06] font-[600]  text-gray-900" : "hover:bg-[#FFCA06] text-gray-700"}`
+                ${
+                  isActive
+                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    : "hover:bg-[#FFCA06] text-gray-700"
+                }`
               }
             >
               <img src={item.icon} className="h-4 w-4 object-contain" />
-              {isOpen && <span className="text-[12px] font-medium">{item.name}</span>}
+              {isOpen && (
+                <span className="text-[12px] font-medium">{item.name}</span>
+              )}
             </NavLink>
           ))}
 
@@ -149,8 +180,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen, isMobile
         </div>
       </aside>
 
+      {/* Mobile Overlay */}
       {isMobile && isOpen && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-40 z-30" onClick={() => setIsOpen(false)}></div>
+        <div
+          className="fixed inset-0 bg-black/50 bg-opacity-40 z-30"
+          onClick={() => setIsOpen(false)}
+        ></div>
       )}
     </>
   );

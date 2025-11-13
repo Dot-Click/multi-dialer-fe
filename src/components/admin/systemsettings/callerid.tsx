@@ -2,6 +2,7 @@
 import { FiPlus, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // ✅ Interface for NumberCard props
 interface NumberData {
@@ -113,6 +114,8 @@ const NumberCard: React.FC<NumberCardProps> = ({ data }) => {
 
 // ✅ Main Component
 const CallerId: React.FC = () => {
+
+  const navigate = useNavigate()
   return (
     <div className="bg-white rounded-lg min-h-screen px-4 py-5">
       <div className="max-w-7xl mx-auto">
@@ -120,7 +123,7 @@ const CallerId: React.FC = () => {
         {/* Header */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Caller ID</h1>
-          <button className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
+          <button onClick={()=>navigate('/admin/number-setting')} className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
             <FiPlus size={18} />
             Add CallScout Number
           </button>

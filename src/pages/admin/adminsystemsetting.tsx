@@ -7,10 +7,10 @@ import LeadSheet from "@/components/admin/systemsettings/leadsheet"
 import Appearance from "@/components/admin/systemsettings/appearance"
 import Notifications from "@/components/admin/systemsettings/notifications"
 import Integrations from "@/components/admin/systemsettings/integrations"
+import MiscField from "@/components/admin/systemsettings/miscfield"
+import DataManagement from "@/components/admin/systemsettings/datamanagement"
 
 // Dummy components for each button
-const MiscFields = () => <div className="mt-6 p-4 border rounded-md bg-gray-50">Misc Fields Component</div>
-const DataManagement = () => <div className="mt-6 p-4 border rounded-md bg-gray-50">Data Management Component</div>
 
 const AdminSystemSetting = () => {
     const [openDialogue, setOpenDialogue] = useState('Caller ID')
@@ -21,7 +21,7 @@ const AdminSystemSetting = () => {
         { id: 3, name: "Call Settings", component: <CallSetting /> },
         { id: 4, name: "Action Plan", component: <ActionPlan /> },
         { id: 5, name: "Lead Sheet", component: <LeadSheet /> },
-        { id: 6, name: "Misc Fields", component: <MiscFields /> },
+        { id: 6, name: "Misc Fields", component: <MiscField /> },
         { id: 7, name: "Data Management", component: <DataManagement /> },
     ]
 

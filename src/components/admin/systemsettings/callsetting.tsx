@@ -136,6 +136,7 @@ const NumberCard: React.FC<NumberCardProps> = ({ data }) => {
 
 // ✅ Main Component
 const CallSetting: React.FC = () => {
+
   return (
     <div className="bg-white min-h-screen px-4 py-5 rounded-lg">
       <div className="max-w-7xl mx-auto">
@@ -144,7 +145,7 @@ const CallSetting: React.FC = () => {
         <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Call Settings</h1>
             <Link 
-              to="/admin/add-setting"
+              to="/admin/create-setting"
               className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-yellow-500 transition"
             >
               <FiPlus size={18} />

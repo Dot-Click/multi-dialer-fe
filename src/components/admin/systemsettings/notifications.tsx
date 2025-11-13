@@ -22,7 +22,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ enabled, onChange, label })
         }`}
       />
     </button>
-    <span className="text-sm font-medium text-gray-900">{label}</span>
+    <span className="text-sm  font-medium text-gray-900">{label}</span>
   </div>
 );
 

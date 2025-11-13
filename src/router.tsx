@@ -34,6 +34,9 @@ import AdminCreateContact from "@/pages/admin/admincreatecontact";
 import AdminSystemSetting from "@/pages/admin/adminsystemsetting";
 import AddSettingPage from "@/pages/admin/addsetting";
 import AddLeadSheetPage from "@/pages/admin/addleadsheet";
+import NumberSetting from "./pages/admin/numbersetting";
+import AdminCreateCallSetting from "./pages/admin/admincreatecallsetting";
+import AdminActionPlan from "./pages/admin/adminactionplan";
 
 const Router: React.FC = () => {
   return (
@@ -79,6 +82,9 @@ const Router: React.FC = () => {
           <Route path="reports-analytics" element={<AdminReportAnalytics />} />
           <Route path="user-management" element={<AdminUserManagment />} />
           <Route path="system-settings" element={<AdminSystemSetting />} />
+          <Route path="number-setting" element={<NumberSetting />} />
+          <Route path="create-setting" element={<AdminCreateCallSetting />} />
+          <Route path="action-plan" element={<AdminActionPlan />} />
           <Route path="billing" element={<Billing />} />
           <Route path="upgrade" element={<Upgrade />} />
           <Route path="lead-store" element={<LeadStore />} />
