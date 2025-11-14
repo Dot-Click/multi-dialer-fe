@@ -4,6 +4,7 @@ import { FaChevronRight } from 'react-icons/fa'
 import { SortedHeader, TableComponent } from '@/components/common/tablecomponent'
 import { Box } from '@/components/ui/box'
 import { TableProvider } from '@/providers/table.provider'
+import { useNavigate } from 'react-router-dom'
 
 // --- Import History Table Data and Columns ---
 
@@ -49,6 +50,9 @@ const exportHistoryColumns = [
 // --- Main DataManagement Component ---
 
 const DataManagement = () => {
+
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -85,7 +89,7 @@ const DataManagement = () => {
             Any data deleted in the last 30 days can be restored by clicking Restore next to the date it was deleted.
           </p>
           <div className="mt-6">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+            <button onClick={() => navigate("/admin/restore-data")} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
               <span className="text-sm font-medium">Restore data</span>
               <FaChevronRight size={12} />
             </button>

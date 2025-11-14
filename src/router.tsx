@@ -39,6 +39,7 @@ import AdminCreateCallSetting from "@/pages/admin/admincreatecallsetting";
 import AdminActionPlan from "@/pages/admin/adminactionplan";
 import AdminEditSignature from "@/pages/admin/admineditsignature";
 import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
+import AdminRestoreData from "@/pages/admin/adminrestoredata";
 
 const Router: React.FC = () => {
   return (
@@ -96,6 +97,7 @@ const Router: React.FC = () => {
           <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
           <Route path="edit-signature" element={<AdminEditSignature />} />
           <Route path="account-setting" element={<AdminAccountSetting />} />
+          <Route path="restore-data" element={<AdminRestoreData />} />
         </Route>
 
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
