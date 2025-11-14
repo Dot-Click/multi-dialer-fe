@@ -67,7 +67,7 @@ const Compliance = () => {
   ]
 
   return (
-    <Box className="p-4 sm:p-6 min-h-screen bg-gray-100">
+    <Box className="min-h-screen pr-3 lg:pr-6">
       {/* Page Title */}
       <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4 sm:mb-6">Compliance & DNC</h1>
 

@@ -3,6 +3,7 @@ import EmailTemplate from '@/components/agent/library/emailtemplate';
 import Script from '@/components/agent/library/script';
 import SMSTemplate from '@/components/agent/library/smstemplate';
 import MediaCenter from '@/components/agent/library/mediacenter';
+import CallBackPromts from '@/components/admin/library/callbackpromts';
 
 
 
@@ -10,7 +11,7 @@ import MediaCenter from '@/components/agent/library/mediacenter';
 const Library = () => {
   const [activeTab, setActiveTab] = useState('Scripts');
 
-  const tabs = ['Scripts', 'Email Templates', 'SMS Templates', 'Media Center'];
+  const tabs = ['Scripts', 'Email Templates', 'SMS Templates', 'Media Center','CallBack Promts'];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -22,6 +23,8 @@ const Library = () => {
         return <SMSTemplate />;
       case 'Media Center':
         return <MediaCenter />;
+      case 'CallBack Promts':
+        return <CallBackPromts />;
       default:
         return <Script />;
     }

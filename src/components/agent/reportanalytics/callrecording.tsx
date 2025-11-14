@@ -3,8 +3,10 @@ import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
 import { FaPlay } from "react-icons/fa";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { useState, useEffect } from "react";
 
-
+// Audio Player Component
 const AudioPlayer = () => {
     return (
         <div className="flex items-center space-x-3">
@@ -23,8 +25,7 @@ const AudioPlayer = () => {
     );
 };
 
-
-// Step 1: Data ka structure define karein
+// Step 1: Data structure
 interface CallRecord {
     id: number;
     agent: string;
@@ -33,7 +34,7 @@ interface CallRecord {
     callResult: string;
 }
 
-// Step 2: Sample data banayein
+// Step 2: Sample data
 const callRecordingData: CallRecord[] = [
     { id: 1, agent: "Bertha Wiza", name: "Kathryn Murphy", duration: "00:00:00", callResult: "Positive" },
     { id: 2, agent: "Bertha Wiza", name: "Robert Fox", duration: "00:00:00", callResult: "Positive" },
@@ -45,7 +46,7 @@ const callRecordingData: CallRecord[] = [
     { id: 8, agent: "Bertha Wiza", name: "Marvin McKinney", duration: "00:00:00", callResult: "Positive" },
 ];
 
-// Step 3: Table ke columns define karein
+// Step 3: Table columns
 const columns = [
     {
         id: "select",
@@ -90,6 +91,17 @@ const columns = [
 ];
 
 const CallRecording = () => {
+    const [showAllDatesButton, setShowAllDatesButton] = useState(false);
+
+    useEffect(() => {
+        // Check current path
+        if (window.location.pathname === "/admin/reports-analytics") {
+            setShowAllDatesButton(true);
+        } else {
+            setShowAllDatesButton(false);
+        }
+    }, []);
+
     return (
         <Box className="mt-3 w-full h-full">
             <style>
@@ -124,8 +136,20 @@ const CallRecording = () => {
           }
         `}
             </style>
+
+            {/* All Dates Button */}
+            {showAllDatesButton && (
+                <div className="flex justify-start items-center mb-2">
+                    <button className="flex w-32 justify-between items-center border border-gray-200 px-2 py-1 rounded-md">
+                        <span className="text-xs text-gray-600"><IoIosArrowBack /></span>
+                        <span className="text-sm text-gray-600">All Dates</span>
+                        <span className="text-xs text-gray-600"><IoIosArrowForward /></span>
+                    </button>
+                </div>
+            )}
+
             <main>
-                {/* Step 4: TableProvider aur TableComponent ko data aur columns ke saath render karein */}
+                {/* TableProvider + TableComponent */}
                 <TableProvider data={callRecordingData} columns={columns}>
                     {() => <TableComponent />}
                 </TableProvider>

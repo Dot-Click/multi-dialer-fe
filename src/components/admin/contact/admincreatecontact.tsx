@@ -54,7 +54,7 @@ const AdminCreateContactComponent: React.FC = () => {
   const groups = ['Group', 'Group', 'Group', 'Group', 'Group', 'Group', 'Group'];
 
   return (
-    <div className="bg-white max-w-5xl mx-auto rounded-xl min-h-screen p-4 sm:p-6 md:p-8">
+    <div className="bg-white max-w-5xl mx-auto rounded-xl min-h-screen p-3 sm:p-4 md:p-6">
       <div>
         {/* Top form section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">

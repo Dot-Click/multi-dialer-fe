@@ -34,9 +34,11 @@ import AdminCreateContact from "@/pages/admin/admincreatecontact";
 import AdminSystemSetting from "@/pages/admin/adminsystemsetting";
 import AddSettingPage from "@/pages/admin/addsetting";
 import AddLeadSheetPage from "@/pages/admin/addleadsheet";
-import NumberSetting from "./pages/admin/numbersetting";
-import AdminCreateCallSetting from "./pages/admin/admincreatecallsetting";
-import AdminActionPlan from "./pages/admin/adminactionplan";
+import NumberSetting from "@/pages/admin/numbersetting";
+import AdminCreateCallSetting from "@/pages/admin/admincreatecallsetting";
+import AdminActionPlan from "@/pages/admin/adminactionplan";
+import AdminEditSignature from "@/pages/admin/admineditsignature";
+import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 
 const Router: React.FC = () => {
   return (
@@ -92,9 +94,12 @@ const Router: React.FC = () => {
           <Route path="create-contact" element={<AdminCreateContact />} />
           <Route path="add-setting" element={<AddSettingPage />} />
           <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
+          <Route path="edit-signature" element={<AdminEditSignature />} />
+          <Route path="account-setting" element={<AdminAccountSetting />} />
         </Route>
 
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
+        <Route path="/admin/contact-info" element={<ContactInfo />} />
       </Routes>
     </div>
   );
