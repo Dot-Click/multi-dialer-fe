@@ -38,9 +38,9 @@ const ImportPreviewPage = () => {
       email: "tanya.hill@example.com",
       address: "82366 Long Lane, Lake Rollinsilde 38172",
     },
-  
+
     // ---- Added Rows ----
-  
+
     {
       name: "Leslie Alexander",
       phone: "(602) 555-0183",
@@ -107,7 +107,7 @@ const ImportPreviewPage = () => {
   ];
 
   return (
-    <section className="min-h-screen px-4 py-4 font-sans bg-gray-50">
+    <section className="min-h-screen  pr-10 font-sans">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
@@ -121,139 +121,146 @@ const ImportPreviewPage = () => {
           </h1>
         </div>
 
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-4">
-          Previewing the first 100 records. To see the entire import, please review
-          the list or group in the data and dialer area.
-        </p>
-
-        {/* White Card */}
         <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-2 sm:p-4">
-          <div className="overflow-y-auto h-[65vh] custom-scrollbar">
+          {/* Description */}
+          <p className="text-sm text-gray-600 mb-4">
+            Previewing the first 100 records. To see the entire import, please review
+            the list or group in the data and dialer area.
+          </p>
 
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-50">
-                <tr className="text-left text-xs text-gray-600 uppercase">
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Phone Number</th>
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Property Address</th>
-                </tr>
-              </thead>
+          {/* White Card */}
+          <div className="">
+            <div className="overflow-y-auto h-[65vh] custom-scrollbar">
 
-              <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={idx} className="border-b last:border-none">
-
-                    {/* Name */}
-                    <td className="px-4 py-4">
-                      <span
-                        onClick={() => setOpenMapped(true)}
-                        className="text-blue-600 hover:underline cursor-pointer"
-                      >
-                        {row.name}
-                      </span>
-                    </td>
-
-                    {/* Phone */}
-                    <td className="px-4 py-4 text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <FiPhone className="text-gray-500" size={14} />
-                        {row.phone}
-                      </div>
-                    </td>
-
-                    {/* Emails */}
-                    <td className="px-4 py-4 text-gray-700">
-                      <div className="flex items-start gap-2">
-                        <FiMail className="text-gray-500 mt-1" size={14} />
-                        <div className="flex flex-col leading-tight">
-                          <span>{row.email}</span>
-                          {row.email2 && <span>{row.email2}</span>}
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Address */}
-                    <td className="px-4 py-4 text-gray-700">{row.address}</td>
-
+              <table className="w-full border-collapse">
+                <thead className="bg-gray-50">
+                  <tr className="text-left text-xs text-gray-600 uppercase">
+                    <th className="px-4 py-3 font-medium">Name</th>
+                    <th className="px-4 py-3 font-medium">Phone Number</th>
+                    <th className="px-4 py-3 font-medium">Email</th>
+                    <th className="px-4 py-3 font-medium">Property Address</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
 
+                <tbody>
+                  {rows.map((row, idx) => (
+                    <tr key={idx} className="border-b last:border-none">
+
+                      {/* Name */}
+                      <td className="px-4 py-4">
+                        <span
+                          onClick={() => setOpenMapped(true)}
+                          className="text-blue-600 hover:underline cursor-pointer"
+                        >
+                          {row.name}
+                        </span>
+                      </td>
+
+                      {/* Phone */}
+                      <td className="px-4 py-4 text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <FiPhone className="text-gray-500" size={14} />
+                          {row.phone}
+                        </div>
+                      </td>
+
+                      {/* Emails */}
+                      <td className="px-4 py-4 text-gray-700">
+                        <div className="flex items-start gap-2">
+                          <FiMail className="text-gray-500 mt-1" size={14} />
+                          <div className="flex flex-col leading-tight">
+                            <span>{row.email}</span>
+                            {row.email2 && <span>{row.email2}</span>}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Address */}
+                      <td className="px-4 py-4 text-gray-700">{row.address}</td>
+
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
           </div>
+
+
         </div>
+
+
+
       </div>
 
       {/* MAPPED FIELD MODAL */}
-{openMapped && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {openMapped && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-    {/* DARK OVERLAY */}
-    <div
-      className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
-      onClick={() => setOpenMapped(false)}
-    ></div>
+          {/* DARK OVERLAY */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
+            onClick={() => setOpenMapped(false)}
+          ></div>
 
-    {/* MODAL BOX */}
-    <div className="relative bg-white rounded-2xl shadow-xl 
+          {/* MODAL BOX */}
+          <div className="relative bg-white rounded-2xl shadow-xl 
                     w-[90%] sm:w-[650px] max-h-[80vh] overflow-y-auto p-6 z-50">
 
-      {/* Modal Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Mapped Fields</h2>
-        <button
-          onClick={() => setOpenMapped(false)}
-          className="text-gray-600 hover:text-black text-2xl leading-none"
-        >
-          ×
-        </button>
-      </div>
-
-      {/* Two Columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-        {/* Your Fields */}
-        <div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">Your fields:</p>
-          <div className="space-y-2">
-            {[
-              "First Name","Middle Name","Last Name","2","3",
-              "4","5","Phone 1","Phone 2"
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Mapped Fields</h2>
+              <button
+                onClick={() => setOpenMapped(false)}
+                className="text-gray-600 hover:text-black text-2xl leading-none"
               >
-                {item}
+                ×
+              </button>
+            </div>
+
+            {/* Two Columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+              {/* Your Fields */}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Your fields:</p>
+                <div className="space-y-2">
+                  {[
+                    "First Name", "Middle Name", "Last Name", "2", "3",
+                    "4", "5", "Phone 1", "Phone 2"
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+
+              {/* Mojo Fields */}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Mojo Fields:</p>
+                <div className="space-y-2">
+                  {[
+                    "Name", "Property Address", "Property City",
+                    "Property State", "Property Zip Code", "Phone"
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
-
-        {/* Mojo Fields */}
-        <div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">Mojo Fields:</p>
-          <div className="space-y-2">
-            {[
-              "Name","Property Address","Property City",
-              "Property State","Property Zip Code","Phone"
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
       {/* Scrollbar CSS */}
