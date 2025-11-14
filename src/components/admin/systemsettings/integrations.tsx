@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { FiLoader, FiX } from 'react-icons/fi';
 import { BsCheckCircle, BsXCircle, BsExclamationTriangle } from 'react-icons/bs';
+import twilioLogo from "../../../assets/twillo.png";
+import googleMapLogo from "../../../assets/googlemap.png";
+import realtorLogo from "../../../assets/realtor.png";
+import bombbombLogo from "../../../assets/bomb.png";
+import gmailLogo from "../../../assets/gmail.png";
+import stanppLogo from "../../../assets/stamnp.png";
+import myplusLogo from "../../../assets/myplus.png";
+import zapierLogo from "../../../assets/zapier.png";
+
 
 interface Integration {
   id: string;
@@ -207,119 +216,130 @@ const Integrations: React.FC = () => {
 
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
-      id: 'twilio',
-      name: 'Twilio',
-      description: 'Connect Twilio for calls, SMS, and number management.',
-      status: 'na',
-      buttonText: 'Connect',
+      id: "twilio",
+      name: "Twilio",
+      description: "Connect Twilio for calls, SMS, and number management.",
+      status: "na",
+      buttonText: "Connect",
       icon: (
-        <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center">
-          <div className="grid grid-cols-2 gap-0.5 p-0.5">
-            <div className="w-3 h-3 bg-white rounded-sm"></div>
-            <div className="w-3 h-3 bg-white rounded-sm"></div>
-            <div className="w-3 h-3 bg-white rounded-sm"></div>
-            <div className="w-3 h-3 bg-white rounded-sm"></div>
-          </div>
-        </div>
+        <img
+          src={twilioLogo}
+          alt="Twilio"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'google-maps',
-      name: 'Google Maps',
-      description: 'Use Google Maps and Street View for maps and addresses.',
-      status: 'processing',
-      buttonText: 'Manage',
-      apiKey: '************************************',
+      id: "google-maps",
+      name: "Google Maps",
+      description: "Use Google Maps and Street View for maps and addresses.",
+      status: "processing",
+      buttonText: "Manage",
+      apiKey: "************************************",
       icon: (
-        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-          <div className="w-4 h-4 bg-white rounded-full"></div>
-        </div>
+        <img
+          src={googleMapLogo}
+          alt="Google Maps"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'realtor',
-      name: 'Realtor.com',
-      description: 'Connect Realtor.com for property data.',
-      status: 'connected',
-      buttonText: 'Manage',
-      apiKey: '************************************',
+      id: "realtor",
+      name: "Realtor.com",
+      description: "Connect Realtor.com for property data.",
+      status: "connected",
+      buttonText: "Manage",
+      apiKey: "************************************",
       icon: (
-        <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-          </svg>
-        </div>
+        <img
+          src={realtorLogo}
+          alt="Realtor"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'bombbomb',
-      name: 'BombBomb',
-      description: 'Use BombBomb for video messages.',
-      status: 'failed',
-      buttonText: 'Manage',
+      id: "bombbomb",
+      name: "BombBomb",
+      description: "Use BombBomb for video messages.",
+      status: "failed",
+      buttonText: "Manage",
       icon: (
-        <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-            <path d="M12 4v8l6 3" stroke="currentColor" strokeWidth="2" fill="none" />
-          </svg>
-        </div>
+        <img
+          src={bombbombLogo}
+          alt="BombBomb"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'gmail',
-      name: 'Gmail',
-      description: 'Connect Gmail to send emails through CallScout.',
-      status: 'setup',
-      buttonText: 'Manage',
+      id: "gmail",
+      name: "Gmail",
+      description: "Connect Gmail to send emails through CallScout.",
+      status: "setup",
+      buttonText: "Manage",
       icon: (
-        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded flex items-center justify-center">
-          <span className="text-white font-bold text-lg">M</span>
-        </div>
+        <img
+          src={gmailLogo}
+          alt="Gmail"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'stanpp',
-      name: 'Stanpp.com',
-      description: 'Connect Stanpp.com for direct mail.',
-      status: 'connected',
-      buttonText: 'Manage',
-      apiKey: '************************************',
+      id: "stanpp",
+      name: "Stanpp.com",
+      description: "Connect Stanpp.com for direct mail.",
+      status: "connected",
+      buttonText: "Manage",
+      apiKey: "************************************",
       icon: (
-        <div className="w-10 h-10 border-2 border-red-600 rounded flex items-center justify-center">
-          <div className="w-4 h-4 border border-white bg-white"></div>
-        </div>
+        <img
+          src={stanppLogo}
+          alt="Stanpp"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'myplusleads',
-      name: 'MyPlusLeads',
-      description: 'Use MyPlusLeads for daily lead imports.',
-      status: 'connected',
-      buttonText: 'Manage',
-      apiKey: '************************************',
+      id: "myplusleads",
+      name: "MyPlusLeads",
+      description: "Use MyPlusLeads for daily lead imports.",
+      status: "connected",
+      buttonText: "Manage",
+      apiKey: "************************************",
       icon: (
-        <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center">
-          <span className="text-white font-bold text-xl">+</span>
-        </div>
+        <img
+          src={myplusLogo}
+          alt="MyPlusLeads"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
+  
     {
-      id: 'zapier',
-      name: 'Zapier',
-      description: 'Integrate with HubSpot, Lofty, Salesforce, and others.',
-      status: 'na',
-      buttonText: 'Connect',
+      id: "zapier",
+      name: "Zapier",
+      description: "Integrate with HubSpot, Lofty, Salesforce, and others.",
+      status: "na",
+      buttonText: "Connect",
       icon: (
-        <div className="w-10 h-10 bg-orange-500 rounded flex items-center justify-center">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        </div>
+        <img
+          src={zapierLogo}
+          alt="Zapier"
+          className="w-10 h-10 object-contain rounded"
+        />
       ),
     },
   ]);
-
+  
   const getStatusDisplay = (status: Integration['status']) => {
     switch (status) {
       case 'na':

@@ -228,94 +228,97 @@ const Compliance = () => {
 
       {/* Regulatory Settings Section */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
-    Regulatory Settings
-  </h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
+          Regulatory Settings
+        </h2>
 
-  {/* TCPA Settings */}
-  <div className="mb-8">
-    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
-      TCPA Settings (US)
-    </h3>
+        {/* TCPA Settings */}
+        <div className="mb-8">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
+            TCPA Settings (US)
+          </h3>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-      {/* From */}
-      <div className="bg-gray-200 p-2 rounded-xl">
-        <Label className="text-sm text-gray-700 block">From</Label>
-        <Select defaultValue="8:00">
-          <SelectTrigger className="w-full rounded-lg border border-gray-200 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="8:00">8:00</SelectItem>
-            <SelectItem value="9:00">9:00</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            {/* From */}
+            <div>
+              <Label className="text-sm text-gray-700 block mb-2">From</Label>
+              <Select defaultValue="8:00">
+                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="8:00">8:00</SelectItem>
+                  <SelectItem value="9:00">9:00</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-      {/* To */}
-      <div className="bg-gray-200 p-2 rounded-xl">
-        <Label className="text-sm text-gray-700 mb-2 block">To</Label>
-        <Select defaultValue="18:00">
-          <SelectTrigger className="w-full rounded-lg bg-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="18:00">18:00</SelectItem>
-            <SelectItem value="19:00">19:00</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+            {/* To */}
+            <div>
+              <Label className="text-sm text-gray-700 block mb-2">To</Label>
+              <Select defaultValue="18:00">
+                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="18:00">18:00</SelectItem>
+                  <SelectItem value="19:00">19:00</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-    {/* Autodialing toggle */}
-    <div className="flex items-center gap-3">
-      <Label className="text-sm text-gray-700 whitespace-nowrap">Autodialing</Label>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          className="sr-only peer"
-          checked={autodialing}
-          onChange={(e) => setAutodialing(e.target.checked)}
-        />
-        <div className={`w-11 h-6 rounded-full bg-gray-300 peer-checked:bg-blue-500 transition-all`}>
-          <div className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${
-            autodialing ? 'translate-x-5' : 'translate-x-0'
-          }`}></div>
+          {/* Autodialing toggle */}
+          <div className="flex items-center gap-3">
+            <Label className="text-sm text-gray-700 whitespace-nowrap">Autodialing</Label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={autodialing}
+                onChange={(e) => setAutodialing(e.target.checked)}
+              />
+              <div className={`w-11 h-6 rounded-full bg-gray-300 peer-checked:bg-gray-500 transition-all`}>
+                <div className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${
+                  autodialing ? 'translate-x-5' : 'translate-x-0'
+                }`}></div>
+              </div>
+            </label>
+          </div>
         </div>
-      </label>
-    </div>
-  </div>
 
-  {/* GDPR Settings */}
-  <div>
-    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
-      GDPR Settings (EU)
-    </h3>
-    <div className="grid xl:w-[50%] w-full grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-gray-200 p-2 rounded-xl">
-      <div>
-        <Label className="text-sm text-gray-700 mb-2 block">Keep contact data for:</Label>
-        <Select defaultValue="30">
-          <SelectTrigger className="w-full rounded-lg bg-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="30">30 days</SelectItem>
-            <SelectItem value="60">60 days</SelectItem>
-            <SelectItem value="90">90 days</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* GDPR Settings */}
+        <div>
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
+            GDPR Settings (EU)
+          </h3>
+          <div className="mb-4">
+            <Label className="text-sm text-gray-700 block mb-2">Keep contact data for:</Label>
+            <Select defaultValue="30">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30">30 days</SelectItem>
+                <SelectItem value="60">60 days</SelectItem>
+                <SelectItem value="90">90 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-start sm:items-center gap-3">
+            <input
+              type="checkbox"
+              id="gdpr-delete"
+              defaultChecked
+              className="h-4 w-4 accent-black focus:ring-black border-gray-400 rounded cursor-pointer mt-1 sm:mt-0"
+            />
+            <Label htmlFor="gdpr-delete" className="text-sm text-gray-700 cursor-pointer">
+              Delete related call records and notes along with a contact.
+            </Label>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div className="flex items-start sm:items-center gap-3">
-      <Checkbox id="gdpr-delete" defaultChecked className="mt-1 sm:mt-0" />
-      <Label htmlFor="gdpr-delete" className="text-sm text-gray-700 cursor-pointer">
-        Delete related call records and notes along with a contact.
-      </Label>
-    </div>
-  </div>
-</div>
 
    {/* Audit Logs Section */}
 <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
