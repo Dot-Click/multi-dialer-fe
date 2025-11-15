@@ -21,7 +21,7 @@ const AdminAiInsightToday = () => {
                 {data.map((dt)=>(
                     <div key={dt.id} className="flex flex-col">
                         <span className="text-[13px] md:text-[24px] lg:text-[40px] font-[600]">{dt.number}</span>
-                        <span className="text-[8px] md:text-[10px] lg:text-[14px] font-500">{dt.name}</span>
+                        <span className="text-[8px] md:text-[10px] lg:text-[14px] text-[#495057] font-500">{dt.name}</span>
 
                     </div>
                 ))}

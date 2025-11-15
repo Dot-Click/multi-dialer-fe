@@ -8,7 +8,7 @@ const AdminDashboardLayout = () => {
     const [isMobile, setIsMobile] = useState(false);
 
     return (
-        <div className='min-h-screen w-full relative'>
+        <div className='    min-h-screen w-full relative'>
             {/* agent pages  */}
             <div className="fixed top-0 z-[1000]">
                 <AdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />

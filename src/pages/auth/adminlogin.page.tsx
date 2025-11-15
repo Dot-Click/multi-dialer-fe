@@ -54,8 +54,8 @@ const AdminLogin: React.FC = () => {
             className={`${
               isAdminLogin
                 ? "bg-gray-950 text-white"
-                : "bg-transparent text-gray-950 hover:text-gray-100"
-            } border border-gray-400 hover:bg-gray-950 cursor-pointer`}
+                : "bg-transparent text-[#EBEDF0] "
+            } border border-[#EBEDF0] hover:bg-gray-950 cursor-pointer`}
             onClick={() => {setIsAdminLogin(true)
               navigate("/admin/login")
 
@@ -67,7 +67,7 @@ const AdminLogin: React.FC = () => {
 
         {/* Email Input */}
         <div className="bg-gray-200 flex flex-col w-full gap-0.5 px-3 py-1.5 rounded-lg">
-          <label htmlFor="email" className="text-xs font-medium p-0">
+          <label htmlFor="email" className="text-xs text-[#495057] font-medium p-0">
             Email
           </label>
           <input
@@ -79,7 +79,7 @@ const AdminLogin: React.FC = () => {
           />
         </div>
            <div className="bg-gray-200 flex flex-col w-full gap-1 px-3 py-1.5 rounded-lg">
-                  <label htmlFor="currentpassword" className="text-xs font-medium p-0">
+                  <label htmlFor="currentpassword" className="text-xs text-[#495057] font-medium p-0">
                     Password
                   </label>
                   <div className="flex items-center justify-between">
@@ -100,9 +100,9 @@ const AdminLogin: React.FC = () => {
                 </div>
         
         <div className="flex justify-end w-full">
-          <p className="text-gray-600 text-[0.65rem] lg:text-xs">
+          <a href="/admin/change-password" className="text-gray-600 text-[0.65rem] lg:text-xs">
             Forget your password?
-          </p>
+          </a>
         </div>
 
         {/* Continue Button */}

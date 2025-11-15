@@ -25,7 +25,7 @@ const AdminChangePassword: React.FC = () => {
 
         {/* Title */}
         <div>
-          <h1 className="text-xl lg:text-[1.65rem] font-semibold text-gray-950">
+          <h1 className="text-xl lg:text-[1.65rem] font-semibold text-red-400">
             Change Password
           </h1>
         </div>
@@ -35,7 +35,7 @@ const AdminChangePassword: React.FC = () => {
         {/* New Password */}
         <div className="flex flex-col w-full gap-1">
           <div className="bg-gray-200 flex flex-col gap-1 px-3 py-1.5 rounded-lg">
-            <label htmlFor="newpassword" className="text-xs font-medium p-0">
+            <label htmlFor="newpassword" className="text-xs text-red-400 font-medium p-0">
               New Password
             </label>
             <div className="flex items-center justify-between">
@@ -62,7 +62,7 @@ const AdminChangePassword: React.FC = () => {
 
         {/* Confirm New Password */}
         <div className="bg-gray-200 flex flex-col w-full gap-1 px-3 py-1.5 rounded-lg">
-          <label htmlFor="confirmpassword" className="text-xs font-medium p-0">
+          <label htmlFor="confirmpassword" className="text-xs text-red-400 font-medium p-0">
             Confirm New Password
           </label>
           <div className="flex items-center justify-between">

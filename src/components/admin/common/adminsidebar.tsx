@@ -7,7 +7,7 @@ import settingicon from "../../../assets/settingicon.png";
 import reporticon from "../../../assets/reporticon.png";
 import libraryicon from "../../../assets/libraryicon.png";
 import calendericon from "../../../assets/calendericon.png";
-import dataicon from "../../../assets/dataicon.png";
+import dataicon from "../../../assets/fluent_building-shop-24-regular.png";
 import billingicon from "../../../assets/admin/billingicon.png";
 import bulbicon from "../../../assets/admin/bulbicon.png";
 import usericon from "../../../assets/admin/usericon.png";
@@ -98,7 +98,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-1 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+              className="p-1   rounded-md transition"
             >
               {isOpen ? (
                 <img src={sidebaricon} className="h-5 w-5 object-contain" />

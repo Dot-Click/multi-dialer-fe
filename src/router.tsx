@@ -8,7 +8,7 @@ import AllContact from "@/pages/agent/allcontact";
 import ContactDetail from "@/pages/agent/contactdetail";
 import Login from "@/pages/auth/login.page";
 import AdminLogin from "@/pages/auth/adminlogin.page";
-import AdminChangePassword from "@/pages/auth/adminchangepassword.page";
+import AdminChangePassword from "./pages/auth/adminchangepassword.page";
 import RecoveryPassword from "@/pages/auth/recoverypassword.page";
 import ChangePassword from "@/pages/auth/changepassword.page";
 import Code from "@/pages/auth/code.page";
@@ -100,6 +100,8 @@ const Router: React.FC = () => {
           <Route path="account-setting" element={<AdminAccountSetting />} />
           <Route path="restore-data" element={<AdminRestoreData />} />
           <Route path="preview-data" element={<AdminPreviewData />} />
+          
+          <Route path="change-password" element={<AdminChangePassword />} />
         </Route>
 
         <Route path="/admin/contact-detail" element={<ContactDetail />} />

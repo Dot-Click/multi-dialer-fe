@@ -63,7 +63,7 @@ const Login: React.FC = () => {
 
         {/* Email Input */}
         <div className="bg-gray-200 flex flex-col w-full gap-0.5 px-3 py-1.5 rounded-lg">
-          <label htmlFor="email" className="text-xs font-medium p-0">
+          <label htmlFor="email" className="text-xs text-[#495057] font-medium p-0">
             Email
           </label>
           <input
