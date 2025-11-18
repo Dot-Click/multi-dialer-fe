@@ -143,77 +143,74 @@
 
 
 
-
-
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const chartData = [
   { time: "9:00",  Dialed: 280, Talked: 190 },
-  { time: "10:00", Dialed: 350, Talked: 260 },
-  { time: "11:00", Dialed: 420, Talked: 330 },
-
-  { time: "12:00", Dialed: 480, Talked: 360 },
-  { time: "13:00", Dialed: 510, Talked: 380 },
-  { time: "14:00", Dialed: 560, Talked: 430 },
-
-  { time: "15:00", Dialed: 650, Talked: 540 },
-  { time: "16:00", Dialed: 600, Talked: 480 },
-  { time: "17:00", Dialed: 580, Talked: 450 },
-
-  { time: "18:00", Dialed: 570, Talked: 450 },
-  { time: "19:00", Dialed: 430, Talked: 310 },
-  { time: "20:00", Dialed: 260, Talked: 180 },
-  { time: "21:00", Dialed: 200, Talked: 120 },
+  { time: "10:00", Dialed: 340, Talked: 260 },
+  { time: "11:00", Dialed: 450, Talked: 380 },
+  { time: "12:00", Dialed: 490, Talked: 395 },
+  { time: "13:00", Dialed: 490, Talked: 350 },
+  { time: "14:00", Dialed: 545, Talked: 425 },
+  { time: "15:00", Dialed: 650, Talked: 535 },
+  { time: "16:00", Dialed: 560, Talked: 390 },
+  { time: "17:00", Dialed: 670, Talked: 460 },
+  { time: "18:00", Dialed: 520, Talked: 415 },
+  { time: "19:00", Dialed: 435, Talked: 275 },
+  { time: "20:00", Dialed: 270, Talked: 185 },
+  { time: "21:00", Dialed: 190, Talked: 110 },
 ];
 
 const AgentDialedTalkes = () => {
   return (
-    <ResponsiveContainer width="100%" height={270}>
-      <BarChart
-        data={chartData}
-        margin={{
-          top: 10,
-          right: 10,
-          left: 5,
-          bottom: 0,
-        }}
-        barCategoryGap={25}
-        barGap={20}
+    <div style={{ padding: "10px" }}>
 
-      >
-        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+      <ResponsiveContainer width="100%" height={270}>
+        <BarChart
+          data={chartData}
+          margin={{
+            top: 10,
+            right: 10,
+            left: -10,
+            bottom: 0,
+          }}
+          barCategoryGap="30%"   // ✅ GAP BETWEEN EACH GROUP (time slot)
+          barGap={0}             // ✅ NO GAP between green & orange bars
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
-        <XAxis
-          dataKey="time"
-          tick={{ fontSize: 12, fill: "#666" }}
-          axisLine={false}
-        />
+          <XAxis
+            dataKey="time"
+            tick={{ fontSize: 12, fill: "#666" }}
+            axisLine={false}
+            tickLine={false}
+          />
 
-        <YAxis
-          tick={{ fontSize: 12, fill: "#666" }}
-          axisLine={false}
-        />
+          <YAxis
+            tick={{ fontSize: 12, fill: "#666" }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={22}   // GAP between numbers and bars
+          />
 
-        <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
+          <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
 
-        {/* GREEN LEFT */}
-        <Bar
-          dataKey="Dialed"
-          fill="#3DC269"
-          barSize={14}
-          radius={[4, 4, 0, 0]}
-        />
+          <Bar
+            dataKey="Dialed"
+            fill="#3DC269"
+            barSize={14}
+            radius={[4, 4, 0, 0]}
+          />
 
-        {/* ORANGE RIGHT */}
-        <Bar
-          dataKey="Talked"
-          fill="#FF7F3A"
-          barSize={14}
-          radius={[4, 4, 0, 0]}
-        />
-
-      </BarChart>
-    </ResponsiveContainer>
+          <Bar
+            dataKey="Talked"
+            fill="#FF7F3A"
+            barSize={14}
+            radius={[4, 4, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

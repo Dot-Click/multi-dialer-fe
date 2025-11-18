@@ -41,6 +41,7 @@ import AdminEditSignature from "@/pages/admin/admineditsignature";
 import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
+import AdminChangePasswor from "@/pages/auth/changepassword.page"
 
 const Router: React.FC = () => {
   return (
@@ -105,6 +106,7 @@ const Router: React.FC = () => {
         </Route>
 
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
+        <Route path="/admin/password-change" element={<AdminChangePassword />} />
         <Route path="/admin/contact-info" element={<ContactInfo />} />
       </Routes>
     </div>

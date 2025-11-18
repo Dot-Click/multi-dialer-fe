@@ -65,7 +65,7 @@ const AdminLeadIntelligence = () => {
 
                 {/* Right Pie Chart */}
                 <div className="flex-1 flex flex-col items-center justify-center">
-                    <h2 className="text-md font-small text-gray-700 mb-3">AI Lead Score</h2>
+                    <h2 className="text-md font-small text-[#495057] mb-3 md:mr-[45%] font-[500] mr-[25%]">AI Lead Score</h2>
 
                     <div className="flex items-center gap-6">
                         <div className="w-40 h-40 relative">

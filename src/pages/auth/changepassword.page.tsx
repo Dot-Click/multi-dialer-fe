@@ -63,7 +63,7 @@ const ChangePassword: React.FC = () => {
               <input
                 type={showNew ? "text" : "password"}
                 id="newpassword"
-                placeholder="Enter new password"
+                placeholder="Create new password"
                 className="bg-transparent p-0 text-xs placeholder:text-xs tracking-wide border-none outline-none w-full"
                 required
               />

@@ -22,7 +22,7 @@ const AnsweredChart = () => {
     <ResponsiveContainer width="100%" height={260}>
       <LineChart
         data={chartData}
-        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+        margin={{ top: 10, right: 20, left: -20, bottom: -13 }}
       >
         {/* Soft horizontal grid only */}
         <CartesianGrid stroke="#E5E5E5" strokeDasharray="3 3" vertical={false} />
@@ -36,18 +36,19 @@ const AnsweredChart = () => {
           interval={1}
         />
 
-        {/* Y-axis with only 0,20,40,60,80,100 */}
+        {/* Y-axis with spacing between numbers and line */}
         <YAxis
           tick={{ fontSize: 12, fill: "#9A9A9A" }}
           axisLine={false}
           tickLine={false}
           ticks={[0, 20, 40, 60, 80, 100]}
           domain={[0, 100]}
+          tickMargin={20}   // ✅ Gap between numbers (0,20,40...) and line chart
         />
 
         <Tooltip />
 
-        {/* BOTH LINES SAME COLOR (#6E6E6E) */}
+        {/* BOTH LINES SAME COLOR */}
         <Line
           type="monotone"
           dataKey="series1"
