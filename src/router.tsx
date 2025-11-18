@@ -41,7 +41,7 @@ import AdminEditSignature from "@/pages/admin/admineditsignature";
 import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
-import AdminChangePasswor from "@/pages/auth/changepassword.page"
+// import AdminChangePasswor from "@/pages/auth/changepassword.page"
 
 const Router: React.FC = () => {
   return (
