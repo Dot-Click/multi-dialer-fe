@@ -147,17 +147,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const chartData = [
   { time: "9:00",  Dialed: 280, Talked: 190 },
-  { time: "10:00", Dialed: 340, Talked: 260 },
-  { time: "11:00", Dialed: 450, Talked: 380 },
+  { time: "", Dialed: 450, Talked: 380 },
   { time: "12:00", Dialed: 490, Talked: 395 },
-  { time: "13:00", Dialed: 490, Talked: 350 },
-  { time: "14:00", Dialed: 545, Talked: 425 },
+  { time: "", Dialed: 490, Talked: 350 },
+  { time: "", Dialed: 545, Talked: 425 },
   { time: "15:00", Dialed: 650, Talked: 535 },
-  { time: "16:00", Dialed: 560, Talked: 390 },
-  { time: "17:00", Dialed: 670, Talked: 460 },
+  { time: "", Dialed: 560, Talked: 390 },
+  { time: "", Dialed: 670, Talked: 460 },
   { time: "18:00", Dialed: 520, Talked: 415 },
-  { time: "19:00", Dialed: 435, Talked: 275 },
-  { time: "20:00", Dialed: 270, Talked: 185 },
+  { time: "", Dialed: 435, Talked: 275 },
   { time: "21:00", Dialed: 190, Talked: 110 },
 ];
 
@@ -186,12 +184,15 @@ const AgentDialedTalkes = () => {
             tickLine={false}
           />
 
-          <YAxis
-            tick={{ fontSize: 12, fill: "#666" }}
-            axisLine={false}
-            tickLine={false}
-            tickMargin={22}   // GAP between numbers and bars
-          />
+<YAxis
+  tick={{ fontSize: 12, fill: "#666" }}
+  axisLine={false}
+  tickLine={false}
+  tickMargin={22}
+  ticks={[0, 100, 200, 300, 400, 500, 600, 700]}
+  domain={[0, 700]}
+/>
+
 
           <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
 

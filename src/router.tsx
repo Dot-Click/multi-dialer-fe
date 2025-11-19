@@ -41,7 +41,7 @@ import AdminEditSignature from "@/pages/admin/admineditsignature";
 import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
-// import AdminChangePasswor from "@/pages/auth/changepassword.page"
+import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 
 const Router: React.FC = () => {
   return (
@@ -66,6 +66,8 @@ const Router: React.FC = () => {
 
         <Route path="/contact-detail" element={<ContactDetail />} />
         <Route path="/contact-info" element={<ContactInfo />} />
+        
+        <Route path="/login-code" element={<LogincodeAgenct/>} />
 
         {/* ✅ Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />

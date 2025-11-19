@@ -14,7 +14,6 @@ const chartData = [
   { time: "19:00", series1: 66, series2: 25 },
   { time: "20:00", series1: 62, series2: 23 },
   { time: "21:00", series1: 36, series2: 14 },
-  { time: "22:00", series1: 41, series2: 16 },
 ];
 
 const AnsweredChart = () => {
@@ -29,12 +28,13 @@ const AnsweredChart = () => {
 
         {/* X-axis clean */}
         <XAxis
-          dataKey="time"
-          tick={{ fontSize: 12, fill: "#7A7A7A" }}
-          axisLine={false}
-          tickLine={false}
-          interval={1}
-        />
+  dataKey="time"
+  tick={{ fontSize: 12, fill: "#7A7A7A" }}
+  axisLine={false}
+  tickLine={false}
+  ticks={["9:00", "12:00", "15:00", "18:00", "21:00"]}
+  interval={0}
+/>
 
         {/* Y-axis with spacing between numbers and line */}
         <YAxis
@@ -43,7 +43,8 @@ const AnsweredChart = () => {
           tickLine={false}
           ticks={[0, 20, 40, 60, 80, 100]}
           domain={[0, 100]}
-          tickMargin={20}   // ✅ Gap between numbers (0,20,40...) and line chart
+          tickMargin={12}  
+           // ✅ Gap between numbers (0,20,40...) and line chart
         />
 
         <Tooltip />
