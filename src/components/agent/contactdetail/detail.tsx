@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { FaRegEdit } from "react-icons/fa";
 import mapIcon from "@/assets/mapicon.png"
 import streeticon from "@/assets/streeticon.png"
 import groupicon from "@/assets/groupicon.png"
-import { LuMapPin } from "react-icons/lu";
 import { CiMail } from "react-icons/ci";
 import { IoBagHandleOutline } from "react-icons/io5";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -14,6 +12,8 @@ import { PiDotsSixVertical } from "react-icons/pi";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
+import editcontactdetail from "../../../assets/editcontactdetail.png"
+import propertyicon from "../../../assets/propertyicon.png"
 
 
 
@@ -21,8 +21,8 @@ import EmailModal from '@/components/modal/emailmodal';
 
 const Detail = () => {
     const [showModal, setShowModal] = useState(false);
-        const [phoneModal, setPhoneModal] = useState(false);
-        const [emailModal, setEmailModal] = useState(false);
+    const [phoneModal, setPhoneModal] = useState(false);
+    const [emailModal, setEmailModal] = useState(false);
 
 
     const data = [
@@ -32,8 +32,8 @@ const Detail = () => {
     ]
 
     const phones = [
-        { id: 1, number: "+98765456789", icon: <IoBagHandleOutline /> },
-        { id: 2, number: "+98765456789", icon: <IoBagHandleOutline /> },
+        { id: 1, number: "+98765456789", icon: <IoBagHandleOutline/> },
+        { id: 2, number: "+98765456789", icon: <IoBagHandleOutline/> },
         { id: 3, number: "+98765456789", icon: <IoCallOutline /> },
         { id: 4, number: "+98765456789", icon: <CiMobile1 /> },
         { id: 5, number: "+98765456789", icon: <PiDotsSixVertical /> },
@@ -74,9 +74,11 @@ const Detail = () => {
 
                 <div className='flex  flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col   gap-1'>
-                        <div className='flex  items-center gap-2'>
-                            <h1 className='text-[20px] md:text-[24px] text-[#0E1011] font-[500]'>Contact Name</h1>
-                            <span onClick={() => setShowModal(true)} className='border bg-[#EBEDF0] cursor-pointer rounded-[8px] border-[#EBEDF0] py-[6px] px-1 hover:bg-[#d8d8d8]'><FaRegEdit className='text-[#838383] text-[18px]' /></span>
+                        <div className='flex  items-center gap-7'>
+                            <h1 className='text-[20px] md:text-[28px] text-[#0E1011] font-[500]'>Contact Name</h1>
+                            <span className="bg-[#F7F7F7] p-2 rounded-[12px]">
+                                <img src={editcontactdetail} onClick={() => setShowModal(true)} className="w-[18px] object-contain " />
+                            </span>
                         </div>
                         <div className='flex items-center gap-2'>
                             <span className='text-[14px] font-[500] text-[#2B3034]'>Name</span>
@@ -86,8 +88,8 @@ const Detail = () => {
                     <div className='flex items-center gap-5'>
                         {data.map((dt) => (
                             <span key={dt.id} className='flex text-[14px] gap-1 items-center'>
-                                <h1 className='text-[#2B3034] font-[600]'>{dt.name}:</h1>
-                                <h1 className='text-[#0E1011] font-[400]' >{dt.number}</h1>
+                                <h1 className='text-[#2B3034] font-[500]'>{dt.name}:</h1>
+                                <h1 className='text-[#0E1011] font-[600]' >{dt.number}</h1>
                             </span>
                         ))}
                     </div>
@@ -109,10 +111,9 @@ const Detail = () => {
 
                 <div className='flex w-full  lg:w-1/3  flex-col gap-5'>
                     <div className='flex gap-2 items-start'>
-                        <h1><LuMapPin className='text-[18px] font-[500] text-[#0E1011]' /></h1>
-                        <div className='flex flex-col gap-1'>
+                        <img src={propertyicon} className='w-[15px] translate-y-0.5 object-contain'  />                      <div className='flex flex-col gap-1'>
                             <span>
-                                <h1 className='text-[15px] font-[500] text-[#0E1011]'>Property Address:</h1>
+                                <h1 className='text-[14px] font-[500] text-[#0E1011]'>Property Address:</h1>
                             </span>
                             <span>
                                 <h1 className='text-[#495057] text-[14px] font-[500]'>City:</h1>
@@ -127,10 +128,10 @@ const Detail = () => {
                     </div>
 
                     <div className='flex gap-2 items-start'>
-                        <h1><CiMail className='text-[18px] font-[500] text-[#0E1011]' /></h1>
+                        <h1><CiMail className='text-[19px] translate-y-0.5 font-[500] text-[#0E1011]' /></h1>
                         <div className='flex flex-col gap-1'>
                             <span>
-                                <h1 className='text-[15px] font-[500] text-[#0E1011]'>Mailing Address:</h1>
+                                <h1 className='text-[14px] font-[500] text-[#0E1011]'>Mailing Address:</h1>
                             </span>
                             <span>
                                 <h1 className='text-[#495057] text-[14px] font-[500]'>City:</h1>
@@ -149,7 +150,7 @@ const Detail = () => {
 
                 <div className='flex w-full  lg:w-1/3  flex-col gap-4'>
                     <div className='flex justify-between items-center'>
-                        <h1 className='text-[15px] font-[500] text-[#0E1011]'>Phones:</h1>
+                        <h1 className='text-[14px] font-[500] text-[#0E1011]'>Phones:</h1>
                         <span onClick={() => setPhoneModal(true)} className='border p-1 rounded-lg bg-gray-100 border-gray-200'><IoAddOutline className='text-[#717171] text-[18px]' /></span>
                     </div>
                     <div className='flex flex-col gap-3 '>

@@ -108,6 +108,7 @@ const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integratio
 
 const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration, onDisconnect, onSave }) => {
   const [apiKey, setApiKey] = useState(integration.apiKey || '************************************');
+  
 
   if (!isOpen) return null;
 

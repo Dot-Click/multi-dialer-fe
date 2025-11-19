@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { GrSplits } from "react-icons/gr";
 import { IoFilter } from "react-icons/io5";
-import { MdOutlineCall } from "react-icons/md";
 import { IoIosSearch } from "react-icons/io";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
+import callIcon from "../../assets/callsicon.png"
+import managecolicon from "../../assets/managecolicon.png"
+
 
 // ✅ Define type for the Outlet context
 type OutletContextType = {
@@ -51,7 +52,7 @@ const AllContact = () => {
           </span>
         )}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-          <h1 className="text-[24px] sm:text-[28px] font-[500]">
+          <h1 className="text-[24px] text-[#0E1011] sm:text-[28px] font-[500]">
             {renderHeading()}
           </h1>
 
@@ -60,8 +61,9 @@ const AllContact = () => {
             className="flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-3 py-2 items-center justify-centerbg-transparent"
             onClick={() => setShowColumnsModal(true)}
           >
-            <GrSplits className="text-lg text-[#495057]" />
-            <span className="text-base font-[500] text-[#495057]inline">
+            <img src={managecolicon} className='w-[20px] h-[16px] object-contain' alt="managecolicon" />
+
+            <span className="text-[16px] font-[500] text-[#495057] inline">
               Manage Columns
             </span>
           </div>
@@ -72,27 +74,28 @@ const AllContact = () => {
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
         {/* Search + Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="bg-white flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] py-1.5 px-4">
+          <div className="bg-white flex items-center justify-between w-full sm:w-[40vw] rounded-[1000000px] border border-[#D8DCE1] py-[12px] px-[24px]">
             <input
               type="search"
               placeholder="Search by name, email, phone number..."
-              className="w-full placeholder:text-sm text-sm outline-none"
+              className="w-full placeholder:text-[16px] font-[400] text-[#495057] text-[16px] outline-none"
             />
             <IoIosSearch className="text-2xl text-gray-600" />
           </div>
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="bg-[#2B3034] text-lg text-white p-2 rounded-full flex-shrink-0"
+            className="bg-[#2B3034] text-xl text-white p-2 rounded-full flex-shrink-0"
           >
             <IoFilter />
           </button>
         </div>
 
         {/* Dial Button */}
-        <button className="flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm sm:text-base font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all">
-          <MdOutlineCall className="text-lg" />
-          <span>Dial Selected (2)</span>
+        <button className="flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-[24px] pl-[20px] py-[8px] text-sm sm:text-base font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all">
+          <img src={callIcon} className='w-[15.300321578979492px] h-[20.095260620117188px] object-contain' alt="callIcon" />
+
+          <span className="text-[#000000] font-[500] text-[16px]">Dial Selected (2)</span>
         </button>
       </div>
 

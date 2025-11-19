@@ -47,11 +47,11 @@ const ContactDetailHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="shadow-lg bg-white flex items-center justify-between px-3 sm:px-5 md:px-6 w-full h-16">
+      <header className="shadow-sm bg-white flex items-center justify-between px-3 sm:px-5 md:px-6 w-full h-16">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}
-          <button className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm sm:text-sm font-[500] text-[#0E1011]">
+          <button className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-[500] text-[#0E1011]">
             Action
             <MdKeyboardArrowDown className="text-lg" />
           </button>
@@ -59,7 +59,7 @@ const ContactDetailHeader = () => {
           {/* Take Action */}
           <button
             onClick={() => setActionModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm sm:text-sm font-[500] text-[#0E1011]"
+            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-[12px] rounded-md bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-[500] text-[#0E1011]"
           >
             Take Action
           </button>
@@ -70,7 +70,7 @@ const ContactDetailHeader = () => {
               <button
                 key={btn.id}
                 onClick={btn.onClick}
-                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 text-sm text-gray-700"
+                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 font-[500] text-[#495057]"
               >
                 <span className="text-lg">{btn.icon}</span>
                 {btn.name}
