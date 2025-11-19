@@ -161,7 +161,7 @@ const chartData = [
 
 const AgentDialedTalkes = () => {
   return (
-    <div style={{ padding: "10px" }}>
+    <div style={{ padding: "1px" }}>
 
       <ResponsiveContainer width="100%" height={270}>
         <BarChart
@@ -169,7 +169,7 @@ const AgentDialedTalkes = () => {
           margin={{
             top: 10,
             right: 10,
-            left: -10,
+            left: -11,
             bottom: 0,
           }}
           barCategoryGap="30%"   // ✅ GAP BETWEEN EACH GROUP (time slot)

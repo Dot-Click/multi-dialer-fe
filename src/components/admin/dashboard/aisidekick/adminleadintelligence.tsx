@@ -19,7 +19,7 @@ const pieData = [
 ];
 
 // UPDATED COLORS (Low = #EB9D34)
-const COLORS = ["#9400BD", "#F91E4A", "#EB9D34"];
+const COLORS = ["#9400BD", "#F91E4A", "#ff7f3a"];
 
 // Line chart legend colors unchanged
 const lineLegendData = [
@@ -78,7 +78,7 @@ const AdminLeadIntelligence = () => {
                 <feDropShadow
                     dx="0"
                     dy="0"
-                    stdDeviation="6"
+                    stdDeviation="2"
                     floodColor="rgba(0,0,0,0.35)"
                 />
             </filter>
@@ -129,7 +129,7 @@ const AdminLeadIntelligence = () => {
             <div className="mt-2">
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-                    <h2 className="text-md font-medium text-gray-900">Lead Sentiment Trend</h2>
+                    <h2 className="text-md font-medium text-[#0E1011]">Lead Sentiment Trend</h2>
 
                     <div className="flex items-center gap-4">
                         {lineLegendData.map((legend) => (
@@ -148,7 +148,7 @@ const AdminLeadIntelligence = () => {
                     <ResponsiveContainer>
                         <LineChart
                             data={lineChartData}
-                            margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                            margin={{ top: 10, right: 20, left: -30, bottom: 0 }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
 
@@ -200,7 +200,7 @@ const AdminLeadIntelligence = () => {
             {/* Bottom Section */}
             <div className="flex flex-col gap-2 mt-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-md font-medium text-gray-900">Lead Sentiment Trend</h2>
+                    <h2 className="text-md font-medium text-[#0E1011]">Lead Sentiment Trend</h2>
 
                     <div className="hidden sm:flex items-center gap-4">
                         <span className="flex items-center gap-1 text-xs text-gray-600">
@@ -223,7 +223,7 @@ const AdminLeadIntelligence = () => {
                     <div className="w-full bg-gray-200 rounded-md h-7 overflow-hidden">
                         <div
                             className="h-full rounded-md"
-                            style={{ width: "90%", background: "#1EAC22" }}
+                            style={{ width: "45%", background: "#1EAC22" }}
                         ></div>
                     </div>
                     <span className="font-semibold text-gray-900">45%</span>
