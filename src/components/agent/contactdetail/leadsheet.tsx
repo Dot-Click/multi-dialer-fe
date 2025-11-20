@@ -1,3 +1,5 @@
+import { FiChevronDown } from "react-icons/fi";
+
 const LeadSheet = () => {
   // All questions in one array
   const questions = [
@@ -56,24 +58,53 @@ const LeadSheet = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-gray-800">Lead sheet:</h2>
-         
+          <h2 className="text-[18px] font-[500] text-[#0E1011]">Lead sheet:</h2>
+
         </div>
 
-        <div className="flex gap-3">
-             <select className=" bg-gray-200 w-fit border-gray-30 rounded-md md:px-4 md:py-2 px-2 py-1 text-[10px] md:text-sm  outline-none">
-            <option>Expired Property</option>
-            <option>New Listing</option>
-            <option>Referral</option>
-          </select>
-          <button className="bg-gray-200 rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative w-fit md:w-[200px] lg:w-[245px]">
+            <select
+              className="
+          appearance-none               /* default arrow hide */
+          bg-[#EBEDF0] 
+          w-full
+          text-[#18181B] 
+          font-[400]
+          rounded-md 
+          md:px-4 md:py-2 
+          px-2 py-1 
+          text-[14px] md:text-[16px]
+          outline-none
+          pr-8                         /* space for icon */
+        "
+            >
+              <option>Expired Property</option>
+              <option>New Listing</option>
+              <option>Referral</option>
+            </select> 
+
+            {/* Custom React Icon */}
+            <FiChevronDown
+              className="
+          absolute 
+          right-3 
+          top-1/2 
+          -translate-y-1/2 
+          text-gray-600 
+          pointer-events-none
+        "
+              size={18}
+            />
+          </div>
+          <button className="bg-[#EBEDF0] rounded-[8px] text-[#0E1011] font-[500] md:px-[12px] md:py-[8px]  px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100">
             Print
           </button>
-          <button className="bg-gray-200 rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
+          <button className="bg-[#EBEDF0] rounded-[8px] text-[#0E1011]  font-[500] md:px-[12px] md:py-[8px]  px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100">
             Download
-          </button>                   
-          <button className="bg-gray-200   rounded-md md:px-4 md:py-2  px-2 py-1 text-[10px] md:text-sm hover:bg-gray-100">
-            Send As Email 
+          </button>
+          <button className="bg-[#EBEDF0]   rounded-[8px]  text-[#0E1011]  font-[500] md:px-[12px] md:py-[8px]  px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100">
+            Send As Email
           </button>
         </div>
       </div>
@@ -82,31 +113,31 @@ const LeadSheet = () => {
       <div className="flex flex-col  gap-6">
         {questions.map((q) => (
           <div key={q.id} className="flex px-3 py-3 rounded-md bg-gray-100 flex-col gap-2">
-            <label className="text-gray-800 font-medium text-sm md:text-sm">
+            <label className="text-[#2B3034] font-[500] text-sm md:text-[14px]">
               {q.question}
             </label>
 
             {q.type === "text" ? (
               <textarea
                 placeholder="Type your note here"
-                className="w-full  rounded-md  text-sm text-gray-800 placeholder-gray-400  outline-none resize-none"
+                className="w-full  rounded-md  text-[16px] text-[#495057] placeholder-[#495057] outline-none resize-none"
                 rows={1}
               ></textarea>
             ) : (
               <div className="flex flex-col gap-2 mt-1">
-                <label className="flex text-sm  items-center gap-2 text-gray-700">
+                <label className="flex text-[14px]  font-[500] items-center gap-2 text-[#2B3034]">
                   <input
                     type="radio"
                     name={`question-${q.id}`}
-                    className=" accent-yellow-400"
+                    className=" accent-black text-[16px]"
                   />
                   Yes
                 </label>
-                <label className="flex text-sm items-center gap-2 text-gray-700">
+                <label className="flex text-[14px]  font-[500] items-center gap-2  text-[#2B3034]">
                   <input
                     type="radio"
                     name={`question-${q.id}`}
-                    className=" accent-yellow-400"
+                    className=" accent-black"
                   />
                   No
                 </label>

@@ -74,12 +74,12 @@ const BottomContactDetail = () => {
     return (
         <section className="bg-white flex flex-col gap-8 shadow-2xl px-6 py-5 w-[96%] mx-auto rounded-[24px]">
             {/* Tabs */}
-            <div className="flex bg-[#F3F4F7] max-w-screen overflow-x-auto gap-4 rounded-lg justify-between items-center">
+            <div className="flex bg-[#F3F4F7] gap-5 md:gap-0 max-w-screen overflow-x-auto  whitespace-nowrap  rounded-[16px] p-[4px] justify-between items-center">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
                         onClick={() => setOpenStatus(stg.name)}
-                        className={`${openStatus === stg.name ? "bg-[#FFCA06]" : ""} px-6 rounded-lg py-3 cursor-pointer text-sm text-[#18181B] font-[500]`}
+                        className={`${openStatus === stg.name ? "bg-[#FFCA06]" : ""} px-[12px] text-center w-[130px] py-[8px]  rounded-[12px]  cursor-pointer text-sm text-[#0E1011] font-[500]`}
                     >
                         {stg.name}
                     </button>

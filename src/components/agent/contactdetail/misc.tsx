@@ -1,4 +1,3 @@
-
 const Misc = () => {
   // left column fields
   const leftFields = [
@@ -47,34 +46,39 @@ const Misc = () => {
 
   return (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-10">
-      {/* Left Column */}
-      <div className="flex flex-col gap-2  ">
+      
+      {/* LEFT COLUMN */}
+      <div className="flex flex-col gap-3">
         {leftFields.map((label) => (
-          <div key={label} className="flex items-end w-full gap-3">
-            <label className="text-sm font-semibold text-gray-700">
+          <div key={label} className="flex items-center w-full gap-4">
+            <label className="text-[14px] font-[500] text-[#0E1011] w-40">
               {label}
             </label>
-            <input
-              type="text"
-              placeholder=""
-              className="border-b flex-1 border-gray-300 text-sm text-gray-900 outline-none py-1 placeholder:text-gray-400 focus:border-gray-600 transition-all"
-            />
+
+            <div className="flex-1 border-b border-gray-300">
+              <input
+                type="text"
+                className="w-full text-sm text-gray-900 outline-none py-1 focus:border-b focus:border-gray-600"
+              />
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Right Column */}
-      <div className="flex flex-col   gap-2">
+      {/* RIGHT COLUMN */}
+      <div className="flex flex-col gap-3">
         {rightFields.map((label) => (
-          <div key={label} className="flex items-end w-full gap-3">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
+          <div key={label} className="flex items-center w-full gap-4">
+            <label className="text-[14px] font-[500] text-[#0E1011] w-40">
               {label}
             </label>
-            <input
-              type="text"
-              placeholder=""
-              className="border-b flex-1 border-gray-300 text-sm text-gray-900 outline-none py-1 placeholder:text-gray-400 focus:border-gray-600 transition-all"
-            />
+
+            <div className="flex-1 border-b border-gray-300">
+              <input
+                type="text"
+                className="w-full text-sm text-gray-900 outline-none py-1 focus:border-b focus:border-gray-600"
+              />
+            </div>
           </div>
         ))}
       </div>
