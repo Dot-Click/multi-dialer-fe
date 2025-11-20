@@ -45,7 +45,7 @@
 //   };
 
 //   return (
-//     <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen shadow-2xl">
+//     <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen  ">
 //       <Link
 //         to={'/'}
 //         className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
@@ -183,11 +183,11 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   ];
 
   const group = [
-    { id: 1, name: "group" },
-    { id: 2, name: "group" },
-    { id: 3, name: "group" },
-    { id: 4, name: "group" },
-    { id: 5, name: "group" },
+    { id: 1, name: "Group" },
+    { id: 2, name: "Group" },
+    { id: 3, name: "Group" },
+    { id: 4, name: "Group" },
+    { id: 5, name: "Group" },
   ];
 
   const handleClick = (item: string) => {
@@ -196,7 +196,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   };
 
   return (
-    <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen shadow-2xl">
+    <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen  ">
 
       {/* ✅ Updated Back Button */}
       <Link
@@ -204,7 +204,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
         className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
       >
         <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] font-[500]">Back</span>
+        <span className="text-[16px] text-[#495057] font-[500]">Back To Home</span>
       </Link>
 
       <div className="border-b border-gray-100 h-1"></div>
@@ -223,7 +223,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
 
       {/* Calling Lists */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] font-[500] text-[14px]">Calling Lists</h1>
+        <h1 className="text-[#495057] font-[500] uppercase text-[14px]">Calling Lists</h1>
         <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {callingLists.map((list) => (
             <div key={list.id} className="flex flex-col gap-1.5">
@@ -263,7 +263,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
 
       {/* Groups */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] font-[500] text-[14px]">Groups</h1>
+        <h1 className="text-[#495057] uppercase font-[500] text-[14px]">Groups</h1>
         <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {group.map((gro) => (
             <div

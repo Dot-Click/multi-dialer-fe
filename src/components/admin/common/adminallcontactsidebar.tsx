@@ -32,11 +32,11 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
   ];
 
   const group = [
-    { id: 1, name: "group" },
-    { id: 2, name: "group" },
-    { id: 3, name: "group" },
-    { id: 4, name: "group" },
-    { id: 5, name: "group" },
+    { id: 1, name: "Group" },
+    { id: 2, name: "Group" },
+    { id: 3, name: "Group" },
+    { id: 4, name: "Group" },
+    { id: 5, name: "Group" },
   ];
 
   const handleClick = (item: string) => {
@@ -60,7 +60,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
   };
 
   return (
-    <aside className="bg-white flex flex-col px-5 py-4  w-64 h-screen shadow-2xl">
+    <aside className="bg-white flex flex-col px-5 py-4  w-64 h-screen  ">
 
       {/* Back Button */}
       <Link
@@ -87,7 +87,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
 
       {/* Calling Lists */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] font-[500] text-[14px]">Calling Lists</h1>
+        <h1 className="text-[#495057] font-[500] uppercase text-[14px]">Calling Lists</h1>
         <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {callingLists.map((list) => (
             <div key={list.id} className="flex flex-col gap-1.5">
@@ -120,7 +120,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
 
       {/* Groups */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] font-[500] text-[14px]">Groups</h1>
+        <h1 className="text-[#495057] uppercase font-[500] text-[14px]">Groups</h1>
         <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {group.map((gro) => (
             <div
@@ -136,7 +136,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
       </div>
 
       {/* ✅ Fixed Bottom Import Button */}
-      <div className="mt-auto absolute bottom-0 left-0 shadow-2xl bg-white w-full px-4 py-2">
+      <div className="mt-auto absolute bottom-0 left-0   bg-white w-full px-4 py-2">
         <button
           onClick={openFileDialog}
           className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 text-[#495057] font-medium rounded-md transition"

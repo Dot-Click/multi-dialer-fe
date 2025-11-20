@@ -19,7 +19,7 @@ const TakeActionModal: React.FC<TakeActionModalProps> = ({ isOpen, onClose }) =>
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Take Action</h2>
+          <h2 className="text-2xl  text-gray-800">Take Action</h2>
           <button
             onClick={onClose}
             className="text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg p-1.5 transition-colors"

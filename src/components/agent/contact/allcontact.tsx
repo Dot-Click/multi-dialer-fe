@@ -1,4 +1,4 @@
-import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+import {  TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,7 +27,6 @@ const contacts: Contact[] = [
     { id: 9, name: "Bessie Cooper", lastDialedDate: "09/09/2025", phone: "(205) 555-0100", email: "nathan.roberts@example.com", list: "Renewals Q3", tags: "Follow-Up" },
     { id: 10, name: "Jerome Bell", lastDialedDate: "09/09/2025", phone: "(319) 555-0115", email: "kenzi.lawson@example.com", list: "Dormant Accounts", tags: "-" },
 ];
-
 const columns = [
   {
     id: "select",
@@ -37,7 +36,8 @@ const columns = [
   },
   {
     accessorKey: "name",
-    header: (info: any) => <SortedHeader header={info.header} label="Name" />,
+    header: "Name",
+    enableSorting: false,
     cell: (info: any) => (
       <span className="text-[#1D85F0]">
         {info.getValue()}
@@ -46,11 +46,13 @@ const columns = [
   },
   {
     accessorKey: "lastDialedDate",
-    header: (info: any) => <SortedHeader header={info.header} label="Last Dialed Date" />,
+    header: "Last Dialed Date",
+    enableSorting: false,
   },
   {
     accessorKey: "phone",
-    header: (info: any) => <SortedHeader header={info.header} label="Phone Number" />,
+    header: "Phone Number",
+    enableSorting: false,
     cell: (info: any) => (
       <div className="flex items-center gap-2">
         <img
@@ -64,15 +66,18 @@ const columns = [
   },
   {
     accessorKey: "email",
-    header: (info: any) => <SortedHeader header={info.header} label="Email" />,
+    header: "Email",
+    enableSorting: false,
   },
   {
     accessorKey: "list",
-    header: (info: any) => <SortedHeader header={info.header} label="List" />,
+    header: "List",
+    enableSorting: false,
   },
   {
     accessorKey: "tags",
-    header: (info: any) => <SortedHeader header={info.header} label="Tags" />,
+    header: "Tags",
+    enableSorting: false,
     cell: (info: any) => {
       const tags = info.getValue()?.split(",") || [];
       return (
@@ -81,7 +86,6 @@ const columns = [
             tag.trim() !== "-" ? (
               <Badge
                 key={index}
-                // ✅ BADLAV YAHAN KIYA GAYA HAI: Tags ka style update kiya gaya hai
                 className="bg-[#EBEDF0] text-[#0E1011] py-[4px] px-[8px] rounded-[100px] w-fit text-xs font-medium"
               >
                 {tag.trim()}
@@ -96,9 +100,10 @@ const columns = [
   },
 ];
 
+
 const AllContact = () => {
   return (
-    <Box className="mt-3 w-full h-full">
+    <Box className="mt-3 m-2 w-full h-full">
 
       <style>
         {`

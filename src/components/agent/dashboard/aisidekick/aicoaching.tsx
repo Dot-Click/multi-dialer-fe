@@ -27,8 +27,8 @@ const AiCoaching = () => {
           <p className='text-md font-semibold text-gray-900'>12 calls today</p>
         </div>
         <div className='flex items-center gap-4'>
-          <div className='flex-grow bg-red-600 rounded-lg h-7 flex overflow-hidden'>
-            <div className='bg-green-500 h-7' style={{ width: '60%' }}></div>
+          <div className='flex-grow bg-[#D43435] rounded-lg h-7 flex overflow-hidden'>
+            <div className='bg-green-500 h-7' style={{ width: '30%' }}></div>
           </div>
           <span className='font-semibold text-gray-700 whitespace-nowrap'>12/20</span>
         </div>
@@ -46,76 +46,101 @@ const AiCoaching = () => {
 
       {/* Donut Charts Section */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 mt-8'>
+
         {/* Objection Detection Rate */}
         <div className='flex flex-col'>
-          <h2 className='text-sm font-medium text-gray-800 mb-4'>Objection Detection Rate</h2>
-          <div className="flex flex-col xxs:flex-row items-center gap-4 w-full">
-            <div className="min-w-[9rem] w-36 h-36 relative">
+          <h2 className='text-sm font-medium text-gray-800 mb-4 text-center'>Objection Detection Rate</h2>
+          <div className="flex flex-row items-center justify-center gap-4 w-full">
+
+            {/* Donut Chart */}
+            <div className="min-w-[9rem] w-36 h-36 relative flex-shrink-0">
+
               <ResponsiveContainer width="100%" height="100%">
+
                 <PieChart>
+
+                  {/* Shadow Filter */}
+                  <defs>
+                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur" />
+                      <feOffset dx="0" dy="4" result="offsetBlur" />
+                      <feMerge>
+                        <feMergeNode in="offsetBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  {/* Main Donut */}
                   <Pie
                     data={objectionPieData}
                     cx="50%"
                     cy="50%"
                     innerRadius={45}
                     outerRadius={60}
-                    fill="#8884d8"
-                    paddingAngle={4}
+                    paddingAngle={0}
                     dataKey="value"
+                    filter="url(#shadow)"   // <-- Shadow applied
                   >
                     {objectionPieData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={OBJECTION_COLORS[index % OBJECTION_COLORS.length]}
+                        fill={OBJECTION_COLORS[index]}
                       />
                     ))}
                   </Pie>
+
                 </PieChart>
               </ResponsiveContainer>
+
+              {/* Center Text */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-2xl font-bold text-gray-800">64%</span>
               </div>
             </div>
+
+            {/* Legend */}
             <div className="flex flex-col gap-3">
               {objectionPieData.map((entry, index) => (
                 <div key={`legend-${index}`} className="flex items-center gap-2">
                   <span
-                    className="w-2.5 h-2.5"
+                    className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: OBJECTION_COLORS[index] }}
                   ></span>
                   <span className="text-sm text-gray-600">{entry.name}</span>
                 </div>
               ))}
             </div>
+
           </div>
         </div>
 
+
         {/* Call Confidence Index */}
         <div className='flex flex-col'>
-          <h2 className='text-sm font-medium text-gray-800 mb-4'>Call Confidence Index</h2>
-          <div className="flex flex-col xxs:flex-row items-center gap-4 w-full">
-            <div className="min-w-[9rem] w-36 h-36 relative">
+          <h2 className='text-sm font-medium text-gray-800 mb-4 text-center'>Call Confidence Index</h2>
+          <div className="flex flex-row items-center justify-center gap-4 w-full">
+            <div className="min-w-[9rem] w-36 h-36 relative flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={confidencePieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={60}
-                    fill="#8884d8"
-                    dataKey="value"
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    {confidencePieData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={CONFIDENCE_COLORS[index % CONFIDENCE_COLORS.length]}
-                        stroke={CONFIDENCE_COLORS[index % CONFIDENCE_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
+                <Pie
+  data={confidencePieData}
+  cx="50%"
+  cy="50%"
+  innerRadius={45}
+  outerRadius={60}
+  paddingAngle={0}
+  dataKey="value"
+  filter="url(#shadow)"   // <-- same shadow as first pie
+>
+  {confidencePieData.map((_, index) => (
+    <Cell
+      key={`cell-${index}`}
+      fill={CONFIDENCE_COLORS[index % CONFIDENCE_COLORS.length]}
+    />
+  ))}
+</Pie>
+
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

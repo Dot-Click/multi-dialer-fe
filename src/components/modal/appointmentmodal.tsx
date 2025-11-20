@@ -22,7 +22,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ isOpen, onClose }) 
       >
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">Appointment</h2>
+          <h2 className="text-2xl text-gray-800">Appointment</h2>
           <button 
             onClick={onClose} 
             className="text-gray-400 hover:text-gray-700 transition-colors"

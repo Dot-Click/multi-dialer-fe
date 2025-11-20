@@ -36,7 +36,7 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({ onClose }) => {
         <div className="flex justify-between items-center px-5 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Fields to export</h2>
           <button onClick={onClose}>
-            <IoClose className="text-2xl text-gray-500 hover:text-black" />
+            <IoClose className="text-2xl bg-gray-200 rounded-sm text-gray-600 " />
           </button>
         </div>
 
@@ -61,7 +61,7 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({ onClose }) => {
             >
               <input
                 type="checkbox"
-                className="w-4 h-4 appearance-none border border-gray-400 rounded-sm checked:bg-black checked:border-black checked:after:content-['✔'] checked:after:text-white checked:after:text-[11px] checked:after:flex checked:after:items-center checked:after:justify-center"
+                className="w-4 h-4 appearance-none border border-gray-400  checked:bg-black checked:border-black checked:after:content-['✔'] checked:after:text-white checked:after:text-[11px] checked:after:flex checked:after:items-center checked:after:justify-center"
               />
               <span className="text-gray-800 text-sm">{field}</span>
             </label>

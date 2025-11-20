@@ -50,7 +50,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
           </button>
 
           {/* Header */}
-          <h2 className="text-lg sm:text-2xl font-semibold mb-6 text-gray-900 ">
+          <h2 className="text-lg font-semibold text-gray-900">
             Data Columns
           </h2>
 
@@ -59,7 +59,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
             {/* Available Fields */}
             <div className="border border-gray-200 rounded-xl p-4 h-[320px] flex flex-col shadow-sm">
               <h3 className="text-[15px] font-medium mb-3 text-gray-800">
-                Available fields
+                Available fields:
               </h3>
               <div className="relative mb-3">
                 <input
@@ -97,7 +97,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
             {/* Fields to Display */}
             <div className="border border-gray-200 rounded-xl p-4 h-[320px] flex flex-col shadow-sm">
               <h3 className="text-[15px] font-medium mb-3 text-gray-800">
-                Fields to display
+                Fields to display:
               </h3>
               <div className="relative mb-3">
                 <input

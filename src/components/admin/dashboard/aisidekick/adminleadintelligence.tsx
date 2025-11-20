@@ -92,7 +92,7 @@ const AdminLeadIntelligence = () => {
             innerRadius={55}
             outerRadius={70}
             dataKey="value"
-            paddingAngle={3}
+            paddingAngle={0}
             filter="url(#shadow)"   // <-- shadow applied here
         >
             {pieData.map((_, index) => (
