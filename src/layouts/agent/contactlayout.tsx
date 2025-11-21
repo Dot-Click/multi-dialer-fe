@@ -7,7 +7,7 @@ import AllContactSidebar from "@/components/agent/common/allcontactsidebar";
 import Navbar from "@/components/agent/common/navbar";
 import ExportFieldsModal from "@/components/modal/exportfieldmodal";
 
-const ContactLayout = () => {
+const   ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);

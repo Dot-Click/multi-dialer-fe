@@ -72,7 +72,7 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white flex flex-col gap-8 shadow-2xl px-6 py-5 w-[96%] mx-auto rounded-[24px]">
+        <section className="bg-white flex flex-col gap-8  mb-6 px-6 py-5 w-[96%] mx-auto rounded-[24px]">
             {/* Tabs */}
             <div className="flex bg-[#F3F4F7] gap-5 md:gap-0 max-w-screen overflow-x-auto  whitespace-nowrap  rounded-[16px] p-[4px] justify-between items-center">
                 {stages.map((stg) => (

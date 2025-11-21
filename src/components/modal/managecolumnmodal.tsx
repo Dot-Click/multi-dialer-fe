@@ -55,9 +55,9 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
           </h2>
 
           {/* Columns Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1  sm:grid-cols-2 gap-6">
             {/* Available Fields */}
-            <div className="border border-gray-200 rounded-xl p-4 h-[320px] flex flex-col shadow-sm">
+            <div className="rounded-xl p-4 h-[320px] flex flex-col ">
               <h3 className="text-[15px] font-medium mb-3 text-gray-800">
                 Available fields:
               </h3>
@@ -95,7 +95,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
             </div>
 
             {/* Fields to Display */}
-            <div className="border border-gray-200 rounded-xl p-4 h-[320px] flex flex-col shadow-sm">
+            <div className="rounded-xl p-4 h-[320px] flex flex-col">
               <h3 className="text-[15px] font-medium mb-3 text-gray-800">
                 Fields to display:
               </h3>

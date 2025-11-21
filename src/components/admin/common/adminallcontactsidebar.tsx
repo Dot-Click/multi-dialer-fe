@@ -4,6 +4,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { BiSolidContact } from "react-icons/bi";
 import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
+import usericon from "../../../assets/admin/usericons.png";
 
 interface AllContactSidebarProps {
   onSelectItem: (item: string) => void;
@@ -79,7 +80,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
         className={`flex gap-2 mt-4  items-center px-2 py-2 rounded-md cursor-pointer transition 
           ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
       >
-        <BiSolidContact className="text-lg" />
+        <img src={usericon} alt="usericon" className="w-6 h-6" />
         <h1 className="text-[#495057] font-[500] text-[14px]">All Contacts</h1>
       </div>
 

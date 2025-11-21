@@ -4,7 +4,7 @@ import Detail from '@/components/agent/contactdetail/detail'
 
 const ContactDetail = () => {
   return (
-    <section className='flex flex-col max-w-screen bg-[#F7F7F7] overflow-auto gap-6'>
+    <section className='flex flex-col max-w-screen bg-[#f7f7f7] overflow-auto gap-6'>
         <ContactDetailHeader/>
         <Detail/>
         <BottomContactDetail/>

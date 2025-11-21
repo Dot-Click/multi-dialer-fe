@@ -148,12 +148,13 @@ const ImportPreviewPage = () => {
 
                       {/* Name */}
                       <td className="px-4 py-4">
-                        <span
-                          onClick={() => setOpenMapped(true)}
-                          className="text-blue-600 hover:underline cursor-pointer"
+                        <a
+                        href=""
+                            onClick={() => setOpenMapped(true)}className="text-blue-600 hover:underline cursor-pointer"
+
                         >
                           {row.name}
-                        </span>
+                        </a>
                       </td>
 
                       {/* Phone */}

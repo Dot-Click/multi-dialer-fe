@@ -70,7 +70,7 @@ const Detail = () => {
 
 
     return (
-        <section className='bg-white flex flex-col gap-8 shadow-2xl  px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
+        <section className='bg-white flex flex-col gap-8   px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
 
             <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
 

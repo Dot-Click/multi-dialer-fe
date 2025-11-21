@@ -147,6 +147,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import { BiSolidContact } from "react-icons/bi";
+import usericon from "../../../assets/admin/usericons.png";
 import { VscFolderOpened } from "react-icons/vsc";
 
 interface AllContactSidebarProps {
@@ -215,7 +216,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
         className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition 
           ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
       >
-        <BiSolidContact className="text-lg" />
+        <img src={usericon} alt="usericon" className="w-6 h-6" />
         <h1 className="text-[#495057] font-[500] text-[14px]">All Contacts</h1>
       </div>
 

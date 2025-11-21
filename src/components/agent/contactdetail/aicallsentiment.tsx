@@ -129,7 +129,7 @@ const AiCallSentiment = () => {
             <div className="space-y-4">
 
               {/* Card 1 */}
-              <div className="p-3 rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-3 rounded-lg border border-gray-300 ">
                 <div className="flex items-start gap-4">
                   <img src={callsicon} alt="callsicon" className="mt-1" />
 
@@ -146,7 +146,7 @@ const AiCallSentiment = () => {
               </div>
 
               {/* Card 2 */}
-              <div className="p-3 rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-3 rounded-lg border border-gray-300">
                 <div className="flex items-start gap-4">
                   <FiMail className="text-xl text-gray-500 mt-1 flex-shrink-0" />
                   <div className="flex-1">
@@ -162,7 +162,7 @@ const AiCallSentiment = () => {
               </div>
 
               {/* Card 3 */}
-              <div className="p-3 rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-3 rounded-lg border border-gray-300">
                 <h3 className="font-semibold text-[#000000] mb-2">More AI ideas</h3>
 
                 <ul className="list-disc font-[400] list-inside space-y-1 text-[14px] text-[#2B3034]">
