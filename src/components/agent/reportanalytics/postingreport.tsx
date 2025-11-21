@@ -8,111 +8,44 @@ interface ReportItem {
     number: string;
     date: string;
     vendorName: string;
-    vendorLogo: string; // Logo ka path yahan aayega
+    vendorLogo: string;
     received: number;
     duplicates: number;
 }
 
-// Step 2: Mock data banayein jo table mein dikhega
 const reportData: ReportItem[] = [
-    {
-        id: 1,
-        number: "123456789",
-        date: "18/06/2021 09:13",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg", // Logo ka aasal path yahan daalein
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 2,
-        number: "123456789",
-        date: "29/10/2024 15:36",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 3,
-        number: "123456789",
-        date: "2021/11/2013 20:01", // Aapke image mein ek ajeeb format hai, maine waisa hi rakha hai
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 4,
-        number: "123456789",
-        date: "10/06/2021 19:30",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 5,
-        number: "123456789",
-        date: "18/06/2021 09:13",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 6,
-        number: "123456789",
-        date: "29/10/2024 15:36",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
-    {
-        id: 7,
-        number: "123456789",
-        date: "2021/11/2013 20:01",
-        vendorName: "Logoipsum",
-        vendorLogo: "/path/to/your/logo.svg",
-        received: 1,
-        duplicates: 0,
-    },
+    { id: 1, number: "123456789", date: "18/06/2021 09:13", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 2, number: "123456789", date: "29/10/2024 15:36", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 3, number: "123456789", date: "2021/11/2013 20:01", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 4, number: "123456789", date: "10/06/2021 19:30", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 5, number: "123456789", date: "18/06/2021 09:13", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 6, number: "123456789", date: "29/10/2024 15:36", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
+    { id: 7, number: "123456789", date: "2021/11/2013 20:01", vendorName: "Logoipsum", vendorLogo: "/path/to/your/logo.svg", received: 1, duplicates: 0 },
 ];
 
-// Step 3: Table ke columns define karein
 const columns = [
     {
         accessorKey: "number",
-        header: (info: any) => <SortedHeader header={info.header} label="Number" />,
-        cell: (info: any) => <span className="text-blue-600">{info.getValue()}</span>, // Number ko neela rang diya hai
+        header: () => <span>Number</span>,
+        cell: (info: any) => <span className="text-[#1D85F0] font-[400] text-[14px]">{info.getValue()}</span>,
     },
+    { accessorKey: "date", header: () => <span>Date</span> },
     {
-        accessorKey: "date",
-        header: (info: any) => <SortedHeader header={info.header} label="Date" />,
-    },
-    {
-        accessorKey: "vendorName", // Iska naam `vendor` rakhte hain
-        header: (info: any) => <SortedHeader header={info.header} label="Vendor" />,
+        accessorKey: "vendorName",
+        header: () => <span>Vendor</span>,
         cell: ({ row }: any) => (
             <div className="flex items-center">
                 <img
                     src={tableCellIcon}
                     alt={row.original.vendorName}
-
-                    className="w-60"
+                    className="h-[37px] w-auto max-w-[220px] object-contain"
                 />
             </div>
         ),
     },
-    {
-        accessorKey: "received",
-        header: (info: any) => <SortedHeader header={info.header} label="Received" />,
-    },
-    {
-        accessorKey: "duplicates",
-        header: (info: any) => <SortedHeader header={info.header} label="Duplicates" />,
-    },
+    
+    { accessorKey: "received", header: () => <span>Received</span> },
+    { accessorKey: "duplicates", header: () => <span>Duplicates</span> },
 ];
 
 const PostingReport = () => {
@@ -120,48 +53,45 @@ const PostingReport = () => {
         <Box className="mt-3 w-full h-full">
             <style>
                 {`
-          /* Remove header background */
-          table thead tr th,
-          table thead {
-            background: #F7F7F7 !important;
-            box-shadow: none !important;
-          }
-          table thead tr th > div {
-            background: transparent !important;
-          }
+                    /* Base table styling - desktop remains the same */
+                    table thead tr th,
+                    table thead {
+                        background: #F7F7F7 !important;
+                        box-shadow: none !important;
+                    }
+                    table thead tr th {
+                        padding: 8px !important;
+                        font-size: 14px;
+                        border-bottom: 1px solid #EBEDF0 !important;
+                        color:#0E1011;
+                        font-weight: 500;
+                    }
+                    table tbody tr td {
+                        padding: 8px !important;
+                        font-size: 14px;
+                        color:#495057 !important;
+                        font-weight: 400;
+                    }
+                    table tbody tr {
+                        border-bottom: 1px solid #EBEDF0 !important;
+                    }
+                    table tbody tr:last-child {
+                        border-bottom: none !important;
+                    }
 
-          /* Reduce padding & tighten rows */
-          table thead tr th {
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-            padding-left: 8px !important;
-            padding-right: 8px !important;
-            font-size: 14px;
-            border-bottom: 1px solid #EBEDF0 !important;
-            color:#0E1011;
-
-          }
-          /* Reduce padding & tighten rows */
-          table tbody tr td {
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-            padding-left: 8px !important;
-            padding-right: 8px !important;
-            font-size: 14px;
-          }
-
-          /* Add darker border to rows */
-          table tbody tr {
-            border-bottom: 1px solid #EBEDF0 !important;
-          }
-
-          table tbody tr:last-child {
-            border-bottom: none !important;
-          }
-        `}
+                    /* Mobile adjustments */
+                    @media (max-width: 768px) {
+                        table thead tr th {
+                            padding: 12px 8px !important;
+                        }
+                        table tbody tr td {
+                            padding: 14px 8px !important;
+                        }
+                    }
+                `}
             </style>
+
             <main>
-                {/* Step 4: TableProvider aur TableComponent ko data aur columns ke saath render karein */}
                 <TableProvider data={reportData} columns={columns}>
                     {() => <TableComponent />}
                 </TableProvider>

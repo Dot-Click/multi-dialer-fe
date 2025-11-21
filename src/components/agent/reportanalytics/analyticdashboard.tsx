@@ -14,6 +14,7 @@ import contactleadicon from "../../../assets/contactleadicon.png"
 import timeicon from "../../../assets/timeicon.png"
 import callappointmenticon from "../../../assets/callappointmenticon.png"
 import contactappointment from "../../../assets/contactappointment.png"
+import exportarrowicon from "../../../assets/exportarrowicon.png"
 import { HiDownload } from "react-icons/hi";
 
 const AnalyticsDashboard = () => {
@@ -34,25 +35,25 @@ const AnalyticsDashboard = () => {
     ];
 
     return (
-        <div className="bg-white rounded-2xl px-5 py-4 shadow-md w-full">
+        <div className="bg-white rounded-[24px] p-[24px] shadow-md w-full">
             
             {/* Header & Filters Responsive */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-                <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-xl font-semibold text-gray-800">
+                <div className="flex flex-wrap items-center gap-6">
+                    <h2 className="text-[24px] font-[500] text-[#17181B]">
                         Analytics
                     </h2>
 
-                    <div className="flex items-center gap-3 text-sm text-gray-600 border rounded-md px-3 py-1 cursor-pointer">
-                        <IoIosArrowBack className="text-[18px]" />
-                        <span className="font-medium">All Dates</span>
-                        <IoIosArrowForward className="text-[18px]" />
+                    <div className="flex items-center gap-[16px] text-sm  border border-[#D8DCE1] rounded-[12px] p-[4px] cursor-pointer">
+                        <IoIosArrowBack className="text-[13px] text-[#71717A]" />
+                        <span className="font-[500] text-[16px] text-[#47474C]">All Dates</span>
+                        <IoIosArrowForward className="text-[13px] text-[#71717A]" />
                     </div>
                 </div>
 
-                <button className="flex items-center gap-2 text-base font-medium text-gray-700 hover:text-gray-950 transition">
-                    <HiDownload className="text-xl" />
-                    Export
+                <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] hover:text-gray-950 transition">
+                    <img src={exportarrowicon} alt="exportarrowicon" className=""/>
+                 <span>Export</span>
                 </button>
             </div>
 

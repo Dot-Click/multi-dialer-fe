@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import { ChevronDown } from 'lucide-react';
 
 const sessionData = [
     {
@@ -69,91 +70,84 @@ const sessionData = [
 ];
 
 const Session = () => {
-    const [openRow, setOpenRow] = useState<number | null>(4); // type specified
+    const [openRow, setOpenRow] = useState<number | null>(null);
 
-    const handleRowClick = (id: number) => { // ✅ id type number
+    const handleRowClick = (id: number) => {
         setOpenRow(openRow === id ? null : id);
     };
 
     return (
         <div className="min-h-screen py-2 flex flex-col gap-2">
-            <div className="border w-fit rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-                <FaChevronLeft className="text-[12px] text-gray-400" />
-                <span className="text-xs">All Dates</span>
-                <FaChevronRight className="text-[12px] text-gray-400" />
+            {/* Date Filter */}
+            <div className="flex items-center w-fit gap-[16px] border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] cursor-pointer">
+                <IoIosArrowBack className="text-[13px] text-[#71717A]" />
+                <span className="text-[16px]">All Dates</span>
+                <IoIosArrowForward className="text-[13px] text-[#71717A]" />
             </div>
 
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            {/* Table */}
+            <div className="bg-white shadow-md mt-3 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-600">
-                        <thead className="bg-gray-50 text-sm text-gray-900 uppercase">
+                    <table className="w-full border-collapse">
+                        <thead className="bg-[#F7F7F7]">
                             <tr>
-                                <th scope="col" className="px-6 font-semibold py-3"></th>
-                                <th scope="col" className="px-6 font-semibold py-3">Date</th>
-                                <th scope="col" className="px-6 font-semibold py-3">Agent</th>
-                                <th scope="col" className="px-6 font-semibold py-3">Type</th>
-                                <th scope="col" className="px-6 font-semibold py-3">Gr/List</th>
-                                <th scope="col" className="px-6 font-semibold py-3">Calls</th>
-                                <th scope="col" className="px-6 font-semibold py-3">Appt</th>
+                                <th className="px-2 py-[4px] font-[500] text-[20px] text-[#0E1011]">
+                                    <ChevronDown className='text-[#495057] text-[19px]' />
+                                </th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Date</th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Agent</th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Type</th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Gr/List</th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Calls</th>
+                                <th className="py-3 text-left font-[500] text-[14px] text-[#0E1011]">Appt</th>
                             </tr>
                         </thead>
-
                         <tbody>
                             {sessionData.map((item) => (
                                 <React.Fragment key={item.id}>
                                     {/* Main Row */}
                                     <tr
-                                        className="border-b hover:bg-gray-50 cursor-pointer"
+                                        className={`border-b cursor-pointer transition-colors ${openRow === item.id ? 'bg-[#EBEDF0]' : ''}`}
                                         onClick={() => handleRowClick(item.id)}
                                     >
-                                        <td className="px-6 py-4">
-                                            <svg
-                                                className={`w-4 h-4 text-gray-500 transform transition-transform ${openRow === item.id ? 'rotate-90' : ''
-                                                    }`}
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M9 5l7 7-7 7"
-                                                ></path>
-                                            </svg>
+                                        <td className="py-3 px-2 w-6 text-center">
+                                            <ChevronDown
+                                                className={`text-[#495057] text-[19px] transition-transform duration-200 ${openRow === item.id ? 'rotate-180' : ''}`}
+                                            />
                                         </td>
-                                        <td className="px-6 py-4 text-gray-900">{item.date}</td>
-                                        <td className="px-6 font-semibold text-gray-900 py-4">{item.agent}</td>
-                                        <td className="px-6 py-4">{item.type}</td>
-                                        <td className="px-6 py-4">{item.list}</td>
-                                        <td className="px-6 py-4">{item.calls}</td>
-                                        <td className="px-6 py-4">{item.appt}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.date}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#0E1011]">{item.agent}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.type}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.list}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.calls}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.appt}</td>
                                     </tr>
 
-                                    {/* Expanded Details Row */}
+                                    {/* Expanded Row */}
                                     {openRow === item.id && (
-                                        <tr className="bg-gray-100">
-                                            <td colSpan={7} className="p-2"> {/* ✅ colSpan number */}
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2">
+                                        <tr className="bg-[#F3F4F7]">
+                                            <td colSpan={7} className="p-2">
+                                                {/* Desktop grid remains 2-cols, Mobile stacks */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-4 md:px-8 py-2">
                                                     <div>
-                                                        <h3 className="text-xs text-gray-500 mb-4">
-                                                            Group/List Dialed: {item.list}
+                                                        <h3 className="text-[14px] text-[#495057] flex items-center gap-1 mb-2">
+                                                            <span className='font-[400]'>Group/List Dialed: </span>
+                                                            <span className='font-[500]'>{item.list}</span>
                                                         </h3>
                                                         <div className="p-4">
-                                                            <div className="grid grid-cols-4 border-b p-2 gap-4 items-center mb-2">
-                                                                <span className="font-semibold text-gray-700">Result</span>
-                                                                <span className="font-semibold text-gray-700">Total Calls</span>
-                                                                <span className="font-semibold text-gray-700">Talk Time</span>
-                                                                <span className="font-semibold text-gray-700">Dial Time</span>
+                                                            <div className="grid grid-cols-4 border-b p-2 gap-4 items-center mb-2 font-[500] text-[14px] text-[#0E1011]">
+                                                                <span>Result</span>
+                                                                <span>Total Calls</span>
+                                                                <span>Talk Time</span>
+                                                                <span>Dial Time</span>
                                                             </div>
-                                                            <div className="grid p-2 grid-cols-4 gap-4 items-center">
+                                                            <div className="grid p-2 grid-cols-4 gap-4 items-center font-[400] text-[14px] text-[#495057]">
                                                                 <span>Other</span>
                                                                 <span>{item.details.totalCalls}</span>
                                                                 <span>{item.details.talkTime}</span>
-                                                                <span>-</span>
+                                                                <span>{item.details.dialTime}</span>
                                                             </div>
-                                                            <div className="grid bg-gray-300 p-2 grid-cols-4 gap-4 items-center font-semibold">
+                                                            <div className="grid bg-[#D8DCE1] border border-[#EBEDF0] p-2 grid-cols-4 gap-4 items-center font-[500] text-[14px] text-[#0E1011]">
                                                                 <span>TOTAL</span>
                                                                 <span>{item.details.totalCalls}</span>
                                                                 <span>{item.details.talkTime}</span>
@@ -162,25 +156,19 @@ const Session = () => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <h3 className="text-xs text-gray-500 mb-4">&nbsp;</h3>
                                                         <div className="p-4">
-                                                            <div className="grid border-b p-2 grid-cols-2 gap-4 items-center mb-2">
-                                                                <span className="font-bold text-gray-700">Appts / Leads</span>
-                                                                <span className="font-bold text-gray-700">Dial Time</span>
+                                                            <div className="grid border-b p-2 grid-cols-2 gap-4 items-center mb-2 font-[500] text-[14px] text-[#0E1011]">
+                                                                <span>Appts / Leads</span>
+                                                                <span>Dial Time</span>
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-8 items-center">
+                                                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 items-start font-[400] text-[14px] text-[#495057]">
                                                                 <div>
-                                                                    <div className="flex justify-between items-center py-1">
-                                                                        <span>Appointments</span>
-                                                                        <span>{item.details.appointments}</span>
-                                                                    </div>
-                                                                    <div className="flex justify-between items-center py-1">
-                                                                        <span>Leads</span>
-                                                                        <span>{item.details.leads}</span>
-                                                                    </div>
+                                                                    <div className="py-1">Appointments</div>
+                                                                    <div className="py-1">Leads</div>
                                                                 </div>
-                                                                <div>
-                                                                    {/* Placeholder */}
+                                                                <div className="text-center">
+                                                                    <div className="py-1">{item.details.appointments}</div>
+                                                                    <div className="py-1">{item.details.leads}</div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -191,20 +179,38 @@ const Session = () => {
                                     )}
                                 </React.Fragment>
                             ))}
-
-                            {/* Total Footer Row */}
-                            <tr className="bg-white font-semibold">
-                                <td className="px-6 py-4" colSpan={2}>TOTAL</td> {/* ✅ colSpan number */}
-                                <td className="px-6 py-4">Bertha Wiza</td>
-                                <td className="px-6 py-4">-</td>
-                                <td className="px-6 py-4">-</td>
-                                <td className="px-6 py-4">5</td>
-                                <td className="px-6 py-4">0</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {/* Mobile-specific style for expanded row */}
+            <style>
+                {`
+                @media (max-width: 768px) {
+                    /* Allow horizontal scroll if table is too wide */
+                    .overflow-x-auto {
+                        overflow-x: auto;
+                    }
+                    table {
+                        min-width: 700px;
+                    }
+
+                    /* Stack expanded row content */
+                    table tbody tr.bg-[#F3F4F7] > td > div.grid {
+                        grid-template-columns: 1fr !important;
+                    }
+
+                    table tbody tr.bg-[#F3F4F7] > td > div.grid > div {
+                        width: 100%;
+                    }
+
+                    table td, table th {
+                        padding: 12px 8px !important;
+                    }
+                }
+                `}
+            </style>
         </div>
     );
 };

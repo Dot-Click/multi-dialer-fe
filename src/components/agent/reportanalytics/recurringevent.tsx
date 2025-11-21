@@ -1,8 +1,6 @@
-
-
 import { Box } from "@/components/ui/box";
 import { TableProvider } from "@/providers/table.provider";
-import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+import { TableComponent } from "@/components/common/tablecomponent";
 
 const eventData = [
   { name: "Kathryn Murphy", startDate: "18/06/2021 09:13", repeat: 2, type: "Email" },
@@ -18,62 +16,57 @@ const eventData = [
 const columns = [
   {
     accessorKey: "name",
-    header: (info: any) => <SortedHeader header={info.header} label="Name" />,
+    header: () => <span>Name</span>,
     cell: (info: any) => (
-      <span style={{ color: "#1D85F0", fontWeight: 500 }}>{info.getValue()}</span>
+      <span style={{ color: "#1D85F0", fontWeight: 400 }}>{info.getValue()}</span>
     ),
   },
-  {
-    accessorKey: "startDate",
-    header: (info: any) => <SortedHeader header={info.header} label="Start Date" />,
-  },
-  {
-    accessorKey: "repeat",
-    header: (info: any) => <SortedHeader header={info.header} label="Repeat" />,
-  },
-  {
-    accessorKey: "type",
-    header: (info: any) => <SortedHeader header={info.header} label="Type" />,
-  },
+  { accessorKey: "startDate", header: () => <span>Start Date</span> },
+  { accessorKey: "repeat", header: () => <span>Repeat</span> },
+  { accessorKey: "type", header: () => <span>Type</span> },
 ];
 
 const RecurringEvent = () => {
   return (
     <Box className="mt-3 w-full h-full">
-
-      {/* ✅ Same table style jaisa pehle pages me kiya tha */}
-    <style>
-                {`
-          table thead tr th,
-          table thead {
+      <style>
+        {`
+          /* BASE TABLE STYLING */
+          table thead tr th, table thead {
             background: #F7F7F7 !important;
             box-shadow: none !important;
           }
-          table thead tr th > div {
-            background: transparent !important;
-          }
-
           table thead tr th {
             padding: 10px !important;
             font-size: 14px;
+            font-weight: 500;
             border-bottom: 1px solid #EBEDF0 !important;
             color: #0E1011;
           }
-
           table tbody tr td {
             padding: 10px !important;
             font-size: 14px;
+            color:#495057 !important;
+            font-weight: 400;
           }
-
           table tbody tr {
             border-bottom: 1px solid #EBEDF0 !important;
           }
-
           table tbody tr:last-child {
             border-bottom: none !important;
           }
+
+          /* MOBILE ADJUSTMENT */
+          @media (max-width: 768px) {
+            table tbody tr td {
+              padding: 14px 8px !important; /* thoda extra spacing for mobile */
+            }
+            table thead tr th {
+              padding: 12px 8px !important; /* header spacing mobile */
+            }
+          }
         `}
-            </style>
+      </style>
 
       <main>
         <TableProvider data={eventData} columns={columns}>

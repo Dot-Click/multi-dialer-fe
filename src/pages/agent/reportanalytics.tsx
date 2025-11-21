@@ -3,10 +3,10 @@ import ReportDashboard from "@/components/agent/reportanalytics/reportdashboard"
 
 const ReportAnalytics = () => {
   return (
-    <div className=" min-h-screen  mr-10">
+    <div className=" min-h-screen pb-7  mr-10">
       <div className="flex flex-col gap-4">
         {/* Page Header */}
-        <h1 className="text-2xl font-medium text-gray-900 mb-4">
+        <h1 className="text-[28px] font-[500] text-[#0E1011] ">
           Reports & Analytics
         </h1>
 

@@ -1,9 +1,36 @@
-import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+
+
+
+import React from "react";
 import { Box } from "@/components/ui/box";
 import { TableProvider } from "@/providers/table.provider";
-import { FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import callsicon from "../../../assets/callsicon.png";  // ✅ Phone icon image import
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { FaChevronDown } from "react-icons/fa";
+import callsicon from "../../../assets/callsicon.png";
+import { TableComponent } from "@/components/common/tablecomponent";
 
+// ----------------------
+// SortedHeader Component
+// ----------------------
+interface SortedHeaderProps {
+  header: any;
+  label: string;
+}
+
+const SortedHeader: React.FC<SortedHeaderProps> = ({ header, label }) => {
+  const isSorted = header.column.getIsSorted();
+  return (
+    <div className="flex items-center gap-1 cursor-pointer">
+      <span>{label}</span>
+      {isSorted === "asc" && <span>↑</span>}
+      {isSorted === "desc" && <span>↓</span>}
+    </div>
+  );
+};
+
+// ----------------------
+// Table Data & Columns
+// ----------------------
 interface CallRow {
   id: number;
   name: string;
@@ -26,101 +53,136 @@ const columns = [
     accessorKey: "name",
     header: (info: any) => <SortedHeader header={info.header} label="Name" />,
     cell: (info: any) => (
-      <span style={{ color: "#1D85F0", fontWeight: 500 }}>{info.getValue()}</span> // ✅ Blue Name
+      <span className="text-[#1D85F0] font-[400] text-[14px]">{info.getValue()}</span>
     ),
   },
   {
     accessorKey: "address",
     header: (info: any) => <SortedHeader header={info.header} label="Address" />,
+    cell: (info: any) => (
+      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+    ),
   },
   {
     accessorKey: "list",
     header: (info: any) => <SortedHeader header={info.header} label="List" />,
+    cell: (info: any) => (
+      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+    ),
   },
   {
     accessorKey: "group",
     header: (info: any) => <SortedHeader header={info.header} label="Group" />,
+    cell: (info: any) => (
+      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+    ),
   },
   {
     accessorKey: "phone",
     header: (info: any) => <SortedHeader header={info.header} label="Phone Number" />,
     cell: (info: any) => (
       <div className="flex items-center gap-2">
-        <img src={callsicon} alt="call" style={{ width: "16px", height: "16px", objectFit: "contain" }} />
-        <span style={{ color: "#495057" }}>{info.getValue()}</span> {/* ✅ Same style as previous table */}
+        <img src={callsicon} alt="call" className="w-4 h-4 object-contain" />
+        <span className="text-[#495057] font-[400]">{info.getValue()}</span>
       </div>
     ),
   },
   {
     accessorKey: "result",
     header: (info: any) => <SortedHeader header={info.header} label="Result" />,
+    cell: (info: any) => (
+      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+    ),
   },
 ];
 
+// ----------------------
+// Main Component
+// ----------------------
 const CallDetail = () => {
   return (
     <Box className="mt-3 flex flex-col gap-2 w-full h-full">
       <style>
-        {`
-          table thead tr th,
-          table thead {
-            background: #F7F7F7 !important;
-            box-shadow: none !important;
-          }
-          table thead tr th > div {
-            background: transparent !important;
-          }
+  {`
+    table thead tr th,
+    table thead {
+      background: #F7F7F7 !important;
+      box-shadow: none !important;
+    }
+    table thead tr th > div {
+      background: transparent !important;
+    }
+    table thead tr th {
+      padding: 8px !important;
+      font-size: 14px;
+      border-bottom: 1px solid #EBEDF0 !important;
+      color: #0E1011;
+      font-weight:500;
+      text-align: left;
+    }
+    table tbody tr td {
+      padding: 16px 6px !important; /* desktop padding */
+      font-size: 14px;
+    }
+    table tbody tr {
+      border-bottom: 1px solid #EBEDF0 !important;
+    }
+    table tbody tr:last-child {
+      border-bottom: none !important;
+    }
 
-          table thead tr th {
-            padding: 15px !important;
-            font-size: 14px;
-            border-bottom: 1px solid #EBEDF0 !important;
-            color: #0E1011;
-          }
+    /* Mobile spacing adjustments */
+    @media (max-width: 768px) {
+      .responsive-table-wrapper {
+        overflow-x: auto;
+      }
+      table {
+        width: 100% !important;
+        min-width: 600px;
+      }
+      table tbody tr td {
+        padding: 20px 12px !important; /* mobile spacing */
+      }
+      table thead tr th {
+        padding: 12px 12px !important; /* mobile spacing */
+      }
+      .filters-wrapper {
+        flex-wrap: wrap !important;
+      }
+    }
+  `}
+</style>
 
-          table tbody tr td {
-            padding: 15px !important;
-            font-size: 14px;
-          }
 
-          table tbody tr {
-            border-bottom: 1px solid #EBEDF0 !important;
-          }
-
-          table tbody tr:last-child {
-            border-bottom: none !important;
-          }
-        `}
-      </style>
-
-      <div className="flex items-center gap-3 w-full flex-wrap">
-        <div className="border rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-          <span className="text-xs">Caller ID: All</span>
-          <FaChevronDown className="text-[12px] text-gray-400" />
+      {/* Filters */}
+      <div className="flex items-center gap-3 mb-2 w-full filters-wrapper">
+        <div className="border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] flex justify-between w-[210px] items-center gap-2 cursor-pointer">
+          <span className="text-[16px]">Caller ID: All</span>
+          <FaChevronDown className="text-[13px] text-[#71717A]" />
         </div>
 
-        <div className="border rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-          <FaChevronLeft className="text-[12px] text-gray-400" />
-          <span className="text-xs">All Dates</span>
-          <FaChevronRight className="text-[12px] text-gray-400" />
+        <div className="flex items-center gap-[16px] border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] cursor-pointer">
+          <IoIosArrowBack className="text-[13px] text-[#71717A]" />
+          <span className="text-[16px]">All Dates</span>
+          <IoIosArrowForward className="text-[13px] text-[#71717A]" />
         </div>
 
-        <div className="border rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-          <span className="text-xs">Select Time Frame</span>
-          <FaChevronDown className="text-[12px] text-gray-400" />
+        <div className="flex items-center gap-[16px] border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] cursor-pointer">
+          <span className="text-[16px]">Select Time Frame</span>
         </div>
 
-        <div className="border rounded-lg px-3 py-2 flex items-center gap-2 cursor-pointer">
-          <span className="text-xs">Days Of The Week: All</span>
-          <FaChevronDown className="text-[12px] text-gray-400" />
+        <div className="border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] flex justify-between w-[240px] items-center gap-2 cursor-pointer">
+          <span className="text-[16px]">Days Of The Week: All</span>
+          <FaChevronDown className="text-[13px] text-[#71717A]" />
         </div>
       </div>
 
-      <main>
+      {/* Table */}
+      <div className="responsive-table-wrapper">
         <TableProvider data={callData} columns={columns}>
           {() => <TableComponent />}
         </TableProvider>
-      </main>
+      </div>
     </Box>
   );
 };

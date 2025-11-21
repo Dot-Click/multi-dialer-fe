@@ -8,6 +8,8 @@ import AgentTimeSheet from "@/components/agent/reportanalytics/agenttimesheet";
 import PostingReport from "@/components/agent/reportanalytics/postingreport";
 import EmailStatus from "@/components/agent/reportanalytics/emailstatus";
 import CallRecording from "@/components/agent/reportanalytics/callrecording";
+import exportarrowicon from "../../../assets/exportarrowicon.png"
+
 
 const ReportDashboard = () => {
   const [openData, setOpenData] = useState("Call detail");
@@ -26,16 +28,18 @@ const ReportDashboard = () => {
   const ActiveComponent = reportsData.find((rd) => rd.label === openData)?.component;
 
   return (
-    <div className="bg-white rounded-2xl px-5 md:px-7 py-4 shadow-md w-full">
+    <div className="bg-white rounded-[24px] p-[24px] shadow-md w-full">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Reports</h2>
+      <h2 className="text-[24px] font-[500] text-[#17181B]">
+                        Reports
+                    </h2>
 
-        <button className="flex items-center gap-2 text-base font-medium text-gray-700 hover:text-gray-950 transition">
-          <HiDownload className="text-xl" />
-          Export
-        </button>
+        <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] hover:text-gray-950 transition">
+                    <img src={exportarrowicon} alt="exportarrowicon" className=""/>
+                 <span>Export</span>
+                </button>
       </div>
 
       {/* Tabs */}
@@ -44,8 +48,8 @@ const ReportDashboard = () => {
           <button
             key={rdata.id}
             onClick={() => setOpenData(rdata.label)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap
-            ${openData === rdata.label ? "bg-yellow-400 text-gray-900" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+            className={`px-[16px] py-[8px] text-[16px] font-[500] rounded-[12px] transition whitespace-nowrap
+            ${openData === rdata.label ? "bg-[#FFCA06] text-[#0E1011]" : "bg-[#F3F4F7] text-[#495057] hover:bg-gray-300"}`}
           >
             {rdata.label}
           </button>
