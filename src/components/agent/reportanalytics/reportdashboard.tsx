@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { HiDownload } from "react-icons/hi";
 import CallDetail from "@/components/agent/reportanalytics/calldetail";
 import Session from "@/components/agent/reportanalytics/session";
 import RecurringEvent from "@/components/agent/reportanalytics/recurringevent";

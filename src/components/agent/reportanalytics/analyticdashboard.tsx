@@ -15,7 +15,6 @@ import timeicon from "../../../assets/timeicon.png"
 import callappointmenticon from "../../../assets/callappointmenticon.png"
 import contactappointment from "../../../assets/contactappointment.png"
 import exportarrowicon from "../../../assets/exportarrowicon.png"
-import { HiDownload } from "react-icons/hi";
 
 const AnalyticsDashboard = () => {
     const stats = [

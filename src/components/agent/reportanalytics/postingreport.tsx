@@ -1,4 +1,4 @@
-import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
+import { TableComponent } from "@/components/common/tablecomponent";
 import { Box } from "@/components/ui/box";
 import { TableProvider } from "@/providers/table.provider";
 import tableCellIcon from '../../../assets/tablecellicon.png';
