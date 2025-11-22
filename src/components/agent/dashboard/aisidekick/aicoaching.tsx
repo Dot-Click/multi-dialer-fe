@@ -124,29 +124,31 @@ const AiCoaching = () => {
           <div className="flex flex-row items-center justify-center gap-4 w-full">
             <div className="min-w-[9rem] w-36 h-36 relative flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
-               <PieChart>
-  <Pie
-    data={confidencePieData}
-    cx="50%"
-    cy="50%"
-    innerRadius={42}
-    outerRadius={60}
-    paddingAngle={1}
-    dataKey="value"
-    startAngle={90}   // <--- Figma like start
-    endAngle={-270}   // <--- Complete clockwise rotation
-    filter="url(#shadow)"
-  >
-    {confidencePieData.map((_, index) => (
-      <Cell
-        key={`cell-${index}`}
-        fill={CONFIDENCE_COLORS[index % CONFIDENCE_COLORS.length]}
-      />
-    ))}
-  </Pie>
-</PieChart>
+                <PieChart>
+                  <Pie
+                    data={confidencePieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={42}
+                    outerRadius={60}
+                    paddingAngle={1}
+                    dataKey="value"
+                    startAngle={90}   // <--- Figma like start
+                    endAngle={-270}   // <--- Complete clockwise rotation
+                    filter="url(#shadow)"
+                  >
+                    {confidencePieData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CONFIDENCE_COLORS[index % CONFIDENCE_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
 
               </ResponsiveContainer>
+
+                 
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-[24px] font-[500] text-[#000000]">
                   85<span className='text-[16px] text-[#848C94]'>/100</span>
