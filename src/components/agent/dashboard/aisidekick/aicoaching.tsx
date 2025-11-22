@@ -12,7 +12,9 @@ const confidencePieData = [
   { name: 'Average', value: 20 },
   { name: 'Poor', value: 15 }
 ];
-const CONFIDENCE_COLORS = ['#3DC269', '#F6BF26', '#D43435'];
+const CONFIDENCE_COLORS_NAMES = ['#3DC269', '#F6BF26', '#D43435'];
+
+const CONFIDENCE_COLORS = ['#3DC269', '#D43435', '#F6BF26'];
 
 const AiCoaching = () => {
   return (
@@ -156,7 +158,7 @@ const AiCoaching = () => {
                 <div key={`legend-${index}`} className="flex items-center gap-2">
                   <span
                     className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: CONFIDENCE_COLORS[index] }}
+                    style={{ backgroundColor: CONFIDENCE_COLORS_NAMES[index] }}
                   ></span>
                   <span className="text-[12px] font-[400] text-[#0E1011]">{entry.name}</span>
                 </div>
