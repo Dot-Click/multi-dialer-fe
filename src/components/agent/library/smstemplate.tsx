@@ -89,7 +89,7 @@ const SMSTemplateModal = ({ isOpen, onClose, onSave, templateData }: SMSTemplate
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex justify-between items-center p-5 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">
-            {templateData ? "Edit SMS Template" : "Add SMS Template"}
+            {templateData ? "Edit SMS Template" : "Create SMS Template"}
           </h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><HiX className="h-6 w-6 text-gray-500" /></button>
         </div>

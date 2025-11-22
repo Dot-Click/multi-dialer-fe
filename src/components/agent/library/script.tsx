@@ -88,17 +88,17 @@ const ScriptModal = ({ isOpen, onClose, onSave, scriptData }: ScriptModalProps) 
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1100] p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex justify-between items-center p-5 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">{scriptData ? "Edit Script" : "Add Script"}</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{scriptData ? "Edit Script" : "Create Call Script "}</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><HiX className="h-6 w-6 text-gray-500" /></button>
         </div>
         <div className="p-6 space-y-6">
           <div className="bg-gray-100 px-3 py-2 flex flex-col gap-1 border border-gray-200 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="block text-sm font-medium text-gray-900">Script Name</label>
-            <input type="text" value={scriptName} onChange={(e) => setScriptName(e.target.value)} className="w-full bg-transparent outline-none" placeholder="e.g., Script #1" />
+            <label className="block text-sm font-medium text-[#495057]">Script Name</label>
+            <input type="text" value={scriptName} onChange={(e) => setScriptName(e.target.value)} className="w-full bg-transparent outline-none" placeholder="Enter script name" />
           </div>
           <div className="bg-gray-100 px-3 py-2 flex flex-col gap-1 border border-gray-200 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="block text-sm font-medium text-gray-900">Script text</label>
-            <textarea value={scriptText} onChange={(e) => setScriptText(e.target.value)} rows={8} className="w-full bg-transparent outline-none resize-none" placeholder="Enter your script here..." />
+            <label className="block text-sm font-medium text-[#495057]">Script text</label>
+            <textarea value={scriptText} onChange={(e) => setScriptText(e.target.value)} rows={8} className="w-full bg-transparent outline-none resize-none" placeholder="Enter script text" />
           </div>
         </div>
         <div className="flex justify-center items-center p-5 border-t border-gray-200 space-x-3">
@@ -234,7 +234,7 @@ const Script = () => {
     </div>
 
     {/* STATUS COLUMN */}
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 mr-20">
         <span className="text-[#495057] text-[12px] font-[400]">
             Status
         </span>

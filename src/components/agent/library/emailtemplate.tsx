@@ -109,17 +109,17 @@ const EmailTemplateModal = ({ isOpen, onClose, onSave, templateData }: EmailTemp
           {/* Template Name */}
           <div className="bg-gray-100 p-3 flex flex-col gap-1 border border-transparent rounded-lg focus-within:ring-2 focus-within:ring-yellow-400">
             <label className="text-xs font-medium text-gray-600">Template Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-transparent outline-none text-sm" placeholder="Email Template #1" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-transparent outline-none text-sm" placeholder="Email template name" />
           </div>
           {/* Subject */}
           <div className="bg-gray-100 p-3 flex flex-col gap-1 border border-transparent rounded-lg focus-within:ring-2 focus-within:ring-yellow-400">
             <label className="text-xs font-medium text-gray-600">Subject</label>
-            <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-transparent outline-none text-sm" placeholder="Your business gets calls..." />
+            <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-transparent outline-none text-sm" placeholder="Enter subject" />
           </div>
           {/* Content */}
           <div className="bg-gray-100 custome-scrollbar p-3 flex flex-col gap-1 border border-transparent rounded-lg focus-within:ring-2 focus-within:ring-yellow-400">
             <label className="text-xs font-medium text-gray-600">Content</label>
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={10} className="w-full  bg-transparent outline-none text-sm resize-none" placeholder="Hi there! 👋..." />
+            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={10} className="w-full  bg-transparent outline-none text-sm resize-none" placeholder="enter email text" />
           </div>
         </div>
         
@@ -147,7 +147,7 @@ const EmailTemplate = () => {
       createdBy: "John Lee",
       createdOn: "09/09/2025",
       modifiedOn: "09/09/2025",
-      status: true,
+      status: false,
     },
     {
       id: 2, name: "Email Template #2", subject: "Follow up on our conversation", content: "Hello! Just following up.", createdBy: "Brooklyn Simmons", createdOn: "08/09/2025", modifiedOn: "08/09/2025", status: true,

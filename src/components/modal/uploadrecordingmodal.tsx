@@ -85,7 +85,7 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose }) 
           <div className="bg-gray-100 rounded-lg p-3">
             <label
               htmlFor="templateName"
-              className="text-[12px] font-semibold text-gray-700 block mb-1"
+              className="text-[12px] font-semibold text-[#495057] block mb-1"
             >
               Template Name
             </label>
