@@ -14,11 +14,11 @@ const callingGroupsData = [
 const getTagStyles = (tag:any) => {
     switch (tag) {
         case 'Hot Lead':
-            return 'bg-red-100 text-red-700';
+            return 'bg-[#D434351A]/90 text-[#D43435]';
         case 'Follow Up':
-            return 'bg-blue-100 text-blue-700';
+            return 'bg-[#1D85F01A]/90 text-[#1D85F0]';
         case 'Interested':
-            return 'bg-green-100 text-green-700';
+            return 'bg-[#1D85F01A]/90 text-[#1EAC22]';
         default:
             return 'bg-gray-100 text-gray-700';
     }
@@ -26,14 +26,14 @@ const getTagStyles = (tag:any) => {
 
 const CallGroup = () => {
     return (
-        <div className="bg-white rounded-2xl w-full  shadow-sm p-6 sm:p-8 flex flex-col h-[60vh]">
+        <div className="bg-white w-full  shadow-sm rounded-[32px] px-[24px] pt-[24px] pb-[32px] flex flex-col h-[60vh]">
             {/* Main Title */}
-            <h1 className="text-xl font-bold text-gray-800 mb-6 flex-shrink-0">Calling Groups</h1>
+            <h1 className="text-[20px] font-[500]  text-[#000000] mb-6 flex-shrink-0">Calling Groups</h1>
 
             {/* This container will manage the layout of the header and the scrollable list */}
             <div className="flex flex-col flex-1 min-h-0">
                 {/* Table Header (will not scroll) */}
-                <div className="grid grid-cols-3 gap-4 text-sm font-semibold text-gray-500 pb-2 border-b flex-shrink-0">
+                <div className="grid grid-cols-3 gap-4 text-[12px] font-[500] text-[#848C94] pb-2 border-b flex-shrink-0">
                     <div className="col-span-1">Lead Name</div>
                     <div className="col-span-1 text-center">AI Lead Score</div>
                     <div className="col-span-1 text-right">Notes / Tags</div>
@@ -43,18 +43,18 @@ const CallGroup = () => {
                 <div className="mt-4 flex-1  h-20 overflow-y-auto custom-scrollbar pr-2">
                     <div className="space-y-4">
                         {callingGroupsData.map((item) => (
-                            <div key={item.id} className="grid grid-cols-3 gap-4 items-center border-b pb-4 last:border-b-0">
+                            <div key={item.id} className="grid grid-cols-3 text-[14px] gap-4 items-center border-b pb-4 last:border-b-0">
                                 {/* Lead Name */}
-                                <div className="col-span-1 font-semibold text-gray-800">
+                                <div className="col-span-1 font-[500] text-[#000000]">
                                     {item.name}
                                 </div>
                                 {/* AI Lead Score */}
-                                <div className="col-span-1 text-center text-gray-600">
+                                <div className="col-span-1 font-[400] text-center text-[#2B3034]">
                                     {item.score}
                                 </div>
                                 {/* Notes / Tags */}
                                 <div className="col-span-1 flex justify-end">
-                                    <span className={`px-3 py-1 text-sm font-medium rounded-md ${getTagStyles(item.tag)}`}>
+                                    <span className={`pr-[6px] pl-[8px] py-[4px] text-[12px] font-[500] rounded-[100px] max-w-[100px] min-w-[90px]  ${getTagStyles(item.tag)}`}>
                                         {item.tag}
                                     </span>
                                 </div>

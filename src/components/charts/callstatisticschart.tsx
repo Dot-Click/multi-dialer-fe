@@ -1,32 +1,50 @@
-import { PieChart, Pie, Label } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-// #region Sample data
-const data = [
-    { name: 'Group A', value: 400, fill: '#0088FE' },
-    { name: 'Group B', value: 300, fill: '#00C49F' },
-    { name: 'Group C', value: 300, fill: '#FFBB28' },
-    { name: 'Group D', value: 200, fill: '#FF8042' },
+const COLORS = [
+  "#37B5EF",  // 1 top
+  "#9400BD",  // 2
+  "#FF7F3A",  // 3
+  "#F91E4A",  // 4
+  "#EC7490",  // 5
+  "#3DC269",  // 6
 ];
 
-// #endregion
-const MyPie = () => (
-    <Pie data={data} dataKey="value" nameKey="name" outerRadius="80%" innerRadius="60%" isAnimationActive={false} />
-);
-
+const data = [
+  { value: 20 },
+  { value: 20 },
+  { value: 20 },
+  { value: 20 },
+  { value: 20 },
+  { value: 20 },
+];
 
 const CallStatisticChart = () => {
-    return (
-  
+  return (
+    <div style={{ width: 170, height: 170 }}>
+      <ResponsiveContainer>
+        <PieChart>
 
-            <PieChart responsive className='h-full' style={{ aspectRatio: 1 }}>
-                <MyPie />
-                <Label position="center" fill="#666">
-                    
-                </Label>
-            </PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            innerRadius="50%"
+            outerRadius="80%"
+            startAngle={90}      // <--- Top se start (90°)
+            endAngle={-270}      // <--- Clockwise perfect circle
+            paddingAngle={0}     // <--- spacing kam
+            stroke="#fff"
+            strokeWidth={2}      // <--- thin clean gap
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORS[i]} />
+            ))}
+          </Pie>
 
-      
-    );
-}
+         
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
-export default CallStatisticChart
+export default CallStatisticChart;

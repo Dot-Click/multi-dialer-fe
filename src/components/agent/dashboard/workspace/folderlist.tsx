@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 
 const FoldersList = () => {
 
@@ -10,7 +10,7 @@ const FoldersList = () => {
         { id: 5, name: "Folder 4", },
     ]
 
-      const listName = [
+    const listName = [
         { id: 1, name: "List Name", contact: "115" },
         { id: 2, name: "List Name", contact: "115" },
         { id: 3, name: "List Name", contact: "115" },
@@ -20,36 +20,42 @@ const FoldersList = () => {
         { id: 7, name: "List Name", contact: "115" },
     ]
 
-
+    const [active, setActive] = useState(1);
 
     return (
-        <section className='bg-white flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-4xl px-6 py-5 md:w-[50%]  w-full '>
+        <section className='bg-white flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
             <div className="flex flex-col justify-between gap-1.5">
-                <h1 className="text-[20px] font-[500]">Folders & Lists</h1>
+                <h1 className="text-[20px] text-[#000000] font-[500]">Folders & Lists</h1>
                 <div className='flex gap-3'>
                     {folderLists.map((dt) => (
-                        <button key={dt.id} className='border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]'>{dt.name}</button>
+                        <button
+                            key={dt.id}
+                            onClick={() => setActive(dt.id)}
+                            className={
+                                active === dt.id
+                                    ? "border px-2 rounded-md font-[500] cursor-pointer py-1 text-[9px] md:text-[12px] bg-[#0E1011] text-white"
+                                    : "border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]"
+                            }
+                        >
+                            {dt.name}
+                        </button>
                     ))}
                 </div>
             </div>
-
 
             <div className='flex flex-col gap-5  overflow-auto custom-scrollbar'>
                 {listName.map((gr) => (
                     <div key={gr.id} className='flex mx-2 rounded-md border-b gap-2 items-center border-gray-200'>
                         <div className="flex flex-col justify-between w-full">
-                            <h1 className="text-[14px] font-[500] text-gray-950">{gr.name}</h1>
-                            <h1 className="text-[12px] font-[400] text-[#495057]">Contacts: {gr.contact}</h1>
-
+                            <h1 className="text-[14px] font-[500] text-[#000000]">{gr.name}</h1>
+                            <h1 className="text-[14px] font-[400] text-[#495057]">Contacts: {gr.contact}</h1>
                         </div>
                     </div>
                 ))}
             </div>
 
-
-
         </section>
     )
 }
 
-export default FoldersList
+export default FoldersList;
