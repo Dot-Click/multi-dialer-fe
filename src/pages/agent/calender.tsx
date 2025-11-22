@@ -94,7 +94,7 @@
 // //         <button className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center">
 // //          <span className="text-[#2B3034]"><IoFilterOutline /></span>
 // //          <span className="text-[#27272A] font-[500] text-[16px]">Filter</span>
-          
+
 // //         </button>
 // //       </div>
 
@@ -516,7 +516,7 @@ const CustomCalendar = () => {
       <AddEventForm open={addEventModalOpen} onClose={() => setAddEventModalOpen(false)} />
 
       {/* Calendar Styles */}
-     <style>{`
+      <style>{`
   .custom-calendar .ant-picker-cell {
     height: 150px !important;
     border: 1px solid #f3f4f6;
