@@ -789,7 +789,8 @@ const CustomCalendar = () => {
         /* Add Event Form Modal and all modals in this component */
         .ant-modal-root .ant-modal-content {
           border-radius: 24px !important;
-          overflow: hidden;
+          overflow: hidden; 
+          
         }
 
         .ant-modal-root .ant-modal-header {
