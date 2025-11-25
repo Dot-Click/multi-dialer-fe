@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
+import { checkBoxProps } from "@/components/common/tablecomponent";
 import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 
@@ -29,7 +31,11 @@ const contacts: Contact[] = [
   { id: 10, name: "Jerome Bell", lastDialedDate: "09/09/2025", phone: "(319) 555-0115", email: "kenzi.lawson@example.com", list: "Dormant Accounts", tags: "-" },
 ];
 
-const AllContact = () => {
+interface AllContactProps {
+  onSelectionChange?: (selectedContacts: Contact[]) => void;
+}
+
+const AllContact = ({ onSelectionChange }: AllContactProps) => {
   const location = useLocation();
 
   const isAdmin = location.pathname.startsWith("/admin");
@@ -38,8 +44,14 @@ const AllContact = () => {
   const columns = [
     {
       id: "select",
-      header: () => <Checkbox />,
-      cell: () => <Checkbox />,
+      header: (context: any) => {
+        const props = checkBoxProps(context);
+        return <Checkbox {...props} />;
+      },
+      cell: (context: any) => {
+        const props = checkBoxProps(context);
+        return <Checkbox {...props} />;
+      },
       enableSorting: false,
     },
     {
@@ -108,11 +120,26 @@ const AllContact = () => {
     },
   ];
 
+  // Component to handle selection changes
+  const SelectionHandler = ({ selectedRows }: { selectedRows: Contact[] | undefined }) => {
+    useEffect(() => {
+      if (onSelectionChange) {
+        onSelectionChange(selectedRows || []);
+      }
+    }, [selectedRows, onSelectionChange]);
+    return null;
+  };
+
   return (
     <Box className="mt-3 m-2 w-full h-full">
       <main>
         <TableProvider data={contacts} columns={columns}>
-          {() => <TableComponent />}
+          {({ selectedRows }) => (
+            <>
+              <SelectionHandler selectedRows={selectedRows} />
+              <TableComponent />
+            </>
+          )}
         </TableProvider>
       </main>
     </Box>

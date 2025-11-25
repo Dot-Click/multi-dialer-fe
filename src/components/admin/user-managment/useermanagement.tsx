@@ -147,7 +147,7 @@ export default function Page() {
               <div className="space-y-2 mb-4">
                 {roles.map((r) => (
                   <label key={r} className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked className="w-4 h-4" />
+                    <input type="checkbox" defaultChecked className="w-4 accent-black h-4" />
                     <span>{r}</span>
                   </label>
                 ))}
@@ -158,7 +158,7 @@ export default function Page() {
               <div className="space-y-2 mb-2">
                 {["All Statuses", "Active", "Deactivated"].map((s) => (
                   <label key={s} className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked className="w-4 h-4" />
+                    <input type="checkbox" defaultChecked className="w-4 accent-black h-4" />
                     <span>{s}</span>
                   </label>
                 ))}

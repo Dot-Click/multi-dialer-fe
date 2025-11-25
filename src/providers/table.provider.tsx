@@ -93,6 +93,8 @@ const TableProvider = <T,>({
   const [selectedRows, setSelectedRows] = useState<T[]>();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  const [rowSelection, setRowSelection] = useState({});
+
   const table = useReactTable({
     columns,
     data: flatData,
@@ -100,7 +102,10 @@ const TableProvider = <T,>({
       sorting,
       globalFilter,
       columnFilters,
+      rowSelection,
     },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     defaultColumn: {
       minSize: 60,
       maxSize: 1200,
@@ -120,9 +125,8 @@ const TableProvider = <T,>({
   // 🔹 Update selected rows on table filter/selection change
   useEffect(() => {
     const selected = table.getFilteredSelectedRowModel().rows;
-    if (selected.length)
-      setSelectedRows(selected.map((val: any) => val.original));
-  }, [table.getFilteredSelectedRowModel()]);
+    setSelectedRows(selected.map((val: any) => val.original));
+  }, [rowSelection, table]);
 
   // 🔹 Reset selection when Escape key is pressed
   useEffect(() => {

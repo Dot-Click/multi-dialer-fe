@@ -526,36 +526,55 @@
 // export default CustomCalendar;
 
 
-
 import { useState } from "react";
 import { Calendar, ConfigProvider, Modal } from "antd";
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { FiEdit } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
-import AddEventForm from "@/components/modal/addeventmodal"; // Import your modal
+import AddEventForm from "@/components/modal/addeventmodal";
 
-// Event data
-const events: Record<string, { color: string; title: string; time: string }[]> = {
+/* --------------------------------------------------
+ *  EVENT DATA  (with image + description)
+ * -------------------------------------------------- */
+const events: Record<string, {
+  color: string;
+  title: string;
+  time: string;
+  description?: string;
+  image?: string;
+  assignee?: string;
+}[]> = {
   "2025-11-01": [
-    { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
-    { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
-    { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
-    { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
-    { color: "#A78BFA", title: "Birthday", time: "11:00 - 11:45" },
+    {
+      color: "#FCA5A5",
+      title: "Home Close Date",
+      time: "10:10 - 10:25",
+      description: "Final walk-through and key handover.",
+      image: "https://i.ibb.co/3kW3PqY/home.jpg",
+      assignee: "John Lee",
+    },
+    {
+      color: "#A78BFA",
+      title: "Birthday",
+      time: "11:00 - 11:45",
+      description: "Join us for a small birthday celebration at the office.",
+      image: "https://i.ibb.co/3kW3PqY/birthday.jpg",
+      assignee: "John Lee",
+    },
   ],
-  "2025-11-03": [{ color: "#60A5FA", title: "Task", time: "10:10 - 10:25" }],
-  "2025-11-05": [
-    { color: "#60A5FA", title: "Task", time: "10:10 - 10:25" },
-    { color: "#60A5FA", title: "Task", time: "11:00 - 11:45" },
+  "2025-11-03": [
+    {
+      color: "#60A5FA",
+      title: "Task",
+      time: "10:10 - 10:25",
+      description: "Complete the Q4 report.",
+      image: "https://i.ibb.co/3kW3PqY/task.jpg",
+      assignee: "John Lee",
+    },
   ],
-  "2025-11-07": [{ color: "#34D399", title: "Follow-Up Call", time: "10:10 - 10:25" }],
-  "2025-11-08": [
-    { color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" },
-    { color: "#34D399", title: "Follow-Up Call", time: "11:00 - 11:45" },
-  ],
-  "2025-11-11": [{ color: "#FCA5A5", title: "Home Close Date", time: "10:10 - 10:25" }],
 };
 
 const getEventData = (date: Dayjs) => {
@@ -563,65 +582,87 @@ const getEventData = (date: Dayjs) => {
   return events[key as keyof typeof events] || [];
 };
 
-const CustomCalendar = () => {
+/* --------------------------------------------------
+ *  MAIN COMPONENT
+ * -------------------------------------------------- */
+export default function CustomCalendar() {
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs("2025-11-01"));
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-  // modal states
-  const [optionsModalOpen, setOptionsModalOpen] = useState(false);
-  const [addEventModalOpen, setAddEventModalOpen] = useState(false);
-  const [showAllModalOpen, setShowAllModalOpen] = useState(false);
+  /* modals */
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [showAllOpen, setShowAllOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
 
-  // handlers
-  const onDateClick = (value: Dayjs) => {
-    setSelectedDate(value);
-    setOptionsModalOpen(true);
+  /* selected event for detail */
+  const [selectedEvent, setSelectedEvent] = useState<{
+    title: string;
+    time: string;
+    color: string;
+    description?: string;
+    image?: string;
+    assignee?: string;
+  } | null>(null);
+  
+  /* selected date for detail modal */
+  const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
+
+  /* handlers */
+  const onDateClick = (d: Dayjs) => {
+    setSelectedDate(d);
+    setOptionsOpen(true);
   };
 
-  const handleShowAddEventForm = () => {
-    setOptionsModalOpen(false);
-    setAddEventModalOpen(true);
+  const showAdd = () => {
+    setOptionsOpen(false);
+    setAddOpen(true);
   };
 
-  const handleShowAllEvents = () => {
-    setOptionsModalOpen(false);
-    setShowAllModalOpen(true);
+  const showAll = () => {
+    setOptionsOpen(false);
+    setShowAllOpen(true);
   };
 
-  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
-  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
+  const openDetail = (ev: typeof selectedEvent, date: Dayjs) => {
+    setSelectedEvent(ev);
+    setSelectedEventDate(date);
+    setDetailOpen(true);
+  };
 
-  // date cell render
+  const prev = () => setCurrentDate((d) => d.subtract(1, "month"));
+  const next = () => setCurrentDate((d) => d.add(1, "month"));
+
+  /* calendar cell render */
   const dateCellRender = (value: Dayjs) => {
-    const listData = getEventData(value);
-    const maxEventsToShow = 2;
-    const remaining = listData.length - maxEventsToShow;
+    const list = getEventData(value);
+    const max = 2;
+    const more = list.length - max;
 
     return (
       <div className="flex flex-col gap-1 py-2 h-full text-left">
-        {listData.slice(0, maxEventsToShow).map((item, index) => (
-          <div key={index} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight">
+        {list.slice(0, max).map((it, i) => (
+          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight">
             <div
               className="w-1 rounded-full self-stretch flex-shrink-0"
-              style={{ backgroundColor: item.color }}
+              style={{ backgroundColor: it.color }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-gray-700 truncate">{item.title}</p>
-              <p className="text-gray-500 truncate">{item.time}</p>
+              <p className="font-medium text-gray-700 truncate">{it.title}</p>
+              <p className="text-gray-500 truncate">{it.time}</p>
             </div>
           </div>
         ))}
-
-        {remaining > 0 && (
+        {more > 0 && (
           <div
             className="mt-1 px-1 py-0.5 sm:py-1 bg-[#F3F4F7] rounded-md text-[#495057] text-[10px] sm:text-[12px] font-[400] text-center cursor-pointer hover:bg-[#E9ECEF]"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedDate(value);
-              setShowAllModalOpen(true);
+              setShowAllOpen(true);
             }}
           >
-            +{remaining}
+            +{more}
           </div>
         )}
       </div>
@@ -630,32 +671,36 @@ const CustomCalendar = () => {
 
   return (
     <div className="mr-0 sm:mr-10 p-4 sm:p-0">
-      {/* Header */}
+      {/* ------- header ------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">{currentDate.format("MMMM YYYY")}</h2>
+          <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">
+            {currentDate.format("MMMM YYYY")}
+          </h2>
           <div className="flex gap-2">
             <button
               className="p-1 border text-[#71717A] border-[#D8DCE1] rounded-[8px] bg-[#FFFFFF]"
-              onClick={prevMonth}
+              onClick={prev}
             >
               <IoIosArrowBack />
             </button>
             <button
               className="p-1 border text-[#71717A] border-[#D8DCE1] rounded-[8px] bg-[#FFFFFF]"
-              onClick={nextMonth}
+              onClick={next}
             >
               <IoIosArrowForward />
             </button>
           </div>
         </div>
         <button className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center">
-          <span className="text-[#2B3034]"><IoFilterOutline /></span>
+          <span className="text-[#2B3034]">
+            <IoFilterOutline />
+          </span>
           <span className="text-[#27272A] font-[500] text-[16px]">Filter</span>
         </button>
       </div>
 
-      {/* Calendar Box */}
+      {/* ------- calendar ------- */}
       <ConfigProvider locale={enGB}>
         <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm border border-gray-200 overflow-x-auto">
           <Calendar
@@ -669,140 +714,213 @@ const CustomCalendar = () => {
         </div>
       </ConfigProvider>
 
-      {/* Options Modal */}
+      {/* ------- options modal ------- */}
       <Modal
-        open={optionsModalOpen}
+        open={optionsOpen}
         footer={null}
-        onCancel={() => setOptionsModalOpen(false)}
-        title={selectedDate ? selectedDate.format("DD MMM, YYYY") : ""}
-        className="responsive-modal rounded-modal"
+        onCancel={() => setOptionsOpen(false)}
+        title={selectedDate?.format("DD MMM, YYYY")}
+        className="rounded-modal"
         width="90%"
-        style={{ maxWidth: "400px" }}
+        style={{ maxWidth: 400 }}
       >
         <div className="flex flex-col gap-3">
           <button
             className="py-2 px-4 rounded-md bg-gray-100 hover:bg-gray-200 text-sm sm:text-base"
-            onClick={handleShowAllEvents}
+            onClick={showAll}
           >
             Show All Events
           </button>
           <button
             className="py-2 px-4 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm sm:text-base"
-            onClick={handleShowAddEventForm}
+            onClick={showAdd}
           >
             Add Event
           </button>
-          <button className="py-2 px-4 rounded-md bg-red-100 hover:bg-red-200 text-sm sm:text-base" onClick={() => setOptionsModalOpen(false)}>
+          <button
+            className="py-2 px-4 rounded-md bg-red-100 hover:bg-red-200 text-sm sm:text-base"
+            onClick={() => setOptionsOpen(false)}
+          >
             Close
           </button>
         </div>
       </Modal>
 
-      {/* Add Event Form Modal */}
-      <AddEventForm open={addEventModalOpen} onClose={() => setAddEventModalOpen(false)} />
+      {/* ------- add-event modal ------- */}
+      <AddEventForm open={addOpen} onClose={() => setAddOpen(false)} />
 
-      {/* Show-All Events Modal (styled like your screenshot) */}
+      {/* ------- show-all modal ------- */}
       <Modal
-        open={showAllModalOpen}
+        open={showAllOpen}
         footer={null}
-        onCancel={() => setShowAllModalOpen(false)}
-        className="responsive-modal rounded-modal"
+        onCancel={() => setShowAllOpen(false)}
+        className="rounded-modal"
         width="90%"
-        style={{
-          maxWidth: 900,
-          padding: 0,
-        }}
+        style={{ maxWidth: 900 }}
         closeIcon={<span className="text-gray-500 text-xl">✕</span>}
         title={null}
       >
-        {/* HEADER */}
         <div className="px-8 pt-6">
           <p className="text-gray-500 text-sm">{selectedDate?.format("dddd")}</p>
-          <h2 className="text-2xl font-semibold text-gray-800 mt-0">{selectedDate?.format("MMMM DD")}</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-0">
+            {selectedDate?.format("MMMM DD")}
+          </h2>
         </div>
-
-        {/* GRID LIKE IMAGE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-8 px-8 pb-10 pt-6">
           {getEventData(selectedDate || dayjs()).map((evt, i) => (
-            <div key={i} className="flex items-start gap-3">
-              {/* LEFT COLOR STRIP (TALL) */}
-              <div className="w-1 rounded-full h-full" style={{ backgroundColor: evt.color }} />
-
-              {/* TEXT BLOCK */}
+            <div
+              key={i}
+              className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md"
+              onClick={() => openDetail(evt, selectedDate || dayjs())}
+            >
+              <div
+                className="w-1 rounded-full h-full"
+                style={{ backgroundColor: evt.color }}
+              />
               <div className="flex flex-col leading-tight">
                 <p className="text-gray-800 font-medium text-[15px]">{evt.title}</p>
                 <p className="text-gray-500 text-[13px] mt-0.5">{evt.time}</p>
               </div>
             </div>
           ))}
-
-          {/* IF EMPTY */}
           {!getEventData(selectedDate || dayjs()).length && (
-            <p className="text-gray-500 col-span-3 text-center py-10 text-lg">No events for this date</p>
+            <p className="text-gray-500 col-span-3 text-center py-10 text-lg">
+              No events for this date
+            </p>
           )}
         </div>
       </Modal>
+      
+      {/* ------- event-detail modal (SAME AS IMAGE) ------- */}
+      <Modal
+        open={detailOpen}
+        footer={null}
+        onCancel={() => setDetailOpen(false)}
+        className="event-detail-modal"
+        width="90%"
+        style={{ maxWidth: 400 }}
+        closeIcon={null}
+        title={null}
+        maskClosable={true}
+      >
+        <div className="bg-white">
+          {/* Header with title, date/time, and action icons */}
+          <div className="relative px-5 pt-5 pb-4">
+            {/* Edit and Close icons in top right */}
+            <div className="absolute top-5 right-5 flex items-center gap-3 z-10">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle edit action - you can add edit functionality here
+                  setDetailOpen(false);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                aria-label="Edit event"
+              >
+                <FiEdit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDetailOpen(false);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                aria-label="Close"
+              >
+                <span className="text-lg leading-none">✕</span>
+              </button>
+            </div>
 
-      {/* Calendar Styles */}
+            {/* Title with green bar */}
+            <div className="flex items-start gap-3 pr-20">
+              <div className="w-[2px] h-5 bg-emerald-500 flex-shrink-0" style={{ marginTop: '2px' }} />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                  {selectedEvent?.title}
+                </h3>
+                {/* Date and time on same line */}
+                <div className="flex items-center gap-2 mt-1 text-sm font-normal text-gray-600">
+                  <span>
+                    {selectedEventDate?.format("dddd, MMMM DD")}
+                  </span>
+                  <span className="text-gray-400">|</span>
+                  <span>{selectedEvent?.time}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content sections */}
+          <div className="px-5 pb-5">
+            {/* Assignee section */}
+            <div className="mt-4">
+              <p className="text-xs font-normal text-gray-500 mb-1">
+                Assignee
+              </p>
+              <p className="text-sm font-normal text-gray-900 mt-0.5">
+                {selectedEvent?.assignee || "Unassigned"}
+              </p>
+            </div>
+
+            {/* Description section */}
+            <div className="mt-4">
+              <p className="text-xs font-normal text-gray-500 mb-1">
+                Description
+              </p>
+              <p className="text-sm font-normal text-gray-900 mt-0.5 leading-relaxed">
+                {selectedEvent?.description || "No description available."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
+      {/* ---- */}
+
       <style>{`
         .custom-calendar .ant-picker-cell {
           height: 150px !important;
           border: 1px solid #f3f4f6;
           overflow: hidden !important;
         }
-
-        .custom-calendar .ant-picker-cell-today .ant-picker-cell-inner {
-          background-color: #fef3c7 !important;
-          border-radius: 8px;
-        }
-
         .custom-calendar .ant-picker-cell-inner {
           text-align: left !important;
           padding-left: 4px;
         }
-
-        .custom-calendar .ant-picker-thead > tr > th {
-          text-align: left !important;
-          padding-left: 8px;
-          font-weight: 500;
-          font-size: 12px;
-        }
-
-        .custom-calendar .ant-picker-cell .flex {
-          justify-content: flex-start !important;
-        }
-
-        /* Rounded Modal Styles */
         .rounded-modal .ant-modal-content {
           border-radius: 24px !important;
           overflow: hidden;
         }
-
         .rounded-modal .ant-modal-header {
           border-radius: 24px 24px 0 0 !important;
         }
-
         .rounded-modal .ant-modal-body {
           border-radius: 0 0 24px 24px !important;
+          padding: 0 !important;
         }
-
-        /* Add Event Form Modal and all modals in this component */
-        .ant-modal-root .ant-modal-content {
-          border-radius: 24px !important;
-          overflow: hidden; 
-          
+        .rounded-2xl .ant-modal-content {
+          border-radius: 16px !important;
+          overflow: hidden;
         }
-
-        .ant-modal-root .ant-modal-header {
-          border-radius: 24px 24px 0 0 !important;
+        .rounded-2xl .ant-modal-body {
+          padding: 0 !important;
         }
-
-        .ant-modal-root .ant-modal-body {
-          border-radius: 0 0 24px 24px !important;
+        .event-detail-modal .ant-modal-content {
+          border-radius: 16px !important;
+          overflow: hidden;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          padding: 0 !important;
+        }
+        .event-detail-modal .ant-modal-body {
+          padding: 0 !important;
+          border-radius: 16px !important;
+        }
+        .event-detail-modal .ant-modal-close {
+          display: none !important;
+        }
+        .event-detail-modal .ant-modal-header {
+          display: none !important;
         }
       `}</style>
     </div>
   );
-};
-
-export default CustomCalendar;
+}

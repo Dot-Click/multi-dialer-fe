@@ -1,3 +1,4 @@
+// import { useLocation } from 'react-router-dom';
 import CallSection from '@/components/agent/contactinfo/callsection'
 import ContactFooter from '@/components/agent/contactinfo/contactfooter'
 import ContactInfoBottom from '@/components/agent/contactinfo/contactinfobottom'
@@ -8,6 +9,9 @@ import ContactInfoScript from '@/components/agent/contactinfo/contactinfoscript'
 import LiveContactScript from '@/components/agent/contactinfo/livecallscript'
 
 const ContactInfo = () => {
+    // const location = useLocation();
+    // const contactData = location.state?.contact || null;
+
     return (
         // Overall page container
         <div className="bg-gray-100 min-h-screen">

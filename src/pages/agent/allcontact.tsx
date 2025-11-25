@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { IoFilter } from "react-icons/io5";
 import { IoIosSearch } from "react-icons/io";
 import AllContactComponent from "@/components/agent/contact/allcontact";
@@ -17,6 +17,8 @@ type OutletContextType = {
 const AllContact = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   // ✅ Use typed context
   const { activeItem } = useOutletContext<OutletContextType>();
@@ -92,16 +94,31 @@ const AllContact = () => {
         </div>
 
         {/* Dial Button */}
-        <button className="flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-[24px] pl-[20px] py-[8px] text-sm sm:text-base font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all">
+        <button 
+          onClick={() => {
+            if (selectedContacts.length > 0) {
+              // Navigate to contact-info with the first selected contact
+              navigate("/contact-info", {
+                state: { contact: selectedContacts[0] } 
+              });
+            }
+          }}
+          disabled={selectedContacts.length === 0}
+          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-[24px] pl-[20px] py-[8px] text-sm sm:text-base font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${
+            selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
           <img src={callIcon} className='w-[15.300321578979492px] h-[20.095260620117188px] object-contain' alt="callIcon" />
 
-          <span className="text-[#000000] font-[500] text-[16px]">Dial Selected (2)</span>
+          <span className="text-[#000000] font-[500] text-[16px]">
+            Dial Selected ({selectedContacts.length})
+          </span>
         </button>
       </div>
 
       {/* 🔹 Table / Contact List */}
       <div className="flex-1 -ml-0 sm:-ml-10 mt-2">
-        <AllContactComponent />
+        <AllContactComponent onSelectionChange={setSelectedContacts} />
       </div>
 
       {/* 🔹 Modals */}
