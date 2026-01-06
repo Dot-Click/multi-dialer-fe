@@ -1,6 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "@/layouts/agent/dashboardlayout"
+import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
+import SuperAdminDashboardLayout from "@/layouts/super-admin/superadmindashboardlayout";
 import AgentHome from "@/pages/agent/agenthome"
 
 import ContactLayout from "@/layouts/agent/contactlayout";
@@ -13,7 +15,6 @@ import RecoveryPassword from "@/pages/auth/recoverypassword.page";
 import ChangePassword from "@/pages/auth/changepassword.page";
 import Code from "@/pages/auth/code.page";
 import Setting from "@/pages/agent/setting";
-import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import AdminHome from "@/pages/admin/adminhome";
 import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
@@ -115,6 +116,17 @@ const Router: React.FC = () => {
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
         <Route path="/admin/password-change" element={<AdminChangePassword />} />
         <Route path="/admin/contact-info" element={<ContactInfo />} />
+
+
+
+        SuperAdminDashboardLayout
+
+   {/* ✅ Super Admin Dashboard Section */}
+   <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
+         
+        </Route>
+
+
       </Routes>
     </div>
   );
