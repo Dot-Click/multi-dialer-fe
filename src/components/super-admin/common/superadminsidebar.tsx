@@ -5,11 +5,8 @@ import sidebaricon from "../../../assets/sidebaricon.png";
 import dashboardicon from "../../../assets/dashboardicon.png";
 import settingicon from "../../../assets/settingicon.png";
 import reporticon from "../../../assets/reporticon.png";
-import libraryicon from "../../../assets/libraryicon.png";
-import calendericon from "../../../assets/calendericon.png";
 import dataicon from "../../../assets/fluent_building-shop-24-regular.png";
 import billingicon from "../../../assets/admin/billingicon.png";
-import bulbicon from "../../../assets/admin/bulbicon.png";
 import usericon from "../../../assets/admin/usericon.png";
 import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "@/assets/exiticon.png";
@@ -50,12 +47,12 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   };
 
   const sidebarLinks = [
-    { id: 1, name: "Dashboard", link: "/admin", icon: dashboardicon },
-    { id: 7, name: "User Management", link: "/admin/user-management", icon: usericon },
-    { id: 5, name: "Subscription Management", link: "/admin/reports-analytics", icon: reporticon },
-    { id: 8, name: "Reports of users and billings", link: "/admin/system-settings", icon: settingicon },
-    { id: 9, name: "Settings", link: "/admin/billing", icon: settingicon },
-    { id: 9, name: "Reporting", link: "/admin/billing", icon: billingicon },
+    { id: 1, name: "Dashboard", link: "/super-admin", icon: dashboardicon },
+    { id: 7, name: "User Management", link: "/super-admin/user-management", icon: usericon },
+    { id: 5, name: "Subscription Management", link: "/super-admin/reports-analytics", icon: reporticon },
+    { id: 8, name: "Reports of users and billings", link: "/super-admin/system-settings", icon: settingicon },
+    { id: 9, name: "Settings", link: "/super-admin/billing", icon: settingicon },
+    { id: 9, name: "Reporting", link: "/super-admin/billing", icon: billingicon },
   ];
 
   const bottomLinks = [
@@ -106,7 +103,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           </div>
 
           {/* User Info */}
-          {isOpen && (
+          {isOpen && ( 
             <div className="flex bg-gray-50 border border-gray-200 px-3 py-2 rounded-md flex-col">
               <h1 className="font-semibold text-gray-950 text-sm">John Lee</h1>
               <p className="text-gray-600 text-xs">j.lee@example.com</p>
@@ -121,7 +118,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
               <NavLink
                 key={slinks.id}
                 to={slinks.link}
-                end={slinks.link === "/admin"} // ✅ exact match for Dashboard only
+                end={slinks.link === "/super-admin"} // ✅ exact match for Dashboard only
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}

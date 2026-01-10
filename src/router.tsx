@@ -48,6 +48,8 @@ import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
+import SuperAdminHome from "./pages/super-admin/superAdminHome";
+import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 
 const Router: React.FC = () => {
   return (
@@ -72,8 +74,8 @@ const Router: React.FC = () => {
 
         <Route path="/contact-detail" element={<ContactDetail />} />
         <Route path="/contact-info" element={<ContactInfo />} />
-        
-        <Route path="/login-code" element={<LogincodeAgenct/>} />
+
+        <Route path="/login-code" element={<LogincodeAgenct />} />
 
         {/* ✅ Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -109,7 +111,7 @@ const Router: React.FC = () => {
           <Route path="account-setting" element={<AdminAccountSetting />} />
           <Route path="restore-data" element={<AdminRestoreData />} />
           <Route path="preview-data" element={<AdminPreviewData />} />
-          
+
           <Route path="change-password" element={<AdminChangePassword />} />
         </Route>
 
@@ -121,9 +123,11 @@ const Router: React.FC = () => {
 
         SuperAdminDashboardLayout
 
-   {/* ✅ Super Admin Dashboard Section */}
-   <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
-         
+        {/* ✅ Super Admin Dashboard Section */}
+        <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
+          <Route index element={<SuperAdminHome />} />
+          <Route path="user-management" element={<SuperAdminUserManagement />} />
+
         </Route>
 
 
