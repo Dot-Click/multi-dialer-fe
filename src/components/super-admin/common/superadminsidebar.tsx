@@ -92,7 +92,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-1   rounded-md transition"
+              className="p-1 rounded-md transition"
             >
               {isOpen ? (
                 <img src={sidebaricon} className="h-5 w-5 object-contain" />
@@ -111,7 +111,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           )}
 
           <div className="border-t border-gray-200"></div>
-
+                  
           {/* Top Links */}
           <div className="flex flex-col gap-1 justify-center">
             {sidebarLinks.map((slinks) => (

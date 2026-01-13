@@ -49,7 +49,7 @@ const NewAccountsOverTime = () => {
 
   return (
     // Container and Header kept exactly as your original
-    <section className="mt-3 bg-[#FFFFFF] work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-[50%]">
+    <section className="mt-3 h-[450px] bg-[#FFFFFF] shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-[50%]">
       <div>
         <h1 className="text-[#000000] font-[500] text-[20px]">
           New Accounts Over Time
@@ -81,7 +81,7 @@ const NewAccountsOverTime = () => {
       </div>
 
       {/* Chart Logic Updated to match image */}
-      <div className="h-[250px] w-full mt-5">
+      <div className="h-[300px] w-full mt-8">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 0, right: 10, left: -25, bottom: 0 }}>
             <CartesianGrid 
