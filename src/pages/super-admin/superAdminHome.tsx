@@ -1,5 +1,6 @@
 import DashboardAlert from "@/components/super-admin/home/dashboardAlert"
 import NewAccountsOverTime from "@/components/super-admin/home/newAccountsOverTime"
+import SubscriptionDistribution from "@/components/super-admin/home/subscriptionDistribution"
 import UserOverviews from "@/components/super-admin/home/userOverviews"
 import UserOverviewTable from "@/components/super-admin/home/userOverviewTable"
 
@@ -8,7 +9,7 @@ import UserOverviewTable from "@/components/super-admin/home/userOverviewTable"
 const SuperAdminHome = () => {
 
 
-   
+
 
 
     return (
@@ -28,8 +29,10 @@ const SuperAdminHome = () => {
                 <DashboardAlert />
             </div>
 
-          
-<UserOverviewTable/>
+            <div className="flex gap-2 items-center justify-evenly">
+                <UserOverviewTable />
+              <SubscriptionDistribution/>
+            </div>
 
 
         </section>

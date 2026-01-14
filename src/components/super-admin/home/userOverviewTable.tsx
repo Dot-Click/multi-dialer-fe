@@ -28,7 +28,7 @@ const UserOverviewTable = () => {
     };
 
     return (
-        <section className="mt-3 bg-[#FFFFFF] flex flex-col gap-4 outfit shadow-sm pt-[23px] rounded-[32px] w-[75%]">
+        <section className="mt-3 bg-[#FFFFFF] h-[400px] flex flex-col gap-4 outfit shadow-sm pt-[23px] rounded-[32px] w-[70%]">
             {/* Heading + Buttons */}
             <div className="flex gap-2 justify-between items-center px-[24px] w-[80%]">
                 <h1 className="text-[#315189] font-[600] text-[18.03px]">
