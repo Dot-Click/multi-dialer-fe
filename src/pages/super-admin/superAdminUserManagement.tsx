@@ -96,7 +96,7 @@ const getStatusStyles = (status: string) => {
 
 const SuperAdminUserManagement = () => {
     return (
-        <section className="w-full min-h-screen px-6 py-6 outfit bg-[#F5F6FA]">
+        <section className="w-full min-h-screen flex flex-col gap-2 px-6 py-6 outfit bg-[#F5F6FA]">
             <UserManagementHeader />
 
             {/* Search bar  */}

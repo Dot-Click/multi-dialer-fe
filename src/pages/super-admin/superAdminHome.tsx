@@ -8,12 +8,8 @@ import UserOverviewTable from "@/components/super-admin/home/userOverviewTable"
 
 const SuperAdminHome = () => {
 
-
-
-
-
     return (
-        <section className="w-full min-h-full flex flex-col gap-1  pr-3 lg:pr-6">
+        <section className="w-full min-h-screen flex flex-col gap-2 px-6 py-6 outfit bg-[#F5F6FA]">
             {/* Header */}
             <div className="flex justify-between items-center mb-2">
                 <div>

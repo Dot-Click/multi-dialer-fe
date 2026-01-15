@@ -48,8 +48,13 @@ import AdminAccountSetting from "@/pages/admin/adminaccountsetting";
 import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
+
 import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
+import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
+import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
+
+
 
 const Router: React.FC = () => {
   return (
@@ -127,6 +132,8 @@ const Router: React.FC = () => {
         <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
           <Route index element={<SuperAdminHome />} />
           <Route path="user-management" element={<SuperAdminUserManagement />} />
+          <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
+          <Route path="setting" element={<SuperAdminSetting />} />
 
         </Route>
 

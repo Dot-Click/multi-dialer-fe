@@ -4,7 +4,7 @@ import addUsericon from "@/assets/addUsericon.png"
 const UserManagementHeader = () => {
   return (
     <div className="flex justify-between items-center mb-2">
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col leading-none gap-0">
             <h1 className="text-[#2C2C2C] text-[20px] md:text-[26px]  lg:text-[33.95px] font-[600]">User Management</h1>
             <h3 className="text-[#434343] text-[10px] md:text-[14px]  lg:text-[18px] font-[400]">Total Users: 8</h3>
             
