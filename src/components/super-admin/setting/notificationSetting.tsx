@@ -194,7 +194,7 @@ const NotificationSetting = () => {
             <img
               src={emailIcon}
               alt="emailIcon"
-              className="h-[21.5] object-contain"
+              className="h-[18] object-contain"
             />
           </div>
           <h3 className="font-[600] text-[18px] inter text-[#34363B]">
