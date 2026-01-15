@@ -1,15 +1,16 @@
 import { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logo from "../../../assets/logo.png";
-import sidebaricon from "../../../assets/sidebaricon.png";
-import dashboardicon from "../../../assets/dashboardicon.png";
-import settingicon from "../../../assets/settingicon.png";
-import reporticon from "../../../assets/reporticon.png";
-import dataicon from "../../../assets/fluent_building-shop-24-regular.png";
-import billingicon from "../../../assets/admin/billingicon.png";
-import usericon from "../../../assets/admin/usericon.png";
-import trainingicon from "@/assets/trainingicon.png";
+import logo from "@/assets/logo.png";
+import sidebaricon from "@/assets/sidebaricon.png";
+import settingicon from "@/assets/settingicon.png";
 import exiticon from "@/assets/exiticon.png";
+
+import reportingIcon from "@/assets/reportingIcon.png";
+import userReportIcon from "@/assets/userReportIcon.png";
+import subsIcon from "@/assets/subsIcon.png";
+import userIcon from "@/assets/userIcon.png";
+import dashIcon from "@/assets/dashIcon.png";
+
 import { FiMenu } from "react-icons/fi";
 
 interface SuperAdminSidebarProps {
@@ -47,18 +48,15 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   };
 
   const sidebarLinks = [
-    { id: 1, name: "Dashboard", link: "/super-admin", icon: dashboardicon },
-    { id: 7, name: "User Management", link: "/super-admin/user-management", icon: usericon },
-    { id: 5, name: "Subscription Management", link: "/super-admin/reports-analytics", icon: reporticon },
-    { id: 8, name: "Reports of users and billings", link: "/super-admin/reports-of-user-billing", icon: settingicon },
+    { id: 1, name: "Dashboard", link: "/super-admin", icon: dashIcon },
+    { id: 7, name: "User Management", link: "/super-admin/user-management", icon: userIcon },
+    { id: 5, name: "Subscription Management", link: "/super-admin/reports-analytics", icon: subsIcon },
+    { id: 8, name: "Reports of users and billings", link: "/super-admin/reports-of-user-billing", icon: userReportIcon },
     { id: 9, name: "Settings", link: "/super-admin/setting", icon: settingicon },
-    { id: 9, name: "Reporting", link: "/super-admin/billing", icon: billingicon },
+    { id: 9, name: "Reporting", link: "/super-admin/billing", icon: reportingIcon },
   ];
 
-  const bottomLinks = [
-    { id: 10, name: "Training", link: "/training", icon: trainingicon },
-    { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
-  ];
+ 
 
   return (
     <>
@@ -140,27 +138,6 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
         {/* Bottom Links */}
         <div className="px-3 pb-4 border-t border-gray-200 pt-3 flex flex-col gap-1">
-          {bottomLinks.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.link}
-              end // ✅ make these exact too
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-2 py-2 rounded-md transition-all
-                ${!isOpen ? "justify-center" : ""}
-                ${
-                  isActive
-                    ? "bg-[#FFCA06] font-[600] text-gray-900"
-                    : "hover:bg-[#FFCA06] text-gray-700"
-                }`
-              }
-            >
-              <img src={item.icon} className="h-4 w-4 object-contain" />
-              {isOpen && (
-                <span className="text-[12px] font-medium">{item.name}</span>
-              )}
-            </NavLink>
-          ))}
 
           {/* EXIT BUTTON */}
           <button
