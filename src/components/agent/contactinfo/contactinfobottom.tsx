@@ -64,7 +64,6 @@
 
 
 
-import React from 'react';
 import { FileText, Circle } from 'lucide-react';
 
 const ContactInfoBottom = () => {

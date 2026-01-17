@@ -85,7 +85,6 @@
 
 
 
-import React from 'react';
 import { Briefcase } from 'lucide-react';
 
 // Define the statuses to match the design

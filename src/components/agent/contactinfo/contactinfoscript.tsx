@@ -29,7 +29,7 @@
 // };
 
 // export default ContactInfoScript;
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Star, 
   Play, 
@@ -37,9 +37,7 @@ import {
   Calendar, 
   Mail, 
   MessageSquare, 
-  Send, 
-  CheckCircle2 
-} from 'lucide-react';
+  Send} from 'lucide-react';
 
 const ContactInfoScript = () => {
   const [activeTab, setActiveTab] = useState('Lead Sheet');

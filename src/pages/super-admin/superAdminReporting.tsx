@@ -8,6 +8,8 @@ import MonthlyRecurring from '@/components/super-admin/reporting/monthlyRecurrin
 import SubscriptionGrowth from '@/components/super-admin/reporting/subscriptionGrowth'
 import Data from '@/components/super-admin/reporting/data'
 import SubscritpionSecond from '@/components/super-admin/reporting/subscritpionSecond'
+import UserUsageOverview from '@/components/super-admin/reporting/userUsageOverview'
+import GeneratingReports from '@/components/super-admin/reporting/generatingReports'
 
 const SuperAdminReporting = () => {
     return (
@@ -103,6 +105,9 @@ const SuperAdminReporting = () => {
                 <SubscritpionSecond />
 
             </div>
+
+            <UserUsageOverview />
+            <GeneratingReports/>
 
 
 

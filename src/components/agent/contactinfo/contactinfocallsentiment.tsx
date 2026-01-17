@@ -31,7 +31,6 @@
 
 
 
-import React from 'react';
 import { Bot, Sparkles, Circle } from 'lucide-react';
 
 const CallSentiment = () => {
