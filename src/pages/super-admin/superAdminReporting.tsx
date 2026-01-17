@@ -1,4 +1,3 @@
-import React from 'react'
 import { IoFilterOutline } from 'react-icons/io5'
 import downarrow from "@/assets/downarrow.png"
 import { PiDownloadSimpleBold } from 'react-icons/pi'
