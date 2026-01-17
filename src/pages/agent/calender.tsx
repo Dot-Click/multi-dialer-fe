@@ -531,7 +531,7 @@ import { Calendar, ConfigProvider, Modal } from "antd";
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
@@ -594,6 +594,14 @@ export default function CustomCalendar() {
   const [addOpen, setAddOpen] = useState(false);
   const [showAllOpen, setShowAllOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  /* filter options */
+  const [filters, setFilters] = useState({
+    task: true,
+    appointments: true,
+    followUpCalls: true,
+  });
 
   /* selected event for detail */
   const [selectedEvent, setSelectedEvent] = useState<{
@@ -692,7 +700,10 @@ export default function CustomCalendar() {
             </button>
           </div>
         </div>
-        <button className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center">
+        <button 
+          onClick={() => setFilterOpen(true)}
+          className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center"
+        >
           <span className="text-[#2B3034]">
             <IoFilterOutline />
           </span>
@@ -874,6 +885,99 @@ export default function CustomCalendar() {
           </div>
         </div>
       </Modal>
+
+      {/* ------- filter modal ------- */}
+      <Modal
+        open={filterOpen}
+        footer={null}
+        onCancel={() => setFilterOpen(false)}
+        className="filter-modal"
+        width="90%"
+        style={{ maxWidth: 500 }}
+        closeIcon={
+          <button
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            onClick={() => setFilterOpen(false)}
+          >
+            ✕
+          </button>
+        }
+        title={null}
+        maskClosable={true}
+      >
+        <div className="bg-white rounded-xl">
+          {/* Header */}
+          <div className="relative px-5 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">Filter by Type</h3>
+            <button
+              onClick={() => setFilterOpen(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition-colors w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Filter Options */}
+          <div className="px-5 py-4 flex flex-col gap-4">
+            {/* Task */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.task}
+                onChange={(e) => setFilters({ ...filters, task: e.target.checked })}
+                className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
+              />
+              <FiClipboard className="w-5 h-5 text-gray-700" />
+              <span className="text-base font-medium text-gray-900">Task</span>
+            </label>
+
+            {/* Appointments */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.appointments}
+                onChange={(e) => setFilters({ ...filters, appointments: e.target.checked })}
+                className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
+              />
+              <FiCalendar className="w-5 h-5 text-gray-700" />
+              <span className="text-base font-medium text-gray-900">Appointments</span>
+            </label>
+
+            {/* Follow-up Calls */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.followUpCalls}
+                onChange={(e) => setFilters({ ...filters, followUpCalls: e.target.checked })}
+                className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
+              />
+              <FiPhone className="w-5 h-5 text-gray-700" />
+              <span className="text-base font-medium text-gray-900">Follow-up Calls</span>
+            </label>
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="px-5 pb-5 flex gap-3">
+            <button
+              onClick={() => {
+                setFilters({ task: true, appointments: true, followUpCalls: true });
+              }}
+              className="flex-1 py-2.5 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-base font-medium text-gray-900 transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => {
+                // Apply filter logic here if needed
+                setFilterOpen(false);
+              }}
+              className="flex-1 py-2.5 px-4 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-base font-medium text-gray-900 transition-colors"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </Modal>
       {/* ---- */}
 
       <style>{`
@@ -919,6 +1023,30 @@ export default function CustomCalendar() {
         }
         .event-detail-modal .ant-modal-header {
           display: none !important;
+        }
+        .filter-modal .ant-modal-content {
+          border-radius: 16px !important;
+          overflow: hidden;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          padding: 0 !important;
+        }
+        .filter-modal .ant-modal-body {
+          padding: 0 !important;
+          border-radius: 16px !important;
+        }
+        .filter-modal .ant-modal-close {
+          display: none !important;
+        }
+        .filter-modal .ant-modal-header {
+          display: none !important;
+        }
+        .filter-checkbox {
+          accent-color: #000000;
+          border-color: #d1d5db !important;
+        }
+        .filter-checkbox:checked {
+          background-color: #000000 !important;
+          border-color: #000000 !important;
         }
       `}</style>
     </div>

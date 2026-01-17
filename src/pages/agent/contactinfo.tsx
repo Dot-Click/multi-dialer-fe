@@ -38,12 +38,12 @@ const ContactInfo = () => {
                 </div>
                 <div className='w-full h-fit flex flex-col gap-2 lg:w-[35%]'>
 
-                    <LiveContactScript />
+                    {/* <LiveContactScript /> */}
                     <ContactInfoCallSentiment />
                 </div>
             </div>
 
-            <ContactFooter />
+            {/* <ContactFooter /> */}
         </div>
     )
 }
