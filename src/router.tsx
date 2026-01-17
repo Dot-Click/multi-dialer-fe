@@ -1,6 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "@/layouts/agent/dashboardlayout"
+import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
+import SuperAdminDashboardLayout from "@/layouts/super-admin/superadmindashboardlayout";
 import AgentHome from "@/pages/agent/agenthome"
 
 import ContactLayout from "@/layouts/agent/contactlayout";
@@ -13,7 +15,6 @@ import RecoveryPassword from "@/pages/auth/recoverypassword.page";
 import ChangePassword from "@/pages/auth/changepassword.page";
 import Code from "@/pages/auth/code.page";
 import Setting from "@/pages/agent/setting";
-import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import AdminHome from "@/pages/admin/adminhome";
 import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
@@ -48,6 +49,14 @@ import AdminRestoreData from "@/pages/admin/adminrestoredata";
 import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 
+import SuperAdminHome from "./pages/super-admin/superAdminHome";
+import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
+import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
+import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
+import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
+
+
+
 const Router: React.FC = () => {
   return (
     <div className="min-h-screen w-full work-sans">
@@ -71,8 +80,8 @@ const Router: React.FC = () => {
 
         <Route path="/contact-detail" element={<ContactDetail />} />
         <Route path="/contact-info" element={<ContactInfo />} />
-        
-        <Route path="/login-code" element={<LogincodeAgenct/>} />
+
+        <Route path="/login-code" element={<LogincodeAgenct />} />
 
         {/* ✅ Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -108,13 +117,29 @@ const Router: React.FC = () => {
           <Route path="account-setting" element={<AdminAccountSetting />} />
           <Route path="restore-data" element={<AdminRestoreData />} />
           <Route path="preview-data" element={<AdminPreviewData />} />
-          
+
           <Route path="change-password" element={<AdminChangePassword />} />
         </Route>
 
         <Route path="/admin/contact-detail" element={<ContactDetail />} />
         <Route path="/admin/password-change" element={<AdminChangePassword />} />
         <Route path="/admin/contact-info" element={<ContactInfo />} />
+
+
+
+        SuperAdminDashboardLayout
+
+        {/* ✅ Super Admin Dashboard Section */}
+        <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
+          <Route index element={<SuperAdminHome />} />
+          <Route path="user-management" element={<SuperAdminUserManagement />} />
+          <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
+          <Route path="reporting" element={<SuperAdminReporting />} />
+          <Route path="setting" element={<SuperAdminSetting />} />
+
+        </Route>
+
+
       </Routes>
     </div>
   );
