@@ -128,7 +128,7 @@ const Router: React.FC = () => {
 
 
 
-        SuperAdminDashboardLayout
+        {/* SuperAdminDashboardLayout */}
 
         {/* ✅ Super Admin Dashboard Section */}
         <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
