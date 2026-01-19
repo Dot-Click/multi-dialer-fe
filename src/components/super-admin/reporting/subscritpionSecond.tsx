@@ -1,4 +1,3 @@
-import React from "react";
 import { PieChart, Pie, Cell } from "recharts";
 
 const SubscriptionDistribution = () => {
@@ -45,7 +44,7 @@ const SubscriptionDistribution = () => {
             // Isse animation smooth hogi aur edges cut nahi honge
             paddingAngle={0}
           >
-            {visualData.map((entry, index) => (
+            {visualData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}
           </Pie>
