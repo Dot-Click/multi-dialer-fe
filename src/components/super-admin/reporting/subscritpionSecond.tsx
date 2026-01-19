@@ -1,77 +1,70 @@
+import React from "react";
 import { PieChart, Pie, Cell } from "recharts";
 
-const SubscriptionSecond = () => {
-  // Ye original data hai jo sirf neechay text mein dikhayenge
+const SubscriptionDistribution = () => {
+  // 1. Real Data (Text display ke liye)
   const realData = [
-    { name: "Active", value: 847 },
-    { name: "Inactive", value: 153 },
+    { name: "Successful", value: 1224, percent: "98.2%" },
+    { name: "Failed", value: 23, percent: "1.8%" },
   ];
 
-  // Ye "Visual Data" hai chart ki shape ke liye. 
-  // Red (Inactive) ko 300 kar diya hai taake wo 30% area cover kare (pic ki tarah)
+  // 2. Visual Data (Photo jaisa look dene ke liye)
   const visualData = [
-    { name: "Active", value: 700 }, 
-    { name: "Inactive", value: 300 }, 
+    { name: "Successful", value: 82 }, 
+    { name: "Failed", value: 18 }, 
   ];
 
-  const COLORS = ["#9400BD", "#F91E4A"]; 
-  const percentage = 72; 
+  const COLORS = ["#72D394", "#FF1E4A"]; 
 
   return (
-    <section className="mt-3 bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm pt-[23px] rounded-[32px] h-[375px]  w-[35%]">
+    <section className="bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm h-[375px] p-[24px] rounded-[32px] w-[350px]">
       
       {/* Heading */}
-      <div className="flex items-center px-[24px]">
+      <div className="flex items-center">
         <h1 className="text-[#000000] font-[500] text-[20px] whitespace-nowrap">
           Subscription Distribution
         </h1>
       </div>
 
-      {/* Donut Chart */}
-      <div className="relative flex justify-center items-center py-2">
-        <PieChart width={200} height={200}>
+      {/* Pie Chart Container */}
+      <div className="flex justify-center items-center py-2">
+        {/* Height/Width 180 hi rakha hai */}
+        <PieChart width={180} height={180}>
           <Pie
-            data={visualData} // Yahan visualData use kiya hai shape ke liye
+            data={visualData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={90}
-            paddingAngle={3}   // Dono colors ke beech ka gap thoda aur clear kiya
-            startAngle={0}     // Right side se shuru hoga taake Red bottom mein aaye
-            endAngle={360}     
+            innerRadius={0}
+            /* Radius ko 85 kar diya taake 180px mein fit aaye aur cut na ho */
+            outerRadius={85} 
+            startAngle={0}
+            endAngle={360}
             dataKey="value"
-            stroke="none"
+            stroke="#ffffff"
+            strokeWidth={3}
+            // Isse animation smooth hogi aur edges cut nahi honge
+            paddingAngle={0}
           >
-            {visualData.map((_, index) => (
+            {visualData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}
           </Pie>
         </PieChart>
-
-        {/* Center Circle with shadow effect */}
-        <div 
-          className="absolute rounded-full  flex items-center justify-center"
-          
-        >
-          <span className="text-[30px] font-[600] text-black ">
-            {percentage}%
-          </span>
-        </div>
       </div>
 
-      {/* Legend - Yahan realData (847, 153) hi display hoga */}
-      <div className="flex flex-col gap-4 px-[24px] pb-[30px] mt-2">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#9400BD]" />
-          <p className="text-[12px] font-[400] text-[#0E1011] opacity-80">
-            Successful: {realData[0].value}
+      {/* Legend Area */}
+      <div className="flex flex-col gap-4 mt-auto pb-4">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#72D394]" />
+          <p className="text-[14px] font-[400] text-[#0E1011]">
+            Successful: {realData[0].value} ({realData[0].percent})
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#F91E4A]" />
-          <p className="text-[12px] font-[400] text-[#0E1011] opacity-80">
-            Failed : {realData[1].value}
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#FF1E4A]" />
+          <p className="text-[14px] font-[400] text-[#0E1011]">
+            Failed: {realData[1].value} ({realData[1].percent})
           </p>
         </div>
       </div>
@@ -80,4 +73,4 @@ const SubscriptionSecond = () => {
   );
 };
 
-export default SubscriptionSecond;
+export default SubscriptionDistribution;
