@@ -53,7 +53,6 @@ import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
 import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
-import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 
 
 
@@ -135,6 +134,7 @@ const Router: React.FC = () => {
           <Route path="user-management" element={<SuperAdminUserManagement />} />
           <Route path="subscription-management" element={<SuperAdminSubscriptionPlan />} />
           <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
+          <Route path="reporting" element={<SuperAdminReporting />} />
           <Route path="setting" element={<SuperAdminSetting />} />
 
         </Route>

@@ -7,7 +7,7 @@ const ReportAnalytics = () => {
       <div className="flex flex-col gap-4">
         {/* Page Header */}
         <h1 className="text-[28px] font-[500] text-[#0E1011] ">
-          Reports & Analytics
+          Reports
         </h1>
 
         {/* Import and render the AnalyticsDashboard component */}

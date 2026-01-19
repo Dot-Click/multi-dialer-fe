@@ -53,7 +53,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
     { id: 5, name: "Subscription Management", link: "/super-admin/subscription-management", icon: subsIcon },
     { id: 8, name: "Reports of users and billings", link: "/super-admin/reports-of-user-billing", icon: userReportIcon },
     { id: 9, name: "Settings", link: "/super-admin/setting", icon: settingicon },
-    { id: 9, name: "Reporting", link: "/super-admin/billing", icon: reportingIcon },
+    { id: 9, name: "Reporting", link: "/super-admin/reporting", icon: reportingIcon },
   ];
 
  

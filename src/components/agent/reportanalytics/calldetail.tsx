@@ -183,6 +183,35 @@ const CallDetail = () => {
           {() => <TableComponent />}
         </TableProvider>
       </div>
+
+      {/* Pagination */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+        <div className="flex items-center gap-2 text-[14px] text-[#495057]">
+          <span>1 - 50 of 146</span>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] text-[#495057]">Page</span>
+            <div className="flex items-center gap-1">
+              <button className="px-3 py-1.5 bg-[#17181B] text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                1
+              </button>
+              <button className="px-3 py-1.5 bg-white text-[#495057] text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors">
+                2
+              </button>
+              <button className="px-3 py-1.5 bg-white text-[#495057] text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors">
+                3
+              </button>
+            </div>
+          </div>
+          
+          <div className="border border-[#D8DCE1] rounded-[12px] px-[12px] h-[36px] flex justify-between items-center gap-2 cursor-pointer bg-white min-w-[80px]">
+            <span className="text-[14px] text-[#495057]">50</span>
+            <FaChevronDown className="text-[12px] text-[#71717A]" />
+          </div>
+        </div>
+      </div>
     </Box>
   );
 };

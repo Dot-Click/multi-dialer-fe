@@ -1,12 +1,10 @@
 // import { useLocation } from 'react-router-dom';
 import CallSection from '@/components/agent/contactinfo/callsection'
-import ContactFooter from '@/components/agent/contactinfo/contactfooter'
 import ContactInfoBottom from '@/components/agent/contactinfo/contactinfobottom'
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment'
 import ContactInfoDisposition from '@/components/agent/contactinfo/contactinfodisposition'
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader'
 import ContactInfoScript from '@/components/agent/contactinfo/contactinfoscript'
-import LiveContactScript from '@/components/agent/contactinfo/livecallscript'
 
 const ContactInfo = () => {
     // const location = useLocation();
@@ -38,12 +36,12 @@ const ContactInfo = () => {
                 </div>
                 <div className='w-full h-fit flex flex-col gap-2 lg:w-[35%]'>
 
-                    <LiveContactScript />
+                    {/* <LiveContactScript /> */}
                     <ContactInfoCallSentiment />
                 </div>
             </div>
 
-            <ContactFooter />
+            {/* <ContactFooter /> */}
         </div>
     )
 }
