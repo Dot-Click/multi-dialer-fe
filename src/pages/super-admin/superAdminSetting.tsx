@@ -1,7 +1,7 @@
 import GeneralSetting from "@/components/super-admin/setting/generalSetting"
 import NotificationSetting from "@/components/super-admin/setting/notificationSetting"
 import SecurityAccess from "@/components/super-admin/setting/securityAccess"
-import SystemPreference from "./systemPreference"
+import SystemPreference from "@/components/super-admin/setting/systemPreference"
 
 const SuperAdminSetting = () => {
   return (
