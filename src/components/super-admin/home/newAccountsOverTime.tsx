@@ -49,7 +49,7 @@ const NewAccountsOverTime = () => {
 
   return (
     // Container and Header kept exactly as your original
-    <section className="mt-3 h-[450px] bg-[#FFFFFF] shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-[50%]">
+    <section className="mt-3 h-[450px] bg-[#FFFFFF] shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
       <div>
         <h1 className="text-[#000000] font-[500] text-[20px]">
           New Accounts Over Time

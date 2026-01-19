@@ -28,19 +28,19 @@ const UserOverviewTable = () => {
     };
 
     return (
-        <section className="mt-3 bg-[#FFFFFF] h-[400px] flex flex-col gap-4 outfit shadow-sm pt-[23px] rounded-[32px] w-[70%]">
+        <section className="mt-3 bg-[#FFFFFF] h-[400px] flex flex-col gap-4 outfit shadow-sm pt-[23px] rounded-[32px] w-full  md:w-[70%]">
             {/* Heading + Buttons */}
             <div className="flex gap-2 justify-between items-center px-[24px] w-[80%]">
-                <h1 className="text-[#315189] font-[600] text-[18.03px]">
+                <h1 className="text-[#315189] font-[600] text-[13px] md:text-[18.03px]">
                     Users Overview
                 </h1>
 
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 flex-wrap items-center">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`rounded-[8.79px] py-[3px] px-[10px] text-[15.03px] font-[500] ${
+                            className={`rounded-[8.79px] py-[3px] px-[10px] text-[10px] md:text-[15.03px] font-[500] ${
                                 activeTab === tab.id
                                     ? "bg-[#4E4E4E] text-white"
                                     : "bg-[#EAEAEA] text-[#717182]"

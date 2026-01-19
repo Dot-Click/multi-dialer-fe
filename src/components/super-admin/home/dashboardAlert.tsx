@@ -6,7 +6,7 @@ import subscriptionIcon from "@/assets/subscriptionIcon.png"
 const DashboardAlert = () => {
   return (
     
-                <section className="mt-3 h-[450px] bg-[#FFFFFF] flex flex-col gap-4 work-sans px-[24px] shadow-sm pt-[18px] pb-[32px] rounded-[32px] w-[50%]">
+                <section className="mt-3 h-[450px] bg-[#FFFFFF] flex flex-col gap-4 work-sans px-[24px] shadow-sm pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
                     <div>
                         <h1 className="text-[#000000] font-[500] text-[20px]">
                             Dashboard Alerts / Status

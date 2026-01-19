@@ -18,7 +18,7 @@ const SubscriptionDistribution = () => {
   const percentage = 72; 
 
   return (
-    <section className="mt-3 bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm pt-[23px] rounded-[32px] h-[400px] w-[30%]">
+    <section className="mt-3 bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm pt-[23px] rounded-[32px] h-[400px] w-full md:w-[30%]">
       
       {/* Heading */}
       <div className="flex items-center px-[24px]">
