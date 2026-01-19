@@ -449,7 +449,7 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
 
   return (
     <div
-      className={`relative bg-white gap-5 md:w-[310px] w-full rounded-[22px] shadow-md border-t-4 
+      className={`relative bg-white gap-5 md:w-[32%] w-full rounded-[22px] shadow-md border-t-4 
       ${plan.popular ? 'border-[#2463EB]' : plan.color} px-6 py-7 flex flex-col`}
     >
       {plan.popular && (
