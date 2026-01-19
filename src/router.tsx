@@ -53,6 +53,8 @@ import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
 import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
+import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
+import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 
 
 
