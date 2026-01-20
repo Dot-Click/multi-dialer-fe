@@ -3,7 +3,7 @@ import { FaArrowTrendUp } from 'react-icons/fa6';
 const Data = () => {
   return (
     <div className="bg-white  work-sans h-[375px] justify-center rounded-[32px] px-10 py-7 shadow-lg 
-    flex flex-col gap-6 w-[65%]">
+    flex flex-col gap-6 w-full md:w-[65%]">
       {/* Renewal Success Rate Card */}
       <div className="bg-[#6FD19524] rounded-[12px] p-7 flex justify-between items-center">
         <div>

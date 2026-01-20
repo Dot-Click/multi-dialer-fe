@@ -26,7 +26,7 @@ const BussinessOverviews = () => {
                     </span>
                 </div>
 
-                <div className="flex items-center justify-around gap-7">
+                <div className="flex items-center flex-wrap justify-around gap-3 md:gap-7">
                     {data.map((dt, index) => (
                         <div
                             key={dt.id}

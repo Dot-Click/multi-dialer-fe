@@ -24,9 +24,9 @@ const SuperAdminReporting = () => {
                     </button>
 
 
-                    <div className='flex items-center justify-between gap-3'>
+                    <div className='flex md:items-center md:flex-row flex-col md:justify-between gap-3'>
 
-                        <div className='flex items-center gap-3'>
+                        <div className='flex flex-col md:flex-row md:items-center gap-3'>
 
                             <div className='flex items-center gap-2'>
                                 <h1 className='text-[#000000] text-[18px] font-[500]'>From:</h1>
@@ -88,19 +88,19 @@ const SuperAdminReporting = () => {
 
             <BussinessOverviews />
 
-            <div className='flex gap-3 justify-start items-center'>
+            <div className='flex gap-3 flex-col md:flex-row justify-start items-center'>
                 <RevenueByPlan />
                 <SubscriptionDistribution />
 
             </div>
 
-            <div className='flex gap-3 justify-start items-center'>
+            <div className='flex gap-3 flex-col md:flex-row justify-start items-center'>
                 <MonthlyRecurring />
                 <SubscriptionGrowth />
 
             </div>
 
-            <div className='flex gap-3 justify-start items-center'>
+            <div className='flex gap-3 flex-col md:flex-row justify-start items-center'>
                 <Data />
                 <SubscritpionSecond />
 
