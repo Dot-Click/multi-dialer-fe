@@ -47,7 +47,7 @@ import { useState } from "react";
 import Notes from "@/components/agent/contactdetail/notes";
 import Email from "@/components/agent/contactdetail/email";
 import SMS from "@/components/agent/contactdetail/sms";
-import ActionPlans from "@/components/agent/contactdetail/actionplans";
+import TouchPoint from "@/components/agent/contactdetail/touchpoint";
 import Attachments from "@/components/agent/contactdetail/attachments";
 import Misc from "@/components/agent/contactdetail/misc";
 import Activities from "@/components/agent/contactdetail/activities";
@@ -65,7 +65,7 @@ const BottomContactDetail = () => {
         { id: 4, name: "History" },
         { id: 5, name: "Emails" },
         { id: 6, name: "SMS" },
-        { id: 7, name: "Action Plans" },
+        { id: 7, name: "Touch Point" },
         { id: 8, name: "Lead Sheet" },
         { id: 9, name: "Attachments" },
         { id: 10, name: "AI Sidekick" },
@@ -94,7 +94,7 @@ const BottomContactDetail = () => {
                 {openStatus === "History" && (<History />)}
                 {openStatus === "Emails" && (<Email />)}
                 {openStatus === "SMS" && (<SMS />)}
-                {openStatus === "Action Plans" && (<ActionPlans />)}
+                {openStatus === "Touch Point" && (<TouchPoint />)}
                 {openStatus === "Lead Sheet" && (<LeadSheet />)}
                 {openStatus === "Attachments" && (<Attachments />)}
                 {openStatus === "AI Sidekick" && (<AiCallSentiment />)}

@@ -35,7 +35,7 @@ const Step1Content = ({ formData, setFormData }: any) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-10">
+    <div className="bg-white font-inter rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 space-y-10">
       <div className="bg-[#F9FAFB] border border-gray-200 p-3 rounded-lg w-full max-w-sm">
         <label className="block text-xs text-gray-500 mb-1">Label</label>
         <input
@@ -291,22 +291,20 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
             </div>
           </label>
 
-          <label className="flex items-start gap-3 cursor-pointer">
+         <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="radio"
               name="endLogic"
-              value="start_other"
-              checked={endLogicData.selectedEndLogic === 'start_other'}
+              value="repeat"
+              checked={endLogicData.selectedEndLogic === 'repeat'}
               onChange={handleRadioChange}
               className="h-4 w-4 mt-1 accent-black flex-shrink-0"
             />
             <div>
-              <span className="text-sm text-gray-700 font-medium">Start other Action Plan</span>
-              {endLogicData.selectedEndLogic === 'start_other' && (
-                <p className="text-xs text-red-500">
-                  You don't have another Action Plans, create more to choose this option.
-                </p>
-              )}
+              <span className="text-sm text-gray-700 font-medium">Start Other Action Plan</span>
+              <p className="text-xs text-black font-inter font-medium">
+                You don’t have another Action Plans, create more to chose this option.
+              </p>
             </div>
           </label>
 
@@ -316,7 +314,7 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-gray-900">Optional Group Assignment:</h3>
         <p className="text-sm text-gray-500 mt-1">
-          This will automatically move the assigned contact to the group of your choice when the Action Plan has ended...
+          This will automatically move the assigned contact to the group of your choice when the Action Plan has ended. This is popular with Dead Lead and Archive groups. If designated group is also a trigger group, it will assign the appropriate action plan.
         </p>
 
         <label className="flex items-center gap-3 cursor-pointer">

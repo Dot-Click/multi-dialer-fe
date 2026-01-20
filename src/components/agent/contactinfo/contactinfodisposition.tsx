@@ -89,9 +89,6 @@
 // };
 
 // export default ContactInfoDisposition;
-
-
-
 import { 
   Phone, 
   Mail, 
@@ -103,66 +100,67 @@ import {
 
 const CurrentCallDetails = () => {
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl border border-gray-100 shadow-sm p-8 font-inter">
-      {/* Top Section */}
-      <div className="flex justify-between items-start">
-        {/* Contact Info */}
-        <div className="space-y-4">
-          <h2 className="text-[22px] font-semibold text-[#343a40]">John Smith</h2>
+    <div className="mx-4 md:mx-auto max-w-4xl bg-white rounded-xl border border-gray-100 shadow-sm p-6 sm:p-8 font-inter">
+      {/* Top Section: Stacked on mobile, side-by-side on sm screens */}
+      <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-6 sm:gap-4">
+        
+        {/* Contact Info: Centered on mobile, left-aligned on sm screens */}
+        <div className="flex flex-col items-center sm:items-start space-y-4 w-full sm:w-auto">
+          <h2 className="text-xl sm:text-[22px] font-semibold text-[#343a40]">John Smith</h2>
           
           <div className="space-y-2">
-            <div className="flex items-center gap-3 text-[#495057]">
-              <Phone size={18} className="text-[#495057]" />
-              <span className="text-[15px] font-medium">+1 (555) 123-4567</span>
+            <div className="flex items-center justify-center sm:justify-start gap-3 text-[#495057]">
+              <Phone size={18} className="text-[#495057] shrink-0" />
+              <span className="text-sm sm:text-[15px] font-medium">+1 (555) 123-4567</span>
             </div>
-            <div className="flex items-center gap-3 text-[#495057]">
-              <Mail size={18} className="text-[#495057]" />
-              <span className="text-[15px] font-medium">john.smith@email.com</span>
+            <div className="flex items-center justify-center sm:justify-start gap-3 text-[#495057]">
+              <Mail size={18} className="text-[#495057] shrink-0" />
+              <span className="text-sm sm:text-[15px] font-medium break-all">john.smith@email.com</span>
             </div>
-            <div className="flex items-center gap-3 text-[#495057]">
-              <MapPin size={18} className="text-[#495057]" />
-              <span className="text-[15px] font-medium">New York, NY</span>
+            <div className="flex items-center justify-center sm:justify-start gap-3 text-[#495057]">
+              <MapPin size={18} className="text-[#495057] shrink-0" />
+              <span className="text-sm sm:text-[15px] font-medium">New York, NY</span>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
+        {/* Action Buttons: Prominent on all devices */}
+        <div className="flex gap-3 shrink-0">
           {/* Mute Button */}
-          <button className="w-12 h-12 flex items-center justify-center rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors">
+          <button className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors shadow-sm">
             <Mic size={20} className="text-black" />
           </button>
           
           {/* Speaker Button */}
-          <button className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#0f1111] hover:bg-gray-800 transition-colors">
+          <button className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl bg-[#0f1111] hover:bg-gray-800 transition-colors shadow-sm">
             <Volume2 size={20} className="text-white" />
           </button>
           
           {/* End Call Button */}
-          <button className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#d90404] hover:bg-red-700 transition-colors">
+          <button className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl bg-[#d90404] hover:bg-red-700 transition-colors shadow-sm">
             <PhoneOff size={20} className="text-white" />
           </button>
         </div>
       </div>
 
       {/* Horizontal Divider */}
-      <div className="h-[1px] bg-gray-100 w-full my-8"></div>
+      <div className="h-[1px] bg-gray-100 w-full my-6 sm:my-8"></div>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-3 text-center">
+      {/* Stats Section: Responsive grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
         <div className="flex flex-col items-center">
-          <span className="text-[22px] font-semibold text-[#00c851] leading-none mb-2">05:42</span>
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-tight">Call Duration</span>
+          <span className="text-lg sm:text-[22px] font-semibold text-[#00c851] leading-none mb-2">05:42</span>
+          <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">Call Duration</span>
         </div>
         
-        <div className="flex flex-col items-center border-x border-transparent">
-          <span className="text-[22px] font-semibold text-[#343a40] leading-none mb-2">12</span>
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-tight">Calls Today</span>
+        <div className="flex flex-col items-center border-x border-gray-100 px-2">
+          <span className="text-lg sm:text-[22px] font-semibold text-[#343a40] leading-none mb-2">12</span>
+          <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">Calls Today</span>
         </div>
         
         <div className="flex flex-col items-center">
-          <span className="text-[22px] font-semibold text-[#343a40] leading-none mb-2">8</span>
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-tight">Connected</span>
+          <span className="text-lg sm:text-[22px] font-semibold text-[#343a40] leading-none mb-2">8</span>
+          <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">Connected</span>
         </div>
       </div>
     </div>
