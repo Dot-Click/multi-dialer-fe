@@ -10,7 +10,7 @@ const AdminFoldersList = () => {
         { id: 5, name: "Folder 4", },
     ]
 
-      const listName = [
+    const listName = [
         { id: 1, name: "List Name", contact: "115" },
         { id: 2, name: "List Name", contact: "115" },
         { id: 3, name: "List Name", contact: "115" },
@@ -28,7 +28,9 @@ const AdminFoldersList = () => {
                 <h1 className="text-[20px] font-[500]">Folders & Lists</h1>
                 <div className='flex gap-3'>
                     {folderLists.map((dt) => (
-                        <button key={dt.id} className='border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]'>{dt.name}</button>
+                        <button key={dt.id} className='border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]'>
+                            {dt.name}
+                        </button>
                     ))}
                 </div>
             </div>

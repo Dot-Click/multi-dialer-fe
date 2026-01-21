@@ -1,6 +1,3 @@
-
-
-
 const Group = () => {
 
     const groups = [
