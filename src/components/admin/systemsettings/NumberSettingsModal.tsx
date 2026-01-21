@@ -250,3 +250,4 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
 };
 
 export default NumberSettingsModal;
+
