@@ -7,10 +7,10 @@ import UpcomingRenewals from "@/components/super-admin/subscription/upcominRenew
 
 const SuperAdminSubscriptionPlan = () => {
   return (
-    <section className='w-full min-h-screen flex flex-col gap-5 px-6 py-3 outfit bg-[#F5F6FA]'>
+    <section className='w-full min-h-screen flex flex-col gap-5 px-9 py-7 outfit bg-[#F5F6FA]'>
     
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex leading-none gap-6  items-center">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex leading-none gap-4  items-center">
              <img src={settingicon} alt="settingicon" className="h-[23.41058349609375] object-contain" />
               <h1 className="text-[#2C2C2C] text-[20px] outfit md:text-[26px]  lg:text-[33.95px] font-[600]">Subscription Plans & Pricing</h1>    
             </div>

@@ -53,10 +53,8 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
     { id: 5, name: "Subscription Management", link: "/super-admin/subscription-management", icon: subsIcon },
     { id: 8, name: "Reports of users and billings", link: "/super-admin/reports-of-user-billing", icon: userReportIcon },
     { id: 9, name: "Settings", link: "/super-admin/setting", icon: settingicon },
-    { id: 9, name: "Reporting", link: "/super-admin/reporting", icon: reportingIcon },
+    { id: 10, name: "Reporting", link: "/super-admin/reporting", icon: reportingIcon },
   ];
-
- 
 
   return (
     <>
@@ -80,14 +78,16 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
         <div className="flex flex-col px-3 py-4 gap-4">
           {/* Logo + Toggle */}
           <div className="flex items-center justify-between">
-            <img
-              src={logo}
-              alt="Logo"
-              className={`object-contain transition-all duration-300 ${
-                isOpen ? "w-36" : "w-8"
-              }`}
-            />
+            {/* Logo only shows when sidebar is OPEN */}
+            {isOpen && (
+              <img
+                src={logo}
+                alt="Logo"
+                className="object-contain w-36 transition-all duration-300"
+              />
+            )}
 
+            {/* Toggle Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-1 rounded-md transition"
@@ -101,7 +101,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           </div>
 
           {/* User Info */}
-          {isOpen && ( 
+          {isOpen && (
             <div className="flex bg-gray-50 border border-gray-200 px-3 py-2 rounded-md flex-col">
               <h1 className="font-semibold text-gray-950 text-sm">John Lee</h1>
               <p className="text-gray-600 text-xs">j.lee@example.com</p>
@@ -109,14 +109,14 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           )}
 
           <div className="border-t border-gray-200"></div>
-                  
-          {/* Top Links */}
+
+          {/* Links */}
           <div className="flex flex-col gap-1 justify-center">
             {sidebarLinks.map((slinks) => (
               <NavLink
                 key={slinks.id}
                 to={slinks.link}
-                end={slinks.link === "/super-admin"} // ✅ exact match for Dashboard only
+                end={slinks.link === "/super-admin"} // exact match for Dashboard only
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
@@ -128,9 +128,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
                 }
               >
                 <img src={slinks.icon} className="h-4 w-4 object-contain" />
-                {isOpen && (
-                  <span className="text-[12px] font-medium">{slinks.name}</span>
-                )}
+                {isOpen && <span className="text-[12px] font-medium">{slinks.name}</span>}
               </NavLink>
             ))}
           </div>
@@ -138,7 +136,6 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
         {/* Bottom Links */}
         <div className="px-3 pb-4 border-t border-gray-200 pt-3 flex flex-col gap-1">
-
           {/* EXIT BUTTON */}
           <button
             onClick={handleLogout}

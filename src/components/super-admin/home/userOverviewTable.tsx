@@ -57,13 +57,13 @@ const UserOverviewTable = () => {
   <table className="min-w-full border-separate" style={{ borderSpacing: "0 8px" }}>
     <thead className="bg-[#FAF9FE] sticky top-0">
       <tr className="text-[#1D2C45]">
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">User Name</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">Email</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">Subscription Plan</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">Status</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">Renewal Date</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]">Created On</th>
-        <th className="text-left font-[500] whitespace-nowrap px-2 py-4 text-[15px]"></th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">User Name</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Email</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Subscription Plan</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Status</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Renewal Date</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Created On</th>
+        <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]"></th>
       </tr>
     </thead>
     <tbody>

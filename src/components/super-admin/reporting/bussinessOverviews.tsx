@@ -26,18 +26,18 @@ const BussinessOverviews = () => {
                     </span>
                 </div>
 
-                <div className="flex items-center flex-wrap justify-around gap-3 md:gap-7">
-                    {data.map((dt, index) => (
+                <div className="flex items-center  justify-around gap-3 md:gap-5 lg:gap-7">
+                     {data.map((dt, index) => (
                         <div
                             key={dt.id}
                             className={`flex pl-4 flex-col gap-1
                                 ${index !== 0 ? "border-l border-[#E5E7EB]" : ""}
                             `}
                         >
-                            <span className="text-[13px] md:text-[24px] text-[#2C2C2C] lg:text-[25px] font-[600]">
+                            <span className="text-[13px] md:text-[18px] text-[#2C2C2C] lg:text-[25px] font-[600]">
                                 {dt.number}
                             </span>
-                            <span className="text-[8px] md:text-[10px] lg:text-[13px] text-[#030213] font-[400]">
+                            <span className="text-[8px] md:text-[9px] lg:text-[13px] text-[#030213] font-[400]">
                                 {dt.name}
                             </span>
                         </div>
