@@ -21,7 +21,7 @@ const upcomingRenewals = [
     reason: "Payment failed - Bank declined transaction",
     amount: "$6,120",
   },
-];
+];  
 
 const UpcomingRenewals = () => {
   return (
