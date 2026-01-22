@@ -14,7 +14,7 @@ const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
 
   // Values states
   const [selectedRole, setSelectedRole] = useState("Select Role");
-  const [selectedStatus, setSelectedStatus] = useState("Select Status");
+  const [selectedStatus, setSelectedStatus] = useState("Select Status");  
 
   const roleOptions = ["Admin", "Super Admin", "Manager", "Team Lead", "Agent"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
