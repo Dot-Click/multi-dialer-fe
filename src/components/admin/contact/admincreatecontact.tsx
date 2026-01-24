@@ -1,49 +1,140 @@
 // Icon imports from react-icons
-import { FiPlus, FiFolder, FiMoreHorizontal } from 'react-icons/fi';
-import React from 'react';
+import { FiPlus, FiFolder, FiMoreHorizontal, FiChevronDown } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { IoAdd } from 'react-icons/io5';
 
-// ✅ Props interface for InputField
-interface InputFieldProps {
+/* ================= BASIC INFORMATION INPUT ================= */
+
+interface BasicInformationInputFieldProps {
   label: string;
   placeholder: string;
   type?: string;
 }
 
-// A reusable Input Field component for cleaner code
-const InputField: React.FC<InputFieldProps> = ({ label, placeholder, type = 'text' }) => (
-  <div className="bg-gray-100 px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 text-sm">
-    <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+const BasicInformationInputField: React.FC<BasicInformationInputFieldProps> = ({
+  label,
+  placeholder,
+  type = 'text',
+}) => (
+  <div className="bg-gray-100 px-3 py-2 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 text-sm">
+    <label className="block text-[12px] font-[500] text-[#495057] mb-1">
+      {label}
+    </label>
     <input
       type={type}
       placeholder={placeholder}
-      className="w-full outline-none bg-gray-100"
+      className="w-full outline-none text-[#848C94] text-[16px] font-[400] bg-[#F3F4F7]"
     />
   </div>
 );
 
-// ✅ Props interface for SelectField
-interface SelectFieldProps {
-  label: string;
-  options: string[];
+/* ================= EMAIL INPUT ================= */
+
+interface EmailInputFieldProps {
+  placeholder: string;
 }
 
-// A reusable Select Field component for the dropdown
-const SelectField: React.FC<SelectFieldProps> = ({ label, options }) => (
-  <div className="bg-gray-100 px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 text-sm">
-    <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-    <select className="w-full outline-none bg-gray-100">
-      {options.map((option: string) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+const EmailInputField: React.FC<EmailInputFieldProps> = ({ placeholder }) => (
+  <div className="bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500">
+    <input
+      type="email"
+      placeholder={placeholder}
+      className="w-full outline-none text-[#848C94] text-[16px] font-[400] bg-[#F3F4F7]"
+    />
   </div>
 );
 
-// Main Component
+/* ================= PHONE INPUT ================= */
+
+const PhoneInputField = () => {
+  const [selectedType, setSelectedType] = useState('Mobile');
+  const [isOpen, setIsOpen] = useState(false);
+  const options = ['Mobile', 'Work', 'Home'];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-3">
+      <div className="bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500">
+        <input
+          type="tel"
+          placeholder="Phone number"
+          className="w-full outline-none text-[#848C94] text-[16px] font-[400] bg-[#F3F4F7]"
+        />
+      </div>
+
+      <div className="relative">
+        <div
+          onClick={() => setIsOpen(!isOpen)}
+          className="bg-gray-100 px-3 py-4 rounded-[12px] cursor-pointer flex justify-between items-center text-[#0E1011] text-[16px] font-[400]"
+        >
+          <span>{selectedType}</span>
+          <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+
+        {isOpen && (
+          <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-lg rounded-[12px] z-[100] border border-gray-100 overflow-hidden">
+            {options.map((opt) => (
+              <div
+                key={opt}
+                className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+                onClick={() => {
+                  setSelectedType(opt);
+                  setIsOpen(false);
+                }}
+              >
+                {opt}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ================= SOURCE SELECT INPUT ================= */
+
+const SourceSelectField = () => {
+  const [selected, setSelected] = useState('Manual entry');
+  const [isOpen, setIsOpen] = useState(false);
+  const options = ['Manual entry'];
+
+  return (
+    <div className="relative w-full">
+      <label className="block text-[#2B3034] font-[400] text-[14px] mb-2">
+        How did you acquire this contact?
+      </label>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-gray-100 px-3 py-3 rounded-[12px] cursor-pointer flex justify-between items-center text-[#848C94] text-[16px] font-[400] focus-within:ring-2 focus-within:ring-blue-500"
+      >
+        <span>{selected}</span>
+        <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-lg rounded-[12px] z-[100] border border-gray-100 overflow-hidden">
+          {options.map((opt) => (
+            <div
+              key={opt}
+              className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+              onClick={() => {
+                setSelected(opt);
+                setIsOpen(false);
+              }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+/* ================= MAIN COMPONENT ================= */
+
 const AdminCreateContactComponent: React.FC = () => {
-  // Dummy data for lists and groups
   const folders = ['Folder', 'Folder', 'Folder'];
   const lists = [
     { name: 'List', initials: 'KM' },
@@ -53,56 +144,126 @@ const AdminCreateContactComponent: React.FC = () => {
   ];
   const groups = ['Group', 'Group', 'Group', 'Group', 'Group', 'Group', 'Group'];
 
+  /* EMAIL STATE */
+  const [emails, setEmails] = useState<number[]>([0, 1]);
+  const handleAddEmail = () => setEmails((p) => [...p, p.length]);
+
+  /* PHONE STATE */
+  const [phones, setPhones] = useState<number[]>([0, 1]);
+  const handleAddPhone = () => setPhones((p) => [...p, p.length]);
+
   return (
-    <div className="bg-white max-w-5xl mx-auto rounded-xl min-h-screen p-3 sm:p-4 md:p-6">
-      <div>
-        {/* Top form section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-          <InputField label="Full Name" placeholder="Enter lead's name" />
-          <InputField label="Address" placeholder="Enter lead's address" />
-          <InputField label="Email" placeholder="Enter lead's email" type="email" />
-          <InputField label="City" placeholder="Enter lead's city" />
-          <InputField label="Phone number" placeholder="Enter phone number" type="tel" />
-          <InputField label="State" placeholder="Enter lead's state" />
-          <SelectField label="Phone type" options={['Mobile', 'Work', 'Home']} />
-          <InputField label="Zip" placeholder="Enter lead's Zip" />
+    <div className="max-w-5xl work-sans mx-auto min-h-screen">
+      <div className="flex flex-col gap-5">
+
+        {/* BASIC INFORMATION */}
+        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-3">
+          <h1 className="text-[#495057] font-[500] uppercase text-[14px]">
+            Basic Information
+          </h1>
+
+          <div className="grid grid-cols-1 gap-y-5">
+            <BasicInformationInputField label="Full Name" placeholder="Enter lead's name" />
+            <BasicInformationInputField label="Email" placeholder="Enter lead's email" type="email" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <BasicInformationInputField label="City" placeholder="Enter lead's city" />
+              <BasicInformationInputField label="State" placeholder="Enter lead's state" />
+            </div>
+
+            <BasicInformationInputField label="Zip" placeholder="Enter lead's Zip" />
+          </div>
         </div>
 
-        {/* Bottom Lists & Groups section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          {/* LISTS & FOLDERS Card */}
-          <div className="bg-white border border-gray-200 rounded-xl p-2 h-[350px] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-semibold text-gray-900">LISTS & FOLDERS</h2>
-              <button className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200">
-                <FiPlus className="text-gray-600" />
+        {/* EMAIL ADDRESSES */}
+        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-[#495057] font-[500] uppercase text-[14px]">
+              Email Addresses
+            </h1>
+            <button
+              onClick={handleAddEmail}
+              className="flex gap-1 bg-[#FFCA06] px-[15px] py-[6px] rounded-[12px] items-center text-black text-[10px] sm:text-[12px] md:text-[16px] font-[500]"
+            >
+              <IoAdd /> Add Email
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            {emails.map((_, i) => (
+              <EmailInputField
+                key={i}
+                placeholder={i === 0 ? 'Primary email address' : 'Additional email address'}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* PHONE NUMBERS */}
+        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-[#495057] font-[500] uppercase text-[14px]">
+              Phone Numbers
+            </h1>
+            <button
+              onClick={handleAddPhone}
+              className="flex gap-1 bg-[#FFCA06] px-[15px] py-[6px] rounded-[12px] items-center text-black text-[10px] sm:text-[12px] md:text-[16px] font-[500]"
+            >
+              <IoAdd /> Add Phone
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            {phones.map((_, i) => (
+              <PhoneInputField key={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* SOURCE */}
+        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-2">
+          <h1 className="text-[#495057] font-[500] uppercase text-[14px] mb-2">Source</h1>
+          <SourceSelectField />
+        </div>
+
+        {/* LISTS & GROUPS */}
+        {/* LISTS & GROUPS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 bg-white p-3 sm:p-4 md:p-6 rounded-[24px]">
+          {/* LISTS */}
+          <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
+            <div className="flex justify-between items-center mb-4 pl-2 pr-1">
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">LISTS & FOLDERS</h2>
+              <button className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors">
+                <FiPlus className="text-[#5F6368] text-[14px]" />
               </button>
             </div>
-            <div className="overflow-y-auto pr-2 flex-grow">
-              {/* Folders */}
+
+            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {folders.map((folder, index) => (
                 <div
-                  key={index}
-                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer ${
-                    index === 2 ? 'bg-gray-100' : 'hover:bg-gray-50'
-                  }`}
+                  key={`folder-${index}`}
+                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer group ${index === 2 ? 'bg-[#F3F4F7]' : 'hover:bg-[#F9FAFB]'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <FiFolder className="text-gray-500" />
-                    <span className="text-sm font-medium text-gray-800">{folder}</span>
+                    <FiFolder className={`text-[18px] ${index === 2 ? 'text-[#5F6368]' : 'text-[#9AA0A6]'}`} />
+                    <span className={`text-[14px] font-[500] ${index === 2 ? 'text-[#495057]' : 'text-[#5F6368]'}`}>
+                      {folder}
+                    </span>
                   </div>
-                  <FiMoreHorizontal className="text-gray-400" />
+                  <FiMoreHorizontal className="text-[#9AA0A6] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
-              {/* Lists */}
+
               {lists.map((list, index) => (
                 <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  key={`list-${index}`}
+                  className="flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] cursor-pointer group"
                 >
-                  <span className="text-sm font-medium text-gray-800">{list.name}</span>
+                  <span className="text-[14px] font-[400] text-[#5F6368] pl-8">
+                    {list.name}
+                  </span>
                   {list.initials && (
-                    <div className="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-600">
+                    <div className="w-[24px] h-[24px] rounded-full border border-[#E9E9EB] flex items-center justify-center text-[10px] font-[500] text-[#5F6368] bg-white">
                       {list.initials}
                     </div>
                   )}
@@ -111,26 +272,28 @@ const AdminCreateContactComponent: React.FC = () => {
             </div>
           </div>
 
-          {/* GROUPS Card */}
-          <div className="bg-white border border-gray-200 rounded-xl p-2 h-[350px] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-semibold text-gray-900">GROUPS</h2>
-              <button className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200">
-                <FiPlus className="text-gray-600" />
+          {/* GROUPS */}
+          <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
+            <div className="flex justify-between items-center mb-4 pl-2 pr-1">
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">GROUPS</h2>
+              <button className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors">
+                <FiPlus className="text-[#5F6368] text-[14px]" />
               </button>
             </div>
-            <div className="overflow-y-auto pr-2 flex-grow">
+
+            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {groups.map((group, index) => (
                 <div
                   key={index}
-                  className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="p-2 rounded-lg hover:bg-[#F9FAFB] cursor-pointer text-[14px] font-[500] text-[#495057]"
                 >
-                  <span className="text-sm font-medium text-gray-800">{group}</span>
+                  {group}
                 </div>
               ))}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
