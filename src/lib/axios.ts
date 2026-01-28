@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const VITE_API_BASE_URL = http://localhost:3000/api
+const VITE_API_BASE_URL = "http://localhost:3000/api"
 
 const api = axios.create({
     // production url 
