@@ -3,31 +3,21 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 
+import { Toaster } from 'react-hot-toast';
 
 import Router from "@/router";
 
 
 const App = () => {
- 
+
 
   const queryClient = new QueryClient()
 
   return (
     <QueryClientProvider client={queryClient}>
 
-      <Router/>
-
-      {/* auth pages  */}
-
-      {/* <Login/> */}
-      {/* <Code/> */}
-      {/* <ChangePassword/> */}
-      {/* <AdminLogin/> */}
-      {/* <RecoveryPassword/> */}
-      {/* <AdminChangePassword/> */}
-
-    
-
+      <Router />
+      <Toaster position="top-right" reverseOrder={false} />
     </QueryClientProvider>
   );
 }

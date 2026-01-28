@@ -2,16 +2,18 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "@/components/admin/common/adminsidebar";
 import AdminNavbar from "@/components/admin/common/adminnavbar";
+import { useAppSelector } from "@/store/hooks";
 
 const AdminDashboardLayout = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+     const { session } = useAppSelector((state) => state.auth);
 
     return (
         <div className='    min-h-screen w-full relative'>
             {/* agent pages  */}
             <div className="fixed top-0 z-[1000]">
-                <AdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />
+                <AdminSidebar session={session} isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />
             </div>
             <div className="fixed z-[999] top-0 w-full">
                 <AdminNavbar />

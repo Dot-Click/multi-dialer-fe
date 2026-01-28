@@ -1,0 +1,111 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../../lib/axios';
+
+export type UserRole = 'ADMIN' | 'AGENT';
+
+export interface LoginPayload {
+    email: string;
+    password?: string;
+    role: UserRole;
+}
+
+interface AuthState {
+    loading: boolean;
+    error: string | null;
+    isAuthenticated: boolean;
+    token: string | null;
+    role: UserRole | null;
+    session: any | null;
+}
+
+// Helper to get initial state from localStorage
+const getInitialState = (): AuthState => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role') as UserRole | null;
+    const sessionStr = localStorage.getItem('session');
+    let session = null;
+    try {
+        session = sessionStr ? JSON.parse(sessionStr) : null;
+    } catch (e) {
+        console.error("Error parsing session from localStorage", e);
+    }
+
+    return {
+        loading: false,
+        error: null,
+        isAuthenticated: !!token,
+        token: token,
+        role: role,
+        session: session,
+    };
+};
+
+const initialState: AuthState = getInitialState();
+
+export const login = createAsyncThunk(
+    'auth/login',
+    async (payload: Omit<LoginPayload, 'role'>, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/auth/sign-in/email', {
+                email: payload.email,
+                password: payload.password
+            });
+
+            // We return the full data but don't save to localStorage yet
+            return response.data;
+
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Login failed');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const authSlice = createSlice({
+    name: 'auth',
+    initialState,
+    reducers: {
+        setAuthData: (state, action: { payload: { token: string; role: UserRole; session: any } }) => {
+            const { token, role, session } = action.payload;
+            state.token = token;
+            state.role = role;
+            state.session = session;
+            state.isAuthenticated = true;
+            state.error = null;
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('role', role);
+            localStorage.setItem('session', JSON.stringify(session));
+        },
+        logout: (state) => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('session');
+            state.isAuthenticated = false;
+            state.token = null;
+            state.role = null;
+            state.session = null;
+            state.error = null;
+        }
+    },
+    extraReducers: (builder) => {
+        // Login
+        builder.addCase(login.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(login.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(login.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+    },
+});
+
+export const { logout, setAuthData } = authSlice.actions;
+export default authSlice.reducer;

@@ -2,16 +2,18 @@ import { useState } from "react";
 import Sidebar from "@/components/agent/common/sidebar"
 import Navbar from "@/components/agent/common/navbar"
 import { Outlet } from "react-router-dom";
+import { useAppSelector } from "@/store/hooks";
 
 const DashboardLayout = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+    const { session } = useAppSelector((state) => state.auth);
 
     return (
         <div className='min-h-screen w-full relative'>
             {/* agent pages  */}
             <div className="fixed top-0 z-[1000]">
-                <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />
+                <Sidebar session={session} isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} setIsMobile={setIsMobile} />
             </div>
             <div className="fixed z-[999] top-0 w-full">
                 <Navbar />
