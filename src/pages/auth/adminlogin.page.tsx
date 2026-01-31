@@ -12,8 +12,8 @@ import Loader from "@/components/common/Loader";
 const AdminLogin: React.FC = () => {
   const [isAdminLogin, setIsAdminLogin] = useState<boolean>(true);
   const [showCurrent, setShowCurrent] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@gmail.com");
+  const [password, setPassword] = useState("12345678");
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
