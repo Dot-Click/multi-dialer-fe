@@ -1,9 +1,19 @@
-// Icon imports from react-icons
 import { FiPlus, FiFolder, FiMoreHorizontal, FiChevronDown } from 'react-icons/fi';
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoAdd } from 'react-icons/io5';
-import { useContact, type ContactEmail, type ContactPhone, type ContactList, type ContactFolder, type ContactGroup } from '@/hooks/useContact';
-import { toast } from 'react-hot-toast';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  fetchFolders,
+  fetchLists,
+  fetchGroups,
+  createFolder,
+  createList,
+  createGroup,
+  deleteFolder,
+  deleteList,
+  deleteGroup
+} from '@/store/slices/contactStructureSlice';
+import StructureModal from '@/components/modal/StructureModal';
 
 /* ================= BASIC INFORMATION INPUT ================= */
 
@@ -22,8 +32,8 @@ const BasicInformationInputField: React.FC<BasicInformationInputFieldProps> = ({
   value,
   onChange,
 }) => (
-  <div className="bg-gray-100 px-3 py-2 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 text-sm">
-    <label className="block text-[12px] font-medium text-[#495057] mb-1">
+  <div className="bg-gray-100 px-3 py-2 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 text-sm transition-all shadow-sm">
+    <label className="block text-[12px] font-[500] text-[#495057] mb-1">
       {label}
     </label>
     <input
@@ -31,7 +41,7 @@ const BasicInformationInputField: React.FC<BasicInformationInputFieldProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full outline-none text-[#0E1011] text-[16px] font-normal bg-transparent"
+      className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
     />
   </div>
 );
@@ -53,16 +63,16 @@ const EmailInputField: React.FC<EmailInputFieldProps> = ({
   isPrimary,
   onChange,
   onTogglePrimary,
-  onRemove
+  onRemove,
 }) => (
   <div className="flex gap-2 items-center">
-    <div className="flex-1 bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500">
+    <div className="flex-1 bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
       <input
         type="email"
         value={email}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full outline-none text-[#0E1011] text-[16px] font-normal bg-transparent"
+        className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
       />
     </div>
     <button
@@ -80,57 +90,51 @@ const EmailInputField: React.FC<EmailInputFieldProps> = ({
 /* ================= PHONE INPUT ================= */
 
 interface PhoneInputFieldProps {
-  number: string;
-  type: 'MOBILE' | 'TELEPHONE' | 'HOME' | 'WORK';
-  onChangeNumber: (val: string) => void;
-  onChangeType: (val: 'MOBILE' | 'TELEPHONE' | 'HOME' | 'WORK') => void;
+  value: string;
+  type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK";
+  onChange: (val: string) => void;
+  onTypeChange: (type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK") => void;
   onRemove?: () => void;
 }
 
-const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
-  number,
-  type,
-  onChangeNumber,
-  onChangeType,
-  onRemove
-}) => {
+const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, onChange, onTypeChange, onRemove }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const options: ('MOBILE' | 'TELEPHONE' | 'HOME' | 'WORK')[] = ['MOBILE', 'WORK', 'HOME', 'TELEPHONE'];
+  const options: ("MOBILE" | "TELEPHONE" | "HOME" | "WORK")[] = ['MOBILE', 'TELEPHONE', 'HOME', 'WORK'];
 
   return (
     <div className="flex gap-3 items-center">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-3 flex-1">
-        <div className="bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500">
+        <div className="bg-gray-100 px-4 py-3 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
           <input
             type="tel"
-            value={number}
-            onChange={(e) => onChangeNumber(e.target.value)}
             placeholder="Phone number"
-            className="w-full outline-none text-[#0E1011] text-[16px] font-normal bg-transparent"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
           />
         </div>
 
         <div className="relative">
           <div
             onClick={() => setIsOpen(!isOpen)}
-            className="bg-gray-100 px-3 py-4 rounded-[12px] cursor-pointer flex justify-between items-center text-[#0E1011] text-[16px] font-normal"
+            className="bg-gray-100 px-4 py-3 h-full rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] text-[15px] font-[400] shadow-sm hover:bg-gray-200 transition-all"
           >
             <span className="capitalize">{type.toLowerCase()}</span>
             <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
 
           {isOpen && (
-            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-lg rounded-[12px] z-100 border border-gray-100 overflow-hidden">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-2xl rounded-[12px] z-[100] border border-gray-100 overflow-hidden py-1">
               {options.map((opt) => (
                 <div
                   key={opt}
-                  className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+                  className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-[14px] text-[#2B3034] capitalize"
                   onClick={() => {
-                    onChangeType(opt);
+                    onTypeChange(opt);
                     setIsOpen(false);
                   }}
                 >
-                  {opt.charAt(0) + opt.slice(1).toLowerCase()}
+                  {opt.toLowerCase()}
                 </div>
               ))}
             </div>
@@ -157,23 +161,23 @@ const SourceSelectField: React.FC<SourceSelectFieldProps> = ({ value, onChange }
 
   return (
     <div className="relative w-full">
-      <label className="block text-[#2B3034] font-normal text-[14px] mb-2">
+      <label className="block text-[#495057] font-[500] text-[13px] mb-2 uppercase">
         How did you acquire this contact?
       </label>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gray-100 px-3 py-3 rounded-[12px] cursor-pointer flex justify-between items-center text-[#0E1011] text-[16px] font-normal focus-within:ring-2 focus-within:ring-blue-500"
+        className="bg-gray-100 px-4 py-3 rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] text-[15px] font-[400] shadow-sm hover:bg-gray-200 transition-all"
       >
         <span>{value}</span>
         <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-lg rounded-[12px] z-100 border border-gray-100 overflow-hidden">
+        <div className="absolute bottom-[calc(100%+8px)] left-0 w-full bg-white shadow-2xl rounded-[12px] z-[100] border border-gray-100 overflow-hidden py-1">
           {options.map((opt) => (
             <div
               key={opt}
-              className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+              className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-[14px] text-[#2B3034]"
               onClick={() => {
                 onChange(opt);
                 setIsOpen(false);
@@ -191,19 +195,22 @@ const SourceSelectField: React.FC<SourceSelectFieldProps> = ({ value, onChange }
 
 /* ================= MAIN COMPONENT ================= */
 
-export interface AdminCreateContactRef {
-  save: () => Promise<void>;
+import { useNavigate } from 'react-router-dom';
+import { createContact } from '@/store/slices/contactSlice';
+
+interface AdminCreateContactComponentProps {
+  onSaveRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) => {
-  const { createContact, getContactLists, getContactFolders, getContactGroups, loading } = useContact();
+const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = ({ onSaveRef }) => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { folders, lists, groups } = useAppSelector((state) => state.contactStructure);
 
-  const [folders, setFolders] = useState<ContactFolder[]>([]);
-  const [lists, setLists] = useState<ContactList[]>([]);
-  const [groups, setGroups] = useState<ContactGroup[]>([]);
-
+  /* FORM STATE */
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
     city: '',
     state: '',
     zip: '',
@@ -211,105 +218,164 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
     contactListId: '',
   });
 
-  const [emails, setEmails] = useState<ContactEmail[]>([{ email: '', isPrimary: true }]);
-  const [phones, setPhones] = useState<ContactPhone[]>([{ number: '', type: 'MOBILE' }]);
+  const [emails, setEmails] = useState<{ email: string; isPrimary: boolean }[]>([
+    { email: '', isPrimary: true }
+  ]);
+  const [phones, setPhones] = useState<{ number: string; type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK" }[]>([
+    { number: '', type: 'MOBILE' }
+  ]);
+
+  /* SAVING LOGIC */
+  const handleSaveContact = async () => {
+    if (!formData.fullName) {
+      alert("Please enter a full name");
+      return;
+    }
+
+    const payload = {
+      fullName: formData.fullName,
+      city: formData.city,
+      state: formData.state,
+      zip: formData.zip,
+      source: formData.source,
+      tags: [],
+      emails: emails.filter(e => e.email.trim() !== ""),
+      phones: phones.filter(p => p.number.trim() !== ""),
+      contactListId: formData.contactListId || undefined,
+    };
+
+    const res = await dispatch(createContact(payload));
+    if (createContact.fulfilled.match(res)) {
+      alert("Contact created successfully!");
+      navigate('/admin/data-dialer');
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [fetchedFolders, fetchedLists, fetchedGroups] = await Promise.all([
-        getContactFolders(),
-        getContactLists(),
-        getContactGroups()
-      ]);
-      setFolders(fetchedFolders);
-      setLists(fetchedLists);
-      setGroups(fetchedGroups);
-    };
-    fetchData();
+    if (onSaveRef) {
+      onSaveRef.current = handleSaveContact;
+    }
+  }, [onSaveRef, formData, emails, phones]);
+
+  /* FETCH DATA ON MOUNT */
+  useEffect(() => {
+    dispatch(fetchFolders());
+    dispatch(fetchLists());
+    dispatch(fetchGroups());
+  }, [dispatch]);
+
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    type: 'folder' | 'list' | 'group' | null;
+    title: string;
+    placeholder: string;
+    targetFolderId?: string;
+  }>({
+    isOpen: false,
+    type: null,
+    title: '',
+    placeholder: '',
+  });
+
+  /* ... creation handlers (folders/lists/groups) ... */
+
+  /* CREATION HANDLERS */
+  const handleCreateFolder = () => {
+    setModalConfig({
+      isOpen: true,
+      type: 'folder',
+      title: 'Add New Folder',
+      placeholder: 'Enter folder name',
+    });
+  };
+
+  const handleCreateList = (folderId: string) => {
+    setModalConfig({
+      isOpen: true,
+      type: 'list',
+      title: 'Add New List',
+      placeholder: 'Enter list name',
+      targetFolderId: folderId,
+    });
+  };
+
+  const handleCreateGroup = () => {
+    setModalConfig({
+      isOpen: true,
+      type: 'group',
+      title: 'Add New Group',
+      placeholder: 'Enter group name',
+    });
+  };
+
+  const handleModalSave = (name: string) => {
+    if (modalConfig.type === 'folder') dispatch(createFolder(name));
+    if (modalConfig.type === 'list' && modalConfig.targetFolderId) {
+      dispatch(createList({ name, folderId: modalConfig.targetFolderId }));
+    }
+    if (modalConfig.type === 'group') dispatch(createGroup(name));
+  };
+
+  /* DELETION HANDLERS */
+  const handleDeleteFolder = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete folder "${name}"?`)) {
+      dispatch(deleteFolder(id));
+    }
+  };
+
+  const handleDeleteList = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete list "${name}"?`)) {
+      dispatch(deleteList(id));
+    }
+  };
+
+  const handleDeleteGroup = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete group "${name}"?`)) {
+      dispatch(deleteGroup(id));
+    }
+  };
+
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
-  useImperativeHandle(ref, () => ({
-    save: async () => {
-      if (!formData.fullName) {
-        toast.error('Full Name is required');
-        return;
-      }
-
-      const filteredEmails = emails.filter(e => e.email.trim() !== '');
-      const filteredPhones = phones.filter(p => p.number.trim() !== '');
-
-      if (filteredEmails.length === 0) {
-        toast.error('At least one email is required');
-        return;
-      }
-
-      try {
-        await createContact({
-          ...formData,
-          emails: filteredEmails,
-          phones: filteredPhones,
-        });
-        toast.success('Contact created successfully');
-        // Reset form or navigate
-        setFormData({
-          fullName: '',
-          city: '',
-          state: '',
-          zip: '',
-          source: 'Manual entry',
-          contactListId: '',
-        });
-        setEmails([{ email: '', isPrimary: true }]);
-        setPhones([{ number: '', type: 'MOBILE' }]);
-      } catch (err: any) {
-        toast.error(err.message);
-      }
-    }
-  }));
-
-  const handleAddEmail = () => setEmails([...emails, { email: '', isPrimary: false }]);
-  const handleAddPhone = () => setPhones([...phones, { number: '', type: 'MOBILE' }]);
-
+  /* EMAIL STATE */
+  const handleAddEmail = () => setEmails((p) => [...p, { email: '', isPrimary: false }]);
   const updateEmail = (index: number, val: string) => {
     const newEmails = [...emails];
     newEmails[index].email = val;
     setEmails(newEmails);
   };
-
   const togglePrimaryEmail = (index: number) => {
-    const newEmails = emails.map((e, i) => ({
-      ...e,
-      isPrimary: i === index
-    }));
-    setEmails(newEmails);
+    setEmails(emails.map((e, i) => ({ ...e, isPrimary: i === index })));
   };
-
   const removeEmail = (index: number) => {
     if (emails.length > 1) {
       const newEmails = emails.filter((_, i) => i !== index);
-      if (!newEmails.some(e => e.isPrimary)) {
-        newEmails[0].isPrimary = true;
-      }
+      if (!newEmails.some(e => e.isPrimary)) newEmails[0].isPrimary = true;
       setEmails(newEmails);
     }
   };
 
-  const updatePhone = (index: number, number: string) => {
+  /* PHONE STATE */
+  const handleAddPhone = () => setPhones((p) => [...p, { number: '', type: 'MOBILE' }]);
+  const updatePhone = (index: number, field: 'number' | 'type', val: any) => {
     const newPhones = [...phones];
-    newPhones[index].number = number;
+    (newPhones[index] as any)[field] = val;
     setPhones(newPhones);
   };
-
-  const updatePhoneType = (index: number, type: 'MOBILE' | 'TELEPHONE' | 'HOME' | 'WORK') => {
-    const newPhones = [...phones];
-    newPhones[index].type = type;
-    setPhones(newPhones);
-  };
-
   const removePhone = (index: number) => {
     if (phones.length > 1) {
       setPhones(phones.filter((_, i) => i !== index));
     }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -323,30 +389,31 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
           </h1>
 
           <div className="grid grid-cols-1 gap-y-5">
-            <BasicInformationInputField
-              label="Full Name"
+            <BasicInformationInputField 
+              label="Full Name" 
               placeholder="Enter lead's name"
               value={formData.fullName}
               onChange={(val) => setFormData({ ...formData, fullName: val })}
             />
+            {/* <BasicInformationInputField label="Email" placeholder="Enter lead's email" type="email" /> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <BasicInformationInputField
-                label="City"
+              <BasicInformationInputField 
+                label="City" 
                 placeholder="Enter lead's city"
                 value={formData.city}
                 onChange={(val) => setFormData({ ...formData, city: val })}
               />
-              <BasicInformationInputField
-                label="State"
+              <BasicInformationInputField 
+                label="State" 
                 placeholder="Enter lead's state"
                 value={formData.state}
                 onChange={(val) => setFormData({ ...formData, state: val })}
               />
             </div>
 
-            <BasicInformationInputField
-              label="Zip"
+            <BasicInformationInputField 
+              label="Zip" 
               placeholder="Enter lead's Zip"
               value={formData.zip}
               onChange={(val) => setFormData({ ...formData, zip: val })}
@@ -398,13 +465,13 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
           </div>
 
           <div className="flex flex-col gap-5">
-            {phones.map((p, i) => (
-              <PhoneInputField
+            {phones.map((phone, i) => (
+              <PhoneInputField 
                 key={i}
-                number={p.number}
-                type={p.type}
-                onChangeNumber={(val) => updatePhone(i, val)}
-                onChangeType={(val) => updatePhoneType(i, val)}
+                value={phone.number}
+                type={phone.type}
+                onChange={(val) => updatePhone(i, 'number', val)}
+                onTypeChange={(type) => updatePhone(i, 'type', type)}
                 onRemove={phones.length > 1 ? () => removePhone(i) : undefined}
               />
             ))}
@@ -412,9 +479,9 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
         </div>
 
         {/* SOURCE */}
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-2 shadow-sm">
-          <h1 className="text-[#495057] font-medium uppercase text-[14px] mb-2">Source</h1>
-          <SourceSelectField
+        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-2">
+          <h1 className="text-[#495057] font-[500] uppercase text-[14px] mb-2">Source</h1>
+          <SourceSelectField 
             value={formData.source}
             onChange={(val) => setFormData({ ...formData, source: val })}
           />
@@ -425,42 +492,116 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
           {/* LISTS */}
           <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
             <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-medium uppercase text-[#495057] tracking-wide">LISTS & FOLDERS</h2>
-              <button className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors">
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">LISTS & FOLDERS</h2>
+              <button
+                onClick={handleCreateFolder}
+                className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors"
+              >
                 <FiPlus className="text-[#5F6368] text-[14px]" />
               </button>
             </div>
 
-            <div className="overflow-y-auto pr-1 grow space-y-1 custom-scrollbar">
+            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {folders.map((folder) => (
-                <div
-                  key={`folder-${folder.id}`}
-                  className="flex items-center justify-between p-2 rounded-lg cursor-pointer group hover:bg-[#F9FAFB]"
-                >
-                  <div className="flex items-center gap-3">
-                    <FiFolder className="text-[18px] text-[#9AA0A6]" />
-                    <span className="text-[14px] font-medium text-[#5F6368]">
-                      {folder.name}
-                    </span>
-                  </div>
-                  <FiMoreHorizontal className="text-[#9AA0A6] opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
-
-              {lists.map((list) => (
-                <div
-                  key={`list-${list.id}`}
-                  onClick={() => setFormData({ ...formData, contactListId: list.id })}
-                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer group transition-colors ${formData.contactListId === list.id ? 'bg-[#FFCA06] bg-opacity-20 border border-[#FFCA06]' : 'hover:bg-[#F9FAFB]'}`}
-                >
-                  <span className="text-[14px] font-normal text-[#5F6368] pl-8">
-                    {list.name}
-                  </span>
-                  {list.name.slice(0, 2).toUpperCase() && (
-                    <div className="w-[24px] h-[24px] rounded-full border border-[#E9E9EB] flex items-center justify-center text-[10px] font-medium text-[#5F6368] bg-white">
-                      {list.name.slice(0, 2).toUpperCase()}
+                <div key={folder.id} className="space-y-1">
+                  <div className="flex items-center justify-between p-2 rounded-lg cursor-pointer group hover:bg-[#F9FAFB]">
+                    <div className="flex items-center gap-3">
+                      <FiFolder className="text-[18px] text-[#9AA0A6]" />
+                      <span className="text-[14px] font-[500] text-[#5F6368]">
+                        {folder.name}
+                      </span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCreateList(folder.id);
+                        }}
+                        className="text-[#1D85F0] text-[12px] font-[500] hover:underline"
+                      >
+                        + List
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === folder.id ? null : folder.id);
+                          }}
+                          className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                        >
+                          <FiMoreHorizontal className="text-[#9AA0A6]" />
+                        </button>
+                        {openMenuId === folder.id && (
+                          <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFolder(folder.id, folder.name);
+                                setOpenMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                    {/* Render Nested Lists */}
+                  <div className="ml-8 space-y-1 border-l border-gray-100 pl-2">
+                    {lists
+                      .filter((list) => folder.listIds?.includes(list.id))
+                      .map((list) => (
+                        <div
+                          key={list.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData({ ...formData, contactListId: list.id });
+                          }}
+                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer group transition-all ${
+                            formData.contactListId === list.id 
+                              ? "bg-[#F3F4F6] ring-1 ring-[#FFCA06]" 
+                              : "hover:bg-[#F9FAFB]"
+                          }`}
+                        >
+                          <span className={`text-[14px] font-[400] ${formData.contactListId === list.id ? "text-[#111]" : "text-[#5F6368]"}`}>
+                            {list.name}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="relative">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === list.id ? null : list.id);
+                                }}
+                                className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                              >
+                                <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
+                              </button>
+                              {openMenuId === list.id && (
+                                <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteList(list.id, list.name);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <div className={`w-[24px] h-[24px] rounded-full border border-[#E9E9EB] flex items-center justify-center text-[10px] font-[500] bg-white transition-colors ${formData.contactListId === list.id ? "text-[#000]" : "text-[#5F6368]"}`}>
+                              {getInitials(list.name)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               ))}
 
@@ -473,19 +614,47 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
           {/* GROUPS */}
           <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
             <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-medium uppercase text-[#495057] tracking-wide">GROUPS</h2>
-              <button className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors">
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">GROUPS</h2>
+              <button
+                onClick={handleCreateGroup}
+                className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors"
+              >
                 <FiPlus className="text-[#5F6368] text-[14px]" />
               </button>
             </div>
 
-            <div className="overflow-y-auto pr-1 grow space-y-1 custom-scrollbar">
+            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="p-2 rounded-lg hover:bg-[#F9FAFB] cursor-pointer text-[14px] font-medium text-[#495057]"
+                  className="group flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] cursor-pointer text-[14px] font-[500] text-[#495057]"
                 >
-                  {group.name}
+                  <span>{group.name}</span>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === group.id ? null : group.id);
+                      }}
+                      className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
+                    </button>
+                    {openMenuId === group.id && (
+                      <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group.id, group.name);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               {groups.length === 0 && (
@@ -495,17 +664,25 @@ const AdminCreateContactComponent = forwardRef<AdminCreateContactRef>((_, ref) =
           </div>
         </div>
 
+        {/* STRUCTURE MODAL */}
+        <StructureModal
+          isOpen={modalConfig.isOpen}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          onSave={handleModalSave}
+          title={modalConfig.title}
+          placeholder={modalConfig.placeholder}
+        />
       </div>
-      {loading && (
+      {/* {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-200">
           <div className="bg-white p-5 rounded-xl shadow-xl flex items-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>
             <span className="font-medium">Saving contact...</span>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
-});
+};
 
 export default AdminCreateContactComponent;
