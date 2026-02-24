@@ -2,7 +2,12 @@ import { useState } from "react";
 import addUsericon from "@/assets/addUsericon.png";
 import AddUserModal from "@/components/modal/addUserModal";
 
-const UserManagementHeader = () => {
+interface UserManagementHeaderProps {
+  totalUsers: number;
+  onUserAdded: () => void;
+}
+
+const UserManagementHeader = ({ totalUsers, onUserAdded }: UserManagementHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -13,7 +18,7 @@ const UserManagementHeader = () => {
             User Management
           </h1>
           <h3 className="text-[#434343] text-[10px] md:text-[14px] lg:text-[18px] font-[400]">
-            Total Users: 8
+            Total Users: {totalUsers}
           </h3>
         </div>
 
@@ -31,7 +36,11 @@ const UserManagementHeader = () => {
       </div>
 
       {/* Modal Component */}
-      <AddUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddUserModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={onUserAdded}
+      />
     </>
   );
 };

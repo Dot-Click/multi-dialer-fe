@@ -1,13 +1,25 @@
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import downarrow from "@/assets/downarrow.png";
+import { useDispatch, useSelector } from "react-redux";
+import { signup } from "@/store/slices/authSlice";
+import type { RootState, AppDispatch } from "@/store/store";
+import { generateSecurePassword } from "@/components/common/password";
 
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
+const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error: apiError } = useSelector((state: RootState) => state.auth);
+  
+  // Form states
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  
   // Dropdown states
   const [roleOpen, setRoleOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -15,9 +27,43 @@ const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
   // Values states
   const [selectedRole, setSelectedRole] = useState("Select Role");
   const [selectedStatus, setSelectedStatus] = useState("Select Status");  
+  const [localError, setLocalError] = useState("");
 
-  const roleOptions = ["Admin", "Super Admin", "Manager", "Team Lead", "Agent"];
+  const roleOptions = ["Agent", "Admin", "Owner"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
+
+  const handleAddUser = async () => {
+    setLocalError("");
+    
+    if (!fullName || !email || selectedRole === "Select Role" || selectedStatus === "Select Status") {
+      setLocalError("Please fill in all fields");
+      return;
+    }
+
+    const generatedPassword = generateSecurePassword();
+
+    try {
+      const resultAction = await dispatch(signup({
+        fullName,
+        email,
+        role: selectedRole.toUpperCase(),
+        status: selectedStatus,
+        password: generatedPassword,
+      }));
+
+      if (signup.fulfilled.match(resultAction)) {
+        onClose();
+        if (onSuccess) onSuccess();
+        // Reset form
+        setFullName("");
+        setEmail("");
+        setSelectedRole("Select Role");
+        setSelectedStatus("Select Status");
+      }
+    } catch (err) {
+      console.error("Signup failed:", err);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -36,11 +82,16 @@ const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
         {/* Form Body */}
         <div className="p-6 flex flex-col gap-4">
           
+          {localError && <p className="text-red-500 text-xs">{localError}</p>}
+          {apiError && <p className="text-red-500 text-xs">{apiError}</p>}
+
           {/* Username */}
           <div className="flex flex-col gap-1 bg-[#F3F4F6] rounded-[12px] px-4 py-2">
             <label className="text-[#6B7280] text-[12px] font-[500]">Username</label>
             <input
               type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter username"
               className="bg-transparent outline-none text-[#111] text-[15px] font-[400]"
             />
@@ -51,6 +102,8 @@ const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
             <label className="text-[#6B7280] text-[12px] font-[500]">Email</label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter email address"
               className="bg-transparent outline-none text-[#111] text-[15px] font-[400]"
             />
@@ -121,15 +174,20 @@ const AddUserModal = ({ isOpen, onClose }: AddUserModalProps) => {
         {/* Footer */}
         <div className="px-6 py-5 flex gap-3 work-sans border-t border-gray-100">
           <button 
+            type="button"
             onClick={onClose}
-            className="flex-1 bg-[#F3F4F6] text-[#374151] font-[500] py-3 rounded-[12px] hover:bg-gray-200 transition-colors"
+            disabled={loading}
+            className="flex-1 bg-[#F3F4F6] text-[#374151] font-[500] py-3 rounded-[12px] hover:bg-gray-200 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button 
-            className="flex-1 bg-[#FFCA06] text-[#000000] font-[500] py-3 rounded-[12px] hover:bg-[#eab700] transition-colors"
+            type="button"
+            onClick={handleAddUser}
+            disabled={loading}
+            className="flex-1 bg-[#FFCA06] text-[#000000] font-[500] py-3 rounded-[12px] hover:bg-[#eab700] transition-colors flex items-center justify-center disabled:opacity-50"
           >
-            Add User
+            {loading ? "Creating User..." : "Add User"}
           </button>
         </div>
 

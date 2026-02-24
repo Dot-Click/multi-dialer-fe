@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../lib/axios';
 
-export type UserRole = 'ADMIN' | 'AGENT';
+export type UserRole = 'ADMIN' | 'AGENT' | 'OWNER' ;
 
 export interface LoginPayload {
     email: string;
@@ -42,14 +42,51 @@ const getInitialState = (): AuthState => {
 
 const initialState: AuthState = getInitialState();
 
+export interface SignupPayload {
+    fullName: string;
+    email: string;
+    password?: string;
+    status: string;
+    role: string;
+    callBackURL?: string;
+}
+
+
+export const signup = createAsyncThunk(
+    'auth/signup',
+    async (payload: SignupPayload, { rejectWithValue }) => {
+        try {
+            const signupData = {
+                ...payload,
+                callBackURL: payload.callBackURL || "https://multi-dialer-fe.vercel.app/admin/login"
+            };
+            console.log("Frontend sending signup payload:", signupData);
+            const response = await api.post('/auth/sign-up/email', signupData);
+            console.log(response.data);
+            return response.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Signup failed');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+
+
+
 export const login = createAsyncThunk(
     'auth/login',
     async (payload: Omit<LoginPayload, 'role'>, { rejectWithValue }) => {
         try {
-            const response = await api.post('/auth/sign-in/email', {
+            const loginData = {
                 email: payload.email,
                 password: payload.password
-            });
+            };
+            console.log("Frontend sending login payload:", loginData);
+            const response = await api.post('/auth/sign-in/email', loginData);
 
             // We return the full data but don't save to localStorage yet
             return response.data;
@@ -63,6 +100,9 @@ export const login = createAsyncThunk(
         }
     }
 );
+
+
+
 
 export const authSlice = createSlice({
     name: 'auth',
@@ -101,6 +141,19 @@ export const authSlice = createSlice({
             state.loading = false;
         });
         builder.addCase(login.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+
+        // Signup
+        builder.addCase(signup.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(signup.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(signup.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload as string;
         });

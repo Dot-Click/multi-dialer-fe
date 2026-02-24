@@ -11,7 +11,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     const { isAuthenticated, role, token } = useAppSelector((state) => state.auth);
 
     if (!isAuthenticated || !token || !role) {
-        if (allowedRoles.includes('ADMIN')) {
+        const isAdminRoute = allowedRoles.some(r => ['ADMIN', 'OWNER'].includes(r));
+        if (isAdminRoute) {
             return <Navigate to="/admin/login" replace />;
         }
         return <Navigate to="/agent/login" replace />;
@@ -21,6 +22,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
         // Redirect based on role if they try to access unauthorized area
         if (role === 'ADMIN') {
             return <Navigate to="/admin" replace />;
+        }
+        if (role === 'OWNER') {
+            return <Navigate to="/super-admin" replace />;
         }
         return <Navigate to="/" replace />;
     }

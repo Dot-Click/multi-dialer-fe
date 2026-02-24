@@ -137,14 +137,15 @@ const Router: React.FC = () => {
         {/* SuperAdminDashboardLayout */}
 
         {/* ✅ Super Admin Dashboard Section */}
-        <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
-          <Route index element={<SuperAdminHome />} />
-          <Route path="user-management" element={<SuperAdminUserManagement />} />
-          <Route path="subscription-management" element={<SuperAdminSubscriptionPlan />} />
-          <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
-          <Route path="reporting" element={<SuperAdminReporting />} />
-          <Route path="setting" element={<SuperAdminSetting />} />
-
+        <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
+          <Route path="/super-admin" element={<SuperAdminDashboardLayout />}>
+            <Route index element={<SuperAdminHome />} />
+            <Route path="user-management" element={<SuperAdminUserManagement />} />
+            <Route path="subscription-management" element={<SuperAdminSubscriptionPlan />} />
+            <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
+            <Route path="reporting" element={<SuperAdminReporting />} />
+            <Route path="setting" element={<SuperAdminSetting />} />
+          </Route>
         </Route>
 
       </Routes>

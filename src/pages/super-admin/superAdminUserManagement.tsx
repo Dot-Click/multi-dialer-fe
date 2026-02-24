@@ -1,70 +1,75 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UserManagementHeader from '@/components/super-admin/user-management/UserManagementHeader'
 import searchIcon from "@/assets/searchIcon.png"
 import downarrow from "@/assets/downarrow.png"
 import tableIcon from "@/assets/tableIcon.png"
 import { BsThreeDotsVertical } from 'react-icons/bs';
-
-interface User {
-    name: string;
-    email: string;
-    role: string;
-    status: 'Active' | 'Pending' | 'Suspended' | 'Expiring Soon';
-    lastLogin: string;
-}
-
-const users: User[] = [
-    { name: "Amanda Davis", email: "amanda.davis@multidialer.com", role: "Agent", status: "Pending", lastLogin: "Never" },
-    { name: "Christopher Brown", email: "christopher.brown@multidialer.com", role: "Manager", status: "Expiring Soon", lastLogin: "Dec 29, 2025" },
-    { name: "David Thompson", email: "david.thompson@multidialer.com", role: "Team Lead", status: "Active", lastLogin: "Dec 29, 2025" },
-    { name: "Emily Rodriguez", email: "emily.rodriguez@multidialer.com", role: "Manager", status: "Active", lastLogin: "Dec 28, 2025" },
-    { name: "Jessica Martinez", email: "jessica.martinez@multidialer.com", role: "Agent", status: "Active", lastLogin: "Dec 27, 2025" },
-    { name: "Michael Chen", email: "michael.chen@multidialer.com", role: "Admin", status: "Active", lastLogin: "Dec 29, 2025" },
-    { name: "Robert Williams", email: "robert.williams@multidialer.com", role: "Agent", status: "Suspended", lastLogin: "Dec 20, 2025" },
-    { name: "Sarah Johnson", email: "sarah.johnson@multidialer.com", role: "Super Admin", status: "Active", lastLogin: "Dec 29, 2025" },
-];
+import { useUser, type User } from '@/hooks/useUser';
+import Loader from '@/components/common/Loader';
 
 const getStatusStyles = (status: string) => {
-    switch (status) {
-        case 'Active': return 'bg-[#D0FAE5] text-[#428E43]';
-        case 'Pending': return 'bg-[#FEF9C2] text-[#BA5F44]';
-        case 'Suspended': return 'bg-[#FEE9EA] text-[#C10057]';
-        case 'Expiring Soon': return 'bg-[#FFF0E6] text-[#D43500]';
-        default: return '';
+    const normalizedStatus = status.toUpperCase();
+    switch (normalizedStatus) {
+        case 'ACTIVE': return 'bg-[#D0FAE5] text-[#428E43]';
+        case 'PENDING': return 'bg-[#FEF9C2] text-[#BA5F44]';
+        case 'SUSPENDED': return 'bg-[#FEE9EA] text-[#C10057]';
+        case 'EXPIRING SOON': return 'bg-[#FFF0E6] text-[#D43500]';
+        default: return 'bg-gray-100 text-gray-600';
     }
 };
 
+const formatStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+};
+
 const SuperAdminUserManagement = () => {
-    // States for Search and Filters
+    const { getUsers, loading, error } = useUser();
+    const [users, setUsers] = useState<User[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("All Status");
     const [selectedRole, setSelectedRole] = useState("All Roles");
     
-    // States for Dropdown visibility
     const [statusOpen, setStatusOpen] = useState(false);
     const [roleOpen, setRoleOpen] = useState(false);
 
-    // Filter Logic
+    const fetchUsers = async () => {
+        const data = await getUsers();
+        setUsers(data);
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
     const filteredUsers = users.filter((user) => {
         const matchesSearch = 
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.status.toLowerCase().includes(searchTerm.toLowerCase());
         
-        const matchesStatus = selectedStatus === "All Status" || user.status === selectedStatus;
-        const matchesRole = selectedRole === "All Roles" || user.role === selectedRole;
+        const matchesStatus = selectedStatus === "All Status" || user.status.toUpperCase() === selectedStatus.toUpperCase();
+        const matchesRole = selectedRole === "All Roles" || user.role.toUpperCase() === selectedRole.toUpperCase();
 
         return matchesSearch && matchesStatus && matchesRole;
     });
 
     const statusOptions = ["All Status", "Active", "Pending", "Suspended", "Expiring Soon"];
-    const roleOptions = ["All Roles", "Admin", "Super Admin", "Manager", "Team Lead", "Agent"];
+    const roleOptions = ["All Roles", "Admin", "Super Admin", "Agent", "Owner"];
 
     return (
         <section className="w-full min-h-screen flex flex-col gap-2 px-6 py-6 outfit bg-[#F5F6FA]">
-            <UserManagementHeader />
+            <UserManagementHeader totalUsers={users.length} onUserAdded={fetchUsers} />
 
             {/* Search bar  */}
             <div className="bg-[#FFFFFF] flex flex-col md:flex-row gap-5 md:gap-2 md:justify-between md:items-center w-full rounded-[13.48px] px-5 py-4">
@@ -156,18 +161,28 @@ const SuperAdminUserManagement = () => {
                             </thead>
 
                             <tbody>
-                                {filteredUsers.length > 0 ? (
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={6}>
+                                            <Loader fullPage={false} />
+                                        </td>
+                                    </tr>
+                                ) : filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => (
-                                        <tr key={user.email} className="bg-[#FAFAFA] font-[400] rounded-[9.02px]">
-                                            <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-[400] text-[#2C2C2C]">{user.name}</td>
+                                        <tr key={user.id || user.email} className="bg-[#FAFAFA] font-[400] rounded-[9.02px]">
+                                            <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-[400] text-[#2C2C2C]">{user.fullName}</td>
                                             <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C]">{user.email}</td>
-                                            <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C]">{user.role}</td>
+                                            <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                                                {formatStatus(user.role)}
+                                            </td>
                                             <td className="px-5 py-4">
                                                 <span className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status)}`}>
-                                                    {user.status}
+                                                    {formatStatus(user.status)}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C]">{user.lastLogin}</td>
+                                            <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C]">
+                                                {formatDate(user.lastLogin)}
+                                            </td>
                                             <td className="px-5 py-4 text-center">
                                                 <button className="text-gray-400 hover:text-gray-700">
                                                     <span className="text-xl leading-none"><BsThreeDotsVertical /></span>
@@ -177,7 +192,9 @@ const SuperAdminUserManagement = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-10 text-gray-500">No users found.</td>
+                                        <td colSpan={6} className="text-center py-10 text-gray-500">
+                                            {error ? `Error: ${error}` : 'No users found.'}
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>

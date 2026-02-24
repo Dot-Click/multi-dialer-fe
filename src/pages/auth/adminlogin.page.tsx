@@ -22,6 +22,7 @@ const AdminLogin: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       if (currentRole === 'ADMIN') navigate("/admin");
+      else if (currentRole === 'OWNER') navigate("/super-admin");
       else if (currentRole === 'AGENT') navigate("/");
     }
   }, [isAuthenticated, currentRole, navigate]);
@@ -50,19 +51,21 @@ const AdminLogin: React.FC = () => {
       const userRole = payload.user?.role || payload.session?.role;
 
       // Step 2: Role validation
-      if (!payload || !userRole || userRole !== "ADMIN") {
+      const allowedRoles = ["ADMIN", "OWNER"];
+      if (!payload || !userRole || !allowedRoles.includes(userRole)) {
         dispatch(logout());
-        toast.error("No admin found with this email");
+        toast.error("Access denied. Admin privileges required.");
         return;
       }
 
       // Step 3: Save session & role to localStorage
-      dispatch(setAuthData({ token, role: "ADMIN", session: payload }));
+      dispatch(setAuthData({ token, role: userRole, session: payload }));
 
       toast.success("Login successful");
 
       // Step 4: Redirect
-      navigate("/admin");
+      if (userRole === 'OWNER') navigate("/super-admin");
+      else navigate("/admin");
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     }

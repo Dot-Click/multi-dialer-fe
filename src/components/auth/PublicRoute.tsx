@@ -10,6 +10,9 @@ const PublicRoute: React.FC = () => {
         if (role === 'ADMIN') {
             return <Navigate to="/admin" replace />;
         }
+        if (role === 'OWNER') {
+            return <Navigate to="/super-admin" replace />;
+        }
         return <Navigate to="/" replace />;
     }
 

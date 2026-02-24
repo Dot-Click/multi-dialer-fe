@@ -23,6 +23,7 @@ const Login: React.FC = () => {
     if (isAuthenticated) {
       if (currentRole === 'AGENT') navigate("/");
       else if (currentRole === 'ADMIN') navigate("/admin");
+      else if (currentRole === 'OWNER') navigate("/super-admin");
     }
   }, [isAuthenticated, currentRole, navigate]);
 
