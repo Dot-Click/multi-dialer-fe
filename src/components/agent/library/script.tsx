@@ -262,7 +262,7 @@ const Script = () => {
               <div className="flex flex-col gap-1.5">
                 <span className="text-[#495057] text-[12px] font-normal">
                   Created on
-                </span>
+                </span> 
                 <span className="font-medium text-[#2B3034] text-[14px]">
                   {dayjs(script.createdAt).format("DD/MM/YYYY")}
                 </span>

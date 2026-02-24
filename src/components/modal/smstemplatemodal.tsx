@@ -1,12 +1,53 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useSMSTemplate } from "@/hooks/useSMSTemplate";
+import type { SMSTemplate as SMSTemplateData } from "@/hooks/useSMSTemplate";
+import { toast } from "react-hot-toast";
 
 interface SMSTemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
+    templateData?: SMSTemplateData | null;
 }
 
-const SMSTemplateModal: React.FC<SMSTemplateModalProps> = ({ isOpen, onClose }) => {
+const SMSTemplateModal: React.FC<SMSTemplateModalProps> = ({ isOpen, onClose, onSuccess, templateData }) => {
+    const [templateName, setTemplateName] = useState("");
+    const [content, setContent] = useState("");
+    const { createSMSTemplate, updateSMSTemplate, loading } = useSMSTemplate();
+
+    useEffect(() => {
+        if (templateData && isOpen) {
+            setTemplateName(templateData.templateName);
+            setContent(templateData.content);
+        } else {
+            setTemplateName("");
+            setContent("");
+        }
+    }, [templateData, isOpen]);
+
     if (!isOpen) return null;
+
+    const handleSave = async () => {
+        if (!templateName.trim() || !content.trim()) {
+            toast.error("Please fill all fields");
+            return;
+        }
+
+        const data = { templateName, content };
+        let result;
+
+        if (templateData) {
+            result = await updateSMSTemplate(templateData.id, data);
+        } else {
+            result = await createSMSTemplate(data);
+        }
+
+        if (result) {
+            toast.success(`Template ${templateData ? "updated" : "created"} successfully`);
+            onSuccess?.();
+            onClose();
+        }
+    };
 
     return (
         <div
@@ -18,7 +59,9 @@ const SMSTemplateModal: React.FC<SMSTemplateModalProps> = ({ isOpen, onClose }) 
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-5">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Create SMS Template</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        {templateData ? "Edit SMS Template" : "Create SMS Template"}
+                    </h3>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5"
@@ -34,22 +77,24 @@ const SMSTemplateModal: React.FC<SMSTemplateModalProps> = ({ isOpen, onClose }) 
                 </div>
 
                 <div className="space-y-5">
-                    <div className="bg-gray-50 flex flex-col gap-1 border border-gray-100 rounded-lg focus:ring-yellow-500 px-3 py-2  focus:border-yellow-500">
-                        <label className="block  text-xs font-medium text-gray-700">Template Name</label>
+                    <div className="bg-gray-50 flex flex-col gap-1 border border-gray-100 rounded-lg px-3 py-2">
+                        <label className="block text-xs font-medium text-gray-700">Template Name</label>
                         <input
                             type="text"
-                            className=" text-gray-900 text-sm placeholder:text-sm block w-full "
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                            className="text-gray-900 text-sm placeholder:text-sm block w-full outline-none bg-transparent"
                             placeholder="Enter template name"
                         />
                     </div>
 
-                  
-
-                    <div className="bg-gray-50 flex flex-col gap-1 border border-gray-100 rounded-lg focus:ring-yellow-500 px-3 py-2  focus:border-yellow-500">
-                        <label className="block  text-xs font-medium text-gray-700">Content</label>
+                    <div className="bg-gray-50 flex flex-col gap-1 border border-gray-100 rounded-lg px-3 py-2">
+                        <label className="block text-xs font-medium text-gray-700">Content</label>
                         <textarea
                             rows={4}
-                            className=" text-gray-900  resize-none text-sm placeholder:text-sm block w-full "
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            className="text-gray-900 resize-none text-sm placeholder:text-sm block w-full outline-none bg-transparent"
                             placeholder="Enter SMS text"
                         ></textarea>
                     </div>
@@ -58,15 +103,18 @@ const SMSTemplateModal: React.FC<SMSTemplateModalProps> = ({ isOpen, onClose }) 
                 <div className="flex items-center justify-center pt-4 gap-3">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 w-full bg-gray-100 text-gray-800 font-medium text-sm rounded-lg hover:bg-gray-200"
+                        disabled={loading}
+                        className="px-6 py-2.5 w-full bg-gray-100 text-gray-800 font-medium text-sm rounded-lg hover:bg-gray-200 disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
-                        className="text-gray-950 w-full bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-8 py-2.5 text-center"
+                        onClick={handleSave}
+                        disabled={loading}
+                        className="text-gray-950 w-full bg-yellow-400 hover:bg-yellow-500 font-medium rounded-lg text-sm px-8 py-2.5 text-center disabled:opacity-50"
                     >
-                        Save
+                        {loading ? "Saving..." : "Save"}
                     </button>
                 </div>
             </div>

@@ -4,31 +4,23 @@ import { BsThreeDots } from "react-icons/bs";
 import { IoWarningOutline } from "react-icons/io5";
 import Signature from "@/components/admin/library/signature";
 import { useLocation } from "react-router-dom";
+import { useEmailTemplate, type EmailTemplate as EmailTemplateData } from "@/hooks/useEmailTemplate";
+import { toast } from "react-hot-toast";
 
 // =================================================================
 // DATA TYPES AND INTERFACES
 // =================================================================
 
-interface EmailTemplateData {
-  id: number;
-  name: string;
-  subject: string;
-  content: string;
-  createdBy: string;
-  createdOn: string;
-  modifiedOn: string;
-  status: boolean;
-}
-
 interface EmailTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; subject: string; content: string }) => void;
+  onSave: (data: { templateName: string; subject: string; content: string }) => void;
   templateData: EmailTemplateData | null;
+  loading: boolean;
 }
 
 // DELETE MODAL
-const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: any) => {
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, loading }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1200] p-3">
@@ -42,13 +34,15 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: any) => {
         <div className="mt-8 flex justify-center space-x-3">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 w-full bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300">
+            disabled={loading}
+            className="px-6 py-2.5 w-full bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50">
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-8 py-2.5 w-full bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-500">
-            Yes, Delete
+            disabled={loading}
+            className="px-8 py-2.5 w-full bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-500 disabled:opacity-50">
+            {loading ? "Deleting..." : "Yes, Delete"}
           </button>
         </div>
       </div>
@@ -57,24 +51,32 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: any) => {
 };
 
 // MODAL
-const EmailTemplateModal = ({ isOpen, onClose, onSave, templateData }: EmailTemplateModalProps) => {
-  const [name, setName] = useState('');
+const EmailTemplateModal = ({ isOpen, onClose, onSave, templateData, loading }: EmailTemplateModalProps) => {
+  const [templateName, setTemplateName] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
 
   useEffect(() => {
     if (templateData && isOpen) {
-      setName(templateData.name);
+      setTemplateName(templateData.templateName);
       setSubject(templateData.subject);
       setContent(templateData.content);
     } else {
-      setName('');
+      setTemplateName('');
       setSubject('');
       setContent('');
     }
   }, [templateData, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleSave = () => {
+    if (!templateName || !subject || !content) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    onSave({ templateName, subject, content });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1100] p-4">
@@ -92,27 +94,27 @@ const EmailTemplateModal = ({ isOpen, onClose, onSave, templateData }: EmailTemp
           {/* Name */}
           <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 flex flex-col gap-1 text-sm">
             <label className="text-sm font-medium text-gray-700">Template name</label>
-            <input value={name} className="bg-transparent outline-none" onChange={(e) => setName(e.target.value)} />
+            <input value={templateName} className="bg-transparent outline-none" onChange={(e) => setTemplateName(e.target.value)} placeholder="Enter template name" />
           </div>
 
           {/* Subject */}
           <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 flex flex-col gap-1 text-sm">
             <label className="text-sm font-medium text-gray-700">Subject</label>
-            <input value={subject} className="bg-transparent outline-none" onChange={(e) => setSubject(e.target.value)} />
+            <input value={subject} className="bg-transparent outline-none" onChange={(e) => setSubject(e.target.value)} placeholder="Enter subject" />
           </div>
 
           {/* Content */}
           <div className="bg-gray-100 p-3 rounded-lg border border-gray-200 flex flex-col gap-1 text-sm">
             <label className="text-sm font-medium text-gray-700">Email Content</label>
-            <textarea value={content} rows={8} onChange={(e) => setContent(e.target.value)} className="bg-transparent outline-none resize-none" />
+            <textarea value={content} rows={8} onChange={(e) => setContent(e.target.value)} className="bg-transparent outline-none resize-none" placeholder="Enter email content" />
           </div>
         </div>
 
         <div className="p-5 border-t border-gray-200 flex space-x-3">
-          <button onClick={onClose} className="w-full bg-gray-200 py-2.5 rounded-lg hover:bg-gray-300 font-semibold">Cancel</button>
-          <button onClick={() => onSave({ name, subject, content })}
-            className="w-full bg-yellow-400 py-2.5 rounded-lg font-semibold hover:bg-yellow-500">
-            Save
+          <button onClick={onClose} disabled={loading} className="w-full bg-gray-200 py-2.5 rounded-lg hover:bg-gray-300 font-semibold disabled:opacity-50">Cancel</button>
+          <button onClick={handleSave} disabled={loading}
+            className="w-full bg-yellow-400 py-2.5 rounded-lg font-semibold hover:bg-yellow-500 disabled:opacity-50">
+            {loading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -125,47 +127,84 @@ const EmailTemplateModal = ({ isOpen, onClose, onSave, templateData }: EmailTemp
 // =================================================================
 
 const EmailTemplate = () => {
-   const [emailTemplates, setEmailTemplates] = useState<EmailTemplateData[]>([
-    {
-      id: 1,
-      name: "Email Template #1",
-      subject: "Your business gets calls — but do they all turn into customers?",
-      content: "Hi there! 👋\n\nCallScout helps companies win more customers with call analytics and automated quality control.\n\nTrack the performance of every call\nDetect customer losses in real time\nTrain your team to sell better with AI-powered insights\n\nTry CallScout free for 7 days and make sure no call slips away from your business.\n\n[🚀 Try it now]",
-      createdBy: "John Lee",
-      createdOn: "09/09/2025",
-      modifiedOn: "09/09/2025",
-      status: false,
-    },
-    {
-      id: 2, name: "Email Template #2", subject: "Follow up on our conversation", content: "Hello! Just following up.", createdBy: "Brooklyn Simmons", createdOn: "08/09/2025", modifiedOn: "08/09/2025", status: true,
-    },
-    {
-      id: 3, name: "Email Template #3", subject: "Special offer for you", content: "We have a special offer just for you!", createdBy: "Devon Lane", createdOn: "07/09/2025", modifiedOn: "07/09/2025", status: false,
-    },
-  ]);
+  const { getEmailTemplates, createEmailTemplate, updateEmailTemplate, deleteEmailTemplate, loading } = useEmailTemplate();
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplateData[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [templateToEdit, setTemplateToEdit] = useState<EmailTemplateData | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [, setTemplateToDeleteId] = useState<number | null>(null);
+  const [templateToDeleteId, setTemplateToDeleteId] = useState<string | null>(null);
 
   const location = useLocation();
   const showSignature = location.pathname === "/admin/library";
 
-  const handleToggleStatus = (id: number) => {
-    setEmailTemplates(prev =>
-      prev.map(t => t.id === id ? { ...t, status: !t.status } : t)
-    );
+  const fetchTemplates = async () => {
+    const data = await getEmailTemplates();
+    setEmailTemplates(data);
   };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const handleSaveTemplate = async (data: { templateName: string; subject: string; content: string }) => {
+    if (templateToEdit) {
+      const updated = await updateEmailTemplate(templateToEdit.id, data);
+      if (updated) {
+        toast.success("Template updated successfully");
+        setIsEditModalOpen(false);
+        fetchTemplates();
+      }
+    } else {
+      const created = await createEmailTemplate(data);
+      if (created) {
+        toast.success("Template created successfully");
+        setIsEditModalOpen(false);
+        fetchTemplates();
+      }
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (templateToDeleteId) {
+      const success = await deleteEmailTemplate(templateToDeleteId);
+      if (success) {
+        toast.success("Template deleted successfully");
+        setIsDeleteModalOpen(false);
+        fetchTemplates();
+      }
+    }
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+    const updated = await updateEmailTemplate(id, { status: !currentStatus });
+    if (updated) {
+      setEmailTemplates(prev =>
+        prev.map(t => t.id === id ? { ...t, status: updated.status } : t)
+      );
+      toast.success(`Template ${updated.status ? 'activated' : 'deactivated'}`);
+    } else {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const filteredTemplates = emailTemplates.filter(t =>
+    t.templateName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div>
       {/* SEARCH + ADD BUTTON */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
         <div className="relative w-full sm:w-[40%] py-[12px] px-[24px] border-[1.5px] border-[#D8DCE1] bg-white rounded-[1000000px]">
-          <input placeholder="Search by email template name"
-            className="w-full text-[#495057] text-sm outline-none" />
+          <input
+            placeholder="Search by email template name"
+            className="w-full text-[#495057] text-sm outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <HiOutlineSearch className="absolute right-5 top-1/2 -translate-y-1/2 text-[#495057]" />
         </div>
 
@@ -177,32 +216,32 @@ const EmailTemplate = () => {
 
       {/* SCRIPT STYLE CARDS */}
       <div className="space-y-4">
-        {emailTemplates.map(template => (
+        {filteredTemplates.length > 0 ? filteredTemplates.map(template => (
           <div
             key={template.id}
             className="bg-white p-[16px] rounded-[16px] shadow-sm border border-[#EBEDF0] grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto] gap-x-4 gap-y-3 items-center">
 
             {/* NAME */}
             <div className="font-[500] text-[14px] text-[#0E1011] col-span-2 lg:col-span-1">
-              {template.name}
+              {template.templateName}
             </div>
 
             {/* CREATED BY */}
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500">Created by</span>
-              <span className="text-sm font-medium">{template.createdBy}</span>
+              <span className="text-sm font-medium">{template.library?.user?.fullName || "System"}</span>
             </div>
 
             {/* CREATED ON */}
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500">Created on</span>
-              <span className="text-sm font-medium">{template.createdOn}</span>
+              <span className="text-sm font-medium">{new Date(template.createdAt).toLocaleDateString()}</span>
             </div>
 
             {/* MODIFIED */}
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500">Modified on</span>
-              <span className="text-sm font-medium">{template.modifiedOn}</span>
+              <span className="text-sm font-medium">{new Date(template.updatedAt).toLocaleDateString()}</span>
             </div>
 
             {/* STATUS */}
@@ -215,7 +254,7 @@ const EmailTemplate = () => {
                     type="checkbox"
                     className="sr-only"
                     checked={template.status}
-                    onChange={() => handleToggleStatus(template.id)}
+                    onChange={() => handleToggleStatus(template.id, !!template.status)}
                   />
                   <div className={`block w-[48px] h-[24px] rounded-full transition-colors ${template.status ? "bg-black" : "bg-gray-300"}`}></div>
                   <div className={`dot absolute left-0.5 top-0.5 bg-white w-[20px] h-[20px] rounded-full transition-transform ${template.status ? "translate-x-6" : ""}`}></div>
@@ -232,7 +271,7 @@ const EmailTemplate = () => {
               </button>
 
               {openMenuId === template.id && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border shadow-xl rounded-lg">
+                <div className="absolute right-0 mt-2 w-32 bg-white border shadow-xl rounded-lg z-[100]">
                   <button onClick={() => {
                     setTemplateToEdit(template);
                     setIsEditModalOpen(true);
@@ -255,7 +294,11 @@ const EmailTemplate = () => {
               )}
             </div>
           </div>
-        ))}
+        )) : (
+          !loading && <div className="text-center py-10 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">No email templates found.</div>
+        )}
+
+        {loading && <div className="text-center py-4">Loading templates...</div>}
 
         {showSignature && <Signature />}
       </div>
@@ -264,14 +307,16 @@ const EmailTemplate = () => {
       <EmailTemplateModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onSave={() => {}}
+        onSave={handleSaveTemplate}
         templateData={templateToEdit}
+        loading={loading}
       />
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => {}}
+        onConfirm={handleDeleteConfirm}
+        loading={loading}
       />
     </div>
   );
