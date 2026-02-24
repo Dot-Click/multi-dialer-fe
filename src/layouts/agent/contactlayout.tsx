@@ -11,7 +11,10 @@ const ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeItem, setActiveItem] = useState("allContacts");
+  const [activeItem, setActiveItem] = useState<{ type: string; id?: string; name: string }>({
+    type: "allContacts",
+    name: "All Contacts"
+  });
 
   // ✅ Handle responsive behavior
   useEffect(() => {

@@ -21,14 +21,33 @@ const MediaCenter = () => {
     fetchMedia();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this recording?")) {
-      const success = await deleteMediaCenterItem(id);
-      if (success) {
-        toast.success("Recording deleted successfully");
-        fetchMedia();
-      }
-    }
+  const handleDelete = (id: string) => {
+    toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Are you sure you want to delete this recording?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              const success = await deleteMediaCenterItem(id);
+              if (success) {
+                toast.success("Recording deleted successfully");
+                fetchMedia();
+              }
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
     setOpenMenuId(null);
   };
 

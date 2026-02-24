@@ -197,6 +197,7 @@ const SourceSelectField: React.FC<SourceSelectFieldProps> = ({ value, onChange }
 
 import { useNavigate } from 'react-router-dom';
 import { createContact } from '@/store/slices/contactSlice';
+import toast from 'react-hot-toast';
 
 interface AdminCreateContactComponentProps {
   onSaveRef?: React.MutableRefObject<(() => void) | null>;
@@ -228,7 +229,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
   /* SAVING LOGIC */
   const handleSaveContact = async () => {
     if (!formData.fullName) {
-      alert("Please enter a full name");
+      toast.error("Please enter a full name");
       return;
     }
 
@@ -246,7 +247,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
 
     const res = await dispatch(createContact(payload));
     if (createContact.fulfilled.match(res)) {
-      alert("Contact created successfully!");
+      toast.success("Contact created successfully!");
       navigate('/admin/data-dialer');
     }
   };
@@ -318,21 +319,78 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
 
   /* DELETION HANDLERS */
   const handleDeleteFolder = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete folder "${name}"?`)) {
-      dispatch(deleteFolder(id));
-    }
+    toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Are you sure you want to delete folder <b className="text-gray-900">"{name}"</b>?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              dispatch(deleteFolder(id));
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
   };
 
   const handleDeleteList = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete list "${name}"?`)) {
-      dispatch(deleteList(id));
-    }
+    toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Are you sure you want to delete list <b className="text-gray-900">"{name}"</b>?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              dispatch(deleteList(id));
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
   };
 
   const handleDeleteGroup = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete group "${name}"?`)) {
-      dispatch(deleteGroup(id));
-    }
+    toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Are you sure you want to delete group <b className="text-gray-900">"{name}"</b>?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              dispatch(deleteGroup(id));
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
   };
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -525,13 +583,14 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenMenuId(openMenuId === folder.id ? null : folder.id);
+                            const menuKey = `folder-${folder.id}`;
+                            setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                           }}
                           className="p-1 hover:bg-gray-200 rounded-full transition-colors"
                         >
                           <FiMoreHorizontal className="text-[#9AA0A6]" />
                         </button>
-                        {openMenuId === folder.id && (
+                        {openMenuId === `folder-${folder.id}` && (
                           <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
                             <button
                               onClick={(e) => {
@@ -574,13 +633,14 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setOpenMenuId(openMenuId === list.id ? null : list.id);
+                                  const menuKey = `list-${folder.id}-${list.id}`;
+                                  setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                                 }}
                                 className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
                               >
                                 <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
                               </button>
-                              {openMenuId === list.id && (
+                              {openMenuId === `list-${folder.id}-${list.id}` && (
                                 <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
                                   <button
                                     onClick={(e) => {
@@ -634,13 +694,14 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setOpenMenuId(openMenuId === group.id ? null : group.id);
+                        const menuKey = `group-${group.id}`;
+                        setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                       }}
                       className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
                     </button>
-                    {openMenuId === group.id && (
+                    {openMenuId === `group-${group.id}` && (
                       <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
                         <button
                           onClick={(e) => {

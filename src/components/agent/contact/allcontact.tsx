@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
@@ -7,48 +7,29 @@ import { TableProvider } from "@/providers/table.provider";
 import { checkBoxProps } from "@/components/common/tablecomponent";
 import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
-import { useContact, type ContactBackend } from "@/hooks/useContact";
-import dayjs from "dayjs";
-
-export interface Contact {
-  id: string;
-  name: string;
-  lastDialedDate: string;
-  phone: string;
-  email: string;
-  list: string;
-  tags: string;
-}
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchContacts, fetchContactsByList, type Contact } from "@/store/slices/contactSlice";
 
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
+  listId?: string;
 }
 
-const AllContact = ({ onSelectionChange }: AllContactProps) => {
+const AllContact = ({ onSelectionChange, listId }: AllContactProps) => {
   const location = useLocation();
-  const { getContacts, loading } = useContact();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      const data: ContactBackend[] = await getContacts();
-      const mappedContacts: Contact[] = data.map((c) => ({
-        id: c.id,
-        name: c.fullName,
-        lastDialedDate: dayjs(c.updatedAt).format("MM/DD/YYYY"),
-        phone: c.phones.find(p => p.type === 'MOBILE')?.number || c.phones[0]?.number || "-",
-        email: c.emails.find(e => e.isPrimary)?.email || c.emails[0]?.email || "-",
-        list: "-", // We might need to fetch list name separately or populate it in backend
-        tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
-      }));
-      setContacts(mappedContacts);
-    };
-
-    fetchContacts();
-  }, []);
+  const dispatch = useAppDispatch();
+  const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
 
   const isAdmin = location.pathname.startsWith("/admin");
   const linkPath = isAdmin ? "/admin/contact-detail" : "/contact-detail";
+
+  useEffect(() => {
+    if (listId) {
+      dispatch(fetchContactsByList(listId));
+    } else {
+      dispatch(fetchContacts());
+    }
+  }, [dispatch, listId]);
 
   const columns = [
     {
@@ -139,7 +120,7 @@ const AllContact = ({ onSelectionChange }: AllContactProps) => {
     return null;
   };
 
-  if (loading && contacts.length === 0) {
+  if (isLoading && contacts.length === 0) {
     return (
       <Box className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>
@@ -150,14 +131,24 @@ const AllContact = ({ onSelectionChange }: AllContactProps) => {
   return (
     <Box className="mt-3 m-2 w-full h-full">
       <main>
-        <TableProvider data={contacts} columns={columns}>
-          {({ selectedRows }) => (
-            <>
-              <SelectionHandler selectedRows={selectedRows} />
-              <TableComponent />
-            </>
-          )}
-        </TableProvider>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full min-h-[400px]">
+            <span className="text-gray-500">Loading contacts...</span>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full min-h-[400px]">
+            <span className="text-red-500">{error}</span>
+          </div>
+        ) : (
+          <TableProvider data={contacts} columns={columns}>
+            {({ selectedRows }) => (
+              <>
+                <SelectionHandler selectedRows={selectedRows} />
+                <TableComponent />
+              </>
+            )}
+          </TableProvider>
+        )}
       </main>
     </Box>
   );

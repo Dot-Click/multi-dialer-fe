@@ -9,9 +9,8 @@ import callIcon from "../../assets/callsicon.png"
 import managecolicon from "../../assets/managecolicon.png"
 
 
-// ✅ Define type for the Outlet context
 type OutletContextType = {
-  activeItem: string;
+  activeItem: { type: string; id?: string; name: string };
 };
 
 const AllContact = () => {
@@ -24,24 +23,23 @@ const AllContact = () => {
   const { activeItem } = useOutletContext<OutletContextType>();
 
   const getBreadcrumb = () => {
-    if (activeItem === "allContacts") return "";
-    if (activeItem.startsWith("List")) {
-      if (["List 01", "List 02"].includes(activeItem))
-        return "Folder 1 · " + activeItem;
-      return "Folder 2 · " + activeItem;
+    if (activeItem.type === "allContacts") return "";
+    if (activeItem.type === "list") {
+      // Find parent folder for better breadcrumb if needed
+      return "Calling Lists · " + activeItem.name;
     }
-    if (activeItem.startsWith("group")) {
-      return "Groups · " + activeItem;
+    if (activeItem.type === "group") {
+      return "Groups · " + activeItem.name;
     }
-    if (activeItem.startsWith("Folder")) {
-      return activeItem;
+    if (activeItem.type === "folder") {
+      return "Calling Lists · " + activeItem.name;
     }
     return "";
   };
 
   const renderHeading = () => {
-    if (activeItem === "allContacts") return "Data & Dialer";
-    return activeItem;
+    if (activeItem.type === "allContacts") return "Data & Dialer";
+    return activeItem.name;
   };
 
   return (
@@ -117,7 +115,10 @@ const AllContact = () => {
 
       {/* 🔹 Table / Contact List */}
       <div className="flex-1 ml-0 sm:-ml-10 mt-2">
-        <AllContactComponent onSelectionChange={setSelectedContacts} />
+        <AllContactComponent 
+          onSelectionChange={setSelectedContacts} 
+          listId={activeItem.type === 'list' ? activeItem.id : undefined}
+        />
       </div>
 
       {/* 🔹 Modals */}

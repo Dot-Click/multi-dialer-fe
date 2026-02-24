@@ -1,13 +1,8 @@
 import axios from 'axios';
 
-// const VITE_API_BASE_URL = "http://localhost:3000/api"
-// const VITE_API_BASE_URL = "https://multi-dialer-be-production.up.railway.app/api"
-
+const env = import.meta.env.VITE_NODE_ENV
 const api = axios.create({
-    // production url 
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    // development url
-    // baseURL: VITE_API_BASE_URL,
+    baseURL: env === "production" ? import.meta.env.VITE_API_BASE_URL : "http://localhost:3000/api",
     headers: {
         'Content-Type': 'application/json',
     },

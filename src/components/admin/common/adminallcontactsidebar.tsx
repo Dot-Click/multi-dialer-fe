@@ -7,7 +7,7 @@ import usericon from "../../../assets/admin/usericons.png";
 import { useContact, type ContactList, type ContactFolder, type ContactGroup } from "@/hooks/useContact";
 
 interface AllContactSidebarProps {
-  onSelectItem: (item: string) => void;
+  onSelectItem: (selection: { type: string; id?: string; name: string }) => void;
 }
 
 interface FolderWithLists extends ContactFolder {
@@ -16,6 +16,7 @@ interface FolderWithLists extends ContactFolder {
 
 const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -34,7 +35,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
   }
 
   useEffect(() => {
-    onSelectItem("allContacts");
+    onSelectItem({ type: "allContacts", name: "All Contacts" });
 
     const fetchData = async () => {
       const [allLists, allFolders, allGroups] = await Promise.all([
@@ -60,9 +61,22 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
     fetchData();
   }, []);
 
-  const handleClick = (item: string) => {
-    setActiveItem(item);
-    onSelectItem(item);
+  const handleClick = (type: string, name: string, id?: string) => {
+    const itemKey = id ? `${type}-${id}` : type;
+    setActiveItem(itemKey);
+    onSelectItem({ type, id, name });
+  };
+
+  const toggleFolder = (id: string) => {
+    setExpandedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   // ✅ Handle File Select
@@ -94,7 +108,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
 
       {/* All Contacts */}
       <div
-        onClick={() => handleClick("allContacts")}
+        onClick={() => handleClick("allContacts", "All Contacts")}
         className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition 
           ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
       >
@@ -111,39 +125,41 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
           {folders.map((folder) => (
             <div key={folder.id} className="flex flex-col gap-1.5">
               <div
-                onClick={() => handleClick(folder.name)}
+                onClick={() => toggleFolder(folder.id)}
                 className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                  ${activeItem === folder.name ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
+                  bg-gray-50 hover:bg-[#FFCA06]`}
               >
                 <VscFolderOpened className="text-lg" />
                 <h1 className="text-[#495057] font-medium text-[14px] truncate">{folder.name}</h1>
               </div>
 
-              <div className="flex gap-2 flex-col pl-4">
-                {folder.nestedLists.map((list) => (
-                  <div
-                    key={list.id}
-                    onClick={() => handleClick(list.name)}
-                    className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                    ${activeItem === list.name ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-                  >
-                    <h1 className="text-[#495057] font-medium text-[14px] truncate">{list.name}</h1>
-                    <h1 className="border border-gray-200 rounded-full text-[10px] px-1.5 py-1 uppercase">{list.name.slice(0, 2)}</h1>
-                  </div>
-                ))}
-              </div>
+              {expandedFolders.has(folder.id) && (
+                <div className="flex gap-2 flex-col">
+                  {folder.nestedLists.map((list) => (
+                    <div
+                      key={list.id}
+                      onClick={() => handleClick("list", list.name, list.id)}
+                      className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+                      ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+                    >
+                      <h1 className="text-[#495057] font-medium text-[14px] truncate">{list.name}</h1>
+                      <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">{list.name.slice(0, 2)}</h1>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 
           {standaloneLists.map((list) => (
             <div
               key={list.id}
-              onClick={() => handleClick(list.name)}
-              className={`text-[#495057] flex justify-between items-center px-2 py-2 rounded-xl cursor-pointer transition
-                ${activeItem === list.name ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
+              onClick={() => handleClick("list", list.name, list.id)}
+              className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+                ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
             >
               <h1 className="text-[#495057] font-medium text-[14px] truncate">{list.name}</h1>
-              <h1 className="border border-gray-200 rounded-full text-[10px] px-1.5 py-1 uppercase">{list.name.slice(0, 2)}</h1>
+              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">{list.name.slice(0, 2)}</h1>
             </div>
           ))}
 
@@ -162,9 +178,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
           {groups.map((gro) => (
             <div
               key={gro.id}
-              onClick={() => handleClick(gro.name)}
+              onClick={() => handleClick("group", gro.name, gro.id)}
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${activeItem === gro.name ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
+                ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
             >
               <h1 className="text-[#495057] font-medium text-[14px] truncate">{gro.name}</h1>
             </div>

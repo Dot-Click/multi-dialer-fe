@@ -71,6 +71,29 @@ export const fetchContacts = createAsyncThunk(
   }
 );
 
+export const fetchContactsByList = createAsyncThunk(
+  'contacts/fetchContactsByList',
+  async (listId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/contact/contacts-list/${listId}`);
+      if (response.data.success) {
+        return response.data.data.map((c: any) => ({
+          id: c.id,
+          name: c.fullName || "-",
+          lastDialedDate: "-",
+          phone: c.phones?.[0]?.number || "-",
+          email: c.emails?.[0]?.email || "-",
+          list: c.source || "-",
+          tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+        }));
+      }
+      return rejectWithValue('Failed to fetch contacts for this list');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error fetching contacts for this list');
+    }
+  }
+);
+
 export const createContact = createAsyncThunk(
   'contacts/createContact',
   async (payload: CreateContactPayload, { rejectWithValue }) => {
@@ -110,6 +133,18 @@ export const contactSlice = createSlice({
         state.contacts = action.payload;
       })
       .addCase(fetchContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchContactsByList.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchContactsByList.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.contacts = action.payload;
+      })
+      .addCase(fetchContactsByList.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
