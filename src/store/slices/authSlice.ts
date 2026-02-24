@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../lib/axios';
 
-export type UserRole = 'ADMIN' | 'AGENT' | 'OWNER' ;
+export type UserRole = 'ADMIN' | 'AGENT' | 'OWNER' | 'SUPER_ADMIN';
 
 export interface LoginPayload {
     email: string;
