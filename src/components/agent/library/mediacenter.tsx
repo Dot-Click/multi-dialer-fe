@@ -1,17 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HiOutlineSearch, HiPlus } from "react-icons/hi";
 import { BsThreeDots } from "react-icons/bs";
 import UploadRecordingModal from "@/components/modal/uploadrecordingmodal";
+import { useMediaCenter, type MediaCenterItem } from "@/hooks/useMediaCenter";
+import { toast } from "react-hot-toast";
 
 const MediaCenter = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { getMediaCenterItems, deleteMediaCenterItem, loading } = useMediaCenter();
+  const [media, setMedia] = useState<MediaCenterItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const [media] = useState([
-    { id: 1, name: "Template #1", createdBy: "John Lee", createdOn: "09/09/2025", recordType: "Voice Mail", status: true },
-    { id: 2, name: "Template #2", createdBy: "Brooklyn Simmons", createdOn: "08/09/2025", recordType: "On Hold", status: true },
-    { id: 3, name: "Template #3", createdBy: "Devon Lane", createdOn: "07/09/2025", recordType: "Callback Message", status: false },
-    { id: 4, name: "Template #4", createdBy: "Devon Lane", createdOn: "07/09/2025", recordType: "Email Video", status: false },
-  ]);
+  const fetchMedia = async () => {
+    const data = await getMediaCenterItems();
+    setMedia(data);
+  };
+
+  useEffect(() => {
+    fetchMedia();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this recording?")) {
+      const success = await deleteMediaCenterItem(id);
+      if (success) {
+        toast.success("Recording deleted successfully");
+        fetchMedia();
+      }
+    }
+    setOpenMenuId(null);
+  };
+
+  const filteredMedia = media.filter(item =>
+    item.templateName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -20,14 +43,20 @@ const MediaCenter = () => {
     <div className="">
       {/* Search + Add button */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
-       <div className="relative w-full sm:w-[40%]">
-          <input type="text" placeholder="Search by template name" className="w-full sm:w- pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+        <div className="relative w-full sm:w-[40%]">
+          <input
+            type="text"
+            placeholder="Search by template name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          />
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
         <button
           onClick={openModal}
-          className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center"
+          className="bg-yellow-400 text-sm hover:bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
         >
           <HiPlus className="h-5 w-5 mr-2" />
           Add Template
@@ -36,46 +65,73 @@ const MediaCenter = () => {
 
       {/* Media Cards */}
       <div className="space-y-4">
-        {media.map((med) => (
-          <div
-            key={med.id}
-            className="bg-white p-4 rounded-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition hover:shadow-md"
-          >
-            {/* Template Name */}
-            <div className="font-medium text-base text-gray-900 w-full lg:w-1/4">
-              {med.name}
+        {loading && media.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">Loading recordings...</div>
+        ) : filteredMedia.length > 0 ? (
+          filteredMedia.map((med) => (
+            <div
+              key={med.id}
+              className="bg-white p-4 rounded-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 transition hover:shadow-md border border-gray-100"
+            >
+              <div className="font-medium text-base text-gray-900 w-full lg:w-1/4 truncate">
+                {med.templateName}
+              </div>
+
+              <div className="w-full lg:w-3/4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-700">
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Type of Recording</span>
+                  <span className="font-medium text-gray-900">{med.mediaType.replace(/_/g, " ")}</span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Created by</span>
+                  <span className="font-medium text-gray-900 truncate">
+                    {med.library?.user?.fullName || "System"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-xs">Created on</span>
+                  <span className="font-medium text-gray-900">
+                    {new Date(med.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === med.id ? null : med.id)}
+                      className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <BsThreeDots className="h-5 w-5" />
+                    </button>
+                    {openMenuId === med.id && (
+                      <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border z-20 overflow-hidden">
+                        <button
+                          onClick={() => handleDelete(med.id)}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-
-            {/* Info section */}
-            <div className="w-full lg:w-3/4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-700">
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">Type of Recording</span>
-                <span className="font-medium text-gray-900">{med.recordType}</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">Created by</span>
-                <span className="font-medium text-gray-900">{med.createdBy}</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">Created on</span>
-                <span className="font-medium text-gray-900">{med.createdOn}</span>
-              </div>
-
-              {/* Action menu */}
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <button className="text-gray-500 hover:text-gray-700">
-                  <BsThreeDots className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <div className="text-center py-10 text-gray-500">No recordings found.</div>
+        )}
       </div>
 
       {/* Modal */}
-      {isModalOpen && <UploadRecordingModal onClose={closeModal} />}
+      {isModalOpen && (
+        <UploadRecordingModal
+          onClose={closeModal}
+          onSuccess={fetchMedia}
+        />
+      )}
     </div>
   );
 };
