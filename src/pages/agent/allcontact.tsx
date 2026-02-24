@@ -49,12 +49,12 @@ const AllContact = () => {
       {/* 🔹 Breadcrumb + Heading */}
       <div className="flex flex-col">
         {getBreadcrumb() && (
-          <span className="text-sm text-[#6c757d] font-[500] mb-1">
+          <span className="text-sm text-[#6c757d] font-medium mb-1">
             {getBreadcrumb()}
           </span>
         )}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-          <h1 className="text-[24px] text-[#0E1011] sm:text-[28px] font-[500]">
+          <h1 className="text-[24px] text-[#0E1011] sm:text-[28px] font-medium">
             {renderHeading()}
           </h1>
 
@@ -65,7 +65,7 @@ const AllContact = () => {
           >
             <img src={managecolicon} className='w-[20px] h-[16px] object-contain' alt="managecolicon" />
 
-            <span className="text-[16px] font-[500] text-[#495057] inline">
+            <span className="text-[16px] font-medium text-[#495057] inline">
               Manage Columns
             </span>
           </div>
@@ -80,44 +80,43 @@ const AllContact = () => {
             <input
               type="search"
               placeholder="Search by name, email, phone number..."
-              className="w-full placeholder:text-[16px] font-[400] text-[#495057] text-[16px] outline-none"
+              className="w-full placeholder:text-[16px] font-normal text-[#495057] text-[16px] outline-none"
             />
             <IoIosSearch className="text-2xl text-gray-600" />
           </div>
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="bg-[#2B3034] text-xl text-white p-2 rounded-full flex-shrink-0"
+            className="bg-[#2B3034] text-xl text-white p-2 rounded-full shrink-0"
           >
             <IoFilter />
           </button>
         </div>
 
         {/* Dial Button */}
-        <button 
+        <button
           onClick={() => {
             if (selectedContacts.length > 0) {
               // Navigate to contact-info with the first selected contact
               navigate("/contact-info", {
-                state: { contact: selectedContacts[0] } 
+                state: { contact: selectedContacts[0] }
               });
             }
           }}
           disabled={selectedContacts.length === 0}
-          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-[24px] pl-[20px] py-[8px] text-sm sm:text-base font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${
-            selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-[24px] pl-[20px] py-[8px] text-sm sm:text-base font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           <img src={callIcon} className='w-[15.300321578979492px] h-[20.095260620117188px] object-contain' alt="callIcon" />
 
-          <span className="text-[#000000] font-[500] text-[16px]">
+          <span className="text-[#000000] font-medium text-[16px]">
             Dial Selected ({selectedContacts.length})
           </span>
         </button>
       </div>
 
       {/* 🔹 Table / Contact List */}
-      <div className="flex-1 -ml-0 sm:-ml-10 mt-2">
+      <div className="flex-1 ml-0 sm:-ml-10 mt-2">
         <AllContactComponent onSelectionChange={setSelectedContacts} />
       </div>
 

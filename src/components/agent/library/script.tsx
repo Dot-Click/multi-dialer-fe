@@ -194,108 +194,106 @@ const Script = () => {
       {/* Script cards */}
       <div className="space-y-4">
         {scripts.map((script) => (
-         <div
-    key={script.id}
-    className="bg-white p-[16px] rounded-[16px] shadow-sm border border-[#EBEDF0] grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto] items-center gap-x-4 gap-y-3 transition-all"
->
-    {/* Script Name */}
-    <div className="font-[500] text-[14px] text-[#0E1011] col-span-2 lg:col-span-1">
-        {script.name}
-    </div>
+          <div
+            key={script.id}
+            className="bg-white p-[16px] rounded-[16px] shadow-sm border border-[#EBEDF0] grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto] items-center gap-x-4 gap-y-3 transition-all"
+          >
+            {/* Script Name */}
+            <div className="font-[500] text-[14px] text-[#0E1011] col-span-2 lg:col-span-1">
+              {script.name}
+            </div>
 
-    {/* Created By */}
-    <div className="flex flex-col gap-1.5">
-        <span className="text-[#495057] text-[12px] font-[400]">
-            Created by
-        </span>
-        <span className="font-[500] text-[#2B3034] text-[14px] truncate">
-            {script.createdBy}
-        </span>
-    </div>
+            {/* Created By */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[#495057] text-[12px] font-[400]">
+                Created by
+              </span>
+              <span className="font-[500] text-[#2B3034] text-[14px] truncate">
+                {script.createdBy}
+              </span>
+            </div>
 
-    {/* Created On */}
-    <div className="flex flex-col gap-1.5">
-        <span className="text-[#495057] text-[12px] font-[400]">
-            Created on
-        </span>
-        <span className="font-[500] text-[#2B3034] text-[14px]">
-            {script.createdOn}
-        </span>
-    </div>
+            {/* Created On */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[#495057] text-[12px] font-[400]">
+                Created on
+              </span>
+              <span className="font-[500] text-[#2B3034] text-[14px]">
+                {script.createdOn}
+              </span>
+            </div>
 
-    {/* Modified On */}
-    <div className="flex flex-col gap-1.5">
-        <span className="text-[#495057] text-[12px] font-[400]">
-            Modified on
-        </span>
-        <span className="font-[500] text-[#2B3034] text-[14px]">
-            {script.modifiedOn}
-        </span>
-    </div>
+            {/* Modified On */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[#495057] text-[12px] font-[400]">
+                Modified on
+              </span>
+              <span className="font-[500] text-[#2B3034] text-[14px]">
+                {script.modifiedOn}
+              </span>
+            </div>
 
-    {/* STATUS COLUMN */}
-    <div className="flex flex-col gap-1.5 mr-20">
-        <span className="text-[#495057] text-[12px] font-[400]">
-            Status
-        </span>
-        <div className="flex items-center">
-            {/* Toggle */}
-            <label
-                htmlFor={`toggle-${script.id}`}
-                className="flex items-center cursor-pointer select-none"
-            >
-                <div className="relative">
+            {/* STATUS COLUMN */}
+            <div className="flex flex-col gap-1.5 mr-20">
+              <span className="text-[#495057] text-[12px] font-[400]">
+                Status
+              </span>
+              <div className="flex items-center">
+                {/* Toggle */}
+                <label
+                  htmlFor={`toggle-${script.id}`}
+                  className="flex items-center cursor-pointer select-none"
+                >
+                  <div className="relative">
                     <input
-                        type="checkbox"
-                        id={`toggle-${script.id}`}
-                        className="sr-only"
-                        checked={script.status}
-                        onChange={() => handleToggleStatus(script.id)}
+                      type="checkbox"
+                      id={`toggle-${script.id}`}
+                      className="sr-only"
+                      checked={script.status}
+                      onChange={() => handleToggleStatus(script.id)}
                     />
                     <div
-                        className={`block w-[48px] h-[24px] rounded-[25.95px] transition-colors duration-300 ${
-                            script.status ? "bg-black" : "bg-gray-300"
+                      className={`block w-[48px] h-[24px] rounded-[25.95px] transition-colors duration-300 ${script.status ? "bg-black" : "bg-gray-300"
                         }`}
                     ></div>
                     <div
-                        className={`dot absolute left-0.5 top-0.5 bg-white w-[20px] h-[20px] rounded-[25.95px] transition-transform duration-300 ${
-                            script.status ? "translate-x-6" : ""
+                      className={`dot absolute left-0.5 top-0.5 bg-white w-[20px] h-[20px] rounded-[25.95px] transition-transform duration-300 ${script.status ? "translate-x-6" : ""
                         }`}
                     ></div>
-                </div>
-            </label>
-        </div>
-    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
 
-    {/* THREE DOTS - ALWAYS AT THE END */}
-    <div className="relative justify-self-end">
-        <button
-            onClick={() =>
-                setOpenMenuId(openMenuId === script.id ? null : script.id)
-            }
-            className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
-        >
-            <BsThreeDots className="h-5 w-5" />
-        </button>
+            {/* THREE DOTS - ALWAYS AT THE END */}
+            <div className="relative justify-self-end">
+              <button
+                onClick={() =>
+                  setOpenMenuId(openMenuId === script.id ? null : script.id)
+                }
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+              >
+                <BsThreeDots className="h-5 w-5" />
+              </button>
 
-        {openMenuId === script.id && (
-            <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl z-10 border">
-                <button
+              {openMenuId === script.id && (
+                <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl z-10 border">
+                  <button
                     onClick={() => handleEditClick(script)}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
+                  >
                     Edit
-                </button>
-                <button
+                  </button>
+                  <button
                     onClick={() => openDeleteModal(script.id)}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                >
+                  >
                     Delete
-                </button>
+                  </button>
+                </div>
+              )}
             </div>
-        )}
-    </div>
-</div>
+          </div>
 
         ))}
       </div>

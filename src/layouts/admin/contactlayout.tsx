@@ -174,12 +174,11 @@ const ContactLayout = () => {
       {(!isMobile || isOpen) && (
         <div
           className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
-            ${
-              isMobile
-                ? isOpen
-                  ? "translate-x-0"
-                  : "-translate-x-full"
-                : "translate-x-0"
+            ${isMobile
+              ? isOpen
+                ? "translate-x-0"
+                : "-translate-x-full"
+              : "translate-x-0"
             }
           `}
         >

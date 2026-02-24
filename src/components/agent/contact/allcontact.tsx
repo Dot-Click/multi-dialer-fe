@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
@@ -7,9 +7,11 @@ import { TableProvider } from "@/providers/table.provider";
 import { checkBoxProps } from "@/components/common/tablecomponent";
 import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
+import { useContact, type ContactBackend } from "@/hooks/useContact";
+import dayjs from "dayjs";
 
-interface Contact {
-  id: number;
+export interface Contact {
+  id: string;
   name: string;
   lastDialedDate: string;
   phone: string;
@@ -18,25 +20,32 @@ interface Contact {
   tags: string;
 }
 
-const contacts: Contact[] = [
-  { id: 1, name: "Kathryn Murphy", lastDialedDate: "09/09/2025", phone: "(252) 555-0126", email: "michael.mitc@example.com", list: "High-Value Leads", tags: "Interested" },
-  { id: 2, name: "Robert Fox", lastDialedDate: "09/09/2025", phone: "(405) 555-0128", email: "bill.sanders@example.com", list: "-", tags: "Follow-Up" },
-  { id: 3, name: "Annette Black", lastDialedDate: "09/09/2025", phone: "(864) 555-0102", email: "willie.jennings@example.com", list: "Renewals Q3", tags: "-" },
-  { id: 4, name: "Marvin McKinney", lastDialedDate: "09/09/2025", phone: "(702) 555-0122", email: "alma.lawson@example.com", list: "Dormant Accounts", tags: "Follow-Up, Interested" },
-  { id: 5, name: "Ralph Edwards", lastDialedDate: "09/09/2025", phone: "(808) 555-0111", email: "tanya.hill@example.com", list: "-", tags: "-" },
-  { id: 6, name: "Dianne Russell", lastDialedDate: "09/09/2025", phone: "(603) 555-0123", email: "debra.holt@example.com", list: "Renewals Q3", tags: "-" },
-  { id: 7, name: "Guy Hawkins", lastDialedDate: "09/09/2025", phone: "(219) 555-0114", email: "felicia.reid@example.com", list: "-", tags: "Not Interested" },
-  { id: 8, name: "Devon Lane", lastDialedDate: "09/09/2025", phone: "(229) 555-0109", email: "sara.cruz@example.com", list: "High-Value Leads", tags: "DNC" },
-  { id: 9, name: "Bessie Cooper", lastDialedDate: "09/09/2025", phone: "(205) 5550100", email: "nathan.roberts@example.com", list: "Renewals Q3", tags: "Follow-Up" },
-  { id: 10, name: "Jerome Bell", lastDialedDate: "09/09/2025", phone: "(319) 555-0115", email: "kenzi.lawson@example.com", list: "Dormant Accounts", tags: "-" },
-];
-
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
 }
 
 const AllContact = ({ onSelectionChange }: AllContactProps) => {
   const location = useLocation();
+  const { getContacts, loading } = useContact();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const data: ContactBackend[] = await getContacts();
+      const mappedContacts: Contact[] = data.map((c) => ({
+        id: c.id,
+        name: c.fullName,
+        lastDialedDate: dayjs(c.updatedAt).format("MM/DD/YYYY"),
+        phone: c.phones.find(p => p.type === 'MOBILE')?.number || c.phones[0]?.number || "-",
+        email: c.emails.find(e => e.isPrimary)?.email || c.emails[0]?.email || "-",
+        list: "-", // We might need to fetch list name separately or populate it in backend
+        tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+      }));
+      setContacts(mappedContacts);
+    };
+
+    fetchContacts();
+  }, []);
 
   const isAdmin = location.pathname.startsWith("/admin");
   const linkPath = isAdmin ? "/admin/contact-detail" : "/contact-detail";
@@ -111,7 +120,7 @@ const AllContact = ({ onSelectionChange }: AllContactProps) => {
                   {tag.trim()}
                 </Badge>
               ) : (
-                <span>-</span>
+                <span key={index}>-</span>
               )
             )}
           </div>
@@ -129,6 +138,14 @@ const AllContact = ({ onSelectionChange }: AllContactProps) => {
     }, [selectedRows, onSelectionChange]);
     return null;
   };
+
+  if (loading && contacts.length === 0) {
+    return (
+      <Box className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>
+      </Box>
+    );
+  }
 
   return (
     <Box className="mt-3 m-2 w-full h-full">

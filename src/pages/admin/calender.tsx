@@ -73,7 +73,7 @@
 //     setSelectedDate(value);
 //     setOptionsModalOpen(true);
 //   };
-  
+
 //   const handleShowAddEventForm = () => {
 //     setOptionsModalOpen(false);
 //     setAddEventModalOpen(true);
@@ -237,7 +237,7 @@
 // //       {/* Header */}
 // //       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
 // //         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-// //           <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">{currentDate.format("MMMM YYYY")}</h2>
+// //           <h2 className="text-base sm:text-[28px] font-medium text-[#0E1011]">{currentDate.format("MMMM YYYY")}</h2>
 // //           <div className="flex gap-2">
 // //             <button className="p-1 border text-[#71717A] border-[#D8DCE1] rounded-[8px] bg-[#FFFFFF]" onClick={prevMonth}>
 // //               <IoIosArrowBack />
@@ -249,7 +249,7 @@
 // //         </div>
 // //         <button className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center">
 // //          <span className="text-[#2B3034]"><IoFilterOutline /></span>
-// //          <span className="text-[#27272A] font-[500] text-[16px]">Filter</span>
+// //          <span className="text-[#27272A] font-medium text-[16px]">Filter</span>
 
 // //         </button>
 // //       </div>
@@ -420,7 +420,7 @@
 //       {/* Header */}
 //       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
 //         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-//           <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">{currentDate.format("MMMM YYYY")}</h2>
+//           <h2 className="text-base sm:text-[28px] font-medium text-[#0E1011]">{currentDate.format("MMMM YYYY")}</h2>
 //           <div className="flex gap-2">
 //             <button className="p-1 border text-[#71717A] border-[#D8DCE1] rounded-[8px] bg-[#FFFFFF]" onClick={prevMonth}>
 //               <IoIosArrowBack />
@@ -432,7 +432,7 @@
 //         </div>
 //         <button className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center">
 //           <span className="text-[#2B3034]"><IoFilterOutline /></span>
-//           <span className="text-[#27272A] font-[500] text-[16px]">Filter</span>
+//           <span className="text-[#27272A] font-medium text-[16px]">Filter</span>
 //         </button>
 //       </div>
 
@@ -526,7 +526,7 @@
 // export default CustomCalendar;
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, ConfigProvider, Modal } from "antd";
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
@@ -535,59 +535,31 @@ import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
+import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 
-/* --------------------------------------------------
- *  EVENT DATA  (with image + description)
- * -------------------------------------------------- */
-const events: Record<string, {
-  color: string;
-  title: string;
-  time: string;
-  description?: string;
-  image?: string;
-  assignee?: string;
-}[]> = {
-  "2025-11-01": [
-    {
-      color: "#FCA5A5",
-      title: "Home Close Date",
-      time: "10:10 - 10:25",
-      description: "Final walk-through and key handover.",
-      image: "https://i.ibb.co/3kW3PqY/home.jpg",
-      assignee: "John Lee",
-    },
-    {
-      color: "#A78BFA",
-      title: "Birthday",
-      time: "11:00 - 11:45",
-      description: "Join us for a small birthday celebration at the office.",
-      image: "https://i.ibb.co/3kW3PqY/birthday.jpg",
-      assignee: "John Lee",
-    },
-  ],
-  "2025-11-03": [
-    {
-      color: "#60A5FA",
-      title: "Task",
-      time: "10:10 - 10:25",
-      description: "Complete the Q4 report.",
-      image: "https://i.ibb.co/3kW3PqY/task.jpg",
-      assignee: "John Lee",
-    },
-  ],
-};
+//  --------------------------------------------------
+// import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 
-const getEventData = (date: Dayjs) => {
-  const key = date.format("YYYY-MM-DD");
-  return events[key as keyof typeof events] || [];
+const formatEventTime = (event: CalendarEvent) => {
+    const start = dayjs(event.startDate);
+    if (event.eventType === 'ALL_DAY') return "All Day";
+    if (event.eventType === 'START_ONLY') return start.format("HH:mm");
+    if (event.eventType === 'FROM_TO' && event.endDate) {
+        const end = dayjs(event.endDate);
+        return `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
+    }
+    return start.format("HH:mm");
 };
 
 /* --------------------------------------------------
  *  MAIN COMPONENT
  * -------------------------------------------------- */
 export default function CustomCalendar() {
-  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs("2025-11-01"));
+  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+
+  const { getEvents } = useCalendar();
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -604,17 +576,23 @@ export default function CustomCalendar() {
   });
 
   /* selected event for detail */
-  const [selectedEvent, setSelectedEvent] = useState<{
-    title: string;
-    time: string;
-    color: string;
-    description?: string;
-    image?: string;
-    assignee?: string;
-  } | null>(null);
-  
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
+
+  const fetchEvents = async () => {
+    const data = await getEvents();
+    setEvents(data);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const getEventDataForDate = (date: Dayjs) => {
+    return events.filter(event => dayjs(event.startDate).format("YYYY-MM-DD") === date.format("YYYY-MM-DD"));
+  };
 
   /* handlers */
   const onDateClick = (d: Dayjs) => {
@@ -624,7 +602,14 @@ export default function CustomCalendar() {
 
   const showAdd = () => {
     setOptionsOpen(false);
-    setAddOpen(true);
+    setAddOpen(true); 
+  };
+
+  const handleAddClose = (success?: boolean) => {
+    setAddOpen(false);
+    if (success) {
+      fetchEvents();
+    }
   };
 
   const showAll = () => {
@@ -632,7 +617,7 @@ export default function CustomCalendar() {
     setShowAllOpen(true);
   };
 
-  const openDetail = (ev: typeof selectedEvent, date: Dayjs) => {
+  const openDetail = (ev: CalendarEvent, date: Dayjs) => {
     setSelectedEvent(ev);
     setSelectedEventDate(date);
     setDetailOpen(true);
@@ -643,7 +628,7 @@ export default function CustomCalendar() {
 
   /* calendar cell render */
   const dateCellRender = (value: Dayjs) => {
-    const list = getEventData(value);
+    const list = getEventDataForDate(value);
     const max = 2;
     const more = list.length - max;
 
@@ -652,18 +637,18 @@ export default function CustomCalendar() {
         {list.slice(0, max).map((it, i) => (
           <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight">
             <div
-              className="w-1 rounded-full self-stretch flex-shrink-0"
+              className="w-1 rounded-full self-stretch shrink-0"
               style={{ backgroundColor: it.color }}
             />
             <div className="min-w-0 flex-1">
               <p className="font-medium text-gray-700 truncate">{it.title}</p>
-              <p className="text-gray-500 truncate">{it.time}</p>
+              <p className="text-gray-500 truncate">{formatEventTime(it)}</p>
             </div>
           </div>
         ))}
         {more > 0 && (
           <div
-            className="mt-1 px-1 py-0.5 sm:py-1 bg-[#F3F4F7] rounded-md text-[#495057] text-[10px] sm:text-[12px] font-[400] text-center cursor-pointer hover:bg-[#E9ECEF]"
+            className="mt-1 px-1 py-0.5 sm:py-1 bg-[#F3F4F7] rounded-md text-[#495057] text-[10px] sm:text-[12px] font-normal text-center cursor-pointer hover:bg-[#E9ECEF]"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedDate(value);
@@ -682,7 +667,7 @@ export default function CustomCalendar() {
       {/* ------- header ------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">
+          <h2 className="text-base sm:text-[28px] font-medium text-[#0E1011]">
             {currentDate.format("MMMM YYYY")}
           </h2>
           <div className="flex gap-2">
@@ -700,14 +685,14 @@ export default function CustomCalendar() {
             </button>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setFilterOpen(true)}
           className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] rounded-[12px] bg-[#FFFFFF] w-full sm:w-auto justify-center"
         >
           <span className="text-[#2B3034]">
             <IoFilterOutline />
           </span>
-          <span className="text-[#27272A] font-[500] text-[16px]">Filter</span>
+          <span className="text-[#27272A] font-medium text-[16px]">Filter</span>
         </button>
       </div>
 
@@ -758,7 +743,7 @@ export default function CustomCalendar() {
       </Modal>
 
       {/* ------- add-event modal ------- */}
-      <AddEventForm open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddEventForm open={addOpen} onClose={handleAddClose} />
 
       {/* ------- show-all modal ------- */}
       <Modal
@@ -778,7 +763,7 @@ export default function CustomCalendar() {
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-8 px-8 pb-10 pt-6">
-          {getEventData(selectedDate || dayjs()).map((evt, i) => (
+          {getEventDataForDate(selectedDate || dayjs()).map((evt, i) => (
             <div
               key={i}
               className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md"
@@ -790,18 +775,18 @@ export default function CustomCalendar() {
               />
               <div className="flex flex-col leading-tight">
                 <p className="text-gray-800 font-medium text-[15px]">{evt.title}</p>
-                <p className="text-gray-500 text-[13px] mt-0.5">{evt.time}</p>
+                <p className="text-gray-500 text-[13px] mt-0.5">{formatEventTime(evt)}</p>
               </div>
             </div>
           ))}
-          {!getEventData(selectedDate || dayjs()).length && (
+          {!getEventDataForDate(selectedDate || dayjs()).length && (
             <p className="text-gray-500 col-span-3 text-center py-10 text-lg">
               No events for this date
             </p>
           )}
         </div>
       </Modal>
-      
+
       {/* ------- event-detail modal (SAME AS IMAGE) ------- */}
       <Modal
         open={detailOpen}
@@ -844,7 +829,7 @@ export default function CustomCalendar() {
 
             {/* Title with green bar */}
             <div className="flex items-start gap-3 pr-20">
-              <div className="w-[2px] h-5 bg-emerald-500 flex-shrink-0" style={{ marginTop: '2px' }} />
+              <div className="w-[2px] h-5 bg-emerald-500 shrink-0" style={{ marginTop: '2px' }} />
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-gray-900 leading-tight">
                   {selectedEvent?.title}
@@ -855,7 +840,7 @@ export default function CustomCalendar() {
                     {selectedEventDate?.format("dddd, MMMM DD")}
                   </span>
                   <span className="text-gray-400">|</span>
-                  <span>{selectedEvent?.time}</span>
+                  <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
                 </div>
               </div>
             </div>
@@ -869,7 +854,7 @@ export default function CustomCalendar() {
                 Assignee
               </p>
               <p className="text-sm font-normal text-gray-900 mt-0.5">
-                {selectedEvent?.assignee || "Unassigned"}
+                {selectedEvent?.assignTo?.fullName || "Unassigned"}
               </p>
             </div>
 

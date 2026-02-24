@@ -37,18 +37,7 @@ const AdminAllContact = () => {
 
     const getBreadcrumb = () => {
         if (activeItem === "allContacts") return "";
-        if (activeItem.startsWith("List")) {
-            if (["List 01", "List 02"].includes(activeItem))
-                return "Folder 1 · " + activeItem;
-            return "Folder 2 · " + activeItem;
-        }
-        if (activeItem.startsWith("group")) {
-            return "Groups · " + activeItem;
-        }
-        if (activeItem.startsWith("Folder")) {
-            return activeItem;
-        }
-        return "";
+        return activeItem;
     };
 
     const renderHeading = () => {
@@ -70,14 +59,14 @@ const AdminAllContact = () => {
             {/* 🔹 Breadcrumb + Heading */}
             <div className="flex flex-col">
                 {getBreadcrumb() && (
-                    <span className="text-sm text-[#6c757d] font-[500] mb-1">
+                    <span className="text-sm text-[#6c757d] font-medium mb-1">
                         {getBreadcrumb()}
                     </span>
                 )}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     {/* 🔹 Heading + Assigned To */}
                     <div className="flex items-center gap-3 flex-wrap">
-                        <h1 className="text-[24px] sm:text-[28px] font-[500]">
+                        <h1 className="text-[24px] sm:text-[28px] font-medium">
                             {renderHeading()}
                         </h1>
 
@@ -107,7 +96,7 @@ const AdminAllContact = () => {
                             className="flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent"
                         >
                             <IoAdd className="text-xl text-[#495057]" />
-                            <span className="text-sm font-[500] text-[#495057] ">
+                            <span className="text-sm font-medium text-[#495057] ">
                                 New Contact
                             </span>
                         </Link>
@@ -116,7 +105,7 @@ const AdminAllContact = () => {
                             onClick={() => setShowColumnsModal(true)}
                         >
                             <GrSplits className="text-base text-[#495057]" />
-                            <span className="text-sm font-[500] text-[#495057]">
+                            <span className="text-sm font-medium text-[#495057]">
                                 Manage Columns
                             </span>
                         </div>
@@ -139,14 +128,14 @@ const AdminAllContact = () => {
 
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className="bg-[#2B3034] text-lg text-white p-2 rounded-full flex-shrink-0"
+                        className="bg-[#2B3034] text-lg text-white p-2 rounded-full shrink-0"
                     >
                         <IoFilter />
                     </button>
                 </div>
 
                 {/* Dial Button */}
-                <button 
+                <button
                     onClick={() => {
                         if (selectedContacts.length > 0) {
                             // Navigate to contact-info with the first selected contact
@@ -156,9 +145,8 @@ const AdminAllContact = () => {
                         }
                     }}
                     disabled={selectedContacts.length === 0}
-                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm sm:text-sm font-[600] text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${
-                        selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm sm:text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                 >
                     <MdOutlineCall className="text-base" />
                     <span>Dial Selected ({selectedContacts.length})</span>
@@ -210,11 +198,10 @@ const AdminAllContact = () => {
                                 .map((user) => (
                                     <label
                                         key={user}
-                                        className={`flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer ${
-                                            selectedName === user
-                                                ? "bg-gray-100"
-                                                : "hover:bg-gray-50"
-                                        }`}
+                                        className={`flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer ${selectedName === user
+                                            ? "bg-gray-100"
+                                            : "hover:bg-gray-50"
+                                            }`}
                                     >
                                         <input
                                             type="radio"
