@@ -1,19 +1,20 @@
 import { useState, useRef } from "react";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
-import AdminCreateContactComponent, { type AdminCreateContactRef } from "@/components/admin/contact/admincreatecontact";
+import AdminCreateContactComponent from "@/components/admin/contact/admincreatecontact";
 import { useNavigate } from "react-router-dom";
 
 
 const AdminCreateContact = () => {
+    const navigate = useNavigate();
+    const onSaveRef = useRef<(() => void) | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
-    const contactFormRef = useRef<AdminCreateContactRef>(null);
-    const navigate = useNavigate();
+
 
     const handleSave = () => {
         console.log("SAVE.....")
-        contactFormRef.current?.save();
+        onSaveRef.current?.();
     };
 
     const handleCancel = () => {
@@ -62,7 +63,7 @@ const AdminCreateContact = () => {
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1  sm:-ml-10">
-                <AdminCreateContactComponent ref={contactFormRef} />
+                <AdminCreateContactComponent onSaveRef={onSaveRef} />
             </div>
 
             {/* 🔹 Modals */}
