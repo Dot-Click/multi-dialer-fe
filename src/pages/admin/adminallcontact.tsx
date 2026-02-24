@@ -11,7 +11,7 @@ import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 
 // ✅ Define type for the Outlet context
 type OutletContextType = {
-    activeItem: string;
+    activeItem: { type: string; id?: string; name: string };
 };
 
 const AdminAllContact = () => {
@@ -36,13 +36,16 @@ const AdminAllContact = () => {
     const { activeItem } = useOutletContext<OutletContextType>();
 
     const getBreadcrumb = () => {
-        if (activeItem === "allContacts") return "";
-        return activeItem;
+        if (activeItem.type === "allContacts") return "";
+        if (activeItem.type === "list") return "Calling Lists · " + activeItem.name;
+        if (activeItem.type === "group") return "Groups · " + activeItem.name;
+        if (activeItem.type === "folder") return "Calling Lists · " + activeItem.name;
+        return "";
     };
 
     const renderHeading = () => {
-        if (activeItem === "allContacts") return "Data & Dialer";
-        return activeItem;
+        if (activeItem.type === "allContacts") return "Data & Dialer";
+        return activeItem.name;
     };
 
     const handleSaveAssign = () => {
@@ -155,7 +158,10 @@ const AdminAllContact = () => {
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1 sm:-ml-10 mt-2">
-                <AllContactComponent onSelectionChange={setSelectedContacts} />
+                <AllContactComponent 
+                    onSelectionChange={setSelectedContacts} 
+                    listId={activeItem.type === 'list' ? activeItem.id : undefined}
+                />
             </div>
 
             {/* 🔹 Modals */}
