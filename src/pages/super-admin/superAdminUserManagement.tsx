@@ -30,7 +30,7 @@ const formatDate = (dateString?: string) => {
         day: 'numeric',
         year: 'numeric'
     });
-};   //any done 
+};   
 
 const SuperAdminUserManagement = () => {
     const { getUsers, loading, error } = useUser();
