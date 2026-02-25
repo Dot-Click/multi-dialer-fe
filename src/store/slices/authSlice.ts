@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../lib/axios';
+// import { authClient } from '@/lib/auth-client';
 
 export type UserRole = 'ADMIN' | 'AGENT' | 'OWNER' | 'SUPER_ADMIN';
 

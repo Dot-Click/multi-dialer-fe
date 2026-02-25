@@ -35,7 +35,7 @@ const AnalyticsDashboard = () => {
 
     return (
         <div className="bg-white rounded-[24px] p-[24px] shadow-md w-full">
-            
+
             {/* Header & Filters Responsive */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-6">
@@ -51,8 +51,8 @@ const AnalyticsDashboard = () => {
                 </div>
 
                 <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] hover:text-gray-950 transition">
-                    <img src={exportarrowicon} alt="exportarrowicon" className=""/>
-                 <span>Export</span>
+                    <img src={exportarrowicon} alt="exportarrowicon" className="" />
+                    <span>Export</span>
                 </button>
             </div>
 

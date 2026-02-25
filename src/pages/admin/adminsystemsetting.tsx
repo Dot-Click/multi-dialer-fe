@@ -76,7 +76,7 @@ const AdminSystemSetting = () => {
 
             {/* Render only the active component */}
             <div>
-            {ActiveComponent}
+                {ActiveComponent}
             </div>
         </div>
     )
