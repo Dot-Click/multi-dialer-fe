@@ -6,6 +6,7 @@ import tableIcon from "@/assets/tableIcon.png"
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { useUser, type User } from '@/hooks/useUser';
 import Loader from '@/components/common/Loader';
+import { authClient } from '@/lib/auth-client';
 
 const getStatusStyles = (status: string) => {
     const normalizedStatus = status.toUpperCase();
@@ -53,16 +54,30 @@ const SuperAdminUserManagement = () => {
 
     const filteredUsers = users.filter((user) => {
         const matchesSearch = 
-            user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.status.toLowerCase().includes(searchTerm.toLowerCase());
+            user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.status?.toLowerCase().includes(searchTerm.toLowerCase());
         
         const matchesStatus = selectedStatus === "All Status" || user.status.toUpperCase() === selectedStatus.toUpperCase();
         const matchesRole = selectedRole === "All Roles" || user.role.toUpperCase() === selectedRole.toUpperCase();
 
         return matchesSearch && matchesStatus && matchesRole;
     });
+
+    // authClient.admin.createUser({
+    //     email: form.email,
+    //     password: form.password,
+    //     fullName: form.fullName,
+    //     role: form.role,
+    // }, {
+    //     onSuccess: () => {
+    //         fetchUsers();
+    //     }
+    //     onError: () => {
+
+    //     }
+    // })
 
     const statusOptions = ["All Status", "Active", "Pending", "Suspended", "Expiring Soon"];
     const roleOptions = ["All Roles", "Admin", "Super Admin", "Agent", "Owner"];
