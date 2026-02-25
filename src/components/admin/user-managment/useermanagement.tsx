@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Search, Filter, MoreHorizontal, ChevronDown, Plus, X, Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
 
 export default function Page() {
   const [openFilter, setOpenFilter] = useState(false);
@@ -17,6 +18,11 @@ export default function Page() {
 
   const [users, setUsers] = useState<any[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
+  // const session = authClient.useSession()
+  const { session } = useAppSelector((state) => state.auth);
+
+  console.log("SESSION:-", session)
 
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
@@ -49,26 +55,43 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await authClient.admin.createUser({
+      await authClient.admin.createUser({
+        name: fullName,
         email,
         password,
-        name:fullName,
-        role: role.toLowerCase() as "user" | "admin",
+        data: {
+          role
+        }
+      }, {
+        onSuccess: () => {
+          toast.success("User created successfully");
+          console.log("USERS:-", users);
+          setOpenAddUser(false);
+          setFullName("");
+          setEmail("");
+          setPassword("");
+          setRole("Agent");
+          fetchUsers();
+        },
+        onError: (error) => {
+          toast.error(error.error.message || "Failed to create user");
+          console.log(error)
+        }
       });
 
-      if (error) {
-        toast.error(error.message || "Failed to create user");
-        // console.error("Create User Error:", error);
-        console.log(error)
-      } else {
-        toast.success("User created successfully");
-        setOpenAddUser(false);
-        setFullName("");
-        setEmail("");
-        setPassword("");
-        setRole("Agent");
-        fetchUsers();
-      }
+      // if (error) {
+      //   toast.error(error.message || "Failed to create user");
+      //   // console.error("Create User Error:", error);
+      //   console.log(error)
+      // } else {
+      //   toast.success("User created successfully");
+      //   setOpenAddUser(false);
+      //   setFullName("");
+      //   setEmail("");
+      //   setPassword("");
+      //   setRole("Agent");
+      //   fetchUsers();
+      // }
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     } finally {
@@ -80,7 +103,7 @@ export default function Page() {
 
 
   return (
-    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+    <div className="pr-8">
 
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">

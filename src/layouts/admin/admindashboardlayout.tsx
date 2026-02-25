@@ -7,7 +7,7 @@ import { useAppSelector } from "@/store/hooks";
 const AdminDashboardLayout = () => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
-     const { session } = useAppSelector((state) => state.auth);
+    const { session } = useAppSelector((state) => state.auth);
 
     return (
         <div className='    min-h-screen w-full relative'>
