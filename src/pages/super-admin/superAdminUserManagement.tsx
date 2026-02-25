@@ -6,7 +6,6 @@ import tableIcon from "@/assets/tableIcon.png"
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { useUser, type User } from '@/hooks/useUser';
 import Loader from '@/components/common/Loader';
-import { authClient } from '@/lib/auth-client';
 
 const getStatusStyles = (status: string) => {
     const normalizedStatus = status.toUpperCase();
