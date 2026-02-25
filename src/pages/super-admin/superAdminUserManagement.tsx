@@ -79,7 +79,7 @@ const SuperAdminUserManagement = () => {
     // })
 
     const statusOptions = ["All Status", "Active", "Pending", "Suspended", "Expiring Soon"];
-    const roleOptions = ["All Roles", "Admin", "Super Admin", "Agent", "Owner"];
+    const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
 
     return (
         <section className="w-full min-h-screen flex flex-col gap-2 px-6 py-6 outfit bg-[#F5F6FA]">

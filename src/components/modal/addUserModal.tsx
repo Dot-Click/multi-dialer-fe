@@ -29,7 +29,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   const [selectedStatus, setSelectedStatus] = useState("Select Status");  
   const [localError, setLocalError] = useState("");
 
-  const roleOptions = ["Agent", "Admin", "Owner"];
+  const roleOptions = ["Agent", "Admin"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
 
   const handleAddUser = async () => {
