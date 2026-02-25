@@ -1,34 +1,4 @@
-// import scripticon from "../../../assets/scripticon.png"
-
-// const scriptContent = [
-//   "Hi, is this [First Name]?",
-//   "Great, [First Name], this is [Your Name]. I don't want to take much of your time. The reason I'm calling is that I noticed the property on [Address] is no longer listed.",
-//   "Before I let you go, may I quickly ask—are you still considering selling the home, or have your plans changed?",
-//   "I completely understand. The market right now is moving in some interesting ways, and many homeowners aren't sure whether to relist or wait. If it's helpful, I'd be glad to share what similar homes nearby are currently going for, just so you have the info at hand.",
-//   "Would that be something you'd like me to send over?",
-// ];
-
-// const ContactInfoScript = () => {
-//   return (
-//     <div className="bg-white rounded-2xl shadow-sm p-3 w-full h-full flex flex-col">
-//       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-//         <img src={scripticon} alt="scripticon"  className="w-3 object-contain"/>
-//         <h3 className="text-base font-medium text-gray-700">Script</h3>
-//       </div>
-//       <div className="flex-grow overflow-y-auto pr-2">
-//         <div className="space-y-4">
-//           {scriptContent.map((paragraph, index) => (
-//             <p key={index} className="text-gray-700 leading-relaxed text-base">
-//               {paragraph}
-//             </p>
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ContactInfoScript;
+import { useAppSelector } from "@/store/hooks";
 import { useState } from 'react';
 import { 
   Star, 
@@ -42,48 +12,53 @@ import {
 const ContactInfoScript = () => {
   const [activeTab, setActiveTab] = useState('Lead Sheet');
   const tabs = ['Lead Sheet', 'History', 'Touch Points'];
+  const { currentContact } = useAppSelector((state) => state.contacts);
 
   // --- RENDERING FUNCTIONS FOR TABS ---
 
-  const renderLeadSheet = () => (
-    <div className="space-y-5 animate-in fade-in duration-300">
-      <div>
-        <label className="text-[13px] font-bold text-[#374151] block mb-1">Company</label>
-        <p className="text-[15px] text-[#6b7280]">ABC Corporation</p>
-      </div>
-      <div>
-        <label className="text-[13px] font-bold text-[#374151] block mb-1">Industry</label>
-        <p className="text-[15px] text-[#6b7280]">Technology / SaaS</p>
-      </div>
-      <div>
-        <label className="text-[13px] font-bold text-[#374151] block mb-1">Company Size</label>
-        <p className="text-[15px] text-[#6b7280]">50-200 employees</p>
-      </div>
-      <div className="h-[1px] bg-gray-100 w-full"></div>
-      <div className="flex items-center gap-3">
-        <label className="text-[15px] font-bold text-[#374151]">Lead Status</label>
-        <span className="bg-[#5c6aff] text-white text-[11px] font-semibold px-3 py-0.5 rounded-full">Qualified</span>
-      </div>
-      <div>
-        <label className="text-[15px] font-bold text-[#374151] block mb-2">Interest Level</label>
-        <div className="flex gap-1">
-          {[...Array(5)].map((_, i) => <Star key={i} size={18} fill="#FFDE00" color="#FFDE00" />)}
+  const renderLeadSheet = () => {
+    if (!currentContact) return <div className="p-4 text-gray-500">Loading lead data...</div>;
+
+    return (
+      <div className="space-y-5 animate-in fade-in duration-300">
+        <div>
+          <label className="text-[13px] font-bold text-[#374151] block mb-1">Company</label>
+          <p className="text-[15px] text-[#6b7280]">{currentContact.source || "N/A"}</p>
+        </div>
+        <div>
+          <label className="text-[13px] font-bold text-[#374151] block mb-1">City / State</label>
+          <p className="text-[15px] text-[#6b7280]">{currentContact.city || "-"}, {currentContact.state || "-"}</p>
+        </div>
+        <div>
+          <label className="text-[13px] font-bold text-[#374151] block mb-1">Zip Code</label>
+          <p className="text-[15px] text-[#6b7280]">{currentContact.zip || "-"}</p>
+        </div>
+        <div className="h-[1px] bg-gray-100 w-full"></div>
+        <div className="flex items-center gap-3">
+          <label className="text-[15px] font-bold text-[#374151]">Lead Status</label>
+          <span className="bg-[#5c6aff] text-white text-[11px] font-semibold px-3 py-0.5 rounded-full">New Lead</span>
+        </div>
+        <div>
+          <label className="text-[15px] font-bold text-[#374151] block mb-2">Interest Level</label>
+          <div className="flex gap-1">
+            {[...Array(5)].map((_, i) => <Star key={i} size={18} fill={i < 3 ? "#FFDE00" : "none"} color="#FFDE00" />)}
+          </div>
+        </div>
+        <div className="h-[1px] bg-gray-100 w-full"></div>
+        <div className="bg-[#f8f9fa] rounded-xl p-4 min-h-[120px]">
+          <p className="text-sm text-[#9ca3af]">Add Notes about this lead..</p>
+        </div>
+        <div className="space-y-3">
+          <label className="text-[13px] font-bold text-[#6b7280] block">Tags</label>
+          <div className="flex flex-wrap gap-2">
+            {(currentContact.tags || []).length > 0 ? currentContact.tags.map((tag: any) => (
+              <span key={tag} className="px-3 py-1 border border-gray-200 rounded-full text-[12px] font-semibold text-[#4b5563]">{tag}</span>
+            )) : <span className="text-gray-400 text-xs italic">No tags</span>}
+          </div>
         </div>
       </div>
-      <div className="h-[1px] bg-gray-100 w-full"></div>
-      <div className="bg-[#f8f9fa] rounded-xl p-4 min-h-[120px]">
-        <p className="text-sm text-[#9ca3af]">Add Notes about this lead..</p>
-      </div>
-      <div className="space-y-3">
-        <label className="text-[13px] font-bold text-[#6b7280] block">Tags</label>
-        <div className="flex flex-wrap gap-2">
-          {['Decision Maker', 'Hot Lead', 'Q1 Target'].map((tag) => (
-            <span key={tag} className="px-3 py-1 border border-gray-200 rounded-full text-[12px] font-semibold text-[#4b5563]">{tag}</span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderHistory = () => {
     const historyData = [

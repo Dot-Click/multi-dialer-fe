@@ -141,9 +141,9 @@ const AdminAllContact = () => {
                 <button
                     onClick={() => {
                         if (selectedContacts.length > 0) {
-                            // Navigate to contact-info with the first selected contact
+                            // Navigate to contact-info with the selected contacts as a queue
                             navigate("/admin/contact-info", {
-                                state: { contact: selectedContacts[0] }
+                                state: { contacts: selectedContacts }
                             });
                         }
                     }}
