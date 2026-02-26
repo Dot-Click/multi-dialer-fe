@@ -6,67 +6,54 @@ import { TableProvider } from "@/providers/table.provider";
 import { FiPlus } from 'react-icons/fi';
 import { BsThreeDots } from 'react-icons/bs';
 import { useNavigate } from "react-router-dom";
-
-
-// --- Interface and Data for the Action Plan Table ---
-interface ActionPlanData {
-  id: number;
-  name: string;
-  steps: number;
-  contact: number;
-  editDate: string;
-}
-
-const actionPlansData: ActionPlanData[] = [
-  { id: 1, name: 'Plan Name', steps: 5, contact: 0, editDate: '09/09/2025' },
-  { id: 2, name: 'Plan Name', steps: 5, contact: 0, editDate: '09/09/2025' },
-  { id: 3, name: 'Plan Name', steps: 5, contact: 0, editDate: '09/09/2025' },
-  { id: 4, name: 'Plan Name', steps: 5, contact: 0, editDate: '09/09/2025' },
-  { id: 5, name: 'Plan Name', steps: 5, contact: 0, editDate: '09/09/2025' },
-];
+import { useActionPlans } from "@/hooks/useSystemSettings";
 
 // --- Column Definitions for the Table ---
 const columns = [
-  {
-    accessorKey: "name",
-    header: () => <div className="font-semibold">Name</div>,
-    cell: (info: any) => <div className="font-medium text-gray-800">{info.getValue()}</div>,
-  },
-  {
-    accessorKey: "steps",
-    header: () => <div className="font-semibold">Steps</div>,
-  },
-  {
-    accessorKey: "contact",
-    header: () => <div className="font-semibold">Contact</div>,
-  },
-  {
-    accessorKey: "editDate",
-    header: () => <div className="font-semibold">Edit Date</div>,
-  },
-  {
-    id: "actions",
-    cell: () => (
-      <button className="text-gray-500 p-2 rounded-full hover:bg-gray-200">
-        <BsThreeDots size={18} />
-      </button>
-    ),
-  },
+    {
+        accessorKey: "name",
+        header: () => <div className="font-semibold">Name</div>,
+        cell: (info: any) => <div className="font-medium text-gray-800">{info.getValue()}</div>,
+    },
+    {
+        accessorKey: "stepsCount", // Assuming backend sends stepsCount
+        header: () => <div className="font-semibold">Steps</div>,
+    },
+    {
+        accessorKey: "contactCount", // Assuming backend sends contactCount
+        header: () => <div className="font-semibold">Contact</div>,
+    },
+    {
+        accessorKey: "updatedAt",
+        header: () => <div className="font-semibold">Edit Date</div>,
+        cell: (info: any) => <div>{new Date(info.getValue()).toLocaleDateString()}</div>
+    },
+    {
+        id: "actions",
+        cell: () => (
+            <button className="text-gray-500 p-2 rounded-full hover:bg-gray-200">
+                <BsThreeDots size={18} />
+            </button>
+        ),
+    },
 ];
 
 
 // --- Main ActionPlan Component ---
 const ActionPlan = () => {
+    const navigate = useNavigate();
+    const { data: actionPlans, isLoading, isError, error } = useActionPlans();
 
-  const navigate = useNavigate()
+    if (isLoading) return <div className="p-8 text-center text-gray-500">Loading Action Plans...</div>;
+    if (isError) return <div className="p-8 text-center text-red-500">Error: {(error as any)?.message || 'Failed to fetch action plans'}</div>;
 
-  return (
-    <div className="px-4 py-5 bg-white rounded-lg min-h-screen">
-      <Box className="  w-full h-full ">
+    return (
+        <div className="px-4 py-5 bg-white rounded-lg min-h-screen">
+            <Box className="  w-full h-full ">
 
-        {/* Custom Styles for the table */}
-        <style>
-          {`
+                {/* Custom Styles for the table */}
+                <style>
+                    {`
             /* Custom Scrollbar for the table container */
             .custom-scrollbar::-webkit-scrollbar { width: 6px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -95,29 +82,35 @@ const ActionPlan = () => {
               border-bottom: none !important;
             }
           `}
-        </style>
+                </style>
 
-        {/* Header Section */}
-        <header className="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">Action Plan</h1>
-          <button onClick={()=>navigate("/admin/action-plan")} className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
-            <FiPlus size={18} />
-            Create Action Plan
-          </button>
-        </header>
+                {/* Header Section */}
+                <header className="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
+                    <h1 className="text-2xl font-bold text-gray-900">Action Plan</h1>
+                    <button onClick={() => navigate("/admin/action-plan")} className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm">
+                        <FiPlus size={18} />
+                        Create Action Plan
+                    </button>
+                </header>
 
-        {/* Table Section */}
-        <main>
-          {/* Wrapper for responsiveness and custom scrollbar */}
-          <div className="overflow-x-auto custom-scrollbar">
-            <TableProvider data={actionPlansData} columns={columns}>
-              {() => <TableComponent />}
-            </TableProvider>
-          </div>
-        </main>
-      </Box>
-    </div>
-  );
+                {/* Table Section */}
+                <main>
+                    {/* Wrapper for responsiveness and custom scrollbar */}
+                    <div className="overflow-x-auto custom-scrollbar">
+                        {actionPlans?.length === 0 ? (
+                            <div className="text-center py-10 border border-dashed border-gray-300 rounded-xl">
+                                <p className="text-gray-500">No Action Plans found.</p>
+                            </div>
+                        ) : (
+                            <TableProvider data={actionPlans || []} columns={columns}>
+                                {() => <TableComponent />}
+                            </TableProvider>
+                        )}
+                    </div>
+                </main>
+            </Box>
+        </div>
+    );
 };
 
 export default ActionPlan;
