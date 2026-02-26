@@ -30,7 +30,7 @@ const formatDate = (dateString?: string) => {
         day: 'numeric',
         year: 'numeric'
     });
-};
+};   
 
 const SuperAdminUserManagement = () => {
     const { getUsers, loading, error } = useUser();
@@ -53,10 +53,10 @@ const SuperAdminUserManagement = () => {
 
     const filteredUsers = users.filter((user) => {
         const matchesSearch = 
-            user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.status.toLowerCase().includes(searchTerm.toLowerCase());
+            user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.status?.toLowerCase().includes(searchTerm.toLowerCase());
         
         const matchesStatus = selectedStatus === "All Status" || user.status.toUpperCase() === selectedStatus.toUpperCase();
         const matchesRole = selectedRole === "All Roles" || user.role.toUpperCase() === selectedRole.toUpperCase();
@@ -64,8 +64,22 @@ const SuperAdminUserManagement = () => {
         return matchesSearch && matchesStatus && matchesRole;
     });
 
+    // authClient.admin.createUser({
+    //     email: form.email,
+    //     password: form.password,
+    //     fullName: form.fullName,
+    //     role: form.role,
+    // }, {
+    //     onSuccess: () => {
+    //         fetchUsers();
+    //     }
+    //     onError: () => {
+
+    //     }
+    // })
+
     const statusOptions = ["All Status", "Active", "Pending", "Suspended", "Expiring Soon"];
-    const roleOptions = ["All Roles", "Admin", "Super Admin", "Agent", "Owner"];
+    const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
 
     return (
         <section className="w-full min-h-screen flex flex-col gap-2 px-6 py-6 outfit bg-[#F5F6FA]">

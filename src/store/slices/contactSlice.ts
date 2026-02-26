@@ -13,12 +13,16 @@ export interface Contact {
 
 interface ContactState {
   contacts: Contact[];
+  currentContact: any | null;
+  queue: any[];
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: ContactState = {
   contacts: [],
+  currentContact: null,
+  queue: [],
   isLoading: false,
   error: null,
 };
@@ -94,6 +98,21 @@ export const fetchContactsByList = createAsyncThunk(
   }
 );
 
+export const fetchContactById = createAsyncThunk(
+  'contacts/fetchContactById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/contact/${id}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to fetch contact details');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error fetching contact details');
+    }
+  }
+);
+
 export const createContact = createAsyncThunk(
   'contacts/createContact',
   async (payload: CreateContactPayload, { rejectWithValue }) => {
@@ -121,7 +140,14 @@ export const createContact = createAsyncThunk(
 export const contactSlice = createSlice({
   name: 'contacts',
   initialState,
-  reducers: {},
+  reducers: {
+    setQueue: (state, action) => {
+      state.queue = action.payload;
+    },
+    setCurrentContact: (state, action) => {
+      state.currentContact = action.payload;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchContacts.pending, (state) => {
@@ -169,8 +195,22 @@ export const contactSlice = createSlice({
       .addCase(createContact.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchContactById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchContactById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentContact = action.payload;
+      })
+      .addCase(fetchContactById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
+
+export const { setQueue, setCurrentContact } = contactSlice.actions;
 
 export default contactSlice.reducer;

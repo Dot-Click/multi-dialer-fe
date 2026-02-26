@@ -95,9 +95,9 @@ const AllContact = () => {
         <button
           onClick={() => {
             if (selectedContacts.length > 0) {
-              // Navigate to contact-info with the first selected contact
+              // Navigate to contact-info with all selected contacts (the queue)
               navigate("/contact-info", {
-                state: { contact: selectedContacts[0] }
+                state: { contacts: selectedContacts }
               });
             }
           }}

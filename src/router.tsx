@@ -1,5 +1,6 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
+import { TwilioProvider } from "@/providers/twilio.provider";
 import DashboardLayout from "@/layouts/agent/dashboardlayout"
 import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import SuperAdminDashboardLayout from "@/layouts/super-admin/superadmindashboardlayout";
@@ -78,60 +79,64 @@ const Router: React.FC = () => {
 
         {/* Protected Agent Routes */}
         <Route element={<ProtectedRoute allowedRoles={['AGENT']} />}>
-          <Route path="/" element={<DashboardLayout />}>
-            <Route index element={<AgentHome />} />
-            <Route path="library" element={<Library />} />
-            <Route path="calendar" element={<Calender />} />
-            <Route path="reports-analytics" element={<ReportAnalytics />} />
-            <Route path="settings" element={<Setting />} />
-          </Route>
+          <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<AgentHome />} />
+              <Route path="library" element={<Library />} />
+              <Route path="calendar" element={<Calender />} />
+              <Route path="reports-analytics" element={<ReportAnalytics />} />
+              <Route path="settings" element={<Setting />} />
+            </Route>
 
-          <Route path="/data-dialer" element={<ContactLayout />}>
-            <Route index element={<AllContact />} />
-          </Route>
+            <Route path="/data-dialer" element={<ContactLayout />}>
+              <Route index element={<AllContact />} />
+            </Route>
 
-          <Route path="/contact-detail" element={<ContactDetail />} />
-          <Route path="/contact-info" element={<ContactInfo />} />
+            <Route path="/contact-detail" element={<ContactDetail />} />
+            <Route path="/contact-info" element={<ContactInfo />} />
+          </Route>
         </Route>
 
 
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-          {/* ✅ Admin Contact / Data Dialer Area */}
-          <Route path="/admin" element={<AdminContact />}>
-            <Route path="data-dialer" element={<AdminAllContact />} />
-            <Route path="find-duplicate" element={<AdminFindDuplicate />} />
+          <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
+            {/* ✅ Admin Contact / Data Dialer Area */}
+            <Route path="/admin" element={<AdminContact />}>
+              <Route path="data-dialer" element={<AdminAllContact />} />
+              <Route path="find-duplicate" element={<AdminFindDuplicate />} />
+            </Route>
+
+            {/* ✅ Admin Dashboard Section */}
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route index element={<AdminHome />} />
+              <Route path="calendar" element={<AdminCalender />} />
+              <Route path="library" element={<AdminLibrary />} />
+              <Route path="reports-analytics" element={<AdminReportAnalytics />} />
+              <Route path="user-management" element={<AdminUserManagment />} />
+              <Route path="system-settings" element={<AdminSystemSetting />} />
+              <Route path="number-setting" element={<NumberSetting />} />
+              <Route path="create-setting" element={<AdminCreateCallSetting />} />
+              <Route path="action-plan" element={<AdminActionPlan />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="upgrade" element={<Upgrade />} />
+              <Route path="lead-store" element={<LeadStore />} />
+              <Route path="compliance" element={<Compliance />} />
+              <Route path="create-contact" element={<AdminCreateContact />} />
+              <Route path="add-setting" element={<AddSettingPage />} />
+              <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
+              <Route path="edit-signature" element={<AdminEditSignature />} />
+              <Route path="account-setting" element={<AdminAccountSetting />} />
+              <Route path="restore-data" element={<AdminRestoreData />} />
+              <Route path="preview-data" element={<AdminPreviewData />} />
+
+              <Route path="change-password" element={<AdminChangePassword />} />
+            </Route>
+
+            <Route path="/admin/contact-detail" element={<ContactDetail />} />
+            <Route path="/admin/password-change" element={<AdminChangePassword />} />
+            <Route path="/admin/contact-info" element={<ContactInfo />} />
           </Route>
-
-          {/* ✅ Admin Dashboard Section */}
-          <Route path="/admin" element={<AdminDashboardLayout />}>
-            <Route index element={<AdminHome />} />
-            <Route path="calendar" element={<AdminCalender />} />
-            <Route path="library" element={<AdminLibrary />} />
-            <Route path="reports-analytics" element={<AdminReportAnalytics />} />
-            <Route path="user-management" element={<AdminUserManagment />} />
-            <Route path="system-settings" element={<AdminSystemSetting />} />
-            <Route path="number-setting" element={<NumberSetting />} />
-            <Route path="create-setting" element={<AdminCreateCallSetting />} />
-            <Route path="action-plan" element={<AdminActionPlan />} />
-            <Route path="billing" element={<Billing />} />
-            <Route path="upgrade" element={<Upgrade />} />
-            <Route path="lead-store" element={<LeadStore />} />
-            <Route path="compliance" element={<Compliance />} />
-            <Route path="create-contact" element={<AdminCreateContact />} />
-            <Route path="add-setting" element={<AddSettingPage />} />
-            <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
-            <Route path="edit-signature" element={<AdminEditSignature />} />
-            <Route path="account-setting" element={<AdminAccountSetting />} />
-            <Route path="restore-data" element={<AdminRestoreData />} />
-            <Route path="preview-data" element={<AdminPreviewData />} />
-
-            <Route path="change-password" element={<AdminChangePassword />} />
-          </Route>
-
-          <Route path="/admin/contact-detail" element={<ContactDetail />} />
-          <Route path="/admin/password-change" element={<AdminChangePassword />} />
-          <Route path="/admin/contact-info" element={<ContactInfo />} />
         </Route>
 
         {/* SuperAdminDashboardLayout */}
