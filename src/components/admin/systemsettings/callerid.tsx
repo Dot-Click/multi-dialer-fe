@@ -5,31 +5,15 @@ import AddCallScoutNumberModal from './AddCallScoutNumberModal';
 import NumberSettingsModal from './NumberSettingsModal';
 import { useCallerIds } from '@/hooks/useSystemSettings';
 
-const NumberCard: React.FC<{ data: any }> = ({ data }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 transition hover:shadow-md">
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center text-sm">
-      <div className="col-span-1">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-semibold text-gray-800">{data.label || 'Unnamed'}</h3>
-          <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${data.status === 'Healthy' ? 'bg-green-100 text-green-700' : 'bg-black text-white'}`}>{data.status || 'Active'}</span>
-        </div>
-        <p className="text-gray-500 text-xs">{data.callerId || 'No ID'}</p>
-      </div>
-      <div className="col-span-1"><p className="text-gray-500 text-xs mb-1">Country</p><p className="font-medium">{data.countryCode || 'N/A'}</p></div>
-      <div className="col-span-1"><p className="text-gray-500 text-xs mb-1">Available to</p><p className="font-medium">{data.availableTo?.join(', ') || 'All'}</p></div>
-      <div className="col-span-1"><p className="text-gray-500 text-xs mb-1">Added on</p><p className="font-medium">{new Date(data.createdAt).toLocaleDateString()}</p></div>
-      <div className="col-span-1 flex justify-end"><button className="text-gray-500 p-2 rounded-full hover:bg-gray-100"><FiMoreHorizontal size={20} /></button></div>
-    </div>
-  </div>
-);
-
 const CallerId: React.FC = () => {
   const { data: callerIds, isLoading, isError, error } = useCallerIds();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [newCallerId, setNewCallerId] = useState<any>(null);
 
-  const handleAddNumberSuccess = () => {
+  const handleAddNumberSuccess = (callerId: any) => {
     setIsAddModalOpen(false);
+    setNewCallerId(callerId);
     setIsSettingsModalOpen(true);
   };
 
@@ -59,14 +43,77 @@ const CallerId: React.FC = () => {
           </button>
         </div>
 
-        <div className="space-y-4">
-          {callerIds?.length === 0 ? (
-            <div className="text-center py-10 bg-white rounded-xl border border-dashed border-gray-300">
-              <p className="text-gray-500">No Caller IDs found. Click "Add CallScout Number" to create one.</p>
-            </div>
-          ) : (
-            callerIds?.map((number: any) => <NumberCard key={number.id} data={number} />)
-          )}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Number & Label</th>
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Twilio SID</th>
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Country</th>
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Available To</th>
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Added On</th>
+                  <th className="px-6 py-4 text-right"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {callerIds?.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      No Caller IDs found. Click "Add CallScout Number" to create one.
+                    </td>
+                  </tr>
+                ) : (
+                  callerIds?.map((number: any) => (
+                    <tr key={number.id} className="hover:bg-gray-50/80 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-bold text-gray-900">{number.friendlyName || number.callerId}</span>
+                          <span className="text-[11px] font-medium text-gray-500 mt-0.5">{number.label || 'Unnamed Number'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[11px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                          {number.sid ? `${number.sid.substring(0, 8)}...` : 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[13px] font-semibold text-gray-700">{number.countryCode || 'US'}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-wrap gap-1">
+                          {number.availableTo?.length > 0 ? (
+                            number.availableTo.map((team: string) => (
+                              <span key={team} className="text-[9px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100 uppercase">
+                                {team}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[9px] font-extrabold bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100 uppercase">ALL</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full ${number.status === 'Healthy' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-gray-900 text-white'}`}>
+                          {number.status === 'Healthy' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+                          {number.status || 'Active'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-[13px] font-medium text-gray-500">
+                        {new Date(number.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-5 text-right whitespace-nowrap">
+                        <button className="text-gray-400 p-2 rounded-lg hover:bg-gray-100 hover:text-gray-600 transition-all opacity-0 group-hover:opacity-100">
+                          <FiMoreHorizontal size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <AddCallScoutNumberModal
@@ -78,6 +125,7 @@ const CallerId: React.FC = () => {
         <NumberSettingsModal
           isOpen={isSettingsModalOpen}
           onClose={() => setIsSettingsModalOpen(false)}
+          createdCallerId={newCallerId}
         />
       </div>
     </div>

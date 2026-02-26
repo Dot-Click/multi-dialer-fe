@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiChevronDown } from 'react-icons/fi';
-import { useCallerIds } from '@/hooks/useSystemSettings';
+import { useCallerIds, type CallerId } from '@/hooks/useSystemSettings';
 import { useMediaCenter, type MediaCenterItem } from '@/hooks/useMediaCenter';
+import toast from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
 interface NumberSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  createdCallerId?: CallerId | null;
 }
 
-const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { data: callerIds } = useCallerIds();
+const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClose, createdCallerId }) => {
+  const { data: callerIds, updateCallerId } = useCallerIds();
   const { getMediaCenterItems } = useMediaCenter();
 
   const [recordings, setRecordings] = useState<MediaCenterItem[]>([]);
-  const [dialerType, setDialerType] = useState('predictive');
-  const [aiPacing, setAiPacing] = useState(true);
+  const [dialerType, setDialerType] = useState<'PREDICTIVE' | 'POWER' | 'PREVIEW'>('POWER');
+  const [aiPacing, setAiPacing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Selected values
   const [selectedCallerId, setSelectedCallerId] = useState('');
@@ -31,15 +35,50 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
   }, [isOpen]);
 
   useEffect(() => {
-    if (callerIds && callerIds.length > 0 && !selectedCallerId) {
+    if (createdCallerId) {
+      setSelectedCallerId(createdCallerId.callerId || '');
+      setSelectedLines(String(createdCallerId.numberOfLines || 1));
+      setSelectedRecording(createdCallerId.onHoldRecording1 || '');
+      setDialerType(createdCallerId.dialerType || 'POWER');
+      setAiPacing(createdCallerId.aiPacing || false);
+    } else if (callerIds && callerIds.length > 0 && !selectedCallerId) {
       setSelectedCallerId(callerIds[0].callerId || '');
     }
-  }, [callerIds]);
+  }, [createdCallerId, callerIds, isOpen]);
 
   if (!isOpen) return null;
 
+  const handleStartDialing = async () => {
+    // Find the record ID for the selected caller ID string
+    const targetRecord = callerIds?.find(c => c.callerId === selectedCallerId);
+    if (!targetRecord) {
+      toast.error('Please select a valid Caller ID');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateCallerId.mutateAsync({
+        id: targetRecord.id,
+        data: {
+          numberOfLines: parseInt(selectedLines),
+          onHoldRecording1: selectedRecording,
+          dialerType,
+          aiPacing,
+          status: 'Healthy' as any
+        }
+      });
+      toast.success('Settings saved successfully');
+      onClose(); // In a real app, this might also trigger the dialer start
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
       <div className="bg-white w-full max-w-[480px] max-h-[92vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
         <div className="px-6 py-5 flex justify-between items-center border-b border-gray-50">
           <h2 className="text-[18px] font-bold text-gray-800">Number Settings</h2>
@@ -47,7 +86,6 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
-
           {/* Selectors Section */}
           <div className="space-y-3">
             {/* Caller ID Dropdown */}
@@ -108,13 +146,13 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
           <div className="space-y-3">
             <h3 className="text-[14px] font-bold text-gray-900 border-l-4 border-yellow-400 pl-2">Dialer Settings</h3>
             {[
-              { id: 'predictive', title: 'Predictive Dialing', desc: 'AI-driven call pacing\nAutomatically adjusts based on availability' },
-              { id: 'power', title: 'Power Dialing', desc: 'Dials one number at a time\nAutomatically dials next contact' },
-              { id: 'preview', title: 'Preview Dialing', desc: 'Agent views contact details before dialing\nAgent manually initiates each call' },
+              { id: 'PREDICTIVE', title: 'Predictive Dialing', desc: 'AI-driven call pacing\nAutomatically adjusts based on availability' },
+              { id: 'POWER', title: 'Power Dialing', desc: 'Dials one number at a time\nAutomatically dials next contact' },
+              { id: 'PREVIEW', title: 'Preview Dialing', desc: 'Agent views contact details before dialing\nAgent manually initiates each call' },
             ].map((option) => (
               <div
                 key={option.id}
-                onClick={() => setDialerType(option.id)}
+                onClick={() => setDialerType(option.id as any)}
                 className={`p-4 rounded-2xl flex gap-4 cursor-pointer border-2 transition-all ${dialerType === option.id ? 'bg-[#F9FAFB] border-yellow-400' : 'bg-[#F3F4F8] border-transparent hover:border-gray-200'}`}
               >
                 <div className="mt-1">
@@ -130,7 +168,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
             ))}
           </div>
 
-          <div className="flex gap-4 p-1 bg-yellow-50/50 rounded-2xl p-4 border border-yellow-100">
+          <div className="flex gap-4 p-4 bg-yellow-50/50 rounded-2xl border border-yellow-100">
             <input
               type="checkbox"
               checked={aiPacing}
@@ -151,7 +189,18 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
 
         <div className="p-6 border-t border-gray-50 flex gap-4">
           <button onClick={onClose} className="flex-1 bg-[#F3F4F6] hover:bg-gray-200 text-gray-900 text-[15px] font-bold py-4 rounded-2xl transition-all">Cancel</button>
-          <button className="flex-[2] bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all">Start Dialing</button>
+          <button
+            onClick={handleStartDialing}
+            disabled={isSaving || !selectedCallerId}
+            className="flex-grow-[2] bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all disabled:opacity-50"
+          >
+            {isSaving ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin" />
+                Saving...
+              </span>
+            ) : 'Start Dialing'}
+          </button>
         </div>
       </div>
       <style>{`.custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }`}</style>

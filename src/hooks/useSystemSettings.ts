@@ -25,6 +25,10 @@ export interface CallerId {
     createdAt: string;
     updatedAt: string;
     status: string;
+    dialerType?: 'PREDICTIVE' | 'POWER' | 'PREVIEW';
+    aiPacing?: boolean;
+    sid?: string;
+    friendlyName?: string;
 }
 
 export interface DialerSettings {
@@ -96,6 +100,20 @@ export interface MiscField {
     type: string;
     fieldName: string;
     options?: string[];
+}
+
+export interface TwilioNumber {
+    friendlyName: string;
+    phoneNumber: string;
+    locality: string;
+    region: string;
+    isoCountry: string;
+    capabilities: {
+        voice: boolean;
+        sms: boolean;
+        mms: boolean;
+        fax: boolean;
+    };
 }
 
 // --- Hooks ---
@@ -401,5 +419,34 @@ export const useActionPlans = () => {
     return {
         ...query,
         deleteActionPlan: deleteMutation
+    };
+};
+
+// 9. Twilio Number Hooks
+export const useTwilioNumbers = () => {
+    const queryClient = useQueryClient();
+
+    const availableNumbersQuery = useQuery({
+        queryKey: ['available-numbers'],
+        queryFn: async (): Promise<TwilioNumber[]> => {
+            const response = await api.get('/calling/available-numbers');
+            return response.data.data || response.data;
+        },
+        staleTime: 0,
+    });
+
+    const buyNumberMutation = useMutation({
+        mutationFn: async (phoneNumber: string) => {
+            const response = await api.post('/calling/buy-number', { phoneNumber });
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['caller-ids'] });
+        }
+    });
+
+    return {
+        availableNumbers: availableNumbersQuery,
+        buyNumber: buyNumberMutation
     };
 };
