@@ -20,15 +20,19 @@ const dispositionOptions = [
   "Not interested"
 ];
 
-const ReportDashboard = () => {
+interface ReportDashboardProps {
+  userId?: string;
+}
+
+const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
   const [openData, setOpenData] = useState("Call detail");
   const [selectedResult, setSelectedResult] = useState("All Result");
   const [isResultDropdownOpen, setIsResultDropdownOpen] = useState(false);
   const resultDropdownRef = useRef<HTMLDivElement>(null);
 
   const reportsData = [
-    { id: 1, label: "Call detail", component: <CallDetail /> },
-    { id: 2, label: "Session", component: <Session /> },
+    { id: 1, label: "Call detail", component: <CallDetail userId={userId} /> },
+    { id: 2, label: "Session", component: <Session userId={userId} /> },
     { id: 3, label: "Call Recording", component: <CallRecording /> },
     { id: 4, label: "Recurring events", component: <RecurringEvent /> },
     { id: 5, label: "Posting Report", component: <PostingReport /> },
@@ -76,14 +80,14 @@ const ReportDashboard = () => {
           </div>
 
           <div className="relative" ref={resultDropdownRef}>
-            <div 
+            <div
               className="border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] flex justify-between items-center gap-2 cursor-pointer bg-white min-w-[160px]"
               onClick={() => setIsResultDropdownOpen(!isResultDropdownOpen)}
             >
               <span className="text-[16px] text-[#495057]">{selectedResult}</span>
               <FaChevronDown className={`text-[13px] text-[#71717A] transition-transform ${isResultDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
-            
+
             {isResultDropdownOpen && (
               <div className="absolute top-full left-0 mt-1 bg-white border border-[#D8DCE1] rounded-[12px] shadow-lg z-50 min-w-[160px] max-h-[300px] overflow-y-auto">
                 {dispositionOptions.map((option) => (
@@ -93,9 +97,8 @@ const ReportDashboard = () => {
                       setSelectedResult(option);
                       setIsResultDropdownOpen(false);
                     }}
-                    className={`px-[16px] py-[10px] text-[16px] cursor-pointer hover:bg-gray-100 transition-colors ${
-                      selectedResult === option ? 'bg-gray-50 font-medium text-[#17181B]' : 'text-[#495057]'
-                    } ${option === dispositionOptions[0] ? 'border-b border-gray-200' : ''}`}
+                    className={`px-[16px] py-[10px] text-[16px] cursor-pointer hover:bg-gray-100 transition-colors ${selectedResult === option ? 'bg-gray-50 font-medium text-[#17181B]' : 'text-[#495057]'
+                      } ${option === dispositionOptions[0] ? 'border-b border-gray-200' : ''}`}
                   >
                     {option}
                   </div>
@@ -107,7 +110,7 @@ const ReportDashboard = () => {
 
         {/* Right: Export Button */}
         <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] hover:text-gray-950 transition whitespace-nowrap">
-          <img src={exportarrowicon} alt="exportarrowicon" className=""/>
+          <img src={exportarrowicon} alt="exportarrowicon" className="" />
           <span>Export</span>
         </button>
       </div>

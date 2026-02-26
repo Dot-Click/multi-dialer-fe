@@ -1,184 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import { useSessionReport } from '@/hooks/useSessionReport';
+import dayjs from 'dayjs';
 
-const sessionData = [
-    {
-        id: 1,
-        date: '18/06/2021 09:13',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 2,
-        date: '29/10/2024 15:36',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 3,
-        appt: 0,
-        details: {
-            totalCalls: 3,
-            talkTime: '00:05:10',
-            dialTime: '00:08:15',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 3,
-        date: '20/11/2013 20:01',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 0,
-        appt: 0,
-        details: {
-            totalCalls: 0,
-            talkTime: '00:00:00',
-            dialTime: '00:01:30',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 4,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 5,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 6,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 7,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 8,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 9,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-    {
-        id: 10,
-        date: '10/06/2021 19:30',
-        agent: 'Bertha Wiza',
-        type: 'C2C Session',
-        list: 'Mojo Training List',
-        calls: 1,
-        appt: 0,
-        details: {
-            totalCalls: 1,
-            talkTime: '00:00:00',
-            dialTime: '00:02:53',
-            appointments: 0,
-            leads: 0,
-        },
-    },
-];
+interface SessionProps {
+    userId?: string;
+}
 
-const Session = () => {
-    const [openRow, setOpenRow] = useState<number | null>(null);
+const Session: React.FC<SessionProps> = ({ userId }) => {
+    const [openRow, setOpenRow] = useState<string | null>(null);
+    const { loading, error, data, pagination, getSessionReport } = useSessionReport();
+    const [page, setPage] = useState(1);
+    const limit = 20;
 
-    const handleRowClick = (id: number) => {
+    useEffect(() => {
+        getSessionReport({ userId, page, limit });
+    }, [getSessionReport, userId, page, limit]);
+
+    const handleRowClick = (id: string) => {
         setOpenRow(openRow === id ? null : id);
     };
 
+    const handlePrevPage = () => {
+        if (page > 1) setPage(page - 1);
+    };
+
+    const handleNextPage = () => {
+        if (page < Math.ceil(pagination.total / pagination.limit)) {
+            setPage(page + 1);
+        }
+    };
+
+    if (loading && data.length === 0) {
+        return (
+            <div className="flex items-center justify-center p-20">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FFCA06]" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center p-20 text-red-500">
+                {error}
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen py-2 flex flex-col gap-2">
-            {/* Date Filter */}
-            <div className="flex items-center w-fit gap-[16px] border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] cursor-pointer">
-                <IoIosArrowBack className="text-[13px] text-[#71717A]" />
-                <span className="text-[16px]">All Dates</span>
-                <IoIosArrowForward className="text-[13px] text-[#71717A]" />
+            {/* Date Filter & Pagination */}
+            <div className="flex items-center justify-between w-full">
+                <div className="flex items-center w-fit gap-[16px] border border-[#D8DCE1] rounded-[12px] px-[16px] h-[40px] cursor-pointer">
+                    <IoIosArrowBack className="text-[13px] text-[#71717A]" />
+                    <span className="text-[16px]">All Dates</span>
+                    <IoIosArrowForward className="text-[13px] text-[#71717A]" />
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <span className="text-[14px] text-[#71717A]">
+                        Showing {((page - 1) * limit) + 1} - {Math.min(page * limit, pagination.total)} of {pagination.total}
+                    </span>
+                    <div className="flex gap-2">
+                        <button
+                            disabled={page === 1}
+                            onClick={handlePrevPage}
+                            className="p-2 border border-[#D8DCE1] rounded-[8px] disabled:opacity-50 hover:bg-gray-50"
+                        >
+                            <IoIosArrowBack className="text-[13px]" />
+                        </button>
+                        <button
+                            disabled={page >= Math.ceil(pagination.total / pagination.limit)}
+                            onClick={handleNextPage}
+                            className="p-2 border border-[#D8DCE1] rounded-[8px] disabled:opacity-50 hover:bg-gray-50"
+                        >
+                            <IoIosArrowForward className="text-[13px]" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Table */}
@@ -199,7 +99,13 @@ const Session = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {sessionData.map((item) => (
+                            {data.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="py-10 text-center text-[#71717A]">
+                                        No session reports found
+                                    </td>
+                                </tr>
+                            ) : data.map((item) => (
                                 <React.Fragment key={item.id}>
                                     {/* Main Row */}
                                     <tr
@@ -211,12 +117,14 @@ const Session = () => {
                                                 className={`text-[#495057] text-[19px] transition-transform duration-200 ${openRow === item.id ? 'rotate-180' : ''}`}
                                             />
                                         </td>
-                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.date}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">
+                                            {dayjs(item.date).format('DD/MM/YYYY HH:mm')}
+                                        </td>
                                         <td className="py-3 text-left text-[14px] font-[400] text-[#0E1011]">{item.agent}</td>
                                         <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.type}</td>
                                         <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.list}</td>
                                         <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.calls}</td>
-                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.appt}</td>
+                                        <td className="py-3 text-left text-[14px] font-[400] text-[#495057]">{item.appointments}</td>
                                     </tr>
 
                                     {/* Expanded Row */}
@@ -237,17 +145,19 @@ const Session = () => {
                                                                 <span>Talk Time</span>
                                                                 <span>Dial Time</span>
                                                             </div>
-                                                            <div className="grid p-2 grid-cols-4 gap-4 items-center font-[400] text-[14px] text-[#495057]">
-                                                                <span>Other</span>
-                                                                <span>{item.details.totalCalls}</span>
-                                                                <span>{item.details.talkTime}</span>
-                                                                <span>{item.details.dialTime}</span>
-                                                            </div>
+                                                            {item.breakdown.results.map((result, idx) => (
+                                                                <div key={idx} className="grid p-2 grid-cols-4 gap-4 items-center font-[400] text-[14px] text-[#495057]">
+                                                                    <span>{result.result}</span>
+                                                                    <span>{result.totalCalls}</span>
+                                                                    <span>{result.talkTime}</span>
+                                                                    <span>{result.dialTime}</span>
+                                                                </div>
+                                                            ))}
                                                             <div className="grid bg-[#D8DCE1] border border-[#EBEDF0] p-2 grid-cols-4 gap-4 items-center font-[500] text-[14px] text-[#0E1011]">
                                                                 <span>TOTAL</span>
-                                                                <span>{item.details.totalCalls}</span>
-                                                                <span>{item.details.talkTime}</span>
-                                                                <span>{item.details.dialTime}</span>
+                                                                <span>{item.breakdown.total.calls}</span>
+                                                                <span>{item.breakdown.total.talkTime}</span>
+                                                                <span>{item.breakdown.total.dialTime}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -263,8 +173,8 @@ const Session = () => {
                                                                     <div className="py-1">Leads</div>
                                                                 </div>
                                                                 <div className="text-center">
-                                                                    <div className="py-1">{item.details.appointments}</div>
-                                                                    <div className="py-1">{item.details.leads}</div>
+                                                                    <div className="py-1">{item.appointments}</div>
+                                                                    <div className="py-1">{item.calls}</div> {/* Leads is not explicitly tracked in backend yet, using calls as proxy or 0 */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -312,3 +222,4 @@ const Session = () => {
 };
 
 export default Session;
+

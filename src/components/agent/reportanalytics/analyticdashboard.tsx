@@ -16,21 +16,28 @@ import callappointmenticon from "../../../assets/callappointmenticon.png"
 import contactappointment from "../../../assets/contactappointment.png"
 import exportarrowicon from "../../../assets/exportarrowicon.png"
 
-const AnalyticsDashboard = () => {
+import type { AgentReport } from "@/hooks/useReports";
+
+interface AnalyticsDashboardProps {
+    data: AgentReport | null;
+    loading: boolean;
+}
+
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading }) => {
     const stats = [
-        { icon: dialingicon, label: "Dialing Time", value: "6h 35m" },
-        { icon: callsicon, label: "Calls Made", value: "372" },
-        { icon: contacticon, label: "Contacts Made", value: "116" },
-        { icon: leadsicon, label: "Leads", value: "20" },
-        { icon: appointmenticon, label: "Appointments Set", value: "11" },
-        { icon: appointmentsecondicon, label: "Appointments Met", value: "6" },
-        { icon: callhricon, label: "Calls/Hr", value: "42.38" },
-        { icon: contacthricon, label: "Contacts/Hr", value: "11.84" },
-        { icon: callleadicon, label: "Calls/Lead", value: "13.60" },
-        { icon: contactleadicon, label: "Contacts/Lead", value: "3.80" },
-        { icon: timeicon, label: "Time/Appointment", value: "36m" },
-        { icon: callappointmenticon, label: "Calls/Appointment", value: "24.73" },
-        { icon: contactappointment, label: "Contacts/Appointment", value: "6.91" },
+        { icon: dialingicon, label: "Dialing Time", value: data?.dialingTime || "0s" },
+        { icon: callsicon, label: "Calls Made", value: data?.callsMade.toString() || "0" },
+        { icon: contacticon, label: "Contacts Made", value: data?.contacts.toString() || "0" },
+        { icon: leadsicon, label: "Leads", value: data?.totalLeads.toString() || "0" },
+        { icon: appointmenticon, label: "Appointments Set", value: "0" },
+        { icon: appointmentsecondicon, label: "Appointments Met", value: "0" },
+        { icon: callhricon, label: "Calls/Hr", value: data?.callsPerHour || "0.00" },
+        { icon: contacthricon, label: "Contacts/Hr", value: data?.contactsPerHour || "0.00" },
+        { icon: callleadicon, label: "Calls/Lead", value: data?.callsPerLead || "0.00" },
+        { icon: contactleadicon, label: "Contacts/Lead", value: "0.00" },
+        { icon: timeicon, label: "Time/Appointment", value: "0s" },
+        { icon: callappointmenticon, label: "Calls/Appointment", value: "0.00" },
+        { icon: contactappointment, label: "Contacts/Appointment", value: "0.00" },
     ];
 
     return (
@@ -45,7 +52,7 @@ const AnalyticsDashboard = () => {
 
                     <div className="flex items-center gap-[16px] text-sm  border border-[#D8DCE1] rounded-[12px] p-[4px] cursor-pointer">
                         <IoIosArrowBack className="text-[13px] text-[#71717A]" />
-                        <span className="font-[500] text-[16px] text-[#47474C]">All Dates</span>
+                        <span className="font-medium text-[16px] text-[#47474C]">All Dates</span>
                         <IoIosArrowForward className="text-[13px] text-[#71717A]" />
                     </div>
                 </div>
@@ -57,7 +64,7 @@ const AnalyticsDashboard = () => {
             </div>
 
             {/* Stats Cards Grid (Fully Responsive) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-4">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
                 {stats.map((stat, index) => (
                     <AnalyticCard key={index} icon={stat.icon} label={stat.label} value={stat.value} />
                 ))}

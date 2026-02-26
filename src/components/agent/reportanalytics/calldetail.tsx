@@ -31,8 +31,14 @@ const SortedHeader: React.FC<SortedHeaderProps> = ({ header, label }) => {
 // ----------------------
 // Table Data & Columns
 // ----------------------
+import { useCallDetailsReport } from "@/hooks/useCallDetailsReport";
+import { useEffect } from "react";
+
+// ----------------------
+// Table Data & Columns
+// ----------------------
 interface CallRow {
-  id: number;
+  id: string;
   name: string;
   address: string;
   list: string;
@@ -41,40 +47,33 @@ interface CallRow {
   result: string;
 }
 
-const callData: CallRow[] = [
-  { id: 1, name: "Kathryn Murphy", address: "47406 N Franklin Street", list: "High-Value Leads", group: "-", phone: "(252) 555-0126", result: "Other" },
-  { id: 2, name: "Robert Fox", address: "93592 Woodside Road", list: "-", group: "-", phone: "(405) 555-0128", result: "Other" },
-  { id: 3, name: "Annette Black", address: "6286 Ryan Crossroad", list: "Renewals Q3", group: "-", phone: "(684) 555-0102", result: "Other" },
-  { id: 4, name: "Dianne Russell", address: "533 Curtis Crescent", list: "Renewals Q3", group: "-", phone: "(603) 555-0123", result: "Other" }
-];
-
 const columns = [
   {
     accessorKey: "name",
     header: (info: any) => <SortedHeader header={info.header} label="Name" />,
     cell: (info: any) => (
-      <span className="text-[#1D85F0] font-[400] text-[14px]">{info.getValue()}</span>
+      <span className="text-[#1D85F0] font-normal text-[14px]">{info.getValue()}</span>
     ),
   },
   {
     accessorKey: "address",
     header: (info: any) => <SortedHeader header={info.header} label="Address" />,
     cell: (info: any) => (
-      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+      <span className="text-[#495057] font-normal">{info.getValue()}</span>
     ),
   },
   {
     accessorKey: "list",
     header: (info: any) => <SortedHeader header={info.header} label="List" />,
     cell: (info: any) => (
-      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+      <span className="text-[#495057] font-normal">{info.getValue()}</span>
     ),
   },
   {
     accessorKey: "group",
     header: (info: any) => <SortedHeader header={info.header} label="Group" />,
     cell: (info: any) => (
-      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+      <span className="text-[#495057] font-normal">{info.getValue()}</span>
     ),
   },
   {
@@ -83,7 +82,7 @@ const columns = [
     cell: (info: any) => (
       <div className="flex items-center gap-2">
         <img src={callsicon} alt="call" className="w-4 h-4 object-contain" />
-        <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+        <span className="text-[#495057] font-normal">{info.getValue()}</span>
       </div>
     ),
   },
@@ -91,19 +90,38 @@ const columns = [
     accessorKey: "result",
     header: (info: any) => <SortedHeader header={info.header} label="Result" />,
     cell: (info: any) => (
-      <span className="text-[#495057] font-[400]">{info.getValue()}</span>
+      <span className="text-[#495057] font-normal">{info.getValue()}</span>
     ),
   },
 ];
 
+interface CallDetailProps {
+  userId?: string;
+}
+
 // ----------------------
 // Main Component
 // ----------------------
-const CallDetail = () => {
+const CallDetail: React.FC<CallDetailProps> = ({ userId }) => {
+  const { data, loading, getCallDetails, pagination } = useCallDetailsReport();
+
+  useEffect(() => {
+    getCallDetails({ userId });
+  }, [userId, getCallDetails]);
+
+  const tableData: CallRow[] = data.map(item => ({
+    id: item.id,
+    name: item.name,
+    address: item.address,
+    list: item.list,
+    group: item.group,
+    phone: item.phoneNumber,
+    result: item.result
+  }));
   return (
     <Box className="mt-3 flex flex-col gap-2 w-full h-full">
       <style>
-  {`
+        {`
     table thead tr th,
     table thead {
       background: #F7F7F7 !important;
@@ -151,7 +169,7 @@ const CallDetail = () => {
       }
     }
   `}
-</style>
+      </style>
 
 
       {/* Filters */}
@@ -179,17 +197,18 @@ const CallDetail = () => {
 
       {/* Table */}
       <div className="responsive-table-wrapper">
-        <TableProvider data={callData} columns={columns}>
+        <TableProvider data={tableData} columns={columns}>
           {() => <TableComponent />}
         </TableProvider>
+        {loading && <div className="text-center py-4">Loading report...</div>}
       </div>
 
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
         <div className="flex items-center gap-2 text-[14px] text-[#495057]">
-          <span>1 - 50 of 146</span>
+          <span>{((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}</span>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-[14px] text-[#495057]">Page</span>
@@ -205,7 +224,7 @@ const CallDetail = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="border border-[#D8DCE1] rounded-[12px] px-[12px] h-[36px] flex justify-between items-center gap-2 cursor-pointer bg-white min-w-[80px]">
             <span className="text-[14px] text-[#495057]">50</span>
             <FaChevronDown className="text-[12px] text-[#71717A]" />

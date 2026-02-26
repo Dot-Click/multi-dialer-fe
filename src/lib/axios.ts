@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const env = import.meta.env.VITE_NODE_ENV
 const api = axios.create({
-    baseURL: env === "production" ? import.meta.env.VITE_API_BASE_URL : "http://localhost:3000/api",
+    baseURL: env === "production" ? import.meta.env.VITE_API_BASE_URL : "https://multi-dialer-be-production.up.railway.app/api",
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
