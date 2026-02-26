@@ -17,6 +17,7 @@ const AllContact = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
   const navigate = useNavigate();
 
   // ✅ Use typed context
@@ -118,13 +119,21 @@ const AllContact = () => {
         <AllContactComponent 
           onSelectionChange={setSelectedContacts} 
           listId={activeItem.type === 'list' ? activeItem.id : undefined}
+          visibleColumns={visibleColumns}
         />
       </div>
 
       {/* 🔹 Modals */}
       {isFilterOpen && <FilterModal onClose={() => setIsFilterOpen(false)} />}
       {showColumnsModal && (
-        <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
+        <ManageColumnsModal 
+          onClose={() => setShowColumnsModal(false)} 
+          initialDisplayColumns={visibleColumns}
+          onApply={(columns) => {
+            setVisibleColumns(columns);
+            setShowColumnsModal(false);
+          }}
+        />
       )}
     </section>
   );

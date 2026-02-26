@@ -4,13 +4,21 @@ import { IoClose, IoSearch } from "react-icons/io5";
 
 interface ManageColumnsModalProps {
   onClose: () => void;
+  initialDisplayColumns?: string[];
+  onApply?: (columns: string[]) => void;
 }
 
-const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
-  const allFields = ["Name", "Email", "Phone", "Last Dialed", "List", "Tags", "Company", "Created At"];
+const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ 
+  onClose, 
+  initialDisplayColumns, 
+  onApply 
+}) => {
+  const allFields = ["Name", "Email", "Phone", "Last Dialed", "List", "Tags"];
 
-  const [available, setAvailable] = useState<string[]>(allFields.slice(4));
-  const [display, setDisplay] = useState<string[]>(allFields.slice(0, 4));
+  const [display, setDisplay] = useState<string[]>(initialDisplayColumns || allFields.slice(0, 4));
+  const [available, setAvailable] = useState<string[]>(
+    allFields.filter(field => !(initialDisplayColumns || allFields.slice(0, 4)).includes(field))
+  );
   const [searchAvailable, setSearchAvailable] = useState<string>("");
   const [searchDisplay, setSearchDisplay] = useState<string>("");
 
@@ -142,7 +150,12 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ onClose }) => {
           >
             Cancel
           </button>
-          <button className="bg-[#FFCA06] w-full px-4 py-2 rounded-md text-sm font-medium text-black hover:bg-[#f5bd00]">
+          <button 
+            className="bg-[#FFCA06] w-full px-4 py-2 rounded-md text-sm font-medium text-black hover:bg-[#f5bd00]"
+            onClick={() => {
+              if (onApply) onApply(display);
+            }}
+          >
             Submit Changes
           </button>
         </div>
