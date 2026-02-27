@@ -3,7 +3,8 @@ import { FiX, FiChevronDown } from 'react-icons/fi';
 import { useCallerIds, type CallerId } from '@/hooks/useSystemSettings';
 import { useMediaCenter, type MediaCenterItem } from '@/hooks/useMediaCenter';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
 
 interface NumberSettingsModalProps {
   isOpen: boolean;
@@ -15,15 +16,20 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
   const { data: callerIds, updateCallerId } = useCallerIds();
   const { getMediaCenterItems } = useMediaCenter();
 
-  const [recordings, setRecordings] = useState<MediaCenterItem[]>([]);
+  const [_recordings, setRecordings] = useState<MediaCenterItem[]>([]);
   const [dialerType, setDialerType] = useState<'PREDICTIVE' | 'POWER' | 'PREVIEW'>('POWER');
   const [aiPacing, setAiPacing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Agent State
+  const [agents, setAgents] = useState<{ id: string; fullName: string; email: string }[]>([]);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+  const { data: session } = authClient.useSession();
+
   // Selected values
-  const [selectedCallerId, setSelectedCallerId] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('');
   const [selectedLines, setSelectedLines] = useState('1');
-  const [selectedRecording, setSelectedRecording] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -31,28 +37,81 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         const audioItems = items.filter(item => item.fileCategory === 'audio');
         setRecordings(audioItems);
       });
+
+      // Fetch Agents using Better Auth Admin Plugin
+      const fetchAgents = async () => {
+        if (!session?.user?.id) return;
+        setIsLoadingAgents(true);
+        try {
+          const { data, error } = await authClient.admin.listUsers({
+            query: {
+              limit: 100,
+            }
+          });
+
+          if (error) {
+            console.error("Failed to fetch users via Better Auth:", error);
+            return;
+          }
+
+          if (data && data.users) {
+            // Filter: Role must be AGENT and createdById must match current admin's ID
+            const filteredAgents = data.users
+              .filter((u: any) =>
+                u.role?.toUpperCase() === 'AGENT' &&
+                u.createdById === session.user.id
+              )
+              .map((u: any) => ({
+                id: u.id,
+                fullName: u.fullName || u.name || 'Unknown Agent',
+                email: u.email
+              }));
+
+            setAgents(filteredAgents);
+          }
+        } catch (err) {
+          console.error("Error fetching agents:", err);
+        } finally {
+          setIsLoadingAgents(false);
+        }
+      };
+
+      fetchAgents();
     }
-  }, [isOpen]);
+  }, [isOpen, session?.user?.id]);
 
   useEffect(() => {
     if (createdCallerId) {
-      setSelectedCallerId(createdCallerId.callerId || '');
+      setSelectedNumber(createdCallerId.twillioNumber || '');
       setSelectedLines(String(createdCallerId.numberOfLines || 1));
-      setSelectedRecording(createdCallerId.onHoldRecording1 || '');
       setDialerType(createdCallerId.dialerType || 'POWER');
       setAiPacing(createdCallerId.aiPacing || false);
-    } else if (callerIds && callerIds.length > 0 && !selectedCallerId) {
-      setSelectedCallerId(callerIds[0].callerId || '');
+      setSelectedAgentIds(createdCallerId.agents?.map(a => a.id) || []);
+    } else if (callerIds && callerIds.length > 0 && !selectedNumber) {
+      const first = callerIds[0];
+      setSelectedNumber(first.twillioNumber || '');
     }
   }, [createdCallerId, callerIds, isOpen]);
+
+  useEffect(() => {
+    if (selectedNumber && callerIds) {
+      const target = callerIds.find(c => c.twillioNumber === selectedNumber);
+      if (target) {
+        setSelectedLines(String(target.numberOfLines || 1));
+        setDialerType(target.dialerType || 'POWER');
+        setAiPacing(target.aiPacing || false);
+        setSelectedAgentIds(target.agents?.map(a => a.id) || []);
+      }
+    }
+  }, [selectedNumber, callerIds]);
 
   if (!isOpen) return null;
 
   const handleStartDialing = async () => {
-    // Find the record ID for the selected caller ID string
-    const targetRecord = callerIds?.find(c => c.callerId === selectedCallerId);
+    // Find the record ID for the selected number string
+    const targetRecord = callerIds?.find(c => c.twillioNumber === selectedNumber);
     if (!targetRecord) {
-      toast.error('Please select a valid Caller ID');
+      toast.error('Please select a valid Number');
       return;
     }
 
@@ -62,9 +121,9 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         id: targetRecord.id,
         data: {
           numberOfLines: parseInt(selectedLines),
-          onHoldRecording1: selectedRecording,
           dialerType,
           aiPacing,
+          agentIds: selectedAgentIds,
           status: 'Healthy' as any
         }
       });
@@ -78,7 +137,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
       <div className="bg-white w-full max-w-[480px] max-h-[92vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
         <div className="px-6 py-5 flex justify-between items-center border-b border-gray-50">
           <h2 className="text-[18px] font-bold text-gray-800">Number Settings</h2>
@@ -88,24 +147,6 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
           {/* Selectors Section */}
           <div className="space-y-3">
-            {/* Caller ID Dropdown */}
-            <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative group">
-              <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Caller ID</label>
-              <div className="relative mt-0.5">
-                <select
-                  value={selectedCallerId}
-                  onChange={(e) => setSelectedCallerId(e.target.value)}
-                  className="w-full bg-transparent appearance-none text-[13px] font-bold text-gray-700 outline-none pr-8 cursor-pointer"
-                >
-                  <option value="" disabled>Select a number</option>
-                  {callerIds?.map(c => (
-                    <option key={c.id} value={c.callerId}>{c.callerId} {c.label ? `(${c.label})` : ''}</option>
-                  ))}
-                </select>
-                <FiChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
             {/* Number of Lines Dropdown */}
             <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative">
               <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Number of Lines</label>
@@ -123,23 +164,48 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
               </div>
             </div>
 
-            {/* On-Hold Recording Dropdown */}
-            <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative">
-              <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">On-Hold Recording</label>
-              <div className="relative mt-0.5">
-                <select
-                  value={selectedRecording}
-                  onChange={(e) => setSelectedRecording(e.target.value)}
-                  className="w-full bg-transparent appearance-none text-[13px] font-bold text-gray-700 outline-none pr-8 cursor-pointer"
-                >
-                  <option value="">Select a recording</option>
-                  {recordings.map(rec => (
-                    <option key={rec.id} value={rec.id}>{rec.templateName}</option>
-                  ))}
-                </select>
-                <FiChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+
+
+            {/* Agent Selection */}
+            <div className="bg-[#F3F4F8] rounded-xl px-4 py-3 relative">
+              <div className="flex items-center gap-2 mb-2">
+                <Users size={14} className="text-yellow-600" />
+                <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Assign Agents</label>
               </div>
-              <p className="text-[10px] text-gray-400 mt-2 font-medium">This on-hold recording applies to all outbound numbers.</p>
+
+              {isLoadingAgents ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 size={20} className="animate-spin text-yellow-500" />
+                </div>
+              ) : agents.length === 0 ? (
+                <p className="text-[11px] text-gray-400 py-2">No agents found created by you.</p>
+              ) : (
+                <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2">
+                  {agents.map(agent => (
+                    <label
+                      key={agent.id}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${selectedAgentIds.includes(agent.id) ? 'bg-white border-yellow-300 shadow-sm' : 'bg-transparent border-transparent hover:bg-gray-100'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedAgentIds.includes(agent.id)}
+                        onChange={() => {
+                          setSelectedAgentIds(prev =>
+                            prev.includes(agent.id)
+                              ? prev.filter(id => id !== agent.id)
+                              : [...prev, agent.id]
+                          );
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-bold text-gray-800 truncate">{agent.fullName}</p>
+                        <p className="text-[10px] text-gray-500 truncate">{agent.email}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -191,8 +257,8 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
           <button onClick={onClose} className="flex-1 bg-[#F3F4F6] hover:bg-gray-200 text-gray-900 text-[15px] font-bold py-4 rounded-2xl transition-all">Cancel</button>
           <button
             onClick={handleStartDialing}
-            disabled={isSaving || !selectedCallerId}
-            className="flex-grow-[2] bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all disabled:opacity-50"
+            disabled={isSaving || !selectedNumber}
+            className="grow-2 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all disabled:opacity-50"
           >
             {isSaving ? (
               <span className="flex items-center justify-center gap-2">
@@ -204,7 +270,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         </div>
       </div>
       <style>{`.custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }`}</style>
-    </div>
+    </div >
   );
 };
 

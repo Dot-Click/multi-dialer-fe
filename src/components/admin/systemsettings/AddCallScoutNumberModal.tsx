@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FiPhone, FiX } from 'react-icons/fi';
-import { useCallerIds, useTwilioNumbers } from '@/hooks/useSystemSettings';
+import { useTwilioNumbers } from '@/hooks/useSystemSettings';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -10,17 +10,24 @@ interface AddCallScoutNumberModalProps {
     onSuccess: (callerId: any) => void;
 }
 
+import { Country, State, City } from 'country-state-city';
+
 const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpen, onClose, onSuccess }) => {
-    const { createCallerId } = useCallerIds();
-    const { availableNumbers, buyNumber } = useTwilioNumbers();
+    // const { createCallerId } = useCallerIds();
+    const [filters, setFilters] = useState({
+        countryCode: 'US',
+        cityName: '',
+        state: ''
+    });
+
+    const countries = Country.getAllCountries();
+    const states = State.getStatesOfCountry(filters.countryCode);
+    const cities = filters.state
+        ? City.getCitiesOfState(filters.countryCode, filters.state)
+        : [];
+    const { availableNumbers, buyNumber } = useTwilioNumbers(filters);
     const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            availableNumbers.refetch();
-        }
-    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -35,28 +42,18 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
 
         setIsSubmitting(true);
         try {
-            // 1. Buy the number from Twilio
-            const buyResult = await buyNumber.mutateAsync(selectedNumber);
-            const twilioInfo = buyResult.data || buyResult;
-
-            // 2. Add it to our system as a Caller ID
-            const result = await createCallerId.mutateAsync({
-                callerId: selectedNumber,
-                sid: twilioInfo.sid,
-                friendlyName: twilioInfo.friendlyName,
-                label: `CallScout Number - ${twilioNum.locality || 'US'}`,
+            // 1. Buy the number from Twilio (Backend now handles saving it to DB)
+            const buyResult = await buyNumber.mutateAsync({
+                phoneNumber: selectedNumber,
                 countryCode: twilioNum.isoCountry || 'US',
-                numberOfLines: 1,
-                ringTime: 30,
-                enableAutoPause: false,
-                enableRecording: false,
-                sendOutlookAppointment: false,
-                allowDncCalls: false,
-                status: 'Healthy' as any
+                label: `CallScout Number - ${twilioNum.locality || 'US'}`
             });
 
+            // The backend returns { number, callerId }
+            const newRecord = buyResult.data?.callerId || buyResult.callerId;
+
             toast.success('Number bought and added successfully');
-            onSuccess(result.data || result);
+            onSuccess(newRecord);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to process number');
         } finally {
@@ -75,12 +72,50 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
 
                 <div className="p-8 pt-4 space-y-6">
                     <div className="grid grid-cols-3 gap-3">
-                        {['AREA CODE', 'CITY', 'STATE'].map((label, i) => (
-                            <div key={i} className="space-y-1.5">
-                                <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1">{label}</label>
-                                <input type="text" placeholder="eg., ..." disabled className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none opacity-50 cursor-not-allowed" />
-                            </div>
-                        ))}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">Country</label>
+                            <select
+                                value={filters.countryCode}
+                                onChange={(e) => setFilters({ ...filters, countryCode: e.target.value, state: '', cityName: '' })}
+                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                            >
+                                {countries.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">State</label>
+                            <select
+                                value={filters.state}
+                                onChange={(e) => setFilters({ ...filters, state: e.target.value, cityName: '' })}
+                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                            >
+                                <option value="">Select State</option>
+                                {states.map(s => <option key={s.isoCode} value={s.isoCode}>{s.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">City</label>
+                            <select
+                                value={filters.cityName}
+                                // onChange={(e) => setFilters({ ...filters, cityName: e.target.value })}
+                                onChange={(e) => setFilters({ ...filters, cityName: e.target.value })}
+                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                                disabled={!filters.state}
+                            >
+                                <option value="">
+
+                                    {filters.state ? 'Select City' : 'Select State First'}
+                                </option>
+                                {cities.map(c => (
+                                    <option
+                                        key={`${filters.countryCode}-${c.stateCode}-${c.name}`}  // 👈 fully unique key
+                                        value={c.name}
+                                    >
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="bg-[#F9FAFB] rounded-[24px] p-4">
@@ -90,14 +125,20 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                         </div>
 
                         <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
-                            {availableNumbers.isLoading ? (
+                            {!filters.countryCode || !filters.state || !filters.cityName ? (
+                                <div className="text-center py-10">
+                                    <p className="text-[12px] font-bold text-gray-400">
+                                        Select a country, state & city to see available numbers
+                                    </p>
+                                </div>
+                            ) : availableNumbers.isLoading || availableNumbers.isFetching ? (
                                 <div className="flex flex-col items-center justify-center py-10 space-y-3">
                                     <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
                                     <p className="text-[12px] font-bold text-gray-400">Fetching fresh numbers...</p>
                                 </div>
                             ) : availableNumbers.data?.length === 0 ? (
                                 <div className="text-center py-10">
-                                    <p className="text-[12px] font-bold text-gray-400">No numbers available at this time.</p>
+                                    <p className="text-[12px] font-bold text-gray-400">No numbers available for these filters.</p>
                                 </div>
                             ) : (
                                 availableNumbers.data?.map((item) => (
@@ -124,7 +165,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                         <button
                             onClick={handleAddNumber}
                             disabled={isSubmitting || !selectedNumber || availableNumbers.isLoading}
-                            className="flex-[2] bg-[#FECD56] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] shadow-sm hover:bg-[#F0D500] transition-colors disabled:opacity-50"
+                            className="flex-2 bg-[#FECD56] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] shadow-sm hover:bg-[#F0D500] transition-colors disabled:opacity-50"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">

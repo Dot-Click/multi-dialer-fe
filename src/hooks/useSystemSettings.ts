@@ -6,29 +6,17 @@ import api from '../lib/axios';
 export interface CallerId {
     id: string;
     label: string;
-    availableTo: string[];
-    onHoldRecording1?: string;
-    onHoldRecording2?: string;
-    ivrRecording?: string;
-    answeringMachineRecording?: string;
-    enableAutoPause: boolean;
-    enableRecording: boolean;
-    sendOutlookAppointment: boolean;
-    allowDncCalls: boolean;
-    callerId: string;
     countryCode: string;
     numberOfLines: number;
-    ringTime: number;
-    callScriptId?: string;
-    sendEmail: boolean;
-    sendText: boolean;
     createdAt: string;
     updatedAt: string;
     status: string;
     dialerType?: 'PREDICTIVE' | 'POWER' | 'PREVIEW';
     aiPacing?: boolean;
-    sid?: string;
-    friendlyName?: string;
+    twillioSid?: string;
+    twillioNumber?: string;
+    agentIds?: string[];
+    agents?: { id: string; fullName: string; email: string }[];
 }
 
 export interface DialerSettings {
@@ -423,21 +411,23 @@ export const useActionPlans = () => {
 };
 
 // 9. Twilio Number Hooks
-export const useTwilioNumbers = () => {
+export const useTwilioNumbers = (filters?: { countryCode?: string; cityName?: string; state?: string }) => {
     const queryClient = useQueryClient();
 
     const availableNumbersQuery = useQuery({
-        queryKey: ['available-numbers'],
+        queryKey: ['available-numbers', filters],
         queryFn: async (): Promise<TwilioNumber[]> => {
-            const response = await api.get('/calling/available-numbers');
+            const response = await api.post('/calling/available-numbers', filters || {});
             return response.data.data || response.data;
         },
         staleTime: 0,
+        enabled: !!(filters?.countryCode && filters?.state && filters?.cityName), // 👈 only fetch when all 3 are selected
+
     });
 
     const buyNumberMutation = useMutation({
-        mutationFn: async (phoneNumber: string) => {
-            const response = await api.post('/calling/buy-number', { phoneNumber });
+        mutationFn: async (payload: { phoneNumber: string; countryCode?: string; label?: string }) => {
+            const response = await api.post('/calling/buy-number', payload);
             return response.data;
         },
         onSuccess: () => {

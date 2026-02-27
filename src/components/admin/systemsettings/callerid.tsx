@@ -75,7 +75,7 @@ const CallerId: React.FC = () => {
                       </td>
                       <td className="px-6 py-5">
                         <span className="text-[11px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                          {number.sid ? `${number.sid.substring(0, 8)}...` : 'N/A'}
+                          {number.twillioSid ? `${number.twillioSid}` : 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-5">
