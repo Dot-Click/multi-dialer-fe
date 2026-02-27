@@ -6,6 +6,7 @@ import { useCalendar, type EventType } from '@/hooks/useCalendar';
 import { useUser, type User } from '@/hooks/useUser';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
+import Loader from '@/components/common/Loader';
 
 const { TextArea } = Input;
 
@@ -87,8 +88,8 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
   if (!open) return null;
 
   const filteredUsers = users.filter(user =>
-    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -106,7 +107,8 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
         </div>
 
         {/* Scrollable content */}
-        <div className="px-6 py-4 overflow-y-auto max-h-[70vh]">
+        <div className="px-6 py-4 overflow-y-auto max-h-[70vh] relative">
+          {calendarLoading && <Loader />}
 
           {/* Title */}
           <div className="mb-5">

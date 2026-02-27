@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
@@ -9,13 +9,15 @@ import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactsByList, type Contact } from "@/store/slices/contactSlice";
+import Loader from "@/components/common/Loader";
 
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
   listId?: string;
+  visibleColumns?: string[];
 }
 
-const AllContact = ({ onSelectionChange, listId }: AllContactProps) => {
+const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
@@ -30,8 +32,8 @@ const AllContact = ({ onSelectionChange, listId }: AllContactProps) => {
       dispatch(fetchContacts());
     }
   }, [dispatch, listId]);
-
-  const columns = [
+  
+  const allColumns = [
     {
       id: "select",
       header: (context: any) => {
@@ -110,6 +112,27 @@ const AllContact = ({ onSelectionChange, listId }: AllContactProps) => {
     },
   ];
 
+  const columns = useMemo(() => {
+    if (!visibleColumns || visibleColumns.length === 0) return allColumns;
+    
+    // Always include select column
+    const filtered = allColumns.filter(col => {
+      if (col.id === "select") return true;
+      
+      return visibleColumns.some(vc => {
+        if (vc === "Name" && col.accessorKey === "name") return true;
+        if (vc === "Email" && col.accessorKey === "email") return true;
+        if (vc === "Phone" && col.accessorKey === "phone") return true;
+        if (vc === "Last Dialed" && col.accessorKey === "lastDialedDate") return true;
+        if (vc === "List" && col.accessorKey === "list") return true;
+        if (vc === "Tags" && col.accessorKey === "tags") return true;
+        return false;
+      });
+    });
+    
+    return filtered;
+  }, [visibleColumns, linkPath]);
+
   // Component to handle selection changes
   const SelectionHandler = ({ selectedRows }: { selectedRows: Contact[] | undefined }) => {
     useEffect(() => {
@@ -120,21 +143,13 @@ const AllContact = ({ onSelectionChange, listId }: AllContactProps) => {
     return null;
   };
 
-  if (isLoading && contacts.length === 0) {
-    return (
-      <Box className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>
-      </Box>
-    );
-  }
+  // if (isLoading && contacts.length === 0) return <Loader/>
 
   return (
     <Box className="mt-3 m-2 w-full h-full">
       <main>
         {isLoading ? (
-          <div className="flex items-center justify-center h-full min-h-[400px]">
-            <span className="text-gray-500">Loading contacts...</span>
-          </div>
+         <Loader/>
         ) : error ? (
           <div className="flex items-center justify-center h-full min-h-[400px]">
             <span className="text-red-500">{error}</span>

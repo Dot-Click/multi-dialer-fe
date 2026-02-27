@@ -46,6 +46,8 @@ export const useCalendar = () => {
         setError(null);
         try {
             const response = await api.get('/calendar');
+            console.log(response);
+            
             return response.data.data;
         } catch (err: any) {
             const message = err.response?.data?.message || 'Failed to fetch calendar events';

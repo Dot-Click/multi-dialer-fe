@@ -526,7 +526,7 @@
 // export default CustomCalendar;
 
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Calendar, ConfigProvider, Modal } from "antd";
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
@@ -535,58 +535,39 @@ import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
+import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
+import Loader from "@/components/common/Loader";
 
-/* --------------------------------------------------
- *  EVENT DATA  (with image + description)
- * -------------------------------------------------- */
-const events: Record<string, {
-  color: string;
-  title: string;
-  time: string;
-  description?: string;
-  image?: string;
-  assignee?: string;
-}[]> = {
-  "2025-11-01": [
-    {
-      color: "#FCA5A5",
-      title: "Home Close Date",
-      time: "10:10 - 10:25",
-      description: "Final walk-through and key handover.",
-      image: "https://i.ibb.co/3kW3PqY/home.jpg",
-      assignee: "John Lee",
-    },
-    {
-      color: "#A78BFA",
-      title: "Birthday",
-      time: "11:00 - 11:45",
-      description: "Join us for a small birthday celebration at the office.",
-      image: "https://i.ibb.co/3kW3PqY/birthday.jpg",
-      assignee: "John Lee",
-    },
-  ],
-  "2025-11-03": [
-    {
-      color: "#60A5FA",
-      title: "Task",
-      time: "10:10 - 10:25",
-      description: "Complete the Q4 report.",
-      image: "https://i.ibb.co/3kW3PqY/task.jpg",
-      assignee: "John Lee",
-    },
-  ],
+// Helper to group events by date
+const groupEventsByDate = (eventList: CalendarEvent[]) => {
+  const grouped: Record<string, CalendarEvent[]> = {};
+  eventList.forEach((event) => {
+    const dateKey = dayjs(event.startDate).format("YYYY-MM-DD");
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = [];
+    }
+    grouped[dateKey].push(event);
+  });
+  return grouped;
 };
 
-const getEventData = (date: Dayjs) => {
-  const key = date.format("YYYY-MM-DD");
-  return events[key as keyof typeof events] || [];
+const formatEventTime = (event: CalendarEvent) => {
+  if (event.eventType === 'ALL_DAY') return 'All Day';
+  const start = dayjs(event.startDate).format('HH:mm');
+  if (event.endDate) {
+    const end = dayjs(event.endDate).format('HH:mm');
+    return `${start} - ${end}`;
+  }
+  return start;
 };
 
 /* --------------------------------------------------
  *  MAIN COMPONENT
  * -------------------------------------------------- */
 export default function CustomCalendar() {
-  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs("2025-11-01"));
+  const { getEvents, loading } = useCalendar();
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
   /* modals */
@@ -604,17 +585,26 @@ export default function CustomCalendar() {
   });
 
   /* selected event for detail */
-  const [selectedEvent, setSelectedEvent] = useState<{
-    title: string;
-    time: string;
-    color: string;
-    description?: string;
-    image?: string;
-    assignee?: string;
-  } | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
+
+  const fetchEvents = async () => {
+    const data = await getEvents();
+    setEvents(data);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+
+  const getEventData = (date: Dayjs) => {
+    const key = date.format("YYYY-MM-DD");
+    return groupedEvents[key] || [];
+  };
 
   /* handlers */
   const onDateClick = (d: Dayjs) => {
@@ -632,7 +622,7 @@ export default function CustomCalendar() {
     setShowAllOpen(true);
   };
 
-  const openDetail = (ev: typeof selectedEvent, date: Dayjs) => {
+  const openDetail = (ev: CalendarEvent, date: Dayjs) => {
     setSelectedEvent(ev);
     setSelectedEventDate(date);
     setDetailOpen(true);
@@ -650,14 +640,17 @@ export default function CustomCalendar() {
     return (
       <div className="flex flex-col gap-1 py-2 h-full text-left">
         {list.slice(0, max).map((it, i) => (
-          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight">
+          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
+            e.stopPropagation();
+            openDetail(it, value);
+          }}>
             <div
               className="w-1 rounded-full self-stretch flex-shrink-0"
               style={{ backgroundColor: it.color }}
             />
             <div className="min-w-0 flex-1">
               <p className="font-medium text-gray-700 truncate">{it.title}</p>
-              <p className="text-gray-500 truncate">{it.time}</p>
+              <p className="text-gray-500 truncate">{formatEventTime(it)}</p>
             </div>
           </div>
         ))}
@@ -713,7 +706,8 @@ export default function CustomCalendar() {
 
       {/* ------- calendar ------- */}
       <ConfigProvider locale={enGB}>
-        <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm border border-gray-200 overflow-x-auto">
+        <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm border border-gray-200 overflow-x-auto relative">
+          {loading && <Loader />}
           <Calendar
             value={currentDate}
             onPanelChange={setCurrentDate}
@@ -758,7 +752,13 @@ export default function CustomCalendar() {
       </Modal>
 
       {/* ------- add-event modal ------- */}
-      <AddEventForm open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddEventForm
+        open={addOpen}
+        onClose={(success) => {
+          setAddOpen(false);
+          if (success) fetchEvents();
+        }}
+      />
 
       {/* ------- show-all modal ------- */}
       <Modal
@@ -790,7 +790,7 @@ export default function CustomCalendar() {
               />
               <div className="flex flex-col leading-tight">
                 <p className="text-gray-800 font-medium text-[15px]">{evt.title}</p>
-                <p className="text-gray-500 text-[13px] mt-0.5">{evt.time}</p>
+                <p className="text-gray-500 text-[13px] mt-0.5">{formatEventTime(evt)}</p>
               </div>
             </div>
           ))}
@@ -855,7 +855,7 @@ export default function CustomCalendar() {
                     {selectedEventDate?.format("dddd, MMMM DD")}
                   </span>
                   <span className="text-gray-400">|</span>
-                  <span>{selectedEvent?.time}</span>
+                  <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
                 </div>
               </div>
             </div>
@@ -869,7 +869,7 @@ export default function CustomCalendar() {
                 Assignee
               </p>
               <p className="text-sm font-normal text-gray-900 mt-0.5">
-                {selectedEvent?.assignee || "Unassigned"}
+                {selectedEvent?.assignTo?.fullName || selectedEvent?.assignTo?.email || "Unassigned"}
               </p>
             </div>
 
