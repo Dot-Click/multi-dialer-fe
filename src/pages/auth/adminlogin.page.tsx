@@ -17,13 +17,17 @@ const AdminLogin: React.FC = () => {
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { loading, isAuthenticated, role: currentRole } = useAppSelector((state) => state.auth);
+  const {
+    loading,
+    isAuthenticated,
+    role: currentRole,
+  } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (currentRole === 'ADMIN') navigate("/admin");
-      else if (currentRole === 'OWNER') navigate("/super-admin");
-      else if (currentRole === 'AGENT') navigate("/");
+      if (currentRole === "ADMIN") navigate("/admin");
+      else if (currentRole === "OWNER") navigate("/super-admin");
+      else if (currentRole === "AGENT") navigate("/");
     }
   }, [isAuthenticated, currentRole, navigate]);
 
@@ -51,10 +55,9 @@ const AdminLogin: React.FC = () => {
       const userRole = payload.user?.role || payload.session?.role;
 
       // Step 2: Role validation
-      const allowedRoles = ["ADMIN", "OWNER"];
-      if (!payload || !userRole || !allowedRoles.includes(userRole)) {
+      if (!payload || !userRole) {
         dispatch(logout());
-        toast.error("Access denied. Admin privileges required.");
+        toast.error("Invalid user data");
         return;
       }
 
@@ -64,8 +67,9 @@ const AdminLogin: React.FC = () => {
       toast.success("Login successful");
 
       // Step 4: Redirect
-      if (userRole === 'OWNER') navigate("/super-admin");
-      else navigate("/admin");
+      if (userRole === "OWNER") navigate("/super-admin");
+      else if (userRole === "ADMIN") navigate("/admin");
+      else navigate("/");
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     }
@@ -80,18 +84,26 @@ const AdminLogin: React.FC = () => {
       >
         <div className="bg-white h-[27rem] w-[25rem] rounded-[32px] flex flex-col items-center py-[48px] px-[32px] gap-3 shadow-lg">
           <img src={logoImage} alt="Logo" className="object-contain w-48" />
-          <h1 className="text-xl lg:text-[28px] font-[500] text-black">Log in to your account</h1>
+          <h1 className="text-xl lg:text-[28px] font-[500] text-black">
+            Log in to your account
+          </h1>
 
           <div className="flex gap-3 my-2">
             <Button
               className={`${!isAdminLogin ? "bg-[#0E1011] text-white" : "bg-transparent text-[#0E1011] hover:text-gray-100"} border border-gray-400 hover:bg-[#0E1011] cursor-pointer text-[14px] font-[500]`}
-              onClick={() => { setIsAdminLogin(false); navigate("/agent/login"); }}
+              onClick={() => {
+                setIsAdminLogin(false);
+                navigate("/agent/login");
+              }}
             >
               As Agent
             </Button>
             <Button
               className={`${isAdminLogin ? "bg-[#0E1011] text-white" : "bg-transparent text-[#0E1011] hover:text-gray-100"} border border-gray-400 hover:bg-[#0E1011] cursor-pointer text-[14px] font-[500]`}
-              onClick={() => { setIsAdminLogin(true); navigate("/admin/login"); }}
+              onClick={() => {
+                setIsAdminLogin(true);
+                navigate("/admin/login");
+              }}
             >
               As Admin
             </Button>
@@ -99,7 +111,12 @@ const AdminLogin: React.FC = () => {
 
           <form className="w-full flex flex-col gap-3" onSubmit={handleLogin}>
             <div className="bg-gray-200 flex flex-col w-full gap-0.5 px-3 py-1.5 rounded-lg">
-              <label htmlFor="email" className="text-xs text-[#495057] font-medium p-0">Email</label>
+              <label
+                htmlFor="email"
+                className="text-xs text-[#495057] font-medium p-0"
+              >
+                Email
+              </label>
               <input
                 type="email"
                 id="email"
@@ -112,7 +129,12 @@ const AdminLogin: React.FC = () => {
             </div>
 
             <div className="bg-gray-200 flex flex-col w-full gap-1 px-3 py-1.5 rounded-lg">
-              <label htmlFor="password" className="text-xs text-[#495057] font-medium p-0">Password</label>
+              <label
+                htmlFor="password"
+                className="text-xs text-[#495057] font-medium p-0"
+              >
+                Password
+              </label>
               <div className="flex items-center justify-between">
                 <input
                   type={showCurrent ? "text" : "password"}
@@ -123,17 +145,28 @@ const AdminLogin: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <span className="text-xl text-gray-700 cursor-pointer ml-2" onClick={() => setShowCurrent(!showCurrent)}>
+                <span
+                  className="text-xl text-gray-700 cursor-pointer ml-2"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                >
                   {showCurrent ? <VscEyeClosed /> : <VscEye />}
                 </span>
               </div>
             </div>
 
             <div className="flex justify-end w-full">
-              <a href="/admin/change-password" className="text-gray-600 text-[0.65rem] lg:text-xs">Forget your password?</a>
+              <a
+                href="/admin/change-password"
+                className="text-gray-600 text-[0.65rem] lg:text-xs"
+              >
+                Forget your password?
+              </a>
             </div>
 
-            <Button type="submit" className="w-full bg-[#FFCA06] hover:bg-yellow-500 py-[8px] px-[24px] rounded-[12px] cursor-pointer font-[500] text-[#000000] text-[16px]">
+            <Button
+              type="submit"
+              className="w-full bg-[#FFCA06] hover:bg-yellow-500 py-[8px] px-[24px] rounded-[12px] cursor-pointer font-[500] text-[#000000] text-[16px]"
+            >
               Log In
             </Button>
           </form>

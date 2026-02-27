@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../lib/axios';
+import toast from 'react-hot-toast';
 
 export interface User {
     id: string;
@@ -48,6 +49,26 @@ export const useUser = () => {
         } catch (err: any) {
             const message = err.response?.data?.message || 'Failed to create user';
             setError(message);
+            toast.error(message);
+            console.error(err);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const deleteUser = async (userId: string): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
+        try {
+            await api.delete(`/user/${userId}`);
+            toast.success('User deleted successfully');
+            return true;
+        } catch (err: any) {
+            const message = err.response?.data?.message || 'Failed to delete user';
+            setError(message);
+            toast.error(message);
             console.error(err);
             return false;
         } finally {
@@ -60,5 +81,6 @@ export const useUser = () => {
         error,
         getUsers,
         createUser,
+        deleteUser,
     };
 };
