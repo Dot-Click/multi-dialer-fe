@@ -6,25 +6,17 @@ import api from '../lib/axios';
 export interface CallerId {
     id: string;
     label: string;
-    availableTo: string[];
-    onHoldRecording1?: string;
-    onHoldRecording2?: string;
-    ivrRecording?: string;
-    answeringMachineRecording?: string;
-    enableAutoPause: boolean;
-    enableRecording: boolean;
-    sendOutlookAppointment: boolean;
-    allowDncCalls: boolean;
-    callerId: string;
     countryCode: string;
     numberOfLines: number;
-    ringTime: number;
-    callScriptId?: string;
-    sendEmail: boolean;
-    sendText: boolean;
     createdAt: string;
     updatedAt: string;
     status: string;
+    dialerType?: 'PREDICTIVE' | 'POWER' | 'PREVIEW';
+    aiPacing?: boolean;
+    twillioSid?: string;
+    twillioNumber?: string;
+    agentIds?: string[];
+    agents?: { id: string; fullName: string; email: string }[];
 }
 
 export interface DialerSettings {
@@ -96,6 +88,20 @@ export interface MiscField {
     type: string;
     fieldName: string;
     options?: string[];
+}
+
+export interface TwilioNumber {
+    friendlyName: string;
+    phoneNumber: string;
+    locality: string;
+    region: string;
+    isoCountry: string;
+    capabilities: {
+        voice: boolean;
+        sms: boolean;
+        mms: boolean;
+        fax: boolean;
+    };
 }
 
 // --- Hooks ---
@@ -401,5 +407,36 @@ export const useActionPlans = () => {
     return {
         ...query,
         deleteActionPlan: deleteMutation
+    };
+};
+
+// 9. Twilio Number Hooks
+export const useTwilioNumbers = (filters?: { countryCode?: string; cityName?: string; state?: string }) => {
+    const queryClient = useQueryClient();
+
+    const availableNumbersQuery = useQuery({
+        queryKey: ['available-numbers', filters],
+        queryFn: async (): Promise<TwilioNumber[]> => {
+            const response = await api.post('/calling/available-numbers', filters || {});
+            return response.data.data || response.data;
+        },
+        staleTime: 0,
+        enabled: !!(filters?.countryCode && filters?.state && filters?.cityName), // 👈 only fetch when all 3 are selected
+
+    });
+
+    const buyNumberMutation = useMutation({
+        mutationFn: async (payload: { phoneNumber: string; countryCode?: string; label?: string }) => {
+            const response = await api.post('/calling/buy-number', payload);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['caller-ids'] });
+        }
+    });
+
+    return {
+        availableNumbers: availableNumbersQuery,
+        buyNumber: buyNumberMutation
     };
 };

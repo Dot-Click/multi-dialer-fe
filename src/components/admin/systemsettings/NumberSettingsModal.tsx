@@ -1,25 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiChevronDown } from 'react-icons/fi';
-import { useCallerIds } from '@/hooks/useSystemSettings';
+import { useCallerIds, type CallerId } from '@/hooks/useSystemSettings';
 import { useMediaCenter, type MediaCenterItem } from '@/hooks/useMediaCenter';
+import toast from 'react-hot-toast';
+import { Loader2, Users } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
 
 interface NumberSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  createdCallerId?: CallerId | null;
 }
 
-const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { data: callerIds } = useCallerIds();
+const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClose, createdCallerId }) => {
+  const { data: callerIds, updateCallerId } = useCallerIds();
   const { getMediaCenterItems } = useMediaCenter();
 
-  const [recordings, setRecordings] = useState<MediaCenterItem[]>([]);
-  const [dialerType, setDialerType] = useState('predictive');
-  const [aiPacing, setAiPacing] = useState(true);
+  const [_recordings, setRecordings] = useState<MediaCenterItem[]>([]);
+  const [dialerType, setDialerType] = useState<'PREDICTIVE' | 'POWER' | 'PREVIEW'>('POWER');
+  const [aiPacing, setAiPacing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Agent State
+  const [agents, setAgents] = useState<{ id: string; fullName: string; email: string }[]>([]);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+  const { data: session } = authClient.useSession();
 
   // Selected values
-  const [selectedCallerId, setSelectedCallerId] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('');
   const [selectedLines, setSelectedLines] = useState('1');
-  const [selectedRecording, setSelectedRecording] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -27,19 +37,107 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         const audioItems = items.filter(item => item.fileCategory === 'audio');
         setRecordings(audioItems);
       });
+
+      // Fetch Agents using Better Auth Admin Plugin
+      const fetchAgents = async () => {
+        if (!session?.user?.id) return;
+        setIsLoadingAgents(true);
+        try {
+          const { data, error } = await authClient.admin.listUsers({
+            query: {
+              limit: 100,
+            }
+          });
+
+          if (error) {
+            console.error("Failed to fetch users via Better Auth:", error);
+            return;
+          }
+
+          if (data && data.users) {
+            // Filter: Role must be AGENT and createdById must match current admin's ID
+            const filteredAgents = data.users
+              .filter((u: any) =>
+                u.role?.toUpperCase() === 'AGENT' &&
+                u.createdById === session.user.id
+              )
+              .map((u: any) => ({
+                id: u.id,
+                fullName: u.fullName || u.name || 'Unknown Agent',
+                email: u.email
+              }));
+
+            setAgents(filteredAgents);
+          }
+        } catch (err) {
+          console.error("Error fetching agents:", err);
+        } finally {
+          setIsLoadingAgents(false);
+        }
+      };
+
+      fetchAgents();
     }
-  }, [isOpen]);
+  }, [isOpen, session?.user?.id]);
 
   useEffect(() => {
-    if (callerIds && callerIds.length > 0 && !selectedCallerId) {
-      setSelectedCallerId(callerIds[0].callerId || '');
+    if (createdCallerId) {
+      setSelectedNumber(createdCallerId.twillioNumber || '');
+      setSelectedLines(String(createdCallerId.numberOfLines || 1));
+      setDialerType(createdCallerId.dialerType || 'POWER');
+      setAiPacing(createdCallerId.aiPacing || false);
+      setSelectedAgentIds(createdCallerId.agents?.map(a => a.id) || []);
+    } else if (callerIds && callerIds.length > 0 && !selectedNumber) {
+      const first = callerIds[0];
+      setSelectedNumber(first.twillioNumber || '');
     }
-  }, [callerIds]);
+  }, [createdCallerId, callerIds, isOpen]);
+
+  useEffect(() => {
+    if (selectedNumber && callerIds) {
+      const target = callerIds.find(c => c.twillioNumber === selectedNumber);
+      if (target) {
+        setSelectedLines(String(target.numberOfLines || 1));
+        setDialerType(target.dialerType || 'POWER');
+        setAiPacing(target.aiPacing || false);
+        setSelectedAgentIds(target.agents?.map(a => a.id) || []);
+      }
+    }
+  }, [selectedNumber, callerIds]);
 
   if (!isOpen) return null;
 
+  const handleStartDialing = async () => {
+    // Find the record ID for the selected number string
+    const targetRecord = callerIds?.find(c => c.twillioNumber === selectedNumber);
+    if (!targetRecord) {
+      toast.error('Please select a valid Number');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateCallerId.mutateAsync({
+        id: targetRecord.id,
+        data: {
+          numberOfLines: parseInt(selectedLines),
+          dialerType,
+          aiPacing,
+          agentIds: selectedAgentIds,
+          status: 'Healthy' as any
+        }
+      });
+      toast.success('Settings saved successfully');
+      onClose(); // In a real app, this might also trigger the dialer start
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
       <div className="bg-white w-full max-w-[480px] max-h-[92vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
         <div className="px-6 py-5 flex justify-between items-center border-b border-gray-50">
           <h2 className="text-[18px] font-bold text-gray-800">Number Settings</h2>
@@ -47,27 +145,8 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
-
           {/* Selectors Section */}
           <div className="space-y-3">
-            {/* Caller ID Dropdown */}
-            <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative group">
-              <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Caller ID</label>
-              <div className="relative mt-0.5">
-                <select
-                  value={selectedCallerId}
-                  onChange={(e) => setSelectedCallerId(e.target.value)}
-                  className="w-full bg-transparent appearance-none text-[13px] font-bold text-gray-700 outline-none pr-8 cursor-pointer"
-                >
-                  <option value="" disabled>Select a number</option>
-                  {callerIds?.map(c => (
-                    <option key={c.id} value={c.callerId}>{c.callerId} {c.label ? `(${c.label})` : ''}</option>
-                  ))}
-                </select>
-                <FiChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
             {/* Number of Lines Dropdown */}
             <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative">
               <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Number of Lines</label>
@@ -85,36 +164,61 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
               </div>
             </div>
 
-            {/* On-Hold Recording Dropdown */}
-            <div className="bg-[#F3F4F8] rounded-xl px-4 py-2.5 relative">
-              <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">On-Hold Recording</label>
-              <div className="relative mt-0.5">
-                <select
-                  value={selectedRecording}
-                  onChange={(e) => setSelectedRecording(e.target.value)}
-                  className="w-full bg-transparent appearance-none text-[13px] font-bold text-gray-700 outline-none pr-8 cursor-pointer"
-                >
-                  <option value="">Select a recording</option>
-                  {recordings.map(rec => (
-                    <option key={rec.id} value={rec.id}>{rec.templateName}</option>
-                  ))}
-                </select>
-                <FiChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+
+
+            {/* Agent Selection */}
+            <div className="bg-[#F3F4F8] rounded-xl px-4 py-3 relative">
+              <div className="flex items-center gap-2 mb-2">
+                <Users size={14} className="text-yellow-600" />
+                <label className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-wider block">Assign Agents</label>
               </div>
-              <p className="text-[10px] text-gray-400 mt-2 font-medium">This on-hold recording applies to all outbound numbers.</p>
+
+              {isLoadingAgents ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 size={20} className="animate-spin text-yellow-500" />
+                </div>
+              ) : agents.length === 0 ? (
+                <p className="text-[11px] text-gray-400 py-2">No agents found created by you.</p>
+              ) : (
+                <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2">
+                  {agents.map(agent => (
+                    <label
+                      key={agent.id}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${selectedAgentIds.includes(agent.id) ? 'bg-white border-yellow-300 shadow-sm' : 'bg-transparent border-transparent hover:bg-gray-100'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedAgentIds.includes(agent.id)}
+                        onChange={() => {
+                          setSelectedAgentIds(prev =>
+                            prev.includes(agent.id)
+                              ? prev.filter(id => id !== agent.id)
+                              : [...prev, agent.id]
+                          );
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-bold text-gray-800 truncate">{agent.fullName}</p>
+                        <p className="text-[10px] text-gray-500 truncate">{agent.email}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="space-y-3">
             <h3 className="text-[14px] font-bold text-gray-900 border-l-4 border-yellow-400 pl-2">Dialer Settings</h3>
             {[
-              { id: 'predictive', title: 'Predictive Dialing', desc: 'AI-driven call pacing\nAutomatically adjusts based on availability' },
-              { id: 'power', title: 'Power Dialing', desc: 'Dials one number at a time\nAutomatically dials next contact' },
-              { id: 'preview', title: 'Preview Dialing', desc: 'Agent views contact details before dialing\nAgent manually initiates each call' },
+              { id: 'PREDICTIVE', title: 'Predictive Dialing', desc: 'AI-driven call pacing\nAutomatically adjusts based on availability' },
+              { id: 'POWER', title: 'Power Dialing', desc: 'Dials one number at a time\nAutomatically dials next contact' },
+              { id: 'PREVIEW', title: 'Preview Dialing', desc: 'Agent views contact details before dialing\nAgent manually initiates each call' },
             ].map((option) => (
               <div
                 key={option.id}
-                onClick={() => setDialerType(option.id)}
+                onClick={() => setDialerType(option.id as any)}
                 className={`p-4 rounded-2xl flex gap-4 cursor-pointer border-2 transition-all ${dialerType === option.id ? 'bg-[#F9FAFB] border-yellow-400' : 'bg-[#F3F4F8] border-transparent hover:border-gray-200'}`}
               >
                 <div className="mt-1">
@@ -130,7 +234,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
             ))}
           </div>
 
-          <div className="flex gap-4 p-1 bg-yellow-50/50 rounded-2xl p-4 border border-yellow-100">
+          <div className="flex gap-4 p-4 bg-yellow-50/50 rounded-2xl border border-yellow-100">
             <input
               type="checkbox"
               checked={aiPacing}
@@ -151,11 +255,22 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
 
         <div className="p-6 border-t border-gray-50 flex gap-4">
           <button onClick={onClose} className="flex-1 bg-[#F3F4F6] hover:bg-gray-200 text-gray-900 text-[15px] font-bold py-4 rounded-2xl transition-all">Cancel</button>
-          <button className="flex-[2] bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all">Start Dialing</button>
+          <button
+            onClick={handleStartDialing}
+            disabled={isSaving || !selectedNumber}
+            className="grow-2 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[15px] font-extrabold py-4 rounded-2xl shadow-md transition-all disabled:opacity-50"
+          >
+            {isSaving ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin" />
+                Saving...
+              </span>
+            ) : 'Start Dialing'}
+          </button>
         </div>
       </div>
       <style>{`.custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }`}</style>
-    </div>
+    </div >
   );
 };
 

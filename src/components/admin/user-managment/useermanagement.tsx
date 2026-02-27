@@ -33,7 +33,9 @@ export default function Page() {
       if (error) {
         toast.error(error.message || "Failed to fetch users");
       } else if (data) {
-        setUsers(data.users || []);
+        // Filter users created by the logged-in admin
+        const filteredUsers = data.users?.filter((u: any) => u.createdById === session?.user?.id) || [];
+        setUsers(filteredUsers);
       }
     } catch (err: any) {
       console.error("Fetch Users Error:", err);
@@ -43,8 +45,10 @@ export default function Page() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (session?.user?.id) {
+      fetchUsers();
+    }
+  }, [session?.user?.id]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +64,8 @@ export default function Page() {
         email,
         password,
         data: {
-          role
+          role,
+          createdById: session?.user?.id
         }
       }, {
         onSuccess: () => {
