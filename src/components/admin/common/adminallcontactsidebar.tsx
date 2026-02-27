@@ -4,23 +4,37 @@ import { IoIosArrowBack } from "react-icons/io";
 import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
-import { useContact, type ContactList, type ContactFolder, type ContactGroup } from "@/hooks/useContact";
+import {
+  useContact,
+  type ContactList,
+  type ContactFolder,
+  type ContactGroup,
+} from "@/hooks/useContact";
 
 interface AllContactSidebarProps {
-  onSelectItem: (selection: { type: string; id?: string; name: string }) => void;
+  onSelectItem: (selection: {
+    type: string;
+    id?: string;
+    name: string;
+  }) => void;
 }
 
 interface FolderWithLists extends ContactFolder {
   nestedLists: ContactList[];
 }
 
-const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) => {
+const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
+  onSelectItem,
+}) => {
   const [activeItem, setActiveItem] = useState("allContacts");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const { getContactLists, getContactFolders, getContactGroups, loading } = useContact();
+  const { getContactLists, getContactFolders, getContactGroups, loading } =
+    useContact();
 
   const [folders, setFolders] = useState<FolderWithLists[]>([]);
   const [standaloneLists, setStandaloneLists] = useState<ContactList[]>([]);
@@ -41,20 +55,22 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
       const [allLists, allFolders, allGroups] = await Promise.all([
         getContactLists(),
         getContactFolders(),
-        getContactGroups()
+        getContactGroups(),
       ]);
 
       const folderMap = new Map<string, FolderWithLists>();
       const usedListIds = new Set<string>();
 
-      allFolders.forEach(folder => {
-        const nestedLists = allLists.filter(list => folder.listIds.includes(list.id));
-        nestedLists.forEach(l => usedListIds.add(l.id));
+      allFolders.forEach((folder) => {
+        const nestedLists = allLists.filter((list) =>
+          folder.listIds.includes(list.id),
+        );
+        nestedLists.forEach((l) => usedListIds.add(l.id));
         folderMap.set(folder.id, { ...folder, nestedLists });
       });
 
       setFolders(Array.from(folderMap.values()));
-      setStandaloneLists(allLists.filter(list => !usedListIds.has(list.id)));
+      setStandaloneLists(allLists.filter((list) => !usedListIds.has(list.id)));
       setGroups(allGroups);
     };
 
@@ -68,7 +84,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
   };
 
   const toggleFolder = (id: string) => {
-    setExpandedFolders(prev => {
+    setExpandedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -89,7 +105,8 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log("Selected File:", file);
+      console.log("Full File Object:", file);
+      event.target.value = "";
     }
   };
 
@@ -101,7 +118,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
         className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
       >
         <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] font-medium">Back To Home</span>
+        <span className="text-[16px] text-[#495057] font-medium">
+          Back To Home
+        </span>
       </Link>
 
       <div className="border-b border-gray-100 h-1 my-3"></div>
@@ -120,7 +139,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
 
       {/* Calling Lists */}
       <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] font-medium uppercase text-[14px]">Calling Lists</h1>
+        <h1 className="text-[#495057] font-medium uppercase text-[14px]">
+          Calling Lists
+        </h1>
         <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {folders.map((folder) => (
             <div key={folder.id} className="flex flex-col gap-1.5">
@@ -130,7 +151,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
                   bg-gray-50 hover:bg-[#FFCA06]`}
               >
                 <VscFolderOpened className="text-lg" />
-                <h1 className="text-[#495057] font-medium text-[14px] truncate">{folder.name}</h1>
+                <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                  {folder.name}
+                </h1>
               </div>
 
               {expandedFolders.has(folder.id) && (
@@ -142,8 +165,12 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
                       className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                       ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
                     >
-                      <h1 className="text-[#495057] font-medium text-[14px] truncate">{list.name}</h1>
-                      <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">{list.name.slice(0, 2)}</h1>
+                      <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                        {list.name}
+                      </h1>
+                      <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
+                        {list.name.slice(0, 2)}
+                      </h1>
                     </div>
                   ))}
                 </div>
@@ -158,13 +185,19 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
               className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                 ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
             >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">{list.name}</h1>
-              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">{list.name.slice(0, 2)}</h1>
+              <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                {list.name}
+              </h1>
+              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
+                {list.name.slice(0, 2)}
+              </h1>
             </div>
           ))}
 
           {!loading && folders.length === 0 && standaloneLists.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">No lists found</span>
+            <span className="text-xs text-gray-400 text-center py-4">
+              No lists found
+            </span>
           )}
         </div>
       </div>
@@ -173,7 +206,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
 
       {/* Groups */}
       <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] uppercase font-medium text-[14px]">Groups</h1>
+        <h1 className="text-[#495057] uppercase font-medium text-[14px]">
+          Groups
+        </h1>
         <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {groups.map((gro) => (
             <div
@@ -182,11 +217,15 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
                 ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
             >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">{gro.name}</h1>
+              <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                {gro.name}
+              </h1>
             </div>
           ))}
           {!loading && groups.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">No groups found</span>
+            <span className="text-xs text-gray-400 text-center py-4">
+              No groups found
+            </span>
           )}
         </div>
       </div>
@@ -195,7 +234,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
       <div className="mt-auto pt-2">
         <button
           onClick={openFileDialog}
-          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 text-[#495057] font-medium rounded-md transition"
+          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] hover:bg-[#EBE1F0] text-[#0E1011] font-medium rounded-md transition"
         >
           <LuArrowUpToLine className="text-base" />
           Import File
@@ -205,6 +244,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem
           type="file"
           ref={fileInputRef}
           className="hidden"
+          accept=".csv"
           onChange={handleFileChange}
         />
       </div>
