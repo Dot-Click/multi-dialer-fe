@@ -12,7 +12,7 @@ interface ContactInfoHeaderProps {
   currentIndex?: number;
   totalContacts?: number;
 }
-
+const fromNumbers = ["+15203530496","+15512311702","+13142712606","+13502169070","+12294412493"]
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
@@ -21,9 +21,11 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
     if (isCalling) {
       endCall();
     } else {
+      const fromNumber = fromNumbers[Math.floor(Math.random() * fromNumbers.length)]; // just for testing
+      console.log(fromNumber);
       // Use the primary phone from the contact's phones array
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      startCall(phone);
+      startCall(phone, fromNumber);
     }
   };
 
