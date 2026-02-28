@@ -199,7 +199,7 @@ export const useDialerSettings = () => {
             // Check if settings already exist (get by ID if necessary or use common update endpoint)
             // Backend seems to have a post for create and put for update.
             // Many system settings are usually singletons per user.
-            const response = await api.put('/system-settings/dialer-settings', data);
+            const response = await api.put(`/system-settings/dialer-settings`, data);
             return response.data;
         },
         onSuccess: () => {
@@ -209,7 +209,7 @@ export const useDialerSettings = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: Partial<DialerSettings>) => {
-            const response = await api.post('/system-settings/dialer-settings', data);
+            const response = await api.post('/system-settings/dialer-settings/create', data);
             return response.data;
         },
         onSuccess: () => {
