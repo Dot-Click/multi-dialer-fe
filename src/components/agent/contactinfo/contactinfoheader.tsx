@@ -12,7 +12,7 @@ interface ContactInfoHeaderProps {
   currentIndex?: number;
   totalContacts?: number;
 }
-const fromNumbers = ["+15203530496","+15512311702","+13142712606","+13502169070","+12294412493"]
+const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"]
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
@@ -25,7 +25,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
       console.log(fromNumber);
       // Use the primary phone from the contact's phones array
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      startCall(phone, fromNumber);
+      startCall(phone, fromNumber, contact?.id);
     }
   };
 
@@ -60,7 +60,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
             <span className="text-[#0E1011] text-sm font-medium">Follow Up</span>
           </button>
 
-          <button 
+          <button
             onClick={handleCallToggle}
             className={`${isCalling ? 'bg-red-500 text-white' : 'bg-[#EBEDF0] text-[#0E1011]'} rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:opacity-80 transition-all`}
           >
@@ -74,7 +74,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           </button>
 
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={onPrev}
               disabled={currentIndex === 0}
               className={`bg-[#EBEDF0] text-[#0E1011] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#D8DCE1] transition-all ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -82,7 +82,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
               <span className="text-sm font-medium">Prev</span>
             </button>
 
-            <button 
+            <button
               onClick={onNext}
               disabled={currentIndex >= totalContacts - 1}
               className={`bg-[#0E1011] text-white rounded-[12px] flex items-center gap-1.5 py-3 px-5 hover:bg-[#1a1c1e] transition-colors ${currentIndex >= totalContacts - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -116,7 +116,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
             <span className="text-[#0E1011] font-medium">Follow Up</span>
           </button>
 
-          <button 
+          <button
             onClick={handleCallToggle}
             className={`rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 transition-colors ${isCalling ? 'bg-red-500 text-white' : 'bg-[#EBEDF0] text-[#0E1011]'}`}
           >
@@ -130,7 +130,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           </button>
 
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={onPrev}
               disabled={currentIndex === 0}
               className={`flex-1 bg-[#EBEDF0] text-[#0E1011] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -138,7 +138,7 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
               <span className="font-medium">Previous</span>
             </button>
 
-            <button 
+            <button
               onClick={onNext}
               disabled={currentIndex >= totalContacts - 1}
               className={`flex-1 bg-[#0E1011] text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#1a1c1e] ${currentIndex >= totalContacts - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}

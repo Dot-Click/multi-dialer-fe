@@ -9,7 +9,7 @@ interface TwilioContextType {
   isCalling: boolean;
   appStatus: string;
   activeCallSid: string | null;
-  startCall: (phone: string, from: string) => Promise<void>;
+  startCall: (phone: string, from: string, contactId: string) => Promise<void>;
   endCall: () => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
@@ -66,7 +66,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.log('Incoming bridge connection');
         setActiveCall(call);
         
-        const sid = call.parameters.CallSid || (call as any).sid;
+        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
         console.log('Incoming call SID:', sid);
         
@@ -122,7 +122,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Note: Speaker status usually persists across calls on the device level
   }, []);
 
-  const startCall = async (phone: string, from: string) => {
+  const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
     
     setIsCalling(true);
@@ -135,14 +135,47 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         params: { 
           To: phone, 
           From: from,
-          agentId: identity || 'tester_agent'
+          agentId: identity || 'tester_agent',
+          contactId: contactId
         }
       });
       
       if (call) {
-        const sid = call.parameters.CallSid || (call as any).sid;
+        setActiveCall(call);
+        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
-        console.log('Call initiated:', sid);
+        console.log('Call initiated SID:', sid);
+
+        call.on('ringing', () => {
+          console.log('Outgoing call ringing');
+          setCallStatus('ringing');
+        });
+
+        call.on('accept', () => {
+          console.log('Outgoing call bridged/accepted by TwiML');
+          const finalSid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
+          setActiveCallSid(finalSid);
+          // We don't set 'connected' here yet because the TwiML might be playing a greeting
+          // The polling effect will move it to 'connected' once the real answer is detected
+        });
+
+        call.on('disconnect', () => {
+          console.log('Outgoing call disconnected');
+          setCallStatus('disconnected');
+          handleStopCalling();
+        });
+
+        call.on('cancel', () => {
+          console.log('Outgoing call cancelled');
+          setCallStatus('disconnected');
+          handleStopCalling();
+        });
+
+        call.on('error', (error) => {
+          console.error('Call Error:', error);
+          toast.error(`Call Error: ${error.message}`);
+          handleStopCalling();
+        });
       } else {
         throw new Error('Call connection failed');
       }
@@ -249,6 +282,24 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     return () => clearInterval(timerInterval);
   }, [callStatus]);
+
+  useEffect(() => {
+    let statusInterval: any;
+    if (isCalling && callStatus === 'ringing' && activeCallSid) {
+      statusInterval = setInterval(async () => {
+        try {
+          const { data } = await api.get(`/calling/status/${activeCallSid}`);
+          if (data.success && (data.data.status === 'in-progress' || data.data.status === 'answered')) {
+             console.log('Customer has officially answered!');
+             setCallStatus('connected');
+          }
+        } catch (err) {
+          // console.error('Status poll error:', err);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(statusInterval);
+  }, [isCalling, callStatus, activeCallSid]);
 
   return (
     <TwilioContext.Provider value={{ 
