@@ -13,8 +13,10 @@ export interface CallerId {
     status: string;
     dialerType?: 'PREDICTIVE' | 'POWER' | 'PREVIEW';
     aiPacing?: boolean;
+
     twillioSid?: string;
     twillioNumber?: string;
+
     agentIds?: string[];
     agents?: { id: string; fullName: string; email: string }[];
 }
@@ -90,18 +92,44 @@ export interface MiscField {
     options?: string[];
 }
 
+export interface TwilioNumberCapabilities {
+    voice: boolean;
+    SMS: boolean;  
+    MMS: boolean;
+    fax: boolean;
+}
+
 export interface TwilioNumber {
     friendlyName: string;
     phoneNumber: string;
-    locality: string;
-    region: string;
+    locality: string | null;
+    region: string | null;
     isoCountry: string;
-    capabilities: {
-        voice: boolean;
-        sms: boolean;
-        mms: boolean;
-        fax: boolean;
-    };
+    postalCode: string | null;
+    lata: string | null;
+    rateCenter: string | null;
+    latitude: string | null;
+    longitude: string | null;
+    addressRequirements: string;
+    beta: boolean;
+    capabilities: TwilioNumberCapabilities;
+}
+
+export interface TwilioPricing {
+    country: string;
+    isoCountry: string;
+    phoneNumberPrices: Array<{
+        number_type: string;
+        base_price: string;
+        current_price: string;
+    }>;
+    priceUnit: string;
+    url: string;
+}
+
+export interface AvailableNumbersResponse {
+    numbers: TwilioNumber[];
+    pricing: TwilioPricing;
 }
 
 // --- Hooks ---
@@ -173,7 +201,7 @@ export const useDialerSettings = () => {
             // Check if settings already exist (get by ID if necessary or use common update endpoint)
             // Backend seems to have a post for create and put for update.
             // Many system settings are usually singletons per user.
-            const response = await api.put('/system-settings/dialer-settings', data);
+            const response = await api.put(`/system-settings/dialer-settings`, data);
             return response.data;
         },
         onSuccess: () => {
@@ -183,7 +211,7 @@ export const useDialerSettings = () => {
 
     const createMutation = useMutation({
         mutationFn: async (data: Partial<DialerSettings>) => {
-            const response = await api.post('/system-settings/dialer-settings', data);
+            const response = await api.post('/system-settings/dialer-settings/create', data);
             return response.data;
         },
         onSuccess: () => {
@@ -416,7 +444,7 @@ export const useTwilioNumbers = (filters?: { countryCode?: string; cityName?: st
 
     const availableNumbersQuery = useQuery({
         queryKey: ['available-numbers', filters],
-        queryFn: async (): Promise<TwilioNumber[]> => {
+        queryFn: async (): Promise<AvailableNumbersResponse> => {
             const response = await api.post('/calling/available-numbers', filters || {});
             return response.data.data || response.data;
         },

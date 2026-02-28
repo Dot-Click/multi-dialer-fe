@@ -11,7 +11,7 @@ import { useTwilio } from '@/providers/twilio.provider';
 
 const CurrentCallDetails = () => {
   const { currentContact } = useAppSelector((state) => state.contacts);
-  const { endCall, isCalling, toggleMute, toggleSpeaker, isMuted, isSpeakerOn } = useTwilio();
+  const { endCall, isCalling, toggleMute, toggleSpeaker, isMuted, isSpeakerOn, duration } = useTwilio();
 
   if (!currentContact) {
     return (
@@ -24,6 +24,12 @@ const CurrentCallDetails = () => {
   const primaryPhone = currentContact.phones?.find((p: any) => p.isPrimary)?.number || currentContact.phones?.[0]?.number || "No phone";
   const primaryEmail = currentContact.emails?.find((e: any) => e.isPrimary)?.email || currentContact.emails?.[0]?.email || "No email";
   const locationText = `${currentContact.city || ""}${currentContact.city && currentContact.state ? ", " : ""}${currentContact.state || ""}` || "No location";
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="mx-4 md:mx-auto max-w-4xl bg-white rounded-xl border border-gray-100 shadow-sm p-6 sm:p-8 font-inter">
@@ -92,7 +98,7 @@ const CurrentCallDetails = () => {
       {/* Stats Section: Responsive grid */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
         <div className="flex flex-col items-center">
-          <span className="text-lg sm:text-[22px] font-semibold text-[#00c851] leading-none mb-2">00:00</span>
+          <span className="text-lg sm:text-[22px] font-semibold text-[#00c851] leading-none mb-2">{formatDuration(duration)}</span>
           <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">Call Duration</span>
         </div>
         
