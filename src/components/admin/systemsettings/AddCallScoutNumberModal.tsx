@@ -9,7 +9,6 @@ interface AddCallScoutNumberModalProps {
     onClose: () => void;
     onSuccess: (callerId: any) => void;
 }
-
 import { Country, State, City } from 'country-state-city';
 
 const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpen, onClose, onSuccess }) => {
