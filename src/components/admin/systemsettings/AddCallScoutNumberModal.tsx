@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FiPhone, FiX } from 'react-icons/fi';
-import { useTwilioNumbers } from '@/hooks/useSystemSettings';
+import { useTwilioNumbers, type TwilioNumber } from '@/hooks/useSystemSettings';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import { Country, State, City } from 'country-state-city';
 
 interface AddCallScoutNumberModalProps {
     isOpen: boolean;
@@ -10,10 +11,7 @@ interface AddCallScoutNumberModalProps {
     onSuccess: (callerId: any) => void;
 }
 
-import { Country, State, City } from 'country-state-city';
-
 const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpen, onClose, onSuccess }) => {
-    // const { createCallerId } = useCallerIds();
     const [filters, setFilters] = useState({
         countryCode: 'US',
         cityName: '',
@@ -25,9 +23,19 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const cities = filters.state
         ? City.getCitiesOfState(filters.countryCode, filters.state)
         : [];
+
     const { availableNumbers, buyNumber } = useTwilioNumbers(filters);
     const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Backend returns { numbers: TwilioNumber[], pricing: TwilioPricing }
+    const numbersList: TwilioNumber[] = availableNumbers.data?.numbers ?? [];
+    const pricing = availableNumbers.data?.pricing;
+
+    // TwilioPricing uses camelCase from the hook: priceUnit, phoneNumberPrices
+    const pricingInfo = pricing?.priceUnit
+        ? `${pricing.priceUnit} ${pricing.phoneNumberPrices?.[0]?.current_price || 'N/A'}`
+        : null;
 
     if (!isOpen) return null;
 
@@ -37,19 +45,17 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             return;
         }
 
-        const twilioNum = availableNumbers.data?.find(n => n.phoneNumber === selectedNumber);
+        const twilioNum = numbersList.find((n: TwilioNumber) => n.phoneNumber === selectedNumber);
         if (!twilioNum) return;
 
         setIsSubmitting(true);
         try {
-            // 1. Buy the number from Twilio (Backend now handles saving it to DB)
             const buyResult = await buyNumber.mutateAsync({
                 phoneNumber: selectedNumber,
                 countryCode: twilioNum.isoCountry || 'US',
                 label: `CallScout Number - ${twilioNum.locality || 'US'}`
             });
 
-            // The backend returns { number, callerId }
             const newRecord = buyResult.data?.callerId || buyResult.callerId;
 
             toast.success('Number bought and added successfully');
@@ -62,15 +68,18 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
-            <div className="bg-white w-full max-w-[500px] rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                {/* Header with X button */}
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
+            <div className="bg-white w-full max-w-[500px] rounded-4xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                {/* Header */}
                 <div className="px-8 pt-8 pb-2 flex justify-between items-center">
                     <h2 className="text-[20px] font-bold text-gray-900">Add CallScout Number</h2>
-                    <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"><FiX size={20} /></button>
+                    <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+                        <FiX size={20} />
+                    </button>
                 </div>
 
                 <div className="p-8 pt-4 space-y-6">
+                    {/* Filters */}
                     <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">Country</label>
@@ -97,18 +106,16 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">City</label>
                             <select
                                 value={filters.cityName}
-                                // onChange={(e) => setFilters({ ...filters, cityName: e.target.value })}
                                 onChange={(e) => setFilters({ ...filters, cityName: e.target.value })}
                                 className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
                                 disabled={!filters.state}
                             >
                                 <option value="">
-
                                     {filters.state ? 'Select City' : 'Select State First'}
                                 </option>
                                 {cities.map(c => (
                                     <option
-                                        key={`${filters.countryCode}-${c.stateCode}-${c.name}`}  // 👈 fully unique key
+                                        key={`${filters.countryCode}-${c.stateCode}-${c.name}`}
                                         value={c.name}
                                     >
                                         {c.name}
@@ -118,9 +125,12 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                         </div>
                     </div>
 
-                    <div className="bg-[#F9FAFB] rounded-[24px] p-4">
+                    {/* Numbers List */}
+                    <div className="bg-[#F9FAFB] rounded-3xl p-4">
                         <div className="flex justify-between items-center mb-3 ml-1">
-                            <h3 className="text-[12px] font-extrabold text-gray-500 uppercase">Available Numbers ({availableNumbers.data?.length || 0})</h3>
+                            <h3 className="text-[12px] font-extrabold text-gray-500 uppercase">
+                                Available Numbers ({numbersList.length})
+                            </h3>
                             {availableNumbers.isFetching && <Loader2 size={14} className="animate-spin text-yellow-500" />}
                         </div>
 
@@ -136,32 +146,52 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                     <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
                                     <p className="text-[12px] font-bold text-gray-400">Fetching fresh numbers...</p>
                                 </div>
-                            ) : availableNumbers.data?.length === 0 ? (
+                            ) : numbersList.length === 0 ? (
                                 <div className="text-center py-10">
                                     <p className="text-[12px] font-bold text-gray-400">No numbers available for these filters.</p>
                                 </div>
                             ) : (
-                                availableNumbers.data?.map((item) => (
+                                numbersList.map((item: TwilioNumber) => (
                                     <div
                                         key={item.phoneNumber}
                                         onClick={() => setSelectedNumber(item.phoneNumber)}
-                                        className={`flex items-center gap-4 p-4 rounded-[18px] cursor-pointer transition-all border-2 ${selectedNumber === item.phoneNumber ? 'bg-white border-yellow-400 shadow-sm' : 'bg-white border-transparent hover:border-gray-100'}`}
+                                        className={`flex items-center gap-4 p-4 rounded-[18px] cursor-pointer transition-all border-2 ${
+                                            selectedNumber === item.phoneNumber
+                                                ? 'bg-white border-yellow-400 shadow-sm'
+                                                : 'bg-white border-transparent hover:border-gray-100'
+                                        }`}
                                     >
-                                        <FiPhone size={18} className={selectedNumber === item.phoneNumber ? 'text-yellow-500' : 'text-gray-400'} />
-                                        <div>
-                                            <p className="text-[14px] font-bold text-gray-900">{item.friendlyName || item.phoneNumber}</p>
+                                        <FiPhone
+                                            size={18}
+                                            className={selectedNumber === item.phoneNumber ? 'text-yellow-500' : 'text-gray-400'}
+                                        />
+                                        <div className="flex-1">
+                                            <p className="text-[14px] font-bold text-gray-900">
+                                                {item.friendlyName || item.phoneNumber}
+                                            </p>
                                             <p className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-tight">
-                                                {item.locality}, {item.region} ({item.isoCountry})
+                                                {item.locality ?? '—'}, {item.region ?? '—'} ({item.isoCountry})
                                             </p>
                                         </div>
+                                        {pricingInfo && (
+                                            <div className="text-right">
+                                                <p className="text-[11px] font-bold text-gray-700">{pricingInfo}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}
                         </div>
                     </div>
 
+                    {/* Actions */}
                     <div className="flex gap-4">
-                        <button onClick={onClose} className="flex-1 bg-[#F3F4F6] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] hover:bg-gray-200 transition-colors">Cancel</button>
+                        <button
+                            onClick={onClose}
+                            className="flex-1 bg-[#F3F4F6] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] hover:bg-gray-200 transition-colors"
+                        >
+                            Cancel
+                        </button>
                         <button
                             onClick={handleAddNumber}
                             disabled={isSubmitting || !selectedNumber || availableNumbers.isLoading}

@@ -90,18 +90,44 @@ export interface MiscField {
     options?: string[];
 }
 
+export interface TwilioNumberCapabilities {
+    voice: boolean;
+    SMS: boolean;  
+    MMS: boolean;
+    fax: boolean;
+}
+
 export interface TwilioNumber {
     friendlyName: string;
     phoneNumber: string;
-    locality: string;
-    region: string;
+    locality: string | null;
+    region: string | null;
     isoCountry: string;
-    capabilities: {
-        voice: boolean;
-        sms: boolean;
-        mms: boolean;
-        fax: boolean;
-    };
+    postalCode: string | null;
+    lata: string | null;
+    rateCenter: string | null;
+    latitude: string | null;
+    longitude: string | null;
+    addressRequirements: string;
+    beta: boolean;
+    capabilities: TwilioNumberCapabilities;
+}
+
+export interface TwilioPricing {
+    country: string;
+    isoCountry: string;
+    phoneNumberPrices: Array<{
+        number_type: string;
+        base_price: string;
+        current_price: string;
+    }>;
+    priceUnit: string;
+    url: string;
+}
+
+export interface AvailableNumbersResponse {
+    numbers: TwilioNumber[];
+    pricing: TwilioPricing;
 }
 
 // --- Hooks ---
@@ -416,7 +442,7 @@ export const useTwilioNumbers = (filters?: { countryCode?: string; cityName?: st
 
     const availableNumbersQuery = useQuery({
         queryKey: ['available-numbers', filters],
-        queryFn: async (): Promise<TwilioNumber[]> => {
+        queryFn: async (): Promise<AvailableNumbersResponse> => {
             const response = await api.post('/calling/available-numbers', filters || {});
             return response.data.data || response.data;
         },
