@@ -12,6 +12,8 @@ import userIcon from "@/assets/userIcon.png";
 import dashIcon from "@/assets/dashIcon.png";
 
 import { FiMenu } from "react-icons/fi";
+import { logout } from "@/store/slices/authSlice";
+import { useDispatch } from "react-redux";
 
 interface SuperAdminSidebarProps {
   isOpen: boolean;
@@ -27,7 +29,9 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   setIsMobile,
 }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -44,16 +48,42 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   }, []);
 
   const handleLogout = () => {
+    dispatch(logout());
     navigate("/admin/login");
   };
 
   const sidebarLinks = [
     { id: 1, name: "Dashboard", link: "/super-admin", icon: dashIcon },
-    { id: 7, name: "User Management", link: "/super-admin/user-management", icon: userIcon },
-    { id: 5, name: "Subscription Management", link: "/super-admin/subscription-management", icon: subsIcon },
-    { id: 8, name: "Reports of users and billings", link: "/super-admin/reports-of-user-billing", icon: userReportIcon },
-    { id: 9, name: "Settings", link: "/super-admin/setting", icon: settingicon },
-    { id: 10, name: "Reporting", link: "/super-admin/reporting", icon: reportingIcon },
+    {
+      id: 7,
+      name: "User Management",
+      link: "/super-admin/user-management",
+      icon: userIcon,
+    },
+    {
+      id: 5,
+      name: "Subscription Management",
+      link: "/super-admin/subscription-management",
+      icon: subsIcon,
+    },
+    {
+      id: 8,
+      name: "Reports of users and billings",
+      link: "/super-admin/reports-of-user-billing",
+      icon: userReportIcon,
+    },
+    {
+      id: 9,
+      name: "Settings",
+      link: "/super-admin/setting",
+      icon: settingicon,
+    },
+    {
+      id: 10,
+      name: "Reporting",
+      link: "/super-admin/reporting",
+      icon: reportingIcon,
+    },
   ];
 
   return (
@@ -128,7 +158,9 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
                 }
               >
                 <img src={slinks.icon} className="h-4 w-4 object-contain" />
-                {isOpen && <span className="text-[12px] font-medium">{slinks.name}</span>}
+                {isOpen && (
+                  <span className="text-[12px] font-medium">{slinks.name}</span>
+                )}
               </NavLink>
             ))}
           </div>

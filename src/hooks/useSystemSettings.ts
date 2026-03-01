@@ -13,8 +13,10 @@ export interface CallerId {
     status: string;
     dialerType?: 'PREDICTIVE' | 'POWER' | 'PREVIEW';
     aiPacing?: boolean;
+
     twillioSid?: string;
     twillioNumber?: string;
+
     agentIds?: string[];
     agents?: { id: string; fullName: string; email: string }[];
 }

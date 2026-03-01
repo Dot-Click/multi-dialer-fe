@@ -62,6 +62,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             onSuccess(newRecord);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to process number');
+            toast.error(error.response?.data?.message || 'Failed to process number');
         } finally {
             setIsSubmitting(false);
         }
@@ -155,11 +156,10 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                     <div
                                         key={item.phoneNumber}
                                         onClick={() => setSelectedNumber(item.phoneNumber)}
-                                        className={`flex items-center gap-4 p-4 rounded-[18px] cursor-pointer transition-all border-2 ${
-                                            selectedNumber === item.phoneNumber
+                                        className={`flex items-center gap-4 p-4 rounded-[18px] cursor-pointer transition-all border-2 ${selectedNumber === item.phoneNumber
                                                 ? 'bg-white border-yellow-400 shadow-sm'
                                                 : 'bg-white border-transparent hover:border-gray-100'
-                                        }`}
+                                            }`}
                                     >
                                         <FiPhone
                                             size={18}
@@ -197,6 +197,12 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             disabled={isSubmitting || !selectedNumber || availableNumbers.isLoading}
                             className="flex-2 bg-[#FECD56] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] shadow-sm hover:bg-[#F0D500] transition-colors disabled:opacity-50"
                         >
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <Loader2 size={18} className="animate-spin" />
+                                    Processing...
+                                </span>
+                            ) : 'Buy & Add Number'}
                             {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <Loader2 size={18} className="animate-spin" />
