@@ -59,10 +59,29 @@ export interface LeadSheet {
     questions?: any[];
 }
 
+export interface ActionStep {
+    id?: string;
+    order: number;
+    actionType: 'EMAIL' | 'PHONE_CALL' | 'TASK' | 'LETTER' | 'MAILING_LABEL';
+    contentValue: string;
+    dayOffset: number;
+}
+
 export interface ActionPlan {
     id: string;
     name: string;
-    // ... other fields
+    schedulingType: 'FREQUENCY_BASED' | 'DATE_BASED';
+    schedulingLogic: 'FREQUENCY_BASED' | 'DATE_BASED';
+    weekendScheduling: 'FREQUENCY_BASED' | 'DATE_BASED';
+    triggerType: 'NONE' | 'CALLING_LIST' | 'GROUP';
+    triggerSourceId?: string;
+    removeOnTriggerExit: boolean;
+    endLogic: 'DO_NOTHING' | 'REPEAT_PLAN' | 'START_OTHER_PLAN';
+    endLogicValue?: string;
+    nextPlanId?: string;
+    assignGroupEnabled: boolean;
+    assignGroupId?: string;
+    steps?: ActionStep[];
 }
 
 export interface NotificationSettings {
@@ -94,7 +113,7 @@ export interface MiscField {
 
 export interface TwilioNumberCapabilities {
     voice: boolean;
-    SMS: boolean;  
+    SMS: boolean;
     MMS: boolean;
     fax: boolean;
 }
@@ -422,6 +441,26 @@ export const useActionPlans = () => {
         }
     });
 
+    const createMutation = useMutation({
+        mutationFn: async (data: Partial<ActionPlan>) => {
+            const response = await api.post('/system-settings/action-plans', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['action-plans'] });
+        }
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: Partial<ActionPlan> }) => {
+            const response = await api.put(`/system-settings/action-plans/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['action-plans'] });
+        }
+    });
+
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
             const response = await api.delete(`/system-settings/action-plans/${id}`);
@@ -434,6 +473,8 @@ export const useActionPlans = () => {
 
     return {
         ...query,
+        createActionPlan: createMutation,
+        updateActionPlan: updateMutation,
         deleteActionPlan: deleteMutation
     };
 };
