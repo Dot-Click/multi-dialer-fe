@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Steps, message, ConfigProvider } from "antd";
 import { FiHelpCircle, FiPlus, FiX } from "react-icons/fi";
 import { RxDragHandleDots2 } from "react-icons/rx";
+import { useEmailTemplate } from "../../hooks/useEmailTemplate";
+import { useScript } from "../../hooks/useScript";
+import { useContact } from "../../hooks/useContact";
+import { useActionPlans } from "../../hooks/useSystemSettings";
+import { useNavigate } from "react-router-dom";
 
 
 // ---------------- Step 1 Components ----------------
@@ -88,10 +93,17 @@ const Step1Content = ({ formData, setFormData }: any) => {
 const CustomDropdown = ({ label, options, value, onChange }: any) => (
   <div className="w-full">
     <label className="block text-xs text-gray-500 mb-1">{label}</label>
-    <select value={value} onChange={onChange} className="w-full bg-transparent text-gray-900 text-sm focus:outline-none border-b border-gray-300 py-1.5">
-      {options.map((opt: string) => (
-        <option key={opt} value={opt}>{opt}</option>
-      ))}
+    <select
+      value={value}
+      onChange={onChange}
+      className="w-full bg-transparent text-gray-900 text-sm focus:outline-none border-b border-gray-300 py-1.5"
+    >
+      <option value="">Select {label}</option>
+      {options.map((opt: any) => {
+        const val = typeof opt === 'string' ? opt : opt.value;
+        const lab = typeof opt === 'string' ? opt : opt.label;
+        return <option key={val} value={val}>{lab}</option>;
+      })}
     </select>
   </div>
 );
@@ -114,12 +126,12 @@ const DaySelector = ({ value, onChange }: any) => (
   </div>
 );
 
-const ActionStepCard = ({ step, index, onUpdate, onDelete }: any) => {
+const ActionStepCard = ({ step, index, onUpdate, onDelete, emailTemplates, scripts }: any) => {
   const handleFieldChange = (field: string, value: any) => onUpdate(index, { ...step, [field]: value });
 
   const actionOptions = ["Email", "Phone Call", "Task", "Letter", "Mailing Label"];
-  const templateOptions = ["Email Template #1", "Template #2"];
-  const scriptOptions = ["Script #1", "Script #2"];
+  const templateOptions = (emailTemplates || []).map((t: any) => ({ label: t.templateName, value: t.id }));
+  const scriptOptions = (scripts || []).map((s: any) => ({ label: s.scriptName, value: s.id }));
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4">
@@ -131,7 +143,7 @@ const ActionStepCard = ({ step, index, onUpdate, onDelete }: any) => {
 
         <div className="flex-grow w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            
+
             <CustomDropdown label="Action" options={actionOptions} value={step.type} onChange={(e: any) => handleFieldChange('type', e.target.value)} />
 
             {step.type === "Email" && (
@@ -168,7 +180,7 @@ const ActionStepCard = ({ step, index, onUpdate, onDelete }: any) => {
 };
 
 
-const Step2Content = ({ actionSteps, setActionSteps }: any) => {
+const Step2Content = ({ actionSteps, setActionSteps, emailTemplates, scripts }: any) => {
   const deleteStep = (index: number) =>
     setActionSteps(actionSteps.filter((_: any, i: number) => i !== index));
 
@@ -181,7 +193,15 @@ const Step2Content = ({ actionSteps, setActionSteps }: any) => {
   return (
     <div className="space-y-4">
       {actionSteps.map((step: any, index: number) => (
-        <ActionStepCard key={index} step={step} index={index} onUpdate={updateStep} onDelete={deleteStep} />
+        <ActionStepCard
+          key={index}
+          step={step}
+          index={index}
+          onUpdate={updateStep}
+          onDelete={deleteStep}
+          emailTemplates={emailTemplates}
+          scripts={scripts}
+        />
       ))}
     </div>
   );
@@ -189,12 +209,15 @@ const Step2Content = ({ actionSteps, setActionSteps }: any) => {
 
 
 // ---------------- Step 3 Components ----------------
-const Step3Content = ({ triggerData, setTriggerData }: any) => {
+const Step3Content = ({ triggerData, setTriggerData, groups, lists }: any) => {
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setTriggerData((prev: any) => ({ ...prev, selectedTrigger: e.target.value }));
+    setTriggerData((prev: any) => ({ ...prev, selectedTrigger: e.target.value, triggerSourceId: '' }));
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setTriggerData((prev: any) => ({ ...prev, removeOnRemove: e.target.checked }));
+
+  const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setTriggerData((prev: any) => ({ ...prev, triggerSourceId: e.target.value }));
 
   const triggerOptions = [
     { value: 'none', label: 'None' },
@@ -208,17 +231,55 @@ const Step3Content = ({ triggerData, setTriggerData }: any) => {
 
       <div className="space-y-3">
         {triggerOptions.map(option => (
-          <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="radio"
-              name="trigger"
-              value={option.value}
-              checked={triggerData.selectedTrigger === option.value}
-              onChange={handleRadioChange}
-              className="h-4 w-4 accent-black"
-            />
-            <span className="text-sm text-gray-700">{option.label}</span>
-          </label>
+          <div key={option.value} className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="trigger"
+                value={option.value}
+                checked={triggerData.selectedTrigger === option.value}
+                onChange={handleRadioChange}
+                className="h-4 w-4 accent-black"
+              />
+              <span className="text-sm text-gray-700">{option.label}</span>
+            </label>
+
+            {triggerData.selectedTrigger === 'group' && option.value === 'group' && (
+              <div className="ml-7 max-w-xs">
+                <div className="w-full bg-gray-100/70 p-3 rounded-lg">
+                  <label className="block text-xs text-gray-500 mb-1">Select Group</label>
+                  <select
+                    value={triggerData.triggerSourceId || ''}
+                    onChange={handleSourceChange}
+                    className="w-full bg-transparent text-gray-900 text-sm focus:outline-none"
+                  >
+                    <option value="">Select Group</option>
+                    {(groups || []).map((group: any) => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {triggerData.selectedTrigger === 'calling_list' && option.value === 'calling_list' && (
+              <div className="ml-7 max-w-xs">
+                <div className="w-full bg-gray-100/70 p-3 rounded-lg">
+                  <label className="block text-xs text-gray-500 mb-1">Select List</label>
+                  <select
+                    value={triggerData.triggerSourceId || ''}
+                    onChange={handleSourceChange}
+                    className="w-full bg-transparent text-gray-900 text-sm focus:outline-none"
+                  >
+                    <option value="">Select List</option>
+                    {(lists || []).map((list: any) => (
+                      <option key={list.id} value={list.id}>{list.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
@@ -241,7 +302,7 @@ const Step3Content = ({ triggerData, setTriggerData }: any) => {
 
 
 // ---------------- Step 4 Components ----------------
-const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
+const Step4Content = ({ endLogicData, setEndLogicData, groups, actionPlans }: any) => {
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEndLogicData((prev: any) => ({ ...prev, selectedEndLogic: e.target.value }));
 
@@ -278,8 +339,8 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
             <input
               type="radio"
               name="endLogic"
-              value="repeat"
-              checked={endLogicData.selectedEndLogic === 'repeat'}
+              value="repeat_plan"
+              checked={endLogicData.selectedEndLogic === 'repeat_plan'}
               onChange={handleRadioChange}
               className="h-4 w-4 mt-1 accent-black flex-shrink-0"
             />
@@ -288,23 +349,51 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
               <p className="text-xs text-gray-500">
                 This will repeat the current Action Plan and start on the day you choose.
               </p>
+              {endLogicData.selectedEndLogic === 'repeat_plan' && (
+                <div className="mt-2 max-w-xs flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Start on Day:</span>
+                  <input
+                    type="number"
+                    value={endLogicData.repeatDay || '1'}
+                    onChange={(e) => setEndLogicData((prev: any) => ({ ...prev, repeatDay: e.target.value }))}
+                    className="w-20 bg-gray-100/70 p-2 rounded-lg text-gray-900 text-sm focus:outline-none"
+                    min="1"
+                  />
+                </div>
+              )}
             </div>
           </label>
 
-         <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="radio"
               name="endLogic"
-              value="repeat"
-              checked={endLogicData.selectedEndLogic === 'repeat'}
+              value="start_other_plan"
+              checked={endLogicData.selectedEndLogic === 'start_other_plan'}
               onChange={handleRadioChange}
               className="h-4 w-4 mt-1 accent-black flex-shrink-0"
             />
-            <div>
+            <div className="grow">
               <span className="text-sm text-gray-700 font-medium">Start Other Action Plan</span>
-              <p className="text-xs text-black font-inter font-medium">
-                You don’t have another Action Plans, create more to chose this option.
-              </p>
+              {(actionPlans?.length || 0) === 0 ? (
+                <p className="text-xs text-black font-inter font-medium mt-1">
+                  You don’t have another Action Plans, create more to chose this option.
+                </p>
+              ) : (
+                <div className="mt-2 max-w-xs">
+                  <select
+                    disabled={endLogicData.selectedEndLogic !== 'start_other_plan'}
+                    value={endLogicData.selectedOtherPlan || ''}
+                    onChange={(e) => setEndLogicData((prev: any) => ({ ...prev, selectedOtherPlan: e.target.value }))}
+                    className="w-full bg-gray-100/70 p-3 rounded-lg text-gray-900 text-sm focus:outline-none"
+                  >
+                    <option value="">Select Action Plan</option>
+                    {(actionPlans || []).map((plan: any) => (
+                      <option key={plan.id} value={plan.id}>{plan.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </label>
 
@@ -336,9 +425,10 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
                 onChange={handleGroupChange}
                 className="w-full bg-transparent text-gray-900 text-sm focus:outline-none"
               >
-                <option value="">Select</option>
-                <option value="group1">Dead Leads</option>
-                <option value="group2">Archive</option>
+                <option value="">Select Group</option>
+                {(groups || []).map((group: any) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -352,6 +442,33 @@ const Step4Content = ({ endLogicData, setEndLogicData }: any) => {
 // ---------------- Main AdminActionPlan ----------------
 const AdminActionPlan = () => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
+  const { getEmailTemplates } = useEmailTemplate();
+  const { getScripts } = useScript();
+  const { getContactGroups, getContactLists } = useContact();
+  const { data: allActionPlans, createActionPlan } = useActionPlans();
+  const isSaving = createActionPlan.isPending;
+
+  const [emailTemplates, setEmailTemplates] = useState<any[]>([]);
+  const [scripts, setScripts] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [contactLists, setContactLists] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      const [templates, scriptsData, groupsData, listsData] = await Promise.all([
+        getEmailTemplates(),
+        getScripts(),
+        getContactGroups(),
+        getContactLists()
+      ]);
+      setEmailTemplates(templates);
+      setScripts(scriptsData);
+      setGroups(groupsData);
+      setContactLists(listsData);
+    };
+    fetchOptions();
+  }, []);
 
   const [formData, setFormData] = useState({
     label: "Expired Property",
@@ -361,34 +478,81 @@ const AdminActionPlan = () => {
   });
 
   const [actionSteps, setActionSteps] = useState<any[]>([
-    { type: 'Email', template: 'Email Template #1', day: 0 },
-    { type: 'Phone Call', script: 'Script #1', subject: '', details: '', day: 0 },
+    { type: 'Email', template: '', day: 0 },
+    { type: 'Phone Call', script: '', subject: '', details: '', day: 0 },
     { type: 'Task', subject: '', day: 0 },
-    { type: 'Letter', template: 'Letter Template #1', day: 0 },
+    { type: 'Letter', template: '', day: 0 },
     { type: 'Mailing Label', title: '', day: 0 }
   ]);
 
   const [triggerData, setTriggerData] = useState({
     selectedTrigger: 'none',
+    triggerSourceId: '',
     removeOnRemove: false
   });
 
   const [endLogicData, setEndLogicData] = useState({
     selectedEndLogic: 'do_nothing',
     assignGroup: true,
-    selectedGroup: ''
+    selectedGroup: '',
+    selectedOtherPlan: '',
+    repeatDay: '1'
   });
 
   const steps = [
     { title: "Action Plan", content: <Step1Content formData={formData} setFormData={setFormData} /> },
-    { title: "Action Steps", content: <Step2Content actionSteps={actionSteps} setActionSteps={setActionSteps} /> },
-    { title: "Trigger Group", content: <Step3Content triggerData={triggerData} setTriggerData={setTriggerData} /> },
-    { title: "End Logic", content: <Step4Content endLogicData={endLogicData} setEndLogicData={setEndLogicData} /> },
+    { title: "Action Steps", content: <Step2Content actionSteps={actionSteps} setActionSteps={setActionSteps} emailTemplates={emailTemplates} scripts={scripts} /> },
+    { title: "Trigger Group", content: <Step3Content triggerData={triggerData} setTriggerData={setTriggerData} groups={groups} lists={contactLists} /> },
+    { title: "End Logic", content: <Step4Content endLogicData={endLogicData} setEndLogicData={setEndLogicData} groups={groups} actionPlans={allActionPlans} /> },
   ];
 
   const next = () => setCurrent(current + 1);
   const prev = () => setCurrent(current - 1);
-  const handleSave = () => message.success('Action Plan Saved!');
+
+  const handleSave = async () => {
+    try {
+      if (!formData.label) {
+        message.error("Please enter a label for the Action Plan");
+        return;
+      }
+
+      const payload: any = {
+        name: formData.label,
+        schedulingType: formData.schedulingType === 'frequency' ? 'FREQUENCY_BASED' : 'DATE_BASED',
+        schedulingLogic: formData.schedulingLogic === 'frequency' ? 'FREQUENCY_BASED' : 'DATE_BASED',
+        weekendScheduling: formData.weekendScheduling === 'frequency' ? 'FREQUENCY_BASED' : 'DATE_BASED',
+        triggerType: triggerData.selectedTrigger === 'none' ? 'NONE' : (triggerData.selectedTrigger === 'calling_list' ? 'CALLING_LIST' : 'GROUP'),
+        triggerSourceId: triggerData.triggerSourceId || null,
+        removeOnTriggerExit: triggerData.removeOnRemove,
+        endLogic: endLogicData.selectedEndLogic === 'do_nothing' ? 'DO_NOTHING' : (endLogicData.selectedEndLogic === 'repeat_plan' ? 'REPEAT_PLAN' : 'START_OTHER_PLAN'),
+        nextPlanId: endLogicData.selectedEndLogic === 'start_other_plan' ? endLogicData.selectedOtherPlan : null,
+        endLogicValue: endLogicData.selectedEndLogic === 'repeat_plan' ? (endLogicData.repeatDay || '1') : null,
+        assignGroupEnabled: endLogicData.assignGroup,
+        assignGroupId: endLogicData.selectedGroup || null,
+        steps: actionSteps.map((step, index) => {
+          let contentValue = "";
+          if (step.type === 'Email') contentValue = step.template;
+          else if (step.type === 'Phone Call') contentValue = step.script;
+          else if (step.type === 'Task') contentValue = step.subject;
+          else if (step.type === 'Letter') contentValue = step.template;
+          else if (step.type === 'Mailing Label') contentValue = step.title;
+
+          return {
+            order: index + 1,
+            actionType: step.type === 'Phone Call' ? 'PHONE_CALL' : (step.type === 'Mailing Label' ? 'MAILING_LABEL' : step.type.toUpperCase()),
+            contentValue,
+            dayOffset: step.day || 0
+          };
+        })
+      };
+
+      await createActionPlan.mutateAsync(payload);
+      message.success('Action Plan Saved!');
+      navigate("/admin/system-settings"); // Go back to settings
+    } catch (error: any) {
+      message.error(error.response?.data?.message || error.message || "Failed to save action plan");
+    }
+  };
 
   return (
     <ConfigProvider
@@ -409,7 +573,7 @@ const AdminActionPlan = () => {
 
           <header className="flex justify-between items-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Action Plan</h1>
-            <button className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold text-sm hover:bg-gray-300">
+            <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold text-sm hover:bg-gray-300">
               Cancel
             </button>
           </header>
@@ -428,7 +592,7 @@ const AdminActionPlan = () => {
                   onClick={() =>
                     setActionSteps([
                       ...actionSteps,
-                      { type: "Email", template: "Email Template #1", day: 0 }
+                      { type: "Email", template: "", day: 0 }
                     ])
                   }
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 font-semibold text-sm hover:bg-gray-200"
@@ -460,9 +624,10 @@ const AdminActionPlan = () => {
               {current === steps.length - 1 && (
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 w-28 rounded-lg bg-yellow-400 text-gray-900 font-medium hover:bg-yellow-500"
+                  disabled={isSaving}
+                  className="px-4 py-2 w-28 rounded-lg bg-yellow-400 text-gray-900 font-medium hover:bg-yellow-500 disabled:opacity-50"
                 >
-                  Save
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
               )}
             </div>
