@@ -1,20 +1,100 @@
-import React, { useState } from 'react';
-import { FiPlus, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
+import React, { useRef, useState } from 'react';
+import { FiPlus, FiSearch, FiMoreHorizontal, FiSettings, FiTrash2 } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
+import { Modal, message } from 'antd';
 import AddCallScoutNumberModal from './AddCallScoutNumberModal';
 import NumberSettingsModal from './NumberSettingsModal';
 import { useCallerIds } from '@/hooks/useSystemSettings';
 
+// ── Per-row context menu ──────────────────────────────────────────────────────
+
+interface RowMenuProps {
+  onSettings: () => void;
+  onDelete: () => void;
+}
+
+const RowMenu: React.FC<RowMenuProps> = ({ onSettings, onDelete }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="text-gray-400 p-2 rounded-lg hover:bg-gray-100 hover:text-gray-600 transition-all opacity-0 group-hover:opacity-100"
+      >
+        <FiMoreHorizontal size={18} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-1 z-20 bg-white border border-gray-100 rounded-xl shadow-lg w-44 py-1 overflow-hidden">
+          <button
+            onClick={() => { onSettings(); setOpen(false); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <FiSettings size={14} className="text-yellow-500" />
+            Number Settings
+          </button>
+          <div className="h-px bg-gray-100 mx-3" />
+          <button
+            onClick={() => { onDelete(); setOpen(false); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <FiTrash2 size={14} />
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Main CallerId Component ───────────────────────────────────────────────────
+
 const CallerId: React.FC = () => {
-  const { data: callerIds, isLoading, isError, error } = useCallerIds();
+  const { data: callerIds, isLoading, isError, error, deleteCallerId } = useCallerIds();
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [newCallerId, setNewCallerId] = useState<any>(null);
+  const [selectedCallerId, setSelectedCallerId] = useState<any>(null);
 
+  // Called after adding a new number — auto-opens settings for it
   const handleAddNumberSuccess = (callerId: any) => {
     setIsAddModalOpen(false);
-    setNewCallerId(callerId);
+    setSelectedCallerId(callerId);
     setIsSettingsModalOpen(true);
+  };
+
+  // Called from the three-dot menu on an existing row
+  const handleOpenSettings = (callerId: any) => {
+    setSelectedCallerId(callerId);
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleDelete = (callerId: any) => {
+    Modal.confirm({
+      title: 'Delete Caller ID',
+      content: `Are you sure you want to delete "${callerId.label || callerId.twillioNumber || 'this number'}"? This cannot be undone.`,
+      okText: 'Delete',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await deleteCallerId.mutateAsync(callerId.id);
+          message.success('Caller ID deleted.');
+        } catch (err: any) {
+          message.error(err?.response?.data?.message || 'Failed to delete Caller ID.');
+        }
+      },
+    });
   };
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading Caller IDs...</div>;
@@ -23,6 +103,8 @@ const CallerId: React.FC = () => {
   return (
     <div className="bg-[#F9FAFB] min-h-screen px-4 py-8">
       <div className="max-w-7xl mx-auto">
+
+        {/* Header */}
         <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-extrabold text-gray-900">Caller ID</h1>
           <button
@@ -33,16 +115,22 @@ const CallerId: React.FC = () => {
           </button>
         </header>
 
+        {/* Search & Sort */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div className="relative w-full max-w-sm">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search by phone number" className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm" />
+            <input
+              type="text"
+              placeholder="Search by phone number"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm"
+            />
           </div>
           <button className="text-sm font-bold text-gray-600 flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100">
             <BiSortAlt2 size={18} /> Sort by
           </button>
         </div>
 
+        {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -54,7 +142,7 @@ const CallerId: React.FC = () => {
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Available To</th>
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Added On</th>
-                  <th className="px-6 py-4 text-right"></th>
+                  <th className="px-6 py-4 text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -69,13 +157,13 @@ const CallerId: React.FC = () => {
                     <tr key={number.id} className="hover:bg-gray-50/80 transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex flex-col">
-                          <span className="text-[14px] font-bold text-gray-900">{number.friendlyName || number.callerId}</span>
+                          <span className="text-[14px] font-bold text-gray-900">{number.twillioNumber || number.friendlyName || number.callerId}</span>
                           <span className="text-[11px] font-medium text-gray-500 mt-0.5">{number.label || 'Unnamed Number'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <span className="text-[11px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                          {number.twillioSid ? `${number.twillioSid}` : 'N/A'}
+                          {number.twillioSid || 'N/A'}
                         </span>
                       </td>
                       <td className="px-6 py-5">
@@ -104,9 +192,10 @@ const CallerId: React.FC = () => {
                         {new Date(number.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-5 text-right whitespace-nowrap">
-                        <button className="text-gray-400 p-2 rounded-lg hover:bg-gray-100 hover:text-gray-600 transition-all opacity-0 group-hover:opacity-100">
-                          <FiMoreHorizontal size={18} />
-                        </button>
+                        <RowMenu
+                          onSettings={() => handleOpenSettings(number)}
+                          onDelete={() => handleDelete(number)}
+                        />
                       </td>
                     </tr>
                   ))
@@ -116,6 +205,7 @@ const CallerId: React.FC = () => {
           </div>
         </div>
 
+        {/* Modals */}
         <AddCallScoutNumberModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
@@ -124,8 +214,11 @@ const CallerId: React.FC = () => {
 
         <NumberSettingsModal
           isOpen={isSettingsModalOpen}
-          onClose={() => setIsSettingsModalOpen(false)}
-          createdCallerId={newCallerId}
+          onClose={() => {
+            setIsSettingsModalOpen(false);
+            setSelectedCallerId(null);
+          }}
+          createdCallerId={selectedCallerId}
         />
       </div>
     </div>

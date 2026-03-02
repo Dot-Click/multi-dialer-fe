@@ -7,6 +7,7 @@ import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import callIcon from "../../assets/callsicon.png"
 import managecolicon from "../../assets/managecolicon.png"
+import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
 
 
 type OutletContextType = {
@@ -18,6 +19,7 @@ const AllContact = () => {
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
+  const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
   const navigate = useNavigate();
 
   // ✅ Use typed context
@@ -96,10 +98,7 @@ const AllContact = () => {
         <button
           onClick={() => {
             if (selectedContacts.length > 0) {
-              // Navigate to contact-info with all selected contacts (the queue)
-              navigate("/contact-info", {
-                state: { contacts: selectedContacts }
-              });
+              setIsDialSettingOpen(true);
             }
           }}
           disabled={selectedContacts.length === 0}
@@ -116,8 +115,8 @@ const AllContact = () => {
 
       {/* 🔹 Table / Contact List */}
       <div className="flex-1 ml-0 sm:-ml-10 mt-2">
-        <AllContactComponent 
-          onSelectionChange={setSelectedContacts} 
+        <AllContactComponent
+          onSelectionChange={setSelectedContacts}
           listId={activeItem.type === 'list' ? activeItem.id : undefined}
           visibleColumns={visibleColumns}
         />
@@ -126,8 +125,8 @@ const AllContact = () => {
       {/* 🔹 Modals */}
       {isFilterOpen && <FilterModal onClose={() => setIsFilterOpen(false)} />}
       {showColumnsModal && (
-        <ManageColumnsModal 
-          onClose={() => setShowColumnsModal(false)} 
+        <ManageColumnsModal
+          onClose={() => setShowColumnsModal(false)}
           initialDisplayColumns={visibleColumns}
           onApply={(columns) => {
             setVisibleColumns(columns);
@@ -135,6 +134,10 @@ const AllContact = () => {
           }}
         />
       )}
+      <CreateCallSettingModal
+        isOpen={isDialSettingOpen}
+        onClose={() => setIsDialSettingOpen(false)}
+      />
     </section>
   );
 };

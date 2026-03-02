@@ -1,6 +1,4 @@
-import { Button } from '@/components/ui/button';
 import { BsBell } from "react-icons/bs";
-import callIcon from "../../../assets/callsicon.png";
 import { useState, useRef, useEffect } from "react";
 
 const AdminNavbar = () => {
@@ -25,14 +23,6 @@ const AdminNavbar = () => {
 
   return (
     <nav className="border border-[#EBEDF0] w-full h-16 bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
-      
-      {/* Quick Call Button */}
-      <div>
-        <Button className='bg-transparent text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-200 border border-gray-400'>
-          <img src={callIcon} className='w-3 object-contain' alt="callIcon" />
-          <span>Quick Call</span>
-        </Button>
-      </div>
 
       {/* Notification Bell */}
       <div className='border border-gray-400 cursor-pointer rounded-full p-1.5'>

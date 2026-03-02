@@ -52,8 +52,8 @@ const InputField: FC<InputFieldProps & { onChange?: (value: string) => void }> =
 const SelectField: FC<SelectFieldProps & { value?: string; onChange?: (value: string) => void }> = ({ label, children, value, onChange }) => (
   <div className="relative bg-gray-100 rounded-lg px-4 py-2">
     <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-    <select 
-      value={value} 
+    <select
+      value={value}
       onChange={(e) => onChange?.(e.target.value)}
       className="w-full bg-transparent text-sm text-gray-800 appearance-none focus:outline-none cursor-pointer"
     >
@@ -66,11 +66,11 @@ const SelectField: FC<SelectFieldProps & { value?: string; onChange?: (value: st
 // Reusable Checkbox Component
 const CheckboxField: FC<CheckboxFieldProps & { checked?: boolean; onChange?: (checked: boolean) => void }> = ({ label, checked, onChange }) => (
   <div className="flex items-center gap-3">
-    <input 
-      type="checkbox" 
+    <input
+      type="checkbox"
       checked={checked}
       onChange={(e) => onChange?.(e.target.checked)}
-      className="h-4 w-4 rounded accent-black border-gray-300 focus:ring-blue-400" 
+      className="h-4 w-4 rounded accent-black border-gray-300 focus:ring-blue-400"
     />
     <label className="text-sm text-gray-700">{label}</label>
   </div>
@@ -164,7 +164,7 @@ const AdminCreateCallSetting: FC = () => {
     setIsLoading(true);
     try {
       const payload = {
-        label:name,
+        label: name,
         onHoldRecording1: onHoldRecording1 || undefined,
         onHoldRecording2: onHoldRecording2 || undefined,
         onHoldRecording3: onHoldRecording3 || undefined,
@@ -203,14 +203,14 @@ const AdminCreateCallSetting: FC = () => {
         <div className="flex flex-wrap justify-between items-center mb-2">
           <h1 className="text-2xl font-semibold text-gray-950">Create Call Settings</h1>
           <div className="flex items-center gap-3 mt-4 sm:mt-0">
-            <button 
+            <button
               onClick={handleCancel}
               disabled={isLoading}
               className="px-5 py-2 text-sm font-semibold w-28 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleSave}
               disabled={isLoading}
               className="px-5 py-2 text-sm font-semibold w-28 text-gray-950 bg-[#FFCA06] rounded-md hover:bg-[#f1c00b] disabled:opacity-50 transition-colors"
@@ -224,8 +224,8 @@ const AdminCreateCallSetting: FC = () => {
         <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg space-y-8">
           {/* Section 1 */}
           <div className="lg:w-[50%]">
-            <InputField 
-              label="Name" 
+            <InputField
+              label="Name"
               placeholder="Enter Name"
               value={name}
               onChange={setName}
@@ -235,14 +235,14 @@ const AdminCreateCallSetting: FC = () => {
           {/* Section 2 */}
           <div>
             <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Voice recordings Details</h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 text-sm font-medium bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors"
-            >
-              Add Recording
-            </button>
-          </div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Voice recordings Details</h2>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 text-sm font-medium bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors"
+              >
+                Add Recording
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <SelectField label="On-hold Recording 1" value={onHoldRecording1} onChange={setOnHoldRecording1}>
                 <option value="">Select</option>
@@ -276,18 +276,18 @@ const AdminCreateCallSetting: FC = () => {
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">General Communication</h2>
               <div className="space-y-4">
-                <CheckboxField 
-                  label="Enable Auto Pause" 
+                <CheckboxField
+                  label="Enable Auto Pause"
                   checked={enableAutoPause}
                   onChange={setEnableAutoPause}
                 />
-                <CheckboxField 
-                  label="Enable Recording" 
+                <CheckboxField
+                  label="Enable Recording"
                   checked={enableRecording}
                   onChange={setEnableRecording}
                 />
-                <CheckboxField 
-                  label="Send scheduled appointment mail in outlook format" 
+                <CheckboxField
+                  label="Send scheduled appointment mail in outlook format"
                   checked={sendAppointmentMail}
                   onChange={setSendAppointmentMail}
                 />
@@ -308,8 +308,8 @@ const AdminCreateCallSetting: FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
               <div className="sm:col-span-3">
-                <SelectField 
-                  label="Caller ID" 
+                <SelectField
+                  label="Caller ID"
                   value={callerId}
                   onChange={setCallerId}
                 >

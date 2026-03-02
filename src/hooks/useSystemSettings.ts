@@ -53,10 +53,20 @@ export interface CallSettings {
     sendText: boolean;
 }
 
+export interface LeadSheetQuestion {
+    id?: string;
+    text: string;
+    type: 'TEXTFIELD' | 'DROPDOWN' | 'CHECKBOX' | 'RADIO' | 'DATETIME';
+    options?: string[];
+    required?: boolean | null;
+}
+
 export interface LeadSheet {
     id: string;
     title: string;
-    questions?: any[];
+    questions?: LeadSheetQuestion[];
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface ActionStep {
@@ -113,7 +123,7 @@ export interface MiscField {
 
 export interface TwilioNumberCapabilities {
     voice: boolean;
-    SMS: boolean;  
+    SMS: boolean;
     MMS: boolean;
     fax: boolean;
 }
