@@ -113,7 +113,7 @@ export interface MiscField {
 
 export interface TwilioNumberCapabilities {
     voice: boolean;
-    SMS: boolean;
+    SMS: boolean;  
     MMS: boolean;
     fax: boolean;
 }
