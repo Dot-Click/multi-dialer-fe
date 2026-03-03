@@ -12,7 +12,7 @@ interface ContactInfoHeaderProps {
   currentIndex?: number;
   totalContacts?: number;
 }
-const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"]
+const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"] // just for testing 
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
