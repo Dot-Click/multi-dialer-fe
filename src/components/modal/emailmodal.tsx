@@ -1,5 +1,7 @@
 import { IoClose } from 'react-icons/io5';
-import React from 'react';
+import React, { useState } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { updateContact } from '@/store/slices/contactSlice';
 
 interface EmailModalProps {
   isOpen: boolean;
@@ -7,21 +9,58 @@ interface EmailModalProps {
 }
 
 const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { currentContact } = useAppSelector((state) => state.contacts);
+
+  const [email, setEmail] = useState('');
+  const [isPrimary, setIsPrimary] = useState(false);
+
   if (!isOpen) return null;
 
+  const handleSave = async () => {
+    if (!currentContact) return;
+    if (!email) {
+      alert("Please enter an email address");
+      return;
+    }
+
+    const newEmail = {
+      email: email,
+      isPrimary: isPrimary
+    };
+
+    // Prepare payload with old emails + new email
+    const updatedEmails = [...(currentContact.emails || []), newEmail];
+
+    const payload = {
+      emails: updatedEmails
+    };
+
+    try {
+      await dispatch(updateContact({ id: currentContact.id, payload })).unwrap();
+      onClose();
+      // Reset form
+      setEmail('');
+      setIsPrimary(false);
+    } catch (err) {
+      console.error("Failed to update contact:", err);
+      alert("Failed to add email: " + err);
+    }
+  };
+
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">Add New Email</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 transition-colors"
           >
@@ -39,6 +78,8 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
             <input
               type="email"
               id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter lead's email"
               className="w-full bg-transparent text-gray-900 text-xs placeholder:text-xs focus:outline-none placeholder:text-gray-400"
             />
@@ -49,6 +90,8 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
             <input
               type="checkbox"
               id="isPrimary"
+              checked={isPrimary}
+              onChange={(e) => setIsPrimary(e.target.checked)}
               className="h-5 w-5 rounded border-gray-400 text-black focus:ring-black cursor-pointer accent-black"
             />
             <label htmlFor="isPrimary" className="text-sm font-medium text-gray-700 cursor-pointer">
@@ -65,7 +108,10 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
           >
             Cancel
           </button>
-          <button className="bg-[#FFCA06] w-full hover:bg-yellow-500 text-gray-950 font-semibold py-2.5 px-6 rounded-lg">
+          <button
+            onClick={handleSave}
+            className="bg-[#FFCA06] w-full hover:bg-yellow-500 text-gray-950 font-semibold py-2.5 px-6 rounded-lg"
+          >
             Save
           </button>
         </div>

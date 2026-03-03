@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useOutletContext, useNavigate } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { GrSplits } from "react-icons/gr";
 import { IoAdd, IoFilter } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
@@ -8,6 +8,7 @@ import { FiEdit } from "react-icons/fi";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
+import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
 
 // ✅ Define type for the Outlet context
 type OutletContextType = {
@@ -21,7 +22,8 @@ const AdminAllContact = () => {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [selectedName, setSelectedName] = useState(assignedToName);
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
-    const navigate = useNavigate();
+    const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
+    // const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
 
     const users = [
@@ -139,12 +141,12 @@ const AdminAllContact = () => {
 
                 {/* Dial Button */}
                 <button
-                    onClick={() => {
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (selectedContacts.length > 0) {
-                            // Navigate to contact-info with the selected contacts as a queue
-                            navigate("/admin/contact-info", {
-                                state: { contacts: selectedContacts }
-                            });
+                            setIsDialSettingOpen(true);
                         }
                     }}
                     disabled={selectedContacts.length === 0}
@@ -158,8 +160,8 @@ const AdminAllContact = () => {
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1 sm:-ml-10 mt-2">
-                <AllContactComponent 
-                    onSelectionChange={setSelectedContacts} 
+                <AllContactComponent
+                    onSelectionChange={setSelectedContacts}
                     listId={activeItem.type === 'list' ? activeItem.id : undefined}
                 />
             </div>
@@ -169,6 +171,11 @@ const AdminAllContact = () => {
             {showColumnsModal && (
                 <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
             )}
+            <CreateCallSettingModal
+                selectedContacts={selectedContacts}
+                isOpen={isDialSettingOpen}
+                onClose={() => setIsDialSettingOpen(false)}
+            />
 
             {/* 🔹 Assign To Modal */}
             {isAssignModalOpen && (
