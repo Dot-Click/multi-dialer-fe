@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FiPlus, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
-import { Link } from 'react-router-dom';
 import { useCallSettings } from '@/hooks/useSystemSettings';
+import { Link } from 'react-router-dom';
 
 // ✅ Interfaces for type safety
 interface ToggleSwitchProps {
@@ -96,7 +96,7 @@ const CallSetting: React.FC = () => {
                     </Link>
                 </header>
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                    <div className="relative w-full sm:w-auto sm:flex-grow max-w-sm">
+                    <div className="relative w-full sm:w-auto sm:grow max-w-sm">
                         <input type="text" placeholder="Search by phone number" className="w-full pl-4 pr-11 py-2.5 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm" />
                         <FiSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>

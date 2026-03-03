@@ -11,7 +11,7 @@ import dataicon from "../../../assets/fluent_building-shop-24-regular.png";
 import billingicon from "../../../assets/admin/billingicon.png";
 import bulbicon from "../../../assets/admin/bulbicon.png";
 import usericon from "../../../assets/admin/usericon.png";
-import trainingicon from "@/assets/trainingicon.png";
+// import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "../../../assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch } from "@/store/hooks";
@@ -71,7 +71,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   ];
 
   const bottomLinks = [
-    { id: 10, name: "Training", link: "/training", icon: trainingicon },
+    // { id: 10, name: "Training", link: "/training", icon: trainingicon },
     { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
   ];
 

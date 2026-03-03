@@ -1,11 +1,62 @@
 import { IoClose } from "react-icons/io5";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateContact } from "@/store/slices/contactSlice";
 
 interface EditModalProps {
   onClose: () => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({ onClose }) => {
+  const dispatch = useAppDispatch();
+  const { currentContact } = useAppSelector((state) => state.contacts);
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    mailingAddress: "",
+    mailingCity: "",
+    mailingState: "",
+    mailingZip: ""
+  });
+
+  useEffect(() => {
+    if (currentContact) {
+      setFormData({
+        fullName: currentContact.fullName || "",
+        address: currentContact.address || "",
+        city: currentContact.city || "",
+        state: currentContact.state || "",
+        zip: currentContact.zip || "",
+        mailingAddress: currentContact.mailingAddress || "",
+        mailingCity: currentContact.mailingCity || "",
+        mailingState: currentContact.mailingState || "",
+        mailingZip: currentContact.mailingZip || ""
+      });
+    }
+  }, [currentContact]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentContact) return;
+
+    try {
+      await dispatch(updateContact({ id: currentContact.id, payload: formData })).unwrap();
+      onClose();
+    } catch (err) {
+      console.error("Failed to update contact:", err);
+      alert("Failed to update contact: " + err);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3  overflow-y-auto">
       <div
@@ -21,7 +72,7 @@ const EditModal: React.FC<EditModalProps> = ({ onClose }) => {
         </div>
 
         {/* Form Section */}
-        <form className="mt-6 space-y-5">
+        <form onSubmit={handleSave} className="mt-6 space-y-5">
           {/* Full Name */}
           <div className="bg-[#F3F4F7] flex flex-col gap-1 px-3 py-2 w-full sm:w-1/2 rounded-lg">
             <label className="text-[#495057] font-medium text-[12px]">
@@ -29,6 +80,9 @@ const EditModal: React.FC<EditModalProps> = ({ onClose }) => {
             </label>
             <input
               type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
               placeholder="Enter name"
               className="w-full placeholder:text-sm text-sm outline-none bg-transparent"
             />
@@ -40,17 +94,25 @@ const EditModal: React.FC<EditModalProps> = ({ onClose }) => {
               Property Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {["Address", "City", "State", "Zip"].map((label) => (
+              {[
+                { label: "Address", name: "address" },
+                { label: "City", name: "city" },
+                { label: "State", name: "state" },
+                { label: "Zip", name: "zip" }
+              ].map((field) => (
                 <div
-                  key={label}
+                  key={field.name}
                   className="bg-[#F3F4F7] flex flex-col gap-1 px-3 py-2 rounded-lg"
                 >
                   <label className="text-[#495057] font-medium text-[12px]">
-                    {label}
+                    {field.label}
                   </label>
                   <input
                     type="text"
-                    placeholder={`Enter Lead's ${label}`}
+                    name={field.name}
+                    value={(formData as any)[field.name]}
+                    onChange={handleChange}
+                    placeholder={`Enter Lead's ${field.label}`}
                     className="w-full placeholder:text-sm text-sm outline-none bg-transparent"
                   />
                 </div>
@@ -64,37 +126,49 @@ const EditModal: React.FC<EditModalProps> = ({ onClose }) => {
               Mailing Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {["Address", "City", "State", "Zip"].map((label) => (
+              {[
+                { label: "Address", name: "mailingAddress" },
+                { label: "City", name: "mailingCity" },
+                { label: "State", name: "mailingState" },
+                { label: "Zip", name: "mailingZip" }
+              ].map((field) => (
                 <div
-                  key={label}
+                  key={field.name}
                   className="bg-[#F3F4F7] flex flex-col gap-1 px-3 py-2 rounded-lg"
                 >
                   <label className="text-[#495057] font-medium text-[12px]">
-                    {label}
+                    {field.label}
                   </label>
                   <input
                     type="text"
-                    placeholder={`Enter Lead's ${label}`}
+                    name={field.name}
+                    value={(formData as any)[field.name]}
+                    onChange={handleChange}
+                    placeholder={`Enter Lead's ${field.label}`}
                     className="w-full placeholder:text-sm text-sm outline-none bg-transparent"
                   />
                 </div>
               ))}
             </div>
           </div>
-        </form>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center items-center border-t gap-3 mt-6 pt-4">
-          <button
-            onClick={onClose}
-            className="bg-gray-100 w-full sm:w-1/2 hover:bg-gray-200 px-5 py-2 rounded-lg font-medium transition"
-          >
-            Cancel
-          </button>
-          <button className="bg-yellow-400 w-full sm:w-1/2 hover:bg-yellow-500 px-6 py-2 rounded-lg font-medium transition">
-            Save
-          </button>
-        </div>
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row justify-center items-center border-t gap-3 mt-6 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-100 w-full sm:w-1/2 hover:bg-gray-200 px-5 py-2 rounded-lg font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-yellow-400 w-full sm:w-1/2 hover:bg-yellow-500 px-6 py-2 rounded-lg font-medium transition"
+            >
+              Save
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -36,6 +36,10 @@ export interface DialerSettings {
 export interface CallSettings {
     id: string;
     label: string;
+    onHoldRecording1Id?: string;
+    onHoldRecording2Id?: string;
+    ivrRecordingId?: string;
+    answeringMachineRecordingId?: string;
     onHoldRecording1?: string;
     onHoldRecording2?: string;
     ivrRecording?: string;
@@ -53,10 +57,28 @@ export interface CallSettings {
     sendText: boolean;
 }
 
+export interface LeadSheetQuestion {
+    id?: string;
+    text: string;
+    type: 'TEXTFIELD' | 'DROPDOWN' | 'CHECKBOX' | 'RADIO' | 'DATETIME';
+    options?: string[];
+    required?: boolean | null;
+}
+
 export interface LeadSheet {
     id: string;
     title: string;
-    questions?: any[];
+    questions?: LeadSheetQuestion[];
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface ActionStep {
+    id?: string;
+    order: number;
+    actionType: 'EMAIL' | 'PHONE_CALL' | 'TASK' | 'LETTER' | 'MAILING_LABEL';
+    contentValue: string;
+    dayOffset: number;
 }
 
 export interface ActionStep {
@@ -113,7 +135,7 @@ export interface MiscField {
 
 export interface TwilioNumberCapabilities {
     voice: boolean;
-    SMS: boolean;  
+    SMS: boolean;
     MMS: boolean;
     fax: boolean;
 }
@@ -423,9 +445,31 @@ export const useMiscFields = () => {
         }
     });
 
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: Partial<MiscField> }) => {
+            const response = await api.put(`/system-settings/misc-fields/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['misc-fields'] });
+        }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const response = await api.delete(`/system-settings/misc-fields/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['misc-fields'] });
+        }
+    });
+
     return {
         ...query,
-        createMiscField: createMutation
+        createMiscField: createMutation,
+        updateMiscField: updateMutation,
+        deleteMiscField: deleteMutation
     };
 };
 

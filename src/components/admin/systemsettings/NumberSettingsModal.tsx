@@ -137,7 +137,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
+    <div className="fixed inset-0 z-900 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
       <div className="bg-white w-full max-w-[480px] max-h-[92vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
         <div className="px-6 py-5 flex justify-between items-center border-b border-gray-50">
           <h2 className="text-[18px] font-bold text-gray-800">Number Settings</h2>
