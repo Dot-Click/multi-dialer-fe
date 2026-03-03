@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../lib/axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../lib/axios";
 
 export interface Contact {
   id: string;
@@ -13,6 +13,7 @@ export interface Contact {
 
 interface ContactState {
   contacts: Contact[];
+  importHistory: any[];
   currentContact: any | null;
   queue: any[];
   isLoading: boolean;
@@ -21,6 +22,7 @@ interface ContactState {
 
 const initialState: ContactState = {
   contacts: [],
+  importHistory: [],
   currentContact: null,
   queue: [],
   isLoading: false,
@@ -50,13 +52,11 @@ export interface CreateContactPayload {
   contactListId?: string;
 }
 
-
-
 export const fetchContacts = createAsyncThunk(
-  'contacts/fetchContacts',
+  "contacts/fetchContacts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact');
+      const response = await api.get("/contact");
       if (response.data.success) {
         return response.data.data.map((c: any) => ({
           id: c.id,
@@ -68,15 +68,17 @@ export const fetchContacts = createAsyncThunk(
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
         }));
       }
-      return rejectWithValue('Failed to fetch contacts');
+      return rejectWithValue("Failed to fetch contacts");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contacts');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contacts",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactsByList = createAsyncThunk(
-  'contacts/fetchContactsByList',
+  "contacts/fetchContactsByList",
   async (listId: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/contact/contacts-list/${listId}`);
@@ -91,54 +93,78 @@ export const fetchContactsByList = createAsyncThunk(
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
         }));
       }
-      return rejectWithValue('Failed to fetch contacts for this list');
+      return rejectWithValue("Failed to fetch contacts for this list");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contacts for this list');
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Error fetching contacts for this list",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactById = createAsyncThunk(
-  'contacts/fetchContactById',
+  "contacts/fetchContactById",
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/contact/${id}`);
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to fetch contact details');
+      return rejectWithValue("Failed to fetch contact details");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contact details');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contact details",
+      );
     }
-  }
+  },
 );
 
 export const createContact = createAsyncThunk(
-  'contacts/createContact',
+  "contacts/createContact",
   async (payload: CreateContactPayload, { rejectWithValue }) => {
     try {
-      const response = await api.post('/contact/create', payload);
+      const response = await api.post("/contact/create", payload);
       if (response.data.success) {
         const contact = response.data.data;
-        
+
         // If a list ID was provided, append this contact to that list
         if (payload.contactListId) {
           await api.patch(`/contact/list/${payload.contactListId}`, {
-            contactIds: [contact.id]
+            contactIds: [contact.id],
           });
         }
-        
+
         return contact;
       }
-      return rejectWithValue('Failed to create contact');
+      return rejectWithValue("Failed to create contact");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error creating contact');
+      return rejectWithValue(
+        error.response?.data?.message || "Error creating contact",
+      );
     }
-  }
+  },
+);
+
+export const getAllImportedContacts = createAsyncThunk(
+  "contacts/getAllImportedContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/import-contacts");
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to fetch import history");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching import history",
+      );
+    }
+  },
 );
 
 export const contactSlice = createSlice({
-  name: 'contacts',
+  name: "contacts",
   initialState,
   reducers: {
     setQueue: (state, action) => {
@@ -146,7 +172,7 @@ export const contactSlice = createSlice({
     },
     setCurrentContact: (state, action) => {
       state.currentContact = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -188,7 +214,10 @@ export const contactSlice = createSlice({
           phone: action.payload.phones?.[0]?.number || "-",
           email: action.payload.emails?.[0]?.email || "-",
           list: action.payload.source || "-",
-          tags: action.payload.tags?.length > 0 ? action.payload.tags.join(", ") : "-",
+          tags:
+            action.payload.tags?.length > 0
+              ? action.payload.tags.join(", ")
+              : "-",
         };
         state.contacts.unshift(newContact);
       })
@@ -205,6 +234,18 @@ export const contactSlice = createSlice({
         state.currentContact = action.payload;
       })
       .addCase(fetchContactById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getAllImportedContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllImportedContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.importHistory = action.payload;
+      })
+      .addCase(getAllImportedContacts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

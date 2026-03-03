@@ -4,12 +4,15 @@ import { IoIosArrowBack } from "react-icons/io";
 import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
+import ImportContactModal from "../modals/ImportContactModal";
 import {
   useContact,
   type ContactList,
   type ContactFolder,
   type ContactGroup,
 } from "@/hooks/useContact";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchContacts } from "@/store/slices/contactSlice";
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -30,15 +33,40 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { getContactLists, getContactFolders, getContactGroups, loading } =
     useContact();
+  const dispatch = useAppDispatch();
 
   const [folders, setFolders] = useState<FolderWithLists[]>([]);
   const [standaloneLists, setStandaloneLists] = useState<ContactList[]>([]);
   const [groups, setGroups] = useState<ContactGroup[]>([]);
+
+  const fetchData = async () => {
+    const [allLists, allFolders, allGroups] = await Promise.all([
+      getContactLists(),
+      getContactFolders(),
+      getContactGroups(),
+    ]);
+
+    const folderMap = new Map<string, FolderWithLists>();
+    const usedListIds = new Set<string>();
+
+    allFolders.forEach((folder) => {
+      const nestedLists = allLists.filter((list) =>
+        folder.listIds.includes(list.id),
+      );
+      nestedLists.forEach((l) => usedListIds.add(l.id));
+      folderMap.set(folder.id, { ...folder, nestedLists });
+    });
+
+    setFolders(Array.from(folderMap.values()));
+    setStandaloneLists(allLists.filter((list) => !usedListIds.has(list.id)));
+    setGroups(allGroups);
+  };
 
   // ✅ Back button logic
   let backTo = "/";
@@ -50,32 +78,13 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
   useEffect(() => {
     onSelectItem({ type: "allContacts", name: "All Contacts" });
-
-    const fetchData = async () => {
-      const [allLists, allFolders, allGroups] = await Promise.all([
-        getContactLists(),
-        getContactFolders(),
-        getContactGroups(),
-      ]);
-
-      const folderMap = new Map<string, FolderWithLists>();
-      const usedListIds = new Set<string>();
-
-      allFolders.forEach((folder) => {
-        const nestedLists = allLists.filter((list) =>
-          folder.listIds.includes(list.id),
-        );
-        nestedLists.forEach((l) => usedListIds.add(l.id));
-        folderMap.set(folder.id, { ...folder, nestedLists });
-      });
-
-      setFolders(Array.from(folderMap.values()));
-      setStandaloneLists(allLists.filter((list) => !usedListIds.has(list.id)));
-      setGroups(allGroups);
-    };
-
     fetchData();
   }, []);
+
+  const handleImportSuccess = () => {
+    fetchData(); // Refresh sidebar lists/groups
+    dispatch(fetchContacts()); // Refresh the main contacts table (Redux)
+  };
 
   const handleClick = (type: string, name: string, id?: string) => {
     const itemKey = id ? `${type}-${id}` : type;
@@ -95,19 +104,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     });
   };
 
-  // ✅ Handle File Select
-  const openFileDialog = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log("Full File Object:", file);
-      event.target.value = "";
-    }
+  // ✅ Handle Import Modal
+  const openImportModal = () => {
+    setIsImportModalOpen(true);
   };
 
   return (
@@ -230,22 +229,20 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
         </div>
       </div>
 
-      {/* ✅ Fixed Bottom Import Button */}
+      {/* ✅ Import Modal */}
       <div className="mt-auto pt-2">
         <button
-          onClick={openFileDialog}
+          onClick={openImportModal}
           className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] hover:bg-[#EBE1F0] text-[#0E1011] font-medium rounded-md transition"
         >
           <LuArrowUpToLine className="text-base" />
           Import File
         </button>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept=".csv"
-          onChange={handleFileChange}
+        <ImportContactModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={handleImportSuccess}
         />
       </div>
     </aside>
