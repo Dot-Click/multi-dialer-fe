@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import AddRecordingModal from "@/components/modal/addrecordingmodal";
 import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
 import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
+import { useNavigate } from "react-router-dom";
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -42,12 +43,14 @@ const SelectInput = ({
 interface CreateCallSettingModalProps {
     isOpen: boolean;
     onClose: () => void;
+    selectedContacts: any[];
 }
 
-const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen, onClose }) => {
-    const { createCallSettings } = useCallSettings();
+const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen, onClose, selectedContacts }) => {
+    const { data: existingSettings, createCallSettings, updateCallSettings } = useCallSettings();
     const { data: callerIdsData } = useCallerIds();
     const { getRecordings } = useRecordings();
+    const navigate = useNavigate();
 
     const [name, setName] = useState("");
     const [callerId, setCallerId] = useState("");
@@ -61,32 +64,54 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
     const [isAddRecordingOpen, setIsAddRecordingOpen] = useState(false);
     const [recordings, setRecordings] = useState<RecordingItem[]>([]);
     const [callerIds, setCallerIds] = useState<CallerId[]>([]);
+    const [editId, setEditId] = useState<string | null>(null);
 
+    // Initial fetch of recordings
     useEffect(() => {
         if (isOpen) {
             getRecordings().then(setRecordings);
         }
     }, [isOpen]);
 
+    // Update local callerIds when data changes
     useEffect(() => {
         if (callerIdsData) setCallerIds(callerIdsData as CallerId[]);
     }, [callerIdsData]);
 
+    // Pre-populate if settings already exist
+    useEffect(() => {
+        if (isOpen && existingSettings && existingSettings.length > 0) {
+            const setting = existingSettings[0];
+            setEditId(setting.id);
+            setName(setting.label || "");
+            setCallerId(setting.callerId || "");
+            setCountryCode(setting.countryCode || "US");
+            setNoOfLines(String(setting.numberOfLines || 1));
+            setOnHoldRecording1(setting.onHoldRecording1Id || "");
+            setOnHoldRecording2(setting.onHoldRecording2Id || "");
+            setIvrRecording(setting.ivrRecordingId || "");
+            setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
+        }
+    }, [isOpen, existingSettings]);
+
     const resetForm = () => {
-        setName("");
-        setCallerId("");
-        setCountryCode("US");
-        setNoOfLines("1");
-        setOnHoldRecording1("");
-        setOnHoldRecording2("");
-        setIvrRecording("");
-        setAnsweringMachineRecording("");
+        if (!editId) {
+            setName("");
+            setCallerId("");
+            setCountryCode("US");
+            setNoOfLines("1");
+            setOnHoldRecording1("");
+            setOnHoldRecording2("");
+            setIvrRecording("");
+            setAnsweringMachineRecording("");
+        }
     };
 
     const handleClose = () => {
         resetForm();
         onClose();
     };
+
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -100,7 +125,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
 
         setIsLoading(true);
         try {
-            await createCallSettings.mutateAsync({
+            const payload = {
                 label: name.trim(),
                 callerId,
                 countryCode,
@@ -109,8 +134,22 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 onHoldRecording2Id: onHoldRecording2 || undefined,
                 ivrRecordingId: ivrRecording || undefined,
                 answeringMachineRecordingId: answeringMachineRecording || undefined,
-            } as any);
-            toast.success("Call Setting created successfully!");
+            };
+
+            if (editId) {
+                await updateCallSettings.mutateAsync({ id: editId, data: payload as any });
+                toast.success("Call Setting updated successfully!");
+            } else {
+                await createCallSettings.mutateAsync(payload as any);
+                toast.success("Call Setting created successfully!");
+            }
+
+
+            navigate("/admin/contact-info", {
+                state: { contacts: selectedContacts }
+            });
+
+
             handleClose();
         } catch (err: any) {
             toast.error(err?.response?.data?.message || err?.message || "Failed to save Call Setting.");
@@ -125,19 +164,21 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+                className="fixed inset-0 z-9999 bg-black/30 backdrop-blur-[2px]"
                 onClick={handleClose}
             />
 
             {/* Modal */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 pointer-events-none">
                 <div
                     className="bg-white w-full max-w-[520px] max-h-[92vh] rounded-[28px] shadow-2xl flex flex-col pointer-events-auto animate-in fade-in zoom-in duration-200"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
                     <div className="px-6 py-5 flex justify-between items-center border-b border-gray-100">
-                        <h2 className="text-[18px] font-bold text-gray-800">Create Call Setting</h2>
+                        <h2 className="text-[18px] font-bold text-gray-800">
+                            {editId ? "Update Call Setting" : "Create Call Setting"}
+                        </h2>
                         <button
                             type="button"
                             onClick={handleClose}
@@ -262,13 +303,12 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                             Cancel
                         </button>
                         <button
-
                             type="button"
                             onClick={handleSave}
                             disabled={isLoading}
-                            className="flex-[2] bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all disabled:opacity-50"
+                            className="flex-2 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all disabled:opacity-50"
                         >
-                            {isLoading ? "Saving..." : "Save Setting"}
+                            {isLoading ? "Saving..." : editId ? "Update Setting" : "Save Setting"}
                         </button>
                     </div>
                 </div>

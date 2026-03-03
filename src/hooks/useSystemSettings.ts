@@ -36,6 +36,10 @@ export interface DialerSettings {
 export interface CallSettings {
     id: string;
     label: string;
+    onHoldRecording1Id?: string;
+    onHoldRecording2Id?: string;
+    ivrRecordingId?: string;
+    answeringMachineRecordingId?: string;
     onHoldRecording1?: string;
     onHoldRecording2?: string;
     ivrRecording?: string;
@@ -441,9 +445,31 @@ export const useMiscFields = () => {
         }
     });
 
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: Partial<MiscField> }) => {
+            const response = await api.put(`/system-settings/misc-fields/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['misc-fields'] });
+        }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const response = await api.delete(`/system-settings/misc-fields/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['misc-fields'] });
+        }
+    });
+
     return {
         ...query,
-        createMiscField: createMutation
+        createMiscField: createMutation,
+        updateMiscField: updateMutation,
+        deleteMiscField: deleteMutation
     };
 };
 

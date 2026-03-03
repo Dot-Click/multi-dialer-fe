@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FiPlus, FiSearch, FiMoreHorizontal } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
 import { useCallSettings } from '@/hooks/useSystemSettings';
-import CreateCallSettingModal from './CreateCallSettingModal';
+import { Link } from 'react-router-dom';
 
 // ✅ Interfaces for type safety
 interface ToggleSwitchProps {
@@ -78,7 +78,6 @@ const NumberCard: React.FC<{ data: any }> = ({ data }) => {
 // ✅ Main Component
 const CallSetting: React.FC = () => {
     const { data: callSettings, isLoading, isError, error } = useCallSettings();
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     if (isLoading) return <div className="p-8 text-center text-gray-500">Loading Call Settings...</div>;
     if (isError) return <div className="p-8 text-center text-red-500">Error: {(error as any)?.message || 'Failed to fetch settings'}</div>;
@@ -88,16 +87,16 @@ const CallSetting: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                     <h1 className="text-3xl font-bold text-gray-900">Call Settings</h1>
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
+                    <Link
+                        to="/admin/create-setting"
                         className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-yellow-500 transition"
                     >
                         <FiPlus size={18} />
                         Add Setting
-                    </button>
+                    </Link>
                 </header>
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                    <div className="relative w-full sm:w-auto sm:flex-grow max-w-sm">
+                    <div className="relative w-full sm:w-auto sm:grow max-w-sm">
                         <input type="text" placeholder="Search by phone number" className="w-full pl-4 pr-11 py-2.5 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm" />
                         <FiSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>

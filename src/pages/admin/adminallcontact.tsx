@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useOutletContext, useNavigate } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { GrSplits } from "react-icons/gr";
 import { IoAdd, IoFilter } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
@@ -23,7 +23,7 @@ const AdminAllContact = () => {
     const [selectedName, setSelectedName] = useState(assignedToName);
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
 
     const users = [
@@ -172,6 +172,7 @@ const AdminAllContact = () => {
                 <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
             )}
             <CreateCallSettingModal
+                selectedContacts={selectedContacts}
                 isOpen={isDialSettingOpen}
                 onClose={() => setIsDialSettingOpen(false)}
             />

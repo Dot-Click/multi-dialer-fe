@@ -37,7 +37,7 @@ const ContactLayout = () => {
     <div className="min-h-screen w-full relative">
       {/* 🔹 Sidebar (hidden on mobile unless open) */}
       {(!isMobile || isOpen) && (
-        <div className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
+        <div className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
     ${isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
   `}>
           <AllContactSidebar onSelectItem={setActiveItem} />
@@ -48,7 +48,7 @@ const ContactLayout = () => {
       {isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition 
+          className={`fixed top-4 z-1100 p-1 rounded-md shadow-sm transition 
             bg-gray-100 hover:bg-gray-200 
             ${isOpen ? "left-52" : "left-4"}`}
         >
@@ -61,13 +61,13 @@ const ContactLayout = () => {
       )}
 
       {/* 🔹 Navbar */}
-      <div className="fixed z-[999] top-0 w-full">
+      <div className="fixed z-999 top-0 w-full">
         <Navbar />
       </div>
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] w-full transition-all duration-300
+        className={`absolute top-16 pt-4 bg-[#F7F7F7] w-full transition-all duration-300
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <Outlet context={{ activeItem }} />
@@ -83,7 +83,7 @@ const ContactLayout = () => {
           onClick={() => setShowExportModal(true)}
         >
           <TfiDownload className="text-[17px] text-[#495057]" />
-          <span className="text-[16px] text-[#495057] font-[500]">Export</span>
+          <span className="text-[16px] text-[#495057] font-medium">Export</span>
         </button>
       </div>
 

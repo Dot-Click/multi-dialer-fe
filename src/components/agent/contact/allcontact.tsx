@@ -32,7 +32,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
       dispatch(fetchContacts());
     }
   }, [dispatch, listId]);
-  
+
   const allColumns = [
     {
       id: "select",
@@ -51,7 +51,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
       header: "Name",
       enableSorting: false,
       cell: (info: any) => (
-        <Link to={linkPath} className="text-[#1D85F0] cursor-pointer">
+        <Link to={`${linkPath}/${info.row.original.id}`} className="text-[#1D85F0] cursor-pointer">
           {info.getValue()}
         </Link>
       ),
@@ -114,11 +114,11 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
 
   const columns = useMemo(() => {
     if (!visibleColumns || visibleColumns.length === 0) return allColumns;
-    
+
     // Always include select column
     const filtered = allColumns.filter(col => {
       if (col.id === "select") return true;
-      
+
       return visibleColumns.some(vc => {
         if (vc === "Name" && col.accessorKey === "name") return true;
         if (vc === "Email" && col.accessorKey === "email") return true;
@@ -129,7 +129,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
         return false;
       });
     });
-    
+
     return filtered;
   }, [visibleColumns, linkPath]);
 
@@ -149,7 +149,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
     <Box className="mt-3 m-2 w-full h-full">
       <main>
         {isLoading ? (
-         <Loader/>
+          <Loader />
         ) : error ? (
           <div className="flex items-center justify-center h-full min-h-[400px]">
             <span className="text-red-500">{error}</span>
