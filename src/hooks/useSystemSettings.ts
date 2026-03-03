@@ -77,6 +77,14 @@ export interface ActionStep {
     dayOffset: number;
 }
 
+export interface ActionStep {
+    id?: string;
+    order: number;
+    actionType: 'EMAIL' | 'PHONE_CALL' | 'TASK' | 'LETTER' | 'MAILING_LABEL';
+    contentValue: string;
+    dayOffset: number;
+}
+
 export interface ActionPlan {
     id: string;
     name: string;
