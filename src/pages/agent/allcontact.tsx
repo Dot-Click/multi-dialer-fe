@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import { IoFilter } from "react-icons/io5";
 import { IoIosSearch } from "react-icons/io";
 import AllContactComponent from "@/components/agent/contact/allcontact";
@@ -20,7 +20,7 @@ const AllContact = () => {
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
   const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // ✅ Use typed context
   const { activeItem } = useOutletContext<OutletContextType>();
@@ -137,6 +137,7 @@ const AllContact = () => {
       <CreateCallSettingModal
         isOpen={isDialSettingOpen}
         onClose={() => setIsDialSettingOpen(false)}
+        selectedContacts={selectedContacts}
       />
     </section>
   );

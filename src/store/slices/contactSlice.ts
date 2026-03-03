@@ -17,6 +17,7 @@ interface ContactState {
   queue: any[];
   folders: ContactFolder[];
   lists: ContactList[];
+  groups: ContactGroup[];
   isLoading: boolean;
   error: string | null;
 }
@@ -35,12 +36,20 @@ export interface ContactFolder {
   createdAt: string;
 }
 
+export interface ContactGroup {
+  id: string;
+  name: string;
+  contactIds: string[];
+  createdAt: string;
+}
+
 const initialState: ContactState = {
   contacts: [],
   currentContact: null,
   queue: [],
   folders: [],
   lists: [],
+  groups: [],
   isLoading: false,
   error: null,
 };
@@ -215,6 +224,36 @@ export const assignContactToList = createAsyncThunk(
   }
 );
 
+export const fetchContactGroups = createAsyncThunk(
+  'contacts/fetchContactGroups',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/contact/group');
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to fetch contact groups');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error fetching contact groups');
+    }
+  }
+);
+
+export const assignContactToGroups = createAsyncThunk(
+  'contacts/assignContactToGroups',
+  async ({ contactId, groupIds }: { contactId: string; groupIds: string[] }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/contact/${contactId}/groups`, { groupIds });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to assign contact to groups');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to groups');
+    }
+  }
+);
+
 export const contactSlice = createSlice({
   name: 'contacts',
   initialState,
@@ -329,6 +368,9 @@ export const contactSlice = createSlice({
       })
       .addCase(fetchContactLists.fulfilled, (state, action) => {
         state.lists = action.payload;
+      })
+      .addCase(fetchContactGroups.fulfilled, (state, action) => {
+        state.groups = action.payload;
       });
   },
 });

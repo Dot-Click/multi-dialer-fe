@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchContactFolders, fetchContactLists, assignContactToList } from '@/store/slices/contactSlice'
+import { fetchContactFolders, fetchContactLists, assignContactToList, updateContact, fetchContactGroups, assignContactToGroups } from '@/store/slices/contactSlice'
 import mapIcon from "@/assets/mapicon.png"
 import streeticon from "@/assets/streeticon.png"
 import groupicon from "@/assets/groupicon.png"
@@ -20,30 +20,42 @@ import toast from 'react-hot-toast'
 
 const Detail = () => {
     const dispatch = useAppDispatch();
-    const { currentContact, folders, lists } = useAppSelector((state) => state.contacts);
+    const { currentContact, folders, lists, groups } = useAppSelector((state) => state.contacts);
     const [showModal, setShowModal] = useState(false);
     const [phoneModal, setPhoneModal] = useState(false);
     const [emailModal, setEmailModal] = useState(false);
-    const [openDesposition, setOpenDesposition] = useState("Call Back");
 
     const [selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [selectedListId, setSelectedListId] = useState<string>('');
+    const [tagsInput, setTagsInput] = useState<string>('');
+    const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
 
     useEffect(() => {
         dispatch(fetchContactFolders());
         dispatch(fetchContactLists());
+        dispatch(fetchContactGroups());
     }, [dispatch]);
 
     useEffect(() => {
-        if (currentContact && lists.length > 0) {
-            // Try to find which list the contact belongs to
-            const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
-            if (currentList) {
-                setSelectedListId(currentList.id);
-                // Now find the folder that contains this list
-                const currentFolder = folders.find(f => f.listIds.includes(currentList.id));
-                if (currentFolder) {
-                    setSelectedFolderId(currentFolder.id);
+        if (currentContact) {
+            setTagsInput(currentContact.tags?.join(", ") || "");
+
+            // Initialize groups the contact belongs to
+            const memberGroupIds = groups
+                .filter(group => group.contactIds.includes(currentContact.id))
+                .map(group => group.id);
+            setSelectedGroupIds(memberGroupIds);
+
+            if (lists.length > 0) {
+                // Try to find which list the contact belongs to
+                const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
+                if (currentList) {
+                    setSelectedListId(currentList.id);
+                    // Now find the folder that contains this list
+                    const currentFolder = folders.find(f => f.listIds.includes(currentList.id));
+                    if (currentFolder) {
+                        setSelectedFolderId(currentFolder.id);
+                    }
                 }
             }
         }
@@ -61,21 +73,41 @@ const Detail = () => {
     };
 
     const handleUpdateOrg = async () => {
-        if (!currentContact || !selectedListId) {
-            toast.error("Please select both a folder and a list.");
+        if (!currentContact) {
+            toast.error("Contact not found");
             return;
         }
         try {
-            await dispatch(assignContactToList({
+            // 1. Handle List Assignment if changed
+            const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
+            if (selectedListId && selectedListId !== currentList?.id) {
+                await dispatch(assignContactToList({
+                    contactId: currentContact.id,
+                    listId: selectedListId
+                })).unwrap();
+                // Refresh lists to sync the internal contactIds arrays
+                dispatch(fetchContactLists());
+            }
+
+            // 2. Handle Groups Assignment
+            await dispatch(assignContactToGroups({
                 contactId: currentContact.id,
-                listId: selectedListId
+                groupIds: selectedGroupIds
+            })).unwrap();
+            dispatch(fetchContactGroups());
+
+            // 3. Handle Tags
+            const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+            await dispatch(updateContact({
+                id: currentContact.id,
+                payload: {
+                    tags: tagsArray
+                }
             })).unwrap();
 
-            // Refresh lists to sync the internal contactIds arrays
-            dispatch(fetchContactLists());
-            toast.success("Success: Contact list assignment updated!");
+            toast.success("Contact updated successfully!");
         } catch (err: any) {
-            console.error("Failed to update organization:", err);
+            console.error("Failed to update contact:", err);
             toast.error("Failed to update: " + err);
         }
     };
@@ -97,15 +129,6 @@ const Detail = () => {
             default: return callsicon;
         }
     }
-
-    const despositions = [
-        { id: 1, name: "Wrong Number" },
-        { id: 2, name: "Not Interested" },
-        { id: 3, name: "Answering Machine" },
-        { id: 4, name: "Got Sale" },
-        { id: 5, name: "DNC" },
-        { id: 6, name: "Call Back" }
-    ]
 
     const statusList = [
         { id: 1, name: "Permission" },
@@ -279,8 +302,9 @@ const Detail = () => {
                     <input
                         type="text"
                         id="tags"
-                        readOnly
-                        value={currentContact.tags?.join(", ") || ""}
+                        value={tagsInput}
+                        onChange={(e) => setTagsInput(e.target.value)}
+                        placeholder="Tag1, Tag2..."
                         className='border-b py-1 px-2 font-normal text-[#18181B] border-gray-300 flex-1 text-[16px] outline-none'
                     />
                 </div>
@@ -296,14 +320,27 @@ const Detail = () => {
             </div>
 
             <div className='flex flex-col gap-3'>
-                <h1 className='text-[14px] text-[#0E1011] font-medium'>Dispositions:</h1>
+                <h1 className='text-[14px] text-[#0E1011] font-medium'>Groups:</h1>
                 <div className='flex gap-4 flex-wrap items-center'>
-                    {despositions.map((disp) => (
-                        <span key={disp.id} onClick={() => setOpenDesposition(disp.name)}
-                            className={`${openDesposition === disp.name ? "bg-[#0E1011] text-[#FFFFFF]" : "bg-[#EBEDF0] text-[#18181B]"}  cursor-pointer rounded-[8px] text-[14px]  px-[16px] py-[5px] font-normal`}>
-                            {disp.name}
-                        </span>
-                    ))}
+                    {groups.map((group) => {
+                        const isSelected = selectedGroupIds.includes(group.id);
+                        return (
+                            <span
+                                key={group.id}
+                                onClick={() => {
+                                    if (isSelected) {
+                                        setSelectedGroupIds(prev => prev.filter(id => id !== group.id));
+                                    } else {
+                                        setSelectedGroupIds(prev => [...prev, group.id]);
+                                    }
+                                }}
+                                className={`${isSelected ? "bg-[#0E1011] text-[#FFFFFF]" : "bg-[#EBEDF0] text-[#18181B]"}  cursor-pointer rounded-[8px] text-[14px]  px-[16px] py-[5px] font-normal transition-colors`}
+                            >
+                                {group.name}
+                            </span>
+                        );
+                    })}
+                    {groups.length === 0 && <span className="text-gray-400 text-sm">No groups available</span>}
                 </div>
             </div>
 
