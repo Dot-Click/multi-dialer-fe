@@ -7,8 +7,8 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { useUser, type User } from "@/hooks/useUser";
 import Loader from "@/components/common/Loader";
 
-const getStatusStyles = (status: string) => {
-  const normalizedStatus = status.toUpperCase();
+const getStatusStyles = (status?: string | null) => {
+  const normalizedStatus = status?.toUpperCase() || "";
   switch (normalizedStatus) {
     case "ACTIVE":
       return "bg-[#D0FAE5] text-[#428E43]";
@@ -23,11 +23,12 @@ const getStatusStyles = (status: string) => {
   }
 };
 
-const formatStatus = (status: string) => {
+const formatStatus = (status?: string | null) => {
+  if (!status) return "-";
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 };
 
-const formatDate = (dateString?: string) => {
+const formatDate = (dateString?: string | null) => {
   if (!dateString) return "Never";
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
@@ -85,10 +86,10 @@ const SuperAdminUserManagement = () => {
 
     const matchesStatus =
       selectedStatus === "All Status" ||
-      user.status.toUpperCase() === selectedStatus.toUpperCase();
+      user.status?.toUpperCase() === selectedStatus.toUpperCase();
     const matchesRole =
       selectedRole === "All Roles" ||
-      user.role.toUpperCase() === selectedRole.toUpperCase();
+      user.role?.toUpperCase() === selectedRole.toUpperCase();
 
     return matchesSearch && matchesStatus && matchesRole;
   });
@@ -279,7 +280,7 @@ const SuperAdminUserManagement = () => {
                         </span>
                       </td>
                       <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C]">
-                        {formatDate(user.lastLogin)}
+                        {formatDate(user?.lastLogin)}
                       </td>
                       <td
                         ref={(el) => {
