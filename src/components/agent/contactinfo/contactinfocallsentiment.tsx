@@ -1,53 +1,106 @@
-// import { TbPointFilled } from "react-icons/tb";
-// import callsentimenticon from "../../../assets/callsentimenticon.png"
-
-// const ContactInfoCallSentiment = () => {
-//   return (
-//     <div className="bg-white flex flex-col gap-2 shadow-2xl  px-3 py-4 rounded-md">
-//         <div className="flex   justify-between items-center">
-//             <div className='flex w-full items-center gap-2'>
-//                 <img src={callsentimenticon} alt="callsentimenticon" className="w-4  object-contain" />
-//                 <h1 className='text-gray-700 text-[15px] font-medium'>Call Sentiment</h1>
-//             </div>
-//             <div className="flex items-center gap-2">
-//                 <span className="text-green-500"><TbPointFilled/></span>
-//                 <span className="text-green-500">Positive</span>
-//             </div>
-//             <div>
-
-//             </div>
-//         </div>
-//         <div className="bg-gray-200 flex flex-col gap-1 px-3 py-3 rounded-md">
-//             <h1 className="text-sm font-medium">AI Sidekick:</h1>
-//             <p className="text-sm text-gray-600 font-medium">Customer sounds open and cooperative.</p>
-//         </div>
-//     </div>
-//   )
-// }
-
-// export default ContactInfoCallSentiment
-
-
-
-
-
-import { Bot, Sparkles, Circle } from 'lucide-react';
+import { Bot, Sparkles, Circle, Loader2 } from 'lucide-react';
+import { useTwilio } from '../../../providers/twilio.provider';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useEffect, useState } from 'react';
+import { fetchCallSentiment, resetSentiment, setPollingStatus } from '../../../store/slices/sentimentSlice';
+import api from '../../../lib/axios';
 
 const CallSentiment = () => {
-  const suggestions = [
-    {
-      id: "1.",
-      text: "Ask about their current pain points with customer engagement."
-    },
-    {
-      id: "2.",
-      text: "Mention our 30-day free trial offer"
-    },
-    {
-      id: "3.",
-      text: "Reference case study: similar company saw 45% improvements"
+  const { callStatus, activeCallSid } = useTwilio();
+  const dispatch = useAppDispatch();
+  const { data: sentimentData, status: sentimentStatus, error: sentimentError } = useAppSelector((state) => state.sentiment);
+  const [storedSid, setStoredSid] = useState<string | null>(null);
+
+  // Capture the SID while the call is active
+  useEffect(() => {
+    if (activeCallSid) {
+      setStoredSid(activeCallSid);
     }
-  ];
+  }, [activeCallSid]);
+
+  // Trigger Polling in Redux
+  useEffect(() => {
+    if (callStatus === 'disconnected' && storedSid && sentimentStatus === 'idle') {
+      console.log('Call disconnected, starting polling in Redux for SID:', storedSid);
+      dispatch(setPollingStatus());
+    }
+  }, [callStatus, storedSid, sentimentStatus, dispatch]);
+
+  // Handle Polling Interval
+  useEffect(() => {
+    let pollInterval: any;
+
+    if (sentimentStatus === 'polling_status' && storedSid) {
+      console.log('Polling status active in Redux, starting interval for SID:', storedSid);
+      pollInterval = setInterval(async () => {
+        try {
+          // Poll for completed status using the stored SID
+          const { data } = await api.get(`/calling/status/${storedSid}`);
+          if (data.success && data.data.status === 'completed') {
+            console.log('Call completed detected! Fetching analysis...');
+            clearInterval(pollInterval);
+            dispatch(fetchCallSentiment(storedSid));
+          }
+        } catch (err) {
+          console.error('Error polling for completed status:', err);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (pollInterval) {
+        console.log('Cleaning up poll interval');
+        clearInterval(pollInterval);
+      }
+    };
+  }, [sentimentStatus, storedSid, dispatch]);
+
+  // Reset sentiment when a new call starts
+  useEffect(() => {
+    if (callStatus === 'ringing' || callStatus === 'connected') {
+      dispatch(resetSentiment());
+    }
+  }, [callStatus, dispatch]);
+
+  // Handle re-fetching if sentiment is still processing
+  useEffect(() => {
+    let timeout: any;
+    if (sentimentStatus === 'processing_sentiment' && storedSid) {
+      console.log('Sentiment still processing, will re-fetch in 4 seconds...');
+      timeout = setTimeout(() => {
+        dispatch(fetchCallSentiment(storedSid));
+      }, 4000);
+    }
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [sentimentStatus, storedSid, dispatch]);
+
+  // const suggestions = [
+  //   {
+  //     id: "1.",
+  //     text: "Ask about their current pain points with customer engagement."
+  //   },
+  //   {
+  //     id: "2.",
+  //     text: "Mention our 30-day free trial offer"
+  //   },
+  //   {
+  //     id: "3.",
+  //     text: "Reference case study: similar company saw 45% improvements"
+  //   }
+  // ];
+
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment?.toLowerCase()) {
+      case 'positive': return '#10B981';
+      case 'negative': return '#EF4444';
+      case 'neutral': return '#6B7280';
+      default: return '#10B981';
+    }
+  };
+
+  const isProcessing = ['polling_status', 'fetching_sentiment', 'processing_sentiment'].includes(sentimentStatus);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 w-full font-inter flex flex-col h-full">
@@ -56,7 +109,6 @@ const CallSentiment = () => {
         <div className="flex items-center gap-2 text-[#4b5563]">
           <div className="relative">
              <Bot size={20} strokeWidth={1.5} />
-             {/* Tiny sparkles icon to match the 'AI' look in the design */}
              <Sparkles size={8} className="absolute -top-1 -right-1 text-gray-400" />
           </div>
           <h3 className="text-[15px] font-medium text-gray-600">Call Sentiment</h3>
@@ -64,8 +116,16 @@ const CallSentiment = () => {
         
         {/* Status */}
         <div className="flex items-center gap-1.5">
-          <Circle size={8} fill="#10B981" className="text-[#10B981]" />
-          <span className="text-[#10B981] text-[14px] font-semibold">Positive</span>
+          {isProcessing ? (
+            <Loader2 size={14} className="animate-spin text-blue-500" />
+          ) : (
+            <>
+              <Circle size={8} fill={getSentimentColor(sentimentData?.sentiment || 'positive')} className={`text-[${getSentimentColor(sentimentData?.sentiment || 'positive')}]`} />
+              <span className="text-[14px] font-semibold" style={{ color: getSentimentColor(sentimentData?.sentiment || 'positive') }}>
+                {sentimentData?.sentiment || 'Positive'}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -76,11 +136,13 @@ const CallSentiment = () => {
         <div className="bg-[#f4f6fa] rounded-xl p-4">
           <p className="text-[13px] font-bold text-[#1a1a1a] mb-1">AI Sidekick:</p>
           <p className="text-[14px] text-[#374151] leading-relaxed">
-            Customer sounds open and cooperative.
+            {sentimentStatus === 'polling_status' ? 'Waiting for call analysis...' : 
+             (sentimentStatus === 'fetching_sentiment' || sentimentStatus === 'processing_sentiment') ? 'Analyzing call...' :
+             sentimentData?.aiSummary || 'Analysis will appear here after the call.'}
           </p>
         </div>
 
-        {/* Suggestion Boxes */}
+        {/* Suggestion Boxes
         {suggestions.map((item) => (
           <div 
             key={item.id} 
@@ -93,7 +155,11 @@ const CallSentiment = () => {
               {item.text}
             </p>
           </div>
-        ))}
+        ))} */}
+
+        {sentimentError && (
+          <p className="text-xs text-red-500 mt-2">{sentimentError}</p>
+        )}
 
       </div>
     </div>
