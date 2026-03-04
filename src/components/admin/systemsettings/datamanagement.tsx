@@ -1,9 +1,13 @@
 import { useEffect } from "react";
 import { FaChevronRight } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getAllImportedContacts } from "@/store/slices/contactSlice";
+import {
+  getAllImportedContacts,
+  getAllExportContacts,
+} from "@/store/slices/contactSlice";
 import Loader from "@/components/common/Loader";
 import { format } from "date-fns";
+import { type ColumnDef } from "@tanstack/react-table";
 
 // Yeh aapke project ke components hain, inka path sahi se set karein
 import {
@@ -17,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 // --- Import History Table Data and Columns ---
 
 // import history column configuration remains, but will handle real data mapping
-const importHistoryColumns = [
+const importHistoryColumns: ColumnDef<any, any>[] = [
   {
     accessorKey: "createdAt",
     header: (info: any) => <SortedHeader header={info.header} label="Date" />,
@@ -56,72 +60,31 @@ const importHistoryColumns = [
   },
 ];
 
-// --- Export History Table Data and Columns ---
-
-const exportHistoryData = [
+// --- Export History Table Columns ---
+const exportHistoryColumns: ColumnDef<any, any>[] = [
   {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-  {
-    date: "18/06/2021 06:13",
-    listGroup: "High-Value Leads",
-    exportedContacts: 64,
-    agent: "Velma Bogan",
-  },
-];
-
-const exportHistoryColumns = [
-  {
-    accessorKey: "date",
+    accessorKey: "createdAt",
     header: (info: any) => <SortedHeader header={info.header} label="Date" />,
+    cell: (info: any) => format(new Date(info.getValue()), "dd/MM/yyyy HH:mm"),
   },
   {
-    accessorKey: "listGroup",
+    id: "listGroup",
     header: (info: any) => (
       <SortedHeader header={info.header} label="List/Group Selected" />
     ),
+    cell: (info: any) => {
+      const row = info.row.original;
+      return row.contactList?.name || row.contactGroup?.name || "All Contacts";
+    },
   },
   {
-    accessorKey: "exportedContacts",
+    accessorKey: "contactsCount",
     header: (info: any) => (
       <SortedHeader header={info.header} label="Number of Exported Contacts" />
     ),
   },
   {
-    accessorKey: "agent",
+    accessorKey: "user.fullName",
     header: (info: any) => <SortedHeader header={info.header} label="Agent" />,
   },
 ];
@@ -131,12 +94,13 @@ const exportHistoryColumns = [
 const DataManagement = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { importHistory, isLoading } = useAppSelector(
+  const { importHistory, exportHistory, isLoading } = useAppSelector(
     (state) => state.contacts,
   );
 
   useEffect(() => {
     dispatch(getAllImportedContacts());
+    dispatch(getAllExportContacts());
   }, [dispatch]);
 
   return (
@@ -168,12 +132,14 @@ const DataManagement = () => {
             lists/groups were exported, total amount of data and the date and
             time the export occurred.
           </p>
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 overflow-auto custom-scrollbar h-[250px] relative">
             <TableProvider
-              data={exportHistoryData}
+              data={exportHistory || []}
               columns={exportHistoryColumns}
             >
-              {() => <TableComponent />}
+              {() =>
+                isLoading ? <Loader fullPage={false} /> : <TableComponent />
+              }
             </TableProvider>
           </div>
         </Box>

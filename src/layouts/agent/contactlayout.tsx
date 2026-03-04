@@ -11,9 +11,13 @@ const ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeItem, setActiveItem] = useState<{ type: string; id?: string; name: string }>({
+  const [activeItem, setActiveItem] = useState<{
+    type: string;
+    id?: string;
+    name: string;
+  }>({
     type: "allContacts",
-    name: "All Contacts"
+    name: "All Contacts",
   });
 
   // ✅ Handle responsive behavior
@@ -37,9 +41,11 @@ const ContactLayout = () => {
     <div className="min-h-screen w-full relative">
       {/* 🔹 Sidebar (hidden on mobile unless open) */}
       {(!isMobile || isOpen) && (
-        <div className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
+        <div
+          className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
     ${isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
-  `}>
+  `}
+        >
           <AllContactSidebar onSelectItem={setActiveItem} />
         </div>
       )}
@@ -89,7 +95,10 @@ const ContactLayout = () => {
 
       {/* 🔹 Export Modal */}
       {showExportModal && (
-        <ExportFieldsModal onClose={() => setShowExportModal(false)} />
+        <ExportFieldsModal
+          onClose={() => setShowExportModal(false)}
+          activeItem={activeItem}
+        />
       )}
     </div>
   );

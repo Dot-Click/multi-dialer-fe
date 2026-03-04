@@ -1,16 +1,22 @@
 import React, { useState } from "react";
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { downloadCSV } from "@/utils/csvDownload";
 import toast from "react-hot-toast";
 import { IoClose, IoSearch } from "react-icons/io5";
+import { exportContactCSV } from "@/store/slices/contactSlice";
 
 interface ExportFieldsModalProps {
   onClose: () => void;
+  activeItem?: { type: string; id?: string; name: string };
 }
 
-const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({ onClose }) => {
+const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({
+  onClose,
+  activeItem,
+}) => {
   const [search, setSearch] = useState("");
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  const dispatch = useAppDispatch();
 
   const { contacts } = useAppSelector((state) => state.contacts);
   const fields = [
@@ -47,19 +53,42 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({ onClose }) => {
     );
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedFields.length === 0) {
       toast.error("Please select at least one field");
       return;
     }
 
-    downloadCSV(
-      contacts,
-      selectedFields,
-      fieldMapping,
-      `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`,
-    );
-    onClose();
+    const payload = {
+      fieldNames: selectedFields.map((f) => fieldMapping[f]),
+      listId: activeItem?.type === "list" ? activeItem.id : null,
+      groupId: activeItem?.type === "group" ? activeItem.id : null,
+    };
+
+    console.log("Export Payload:", payload);
+
+    try {
+      const resultAction = await dispatch(exportContactCSV(payload));
+      console.log("Export API Response:", resultAction);
+
+      if (exportContactCSV.fulfilled.match(resultAction)) {
+        downloadCSV(
+          contacts,
+          selectedFields,
+          fieldMapping,
+          `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`,
+        );
+        toast.success("Export successful");
+        onClose();
+      } else {
+        const errorMessage =
+          (resultAction.payload as string) || "Failed to export";
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error("Export Error:", error);
+      toast.error("An unexpected error occurred during export");
+    }
   };
 
   return (

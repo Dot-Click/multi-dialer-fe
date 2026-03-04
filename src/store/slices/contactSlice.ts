@@ -14,6 +14,7 @@ export interface Contact {
 interface ContactState {
   contacts: Contact[];
   importHistory: any[];
+  exportHistory: any[];
   currentContact: any | null;
   queue: any[];
   folders: ContactFolder[];
@@ -47,6 +48,7 @@ export interface ContactGroup {
 const initialState: ContactState = {
   contacts: [],
   importHistory: [],
+  exportHistory: [],
   currentContact: null,
   queue: [],
   folders: [],
@@ -59,6 +61,12 @@ const initialState: ContactState = {
 export interface CreateContactEmail {
   email: string;
   isPrimary: boolean;
+}
+
+interface ExportContactPayload {
+  fieldNames: string[]; // selected fields
+  listId?: string | null; // optional
+  groupId?: string | null; // optional
 }
 
 export interface CreateContactPhone {
@@ -305,6 +313,52 @@ export const assignContactToGroups = createAsyncThunk(
   },
 );
 
+export const exportContactCSV = createAsyncThunk(
+  "contacts/exportContactCSV",
+  async (
+    { fieldNames, listId, groupId }: ExportContactPayload,
+    { rejectWithValue },
+  ) => {
+    try {
+      const payload = {
+        fieldNames,
+        listId: listId ?? null,
+        groupId: groupId ?? null,
+      };
+
+      const response = await api.post(`/contact/export-csv`, payload);
+
+      if (response.data.success) {
+        // backend sirf contactsCount ya metadata return karega
+        return response.data.data;
+      }
+
+      return rejectWithValue("Failed to export contact to csv");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error exporting contact to csv",
+      );
+    }
+  },
+);
+
+export const getAllExportContacts = createAsyncThunk(
+  "contacts/getAllExportContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/export-csv");
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to fetch export history");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching export history",
+      );
+    }
+  },
+);
+
 export const contactSlice = createSlice({
   name: "contacts",
   initialState,
@@ -444,6 +498,18 @@ export const contactSlice = createSlice({
       })
       .addCase(fetchContactGroups.fulfilled, (state, action) => {
         state.groups = action.payload;
+      })
+      .addCase(getAllExportContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllExportContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.exportHistory = action.payload;
+      })
+      .addCase(getAllExportContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });

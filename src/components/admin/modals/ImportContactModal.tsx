@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { IoClose } from "react-icons/io5";
-import { FiUploadCloud, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiUploadCloud, FiCheckCircle } from "react-icons/fi";
 import { LuChevronDown } from "react-icons/lu";
 import {
   useContact,

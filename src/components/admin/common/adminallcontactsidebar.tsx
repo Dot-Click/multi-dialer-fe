@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import { VscFolderOpened } from "react-icons/vsc";
@@ -35,7 +35,6 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const location = useLocation();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { getContactLists, getContactFolders, getContactGroups, loading } =
     useContact();
