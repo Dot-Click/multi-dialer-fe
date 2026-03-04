@@ -133,7 +133,7 @@ const Router: React.FC = () => {
               <Route path="change-password" element={<AdminChangePassword />} />
             </Route>
 
-            <Route path="/admin/contact-detail" element={<ContactDetail />} />
+            <Route path="/admin/contact-detail/:id" element={<ContactDetail />} />
             <Route path="/admin/password-change" element={<AdminChangePassword />} />
             <Route path="/admin/contact-info" element={<ContactInfo />} />
           </Route>

@@ -1,6 +1,7 @@
-
-import { useState } from "react";
-import type { ChangeEvent } from "react";
+import React, { useState, type ChangeEvent } from "react";
+import { useMiscFields } from "@/hooks/useSystemSettings";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 import { FaPlus, FaTimes } from "react-icons/fa";
 
 // Props type
@@ -9,6 +10,7 @@ interface AdminMiscModalProps {
 }
 
 const AdminMiscModal: React.FC<AdminMiscModalProps> = ({ onClose }) => {
+    const { createMiscField } = useMiscFields();
     const [fieldType, setFieldType] = useState<string>("Date");
     const [fieldName, setFieldName] = useState<string>("");
 
@@ -22,10 +24,10 @@ const AdminMiscModal: React.FC<AdminMiscModalProps> = ({ onClose }) => {
     const [countTo, setCountTo] = useState<number>(20);
 
     const [allowPastDates, setAllowPastDates] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const fieldOptions = ["Text Field", "Dropdown", "Counter", "Date"];
 
-    // Dropdown Handlers
     const handleOptionChange = (index: number, value: string) => {
         const newOptions = [...options];
         newOptions[index] = value;
@@ -39,6 +41,40 @@ const AdminMiscModal: React.FC<AdminMiscModalProps> = ({ onClose }) => {
     const handleRemoveOption = (index: number) => {
         const newOptions = options.filter((_, i) => i !== index);
         setOptions(newOptions);
+    };
+
+    const handleSave = async () => {
+        if (!fieldName.trim()) {
+            toast.error("Field name is required");
+            return;
+        }
+
+        setIsSaving(true);
+
+        const typeMap: Record<string, string> = {
+            "Text Field": "text",
+            "Dropdown": "dropdown",
+            "Counter": "counter",
+            "Date": "date",
+        };
+
+
+        try {
+            await createMiscField.mutateAsync({
+                fieldName: fieldName.trim(),
+                type: typeMap[fieldType], // ← use mapped value
+                options: fieldType === "Dropdown" ? options.filter(o => o.trim() !== "") : [],
+                countFrom: fieldType === "Counter" ? countFrom : undefined,
+                countTo: fieldType === "Counter" ? countTo : undefined,
+                allowPastDates: fieldType === "Date" ? allowPastDates : undefined,
+            } as any);
+            toast.success("Field created successfully");
+            onClose();
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Failed to create field");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Preview Rendering
@@ -92,7 +128,7 @@ const AdminMiscModal: React.FC<AdminMiscModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-9999">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-[80vh]">
                 {/* Header */}
                 <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
@@ -254,8 +290,12 @@ const AdminMiscModal: React.FC<AdminMiscModalProps> = ({ onClose }) => {
                     >
                         Cancel
                     </button>
-                    <button className="px-6 py-2 w-full bg-[#FFCA06] text-gray-900 font-semibold rounded-md hover:bg-[#f3c005]">
-                        Save
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="px-6 py-2 w-full bg-[#FFCA06] text-gray-900 font-semibold rounded-md hover:bg-[#f3c005] disabled:opacity-50 flex items-center justify-center"
+                    >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
                     </button>
                 </div>
             </div>
