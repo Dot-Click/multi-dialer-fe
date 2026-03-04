@@ -13,6 +13,8 @@ export interface CalendarEvent {
     endDate?: string;
     assignToId: string;
     assignById: string;
+    contactId?: string;
+    leadId?: string;
     assignTo?: {
         id: string;
         fullName: string;
@@ -35,6 +37,8 @@ export interface CreateCalendarEventPayload {
     startDate: string;
     endDate?: string;
     assignToId?: string;
+    contactId?: string;
+    leadId?: string;
 }
 
 export const useCalendar = () => {
@@ -47,7 +51,7 @@ export const useCalendar = () => {
         try {
             const response = await api.get('/calendar');
             console.log(response);
-            
+
             return response.data.data;
         } catch (err: any) {
             const message = err.response?.data?.message || 'Failed to fetch calendar events';

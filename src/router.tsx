@@ -92,7 +92,7 @@ const Router: React.FC = () => {
               <Route index element={<AllContact />} />
             </Route>
 
-            <Route path="/contact-detail" element={<ContactDetail />} />
+            <Route path="/contact-detail/:id" element={<ContactDetail />} />
             <Route path="/contact-info" element={<ContactInfo />} />
           </Route>
         </Route>

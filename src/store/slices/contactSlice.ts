@@ -9,6 +9,7 @@ export interface Contact {
   email: string;
   list: string;
   tags: string;
+  miscValues?: any;
 }
 
 interface ContactState {
@@ -75,6 +76,7 @@ export interface CreateContactPayload {
   emails: CreateContactEmail[];
   phones: CreateContactPhone[];
   contactListId?: string;
+  miscValues?: any;
 }
 
 
