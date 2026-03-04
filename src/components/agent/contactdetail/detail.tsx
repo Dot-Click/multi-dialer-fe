@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchContactFolders, fetchContactLists, assignContactToList, updateContact, fetchContactGroups, assignContactToGroups } from '@/store/slices/contactSlice'
-import mapIcon from "@/assets/mapicon.png"
-import streeticon from "@/assets/streeticon.png"
-import groupicon from "@/assets/groupicon.png"
 import { CiMail } from "react-icons/ci";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoAddOutline } from "react-icons/io5";
@@ -130,15 +127,6 @@ const Detail = () => {
         }
     }
 
-    const statusList = [
-        { id: 1, name: "Permission" },
-        { id: 2, name: "Want" },
-        { id: 3, name: "Why" },
-        { id: 4, name: "Status Quo" },
-        { id: 5, name: "Timeline" },
-        { id: 6, name: "Agent" }
-    ]
-
     return (
         <section className='bg-white flex flex-col gap-8 px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
             <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
@@ -173,11 +161,7 @@ const Detail = () => {
                         ))}
                     </div>
                 </div>
-                <div className='flex items-center gap-3 '>
-                    <span className='border p-1 rounded-lg border-gray-200'><img src={mapIcon} className='h-6 w-6 object-contain' alt="map" /></span>
-                    <span className='border p-1 rounded-lg border-gray-200'><img src={streeticon} className='h-6 w-6 object-contain' alt="street" /></span>
-                    <span className='border p-1 rounded-lg border-gray-200'><img src={groupicon} className='h-6 w-6 object-contain' alt="group" /></span>
-                </div>
+
             </div>
 
             <div className='flex lg:flex-row flex-col justify-between gap-8 items-start'>
@@ -189,13 +173,16 @@ const Detail = () => {
                                 <h1 className='text-[14px] font-medium text-[#0E1011]'>Property Address:</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.city || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>Address: {currentContact.address || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.state || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.city || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.zip || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.state || '-'}</h1>
+                            </span>
+                            <span>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.zip || '-'}</h1>
                             </span>
                         </div>
                     </div>
@@ -207,13 +194,16 @@ const Detail = () => {
                                 <h1 className='text-[14px] font-medium text-[#0E1011]'>Mailing Address:</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.city || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>Address: {currentContact.mailingAddress || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.state || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.mailingCity || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.zip || "-"}</h1>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.mailingState || '-'}</h1>
+                            </span>
+                            <span>
+                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.mailingZip || '-'}</h1>
                             </span>
                         </div>
                     </div>
@@ -344,16 +334,6 @@ const Detail = () => {
                 </div>
             </div>
 
-            <div className="border-t border-gray-100 w-full"></div>
-
-            <div className="flex gap-4 flex-wrap justify-center md:justify-around items-center">
-                {statusList.map((stat) => (
-                    <div key={stat.id} className="flex items-center flex-col gap-2">
-                        <span className='border border-[#495057] h-2 w-2 p-2 rounded-[1.5px]'></span>
-                        <span className='text-[14px] text-[#495057] inter font-normal'>{stat.name}</span>
-                    </div>
-                ))}
-            </div>
             {showModal && <EditModal onClose={() => setShowModal(false)} />}
             {phoneModal && <PhoneModal isOpen={phoneModal} onClose={() => setPhoneModal(false)} />}
             {emailModal && <EmailModal isOpen={emailModal} onClose={() => setEmailModal(false)} />}

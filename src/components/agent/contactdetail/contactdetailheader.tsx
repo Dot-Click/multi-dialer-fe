@@ -7,10 +7,7 @@ import {
   IoAddOutline,
   IoCloseOutline,
 } from "react-icons/io5";
-import {
-  IoIosArrowForward,
-  IoIosArrowBack,
-} from "react-icons/io";
+import { useAppSelector } from "@/store/hooks";
 import AppointmentModal from "@/components/modal/appointmentmodal";
 import TaskModal from "@/components/modal/taskmodal";
 import CallBackModal from "@/components/modal/callbackmodal";
@@ -22,6 +19,8 @@ const ContactDetailHeader = () => {
   const [isCallBackModalOpen, setCallBackModalOpen] = useState(false);
   const [isActionModalOpen, setActionModalOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const { currentContact } = useAppSelector((state) => state.contacts);
 
   const headerLinks = [
     {
@@ -51,7 +50,7 @@ const ContactDetailHeader = () => {
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}
-          <button className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-[500] text-[#0E1011]">
+          <button className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-medium text-[#0E1011]">
             Action
             <MdKeyboardArrowDown className="text-lg" />
           </button>
@@ -59,7 +58,7 @@ const ContactDetailHeader = () => {
           {/* Take Action */}
           <button
             onClick={() => setActionModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-[12px] rounded-md bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-[500] text-[#0E1011]"
+            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-md bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-medium text-[#0E1011]"
           >
             Take Action
           </button>
@@ -70,7 +69,7 @@ const ContactDetailHeader = () => {
               <button
                 key={btn.id}
                 onClick={btn.onClick}
-                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 font-[500] text-[#495057]"
+                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 font-medium text-[#495057]"
               >
                 <span className="text-lg">{btn.icon}</span>
                 {btn.name}
@@ -117,12 +116,7 @@ const ContactDetailHeader = () => {
 
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <button className="border rounded-md p-1.5 sm:p-2 hover:bg-gray-100">
-            <IoIosArrowBack className="text-gray-700 text-lg" />
-          </button>
-          <button className="border rounded-md p-1.5 sm:p-2 hover:bg-gray-100">
-            <IoIosArrowForward className="text-gray-700 text-lg" />
-          </button>
+
           <button className="border bg-gray-100 rounded-md p-1.5 sm:p-2 hover:bg-gray-200">
             <IoCloseOutline className="text-gray-700 text-lg" />
           </button>
@@ -130,11 +124,20 @@ const ContactDetailHeader = () => {
       </header>
 
       {/* MODALS */}
-      <AppointmentModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
-      <TaskModal isOpen={isTaskModalOpen} onClose={() => setTaskModalOpen(false)} />
+      <AppointmentModal
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        contactId={currentContact?.id}
+      />
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
+        contactId={currentContact?.id}
+      />
       <CallBackModal
         isOpen={isCallBackModalOpen}
         onClose={() => setCallBackModalOpen(false)}
+        contactId={currentContact?.id}
       />
       <TakeActionModal
         isOpen={isActionModalOpen}
