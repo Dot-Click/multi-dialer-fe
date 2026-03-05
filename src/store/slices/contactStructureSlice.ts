@@ -132,6 +132,7 @@ export const deleteGroup = createAsyncThunk('contactStructure/deleteGroup', asyn
   }
 });
 
+
 export const contactStructureSlice = createSlice({
   name: 'contactStructure',
   initialState,
@@ -176,7 +177,7 @@ export const contactStructureSlice = createSlice({
       .addCase(createList.fulfilled, (state, action) => {
         const { list, folderId } = action.payload;
         state.lists.push(list);
-        
+
         const folder = state.folders.find(f => f.id === folderId);
         if (folder) {
           if (!folder.listIds) folder.listIds = [];
@@ -193,7 +194,7 @@ export const contactStructureSlice = createSlice({
         // The payload for createContact includes contactListId
         // However, the action.meta.arg contains the original payload sent to the thunk
         const contactListId = action.meta.arg.contactListId;
-        
+
         if (contactListId) {
           const list = state.lists.find(l => l.id === contactListId);
           if (list) {
@@ -220,7 +221,7 @@ export const contactStructureSlice = createSlice({
       // Delete Group
       .addCase(deleteGroup.fulfilled, (state, action) => {
         state.groups = state.groups.filter(g => g.id !== action.payload);
-      });
+      })
   },
 });
 

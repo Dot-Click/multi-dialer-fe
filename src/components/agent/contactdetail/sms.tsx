@@ -1,112 +1,138 @@
 
-
-// const SMS = () => {
-//     return (
-//         <div className='flex gap-6 flex-col min-h-40'>
-//             <h1 className='test-[#0E1011] text-[18px] font-[500]'>SMS:</h1>
-
-//             <div className='flex justify-center items-center mt-[20px] w-full text-center md:w-[50%]  flex-col'>
-//                 <h1 className='text-[#000000] text-[14px] font-[500]'>No Data Available</h1>
-//                 <p className='text-[#848C94] text-[14px] font-[400]'>There have been no SMS sent to this contact</p>
-
-//             </div>
-//         </div>
-//     )
-// }
-
-// export default SMS
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchSMSTemplates, sendSMSMessage } from "@/store/slices/smsSlice";
+import toast from "react-hot-toast";
 
 const SMS = () => {
-const messageHistory = [
-{
-id: 1,
-text: "Hi John, just checking in on our previous conversation.",
-date: "Sent January 10, 2026",
-},
-{
-id: 2,
-text: "Thank you for your time today!",
-date: "Sent January 8, 2026",
-},
-];
-return (
-<div className="w-full min-h-screen bg-white p-4 md:p-8 font-sans">
-<div className="w-full max-w-full">
-{/* Header */}
-<h2 className="text-[#0E1011] text-[18px] font-semibold mb-10">
-SMS Messaging
-</h2>
+  const dispatch = useAppDispatch();
+  const { templates, isLoading } = useAppSelector((state) => state.sms);
+  const { currentContact } = useAppSelector((state) => state.contacts);
 
-{/* Input Form Section */}
-    <div className="space-y-10 mb-6">
-      {/* SMS Templates Input */}
-      <div className="w-full">
-        <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
-          SMS Templates
-        </label>
-        <div className="border-b border-[#E5E7EB] w-full">
-          <input
-            type="text"
-            className="w-full bg-transparent outline-none py-2 text-[15px] placeholder:text-gray-300"
-            placeholder=""
-          />
+  const [message, setMessage] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchSMSTemplates());
+  }, [dispatch]);
+
+  const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const templateId = e.target.value;
+    setSelectedTemplateId(templateId);
+
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      setMessage(template.content);
+    } else {
+      setMessage("");
+    }
+  };
+
+  const handleSendSMS = async () => {
+    if (!currentContact) {
+      toast.error("No contact selected");
+      return;
+    }
+
+    const phoneNumber = currentContact.phones?.[0]?.number;
+    if (!phoneNumber) {
+      toast.error("Contact has no phone number");
+      return;
+    }
+
+    if (!message.trim()) {
+      toast.error("Please enter a message");
+      return;
+    }
+
+    try {
+      await dispatch(sendSMSMessage({ to: phoneNumber, message })).unwrap();
+      toast.success("SMS sent successfully");
+      setMessage("");
+      setSelectedTemplateId("");
+    } catch (error: any) {
+      toast.error(error || "Failed to send SMS");
+    }
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-white p-4 md:p-8 font-sans">
+      <div className="w-full max-w-full">
+        {/* Header */}
+        <h2 className="text-[#0E1011] text-[18px] font-semibold mb-10">
+          SMS Messaging
+        </h2>
+
+        {/* Input Form Section */}
+        <div className="space-y-10 mb-6">
+          {/* SMS Templates Input */}
+          <div className="w-full">
+            <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
+              SMS Templates
+            </label>
+            <div className="border-b border-[#E5E7EB] w-full">
+              <select
+                value={selectedTemplateId}
+                onChange={handleTemplateChange}
+                className="w-full bg-transparent outline-none py-2 text-[15px] appearance-none cursor-pointer"
+              >
+                <option value="">Select a template</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.templateName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="w-full">
+            <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
+              Message
+            </label>
+            <div className="border-b border-[#E5E7EB] w-full">
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full bg-transparent outline-none py-2 text-[15px] resize-none min-h-[80px]"
+                rows={3}
+                placeholder="Type your message here..."
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Message Input */}
-      <div className="w-full">
-        <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
-          Message
-        </label>
-        <div className="border-b border-[#E5E7EB] w-full">
-          <textarea
-            className="w-full bg-transparent outline-none py-2 text-[15px] resize-none min-h-[40px]"
-            rows={1}
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Send SMS Button */}
-    <button className="w-full bg-[#FECD56] cursor-pointer  transition-all duration-200 rounded-lg py-3.5 flex items-center justify-center gap-3 mb-10 shadow-sm mt-4">
-      {/* Paper Plane Icon matches the design tilt */}
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="transform -rotate-12"
-      >
-        <path
-          d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"
-          stroke="#0E1011"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="text-[#0E1011] text-[15px] font-semibold">Send SMS</span>
-    </button>
-
-    {/* Message History Feed */}
-    <div className="space-y-2">
-      {messageHistory.map((msg) => (
-        <div
-          key={msg.id}
-          className="bg-[#F3F4F6] py-3 px-4 rounded-xl transition-all"
+        {/* Send SMS Button */}
+        <button
+          onClick={handleSendSMS}
+          disabled={isLoading}
+          className="w-full bg-[#FECD56] cursor-pointer hover:bg-[#f7c23d] transition-all duration-200 rounded-lg py-3.5 flex items-center justify-center gap-3 mb-10 shadow-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <p className="text-[#0E1011] text-[16px] font-medium leading-relaxed">
-            {msg.text}
-          </p>
-          <p className="text-[#848C94] text-[13px] mt-2 font-normal">
-            {msg.date}
-          </p>
-        </div>
-      ))}
+          {/* Paper Plane Icon matches the design tilt */}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="transform -rotate-12"
+          >
+            <path
+              d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"
+              stroke="#0E1011"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-[#0E1011] text-[15px] font-semibold">
+            {isLoading ? "Sending..." : "Send SMS"}
+          </span>
+        </button>
+      </div>
     </div>
-  </div>
-</div>
-);
+  );
 };
+
 export default SMS;

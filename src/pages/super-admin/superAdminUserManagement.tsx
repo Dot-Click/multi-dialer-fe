@@ -85,10 +85,10 @@ const SuperAdminUserManagement = () => {
 
     const matchesStatus =
       selectedStatus === "All Status" ||
-      user.status.toUpperCase() === selectedStatus.toUpperCase();
+      user.status?.toUpperCase() === selectedStatus.toUpperCase();
     const matchesRole =
       selectedRole === "All Roles" ||
-      user.role.toUpperCase() === selectedRole.toUpperCase();
+      user.role?.toUpperCase() === selectedRole.toUpperCase();
 
     return matchesSearch && matchesStatus && matchesRole;
   });
@@ -269,17 +269,17 @@ const SuperAdminUserManagement = () => {
                         {user.email}
                       </td>
                       <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C]">
-                        {formatStatus(user.role)}
+                        {formatStatus(user.role || "")}
                       </td>
                       <td className="px-5 py-4">
                         <span
-                          className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status)}`}
+                          className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status || "")}`}
                         >
-                          {formatStatus(user.status)}
+                          {formatStatus(user.status || "")}
                         </span>
                       </td>
                       <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C]">
-                        {formatDate(user.lastLogin)}
+                        {formatDate(user.lastLogin || "")}
                       </td>
                       <td
                         ref={(el) => {

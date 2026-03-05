@@ -1,37 +1,47 @@
 import { useState } from 'react';
-import api from '../lib/axios';
+import { authClient } from '../lib/auth-client';
 import toast from 'react-hot-toast';
 
 export interface User {
     id: string;
-    fullName: string;
+    fullName: string | null;
     email: string;
-    role: string;
-    status: string;
-    image?: string;
-    lastLogin?: string;
-}
-
-export interface CreateUserData {
-    fullName: string;
-    email: string;
-    role: string;
-    status: string;
-    password?: string;
+    role: string | null;
+    status: string | null;
+    image?: string | null;
+    lastLogin?: string | null;
+    createdById?: string | null;
 }
 
 export const useUser = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const getUsers = async (): Promise<User[]> => {
+    const getUsers = async (params?: { createdBy?: string }): Promise<User[]> => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get('/user');
-            return response.data.data;
+            // Using better-auth admin plugin to list users
+            const { data, error } = await authClient.admin.listUsers({
+                query: {
+                    limit: 100, // Adjust as needed
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to fetch users');
+            }
+
+            let users = (data?.users || []) as User[];
+
+            // Filter by creator if requested
+            if (params?.createdBy) {
+                users = users.filter(u => u.createdById === params.createdBy);
+            }
+
+            return users;
         } catch (err: any) {
-            const message = err.response?.data?.message || 'Failed to fetch users';
+            const message = err.message || 'Failed to fetch users';
             setError(message);
             console.error(err);
             return [];
@@ -40,14 +50,31 @@ export const useUser = () => {
         }
     };
 
-    const createUser = async (userData: CreateUserData): Promise<boolean> => {
+    const createUser = async (userData: any): Promise<boolean> => {
         setLoading(true);
         setError(null);
         try {
-            await api.post('/auth/sign-up/email', userData);
+            const { error } = await authClient.admin.createUser({
+                ...userData,
+                name: userData.fullName,
+                // better-auth might not support createdById directly in createUser, 
+                // we might need to update it after or ensure it's in additionalFields
+                data: {
+                    createdById: userData.createdById,
+                    role: userData.role,
+                    status: userData.status,
+                    fullName: userData.fullName
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to create user');
+            }
+
+            toast.success('User created successfully');
             return true;
         } catch (err: any) {
-            const message = err.response?.data?.message || 'Failed to create user';
+            const message = err.message || 'Failed to create user';
             setError(message);
             toast.error(message);
             console.error(err);
@@ -57,16 +84,22 @@ export const useUser = () => {
         }
     };
 
-
     const deleteUser = async (userId: string): Promise<boolean> => {
         setLoading(true);
         setError(null);
         try {
-            await api.delete(`/user/${userId}`);
+            const { error } = await authClient.admin.removeUser({
+                userId
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Failed to delete user');
+            }
+
             toast.success('User deleted successfully');
             return true;
         } catch (err: any) {
-            const message = err.response?.data?.message || 'Failed to delete user';
+            const message = err.message || 'Failed to delete user';
             setError(message);
             toast.error(message);
             console.error(err);

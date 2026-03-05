@@ -1,4 +1,5 @@
 import { IoClose } from 'react-icons/io5';
+import { Link } from 'react-router-dom';
 
 interface TakeActionModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ const TakeActionModal: React.FC<TakeActionModalProps> = ({ isOpen, onClose }) =>
           <p className="text-gray-600 text-xs text-center">
             Action Plans can be created by navigating to settings. You can also
             create Email and Letter Templates in settings that can be used in
-            your Action Plans. Click <a href="#" className="text-blue-500 hover:underline">here</a> to create an Action Plan.
+            your Action Plans. Click <Link to="/admin/system-settings" className="text-blue-500 hover:underline">here</Link> to create an Action Plan.
           </p>
 
           <div className="space-y-3 w-full">
