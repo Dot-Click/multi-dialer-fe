@@ -10,6 +10,7 @@ export interface Contact {
   list: string;
   tags: string;
   miscValues?: any;
+  leadsheetValues?: any;
 }
 
 interface ContactState {
@@ -77,6 +78,7 @@ export interface CreateContactPayload {
   phones: CreateContactPhone[];
   contactListId?: string;
   miscValues?: any;
+  leadsheetValues?: any;
 }
 
 
@@ -252,6 +254,21 @@ export const assignContactToGroups = createAsyncThunk(
       return rejectWithValue('Failed to assign contact to groups');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Error assigning contact to groups');
+    }
+  }
+);
+
+export const sendLeadSheetEmail = createAsyncThunk(
+  'contacts/sendLeadSheetEmail',
+  async ({ contactId, leadSheetId, recipientEmail }: { contactId: string; leadSheetId: string; recipientEmail: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/contact/${contactId}/leadsheet/send-email`, { leadSheetId, recipientEmail });
+      if (response.data.success) {
+        return response.data;
+      }
+      return rejectWithValue('Failed to send lead sheet email');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error sending lead sheet email');
     }
   }
 );
