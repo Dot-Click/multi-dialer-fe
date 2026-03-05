@@ -21,7 +21,13 @@ const Upgrade = () => {
 
   const getPlanDetails = (plan: any) => {
     const name = plan.name.toLowerCase();
-    const isCurrent = activeSubscription?.plan.toLowerCase() === name;
+    
+    // Normalize names to the three main roles
+    let normalizedName = 'starter';
+    if (name.includes('professional')) normalizedName = 'professional';
+    else if (name.includes('enterprise')) normalizedName = 'enterprise';
+
+    const isCurrent = activeSubscription?.plan.toLowerCase() === normalizedName;
     
     // Feature mapping for static feel but dynamic source
     const featureSets: Record<string, string[]> = {
@@ -51,15 +57,28 @@ const Upgrade = () => {
 
     return {
       isCurrent,
-      isPopular: name === 'professional',
-      features: featureSets[name] || [],
-      bgColor: name === 'starter' ? 'bg-gray-900' : 'bg-white',
-      textColor: name === 'starter' ? 'text-white' : 'text-gray-900',
+      isPopular: normalizedName === 'professional',
+      features: featureSets[normalizedName] || [],
+      bgColor: normalizedName === 'starter' ? 'bg-gray-900' : 'bg-white',
+      textColor: normalizedName === 'starter' ? 'text-white' : 'text-gray-900',
     };
   }
 
-  const handleSubscribe = async (plan_code: string) => {
+  const handleSubscribe = async (plan: any) => {
     try {
+      // Map plan names to the requested fixed plan_code format strictly
+      const name = plan.name.toLowerCase();
+      let plan_code = 'starter_123'; // Default fallback
+
+      if (name.includes('professional')) {
+        plan_code = 'professional_123';
+      } else if (name.includes('enterprise')) {
+        plan_code = 'enterprise_123';
+      } else {
+        // Any other plan (like "Standard" or "Starter") maps to starter_123
+        plan_code = 'starter_123';
+      }
+      
       const resultAction = await dispatch(createSubscription(plan_code));
       if (createSubscription.fulfilled.match(resultAction)) {
         toast.success('Subscription created successfully!');
@@ -183,7 +202,7 @@ const Upgrade = () => {
 
                 {/* Upgrade Button */}
                 <Button 
-                  onClick={() => handleSubscribe(plan.plan_code)}
+                  onClick={() => handleSubscribe(plan)}
                   disabled={details.isCurrent || loading}
                   className={`w-full rounded-lg py-3 font-medium transition-all ${
                     details.isCurrent 
