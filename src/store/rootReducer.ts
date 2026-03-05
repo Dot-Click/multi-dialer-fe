@@ -6,6 +6,7 @@ import contactStructureReducer from './slices/contactStructureSlice';
 import callingReducer from './slices/callingSlice';
 import sentimentReducer from './slices/sentimentSlice';
 import smsReducer from './slices/smsSlice';
+import subscriptionReducer from './slices/subscriptionSlice';
 
 const rootReducer = combineReducers({
     example: exampleReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     calling: callingReducer,
     sentiment: sentimentReducer,
     sms: smsReducer,
+    subscriptions: subscriptionReducer,
 });
 
 export default rootReducer;
