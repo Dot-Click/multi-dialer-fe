@@ -245,6 +245,8 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       contactListId: formData.contactListId || undefined,
     };
 
+    console.log("payload", payload)
+
     const res = await dispatch(createContact(payload));
     if (createContact.fulfilled.match(res)) {
       toast.success("Contact created successfully!");
