@@ -45,7 +45,7 @@
 
 import { useState } from "react";
 import Notes from "@/components/agent/contactdetail/notes";
-import Email from "@/components/agent/contactdetail/email";
+// import Email from "@/components/agent/contactdetail/email";
 import SMS from "@/components/agent/contactdetail/sms";
 import TouchPoint from "@/components/agent/contactdetail/touchpoint";
 import Attachments from "@/components/agent/contactdetail/attachments";
@@ -63,7 +63,7 @@ const BottomContactDetail = () => {
         { id: 2, name: "Misc" },
         { id: 3, name: "Activities" },
         { id: 4, name: "History" },
-        { id: 5, name: "Emails" },
+        // { id: 5, name: "Emails" },
         { id: 6, name: "SMS" },
         { id: 7, name: "Touch Point" },
         { id: 8, name: "Lead Sheet" },
@@ -79,7 +79,7 @@ const BottomContactDetail = () => {
                     <button
                         key={stg.id}
                         onClick={() => setOpenStatus(stg.name)}
-                        className={`${openStatus === stg.name ? "bg-[#FFCA06]" : ""} px-[12px] text-center w-[130px] py-[8px]  rounded-[12px]  cursor-pointer text-sm text-[#0E1011] font-[500]`}
+                        className={`${openStatus === stg.name ? "bg-[#FFCA06]" : ""} px-[12px] text-center w-[130px] py-[8px]  rounded-[12px]  cursor-pointer text-sm text-[#0E1011] font-medium`}
                     >
                         {stg.name}
                     </button>
@@ -92,7 +92,7 @@ const BottomContactDetail = () => {
                 {openStatus === "Misc" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}
                 {openStatus === "History" && (<History />)}
-                {openStatus === "Emails" && (<Email />)}
+                {/* {openStatus === "Emails" && (<Email />)} */}
                 {openStatus === "SMS" && (<SMS />)}
                 {openStatus === "Touch Point" && (<TouchPoint />)}
                 {openStatus === "Lead Sheet" && (<LeadSheet />)}
