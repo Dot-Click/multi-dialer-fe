@@ -18,28 +18,28 @@ const CONFIDENCE_COLORS = ['#3DC269', '#D43435', '#F6BF26'];
 
 const AiCoaching = () => {
   return (
-    <section className='bg-white rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md p-5 flex flex-col h-full'>
-      <h1 className="text-[20px] font-[500] text-[#000000]">AI Coaching & Call Analysis</h1>
+    <section className='bg-white dark:bg-slate-800 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md p-5 flex flex-col h-full'>
+      <h1 className="text-[20px] font-[500] text-[#000000] dark:text-white">AI Coaching & Call Analysis</h1>
 
       {/* Real-Time Coaching Events */}
       <div className='space-y-3 mt-6'>
-        <h2 className='text-[16px] font-[500] text-[#0E1011]'>Real-Time Coaching Events</h2>
+        <h2 className='text-[16px] font-[500] text-[#0E1011] dark:text-white'>Real-Time Coaching Events</h2>
         <div>
-          <p className='text-[12px] font-[400] text-[#2B3034]'>AI provided live suggestions for:</p>
-          <p className='text-[16px] font-[500] text-[#000000]'>12 calls today</p>
+          <p className='text-[12px] font-[400] text-[#2B3034] dark:text-gray-400'>AI provided live suggestions for:</p>
+          <p className='text-[16px] font-[500] text-[#000000] dark:text-white'>12 calls today</p>
         </div>
         <div className='flex items-center gap-4'>
-          <div className='flex-grow bg-[#D43435] rounded-[8px] h-8 flex overflow-hidden'>
+          <div className='flex-grow bg-[#D43435] dark:bg-slate-700 rounded-[8px] h-8 flex overflow-hidden'>
             <div className='bg-green-500 h-full' style={{ width: '30%' }}></div>
           </div>
-          <span className='font-semibold text-gray-700 whitespace-nowrap'>12/20</span>
+          <span className='font-semibold text-gray-700 dark:text-white whitespace-nowrap'>12/20</span>
         </div>
-        <div className='flex flex-col gap-x-6 gap-y-1 text-[10px] text-gray-600 pt-1'>
-          <div className="flex items-center gap-2 text-[#0E1011] font-[400] text-[12px]">
+        <div className='flex flex-col gap-x-6 gap-y-1 text-[10px] text-gray-600 dark:text-gray-400 pt-1'>
+          <div className="flex items-center gap-2 text-[#0E1011] dark:text-white font-[400] text-[12px]">
             <span className="w-2 h-2 rounded-full bg-green-500"></span>
             Successfully used recommendations
           </div>
-          <div className="flex items-center gap-2 text-[#0E1011] font-[400] text-[12px]">
+          <div className="flex items-center gap-2 text-[#0E1011] dark:text-white font-[400] text-[12px]">
             <span className="w-2 h-2 rounded-full bg-red-600"></span>
             Missed / not applied
           </div>
@@ -51,7 +51,7 @@ const AiCoaching = () => {
 
         {/* Objection Detection Rate */}
         <div className='flex flex-col'>
-          <h2 className='text-[16px] font-[500] text-[#0E1011] mb-4 '>Objection Detection Rate</h2>
+          <h2 className='text-[16px] font-[500] text-[#0E1011] dark:text-white mb-4 '>Objection Detection Rate</h2>
           <div className="flex flex-row items-center justify-center gap-4 w-full">
 
             {/* Donut Chart */}
@@ -97,7 +97,7 @@ const AiCoaching = () => {
 
               {/* Center Text */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-[24px] font-[600] text-[#000000]">64%</span>
+                <span className="text-[24px] font-[600] dark:text-white text-[#000000]">64%</span>
               </div>
             </div>
 
@@ -109,7 +109,7 @@ const AiCoaching = () => {
                     className="w-3 h-2 rounded-full"
                     style={{ backgroundColor: OBJECTION_COLORS[index] }}
                   ></span>
-                  <span className="text-[12px] font-[400] text-[#0E1011]">{entry.name}</span>
+                  <span className="text-[12px] font-[400] text-[#0E1011] dark:text-white">{entry.name}</span>
                 </div>
               ))}
             </div>
@@ -120,7 +120,7 @@ const AiCoaching = () => {
 
         {/* Call Confidence Index */}
         <div className='flex flex-col'>
-          <h2 className='text-[16px] font-[500] text-[#495057] mb-4 '>Call Confidence Index</h2>
+          <h2 className='text-[16px] font-[500] text-[#0E1011] dark:text-white mb-4 '>Call Confidence Index</h2>
           <div className="flex flex-row items-center justify-center gap-4 w-full">
             <div className="min-w-[9rem] w-36 h-36 relative flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -150,8 +150,8 @@ const AiCoaching = () => {
 
                  
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-[24px] font-[500] text-[#000000]">
-                  85<span className='text-[16px] text-[#848C94]'>/100</span>
+                <span className="text-[24px] font-[500] dark:text-white text-[#000000]">
+                  85<span className='text-[16px] text-[#848C94] dark:text-gray-400'>/100</span>
                 </span>
               </div>
             </div>
@@ -162,7 +162,7 @@ const AiCoaching = () => {
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: CONFIDENCE_COLORS_NAMES[index] }}
                   ></span>
-                  <span className="text-[12px] font-[400] text-[#0E1011]">{entry.name}</span>
+                  <span className="text-[12px] font-[400] text-[#0E1011] dark:text-white">{entry.name}</span>
                 </div>
               ))}
             </div>
@@ -173,15 +173,15 @@ const AiCoaching = () => {
       {/* Keyword Optimization Score */}
       <div className='space-y-3 mt-auto pt-2'>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <h2 className='text-[16px] font-[500] text-[#495057]'>Keyword Optimization Score</h2>
+          <h2 className='text-[16px] font-[500] text-[#0E1011] dark:text-white'>Keyword Optimization Score</h2>
           <div className="hidden sm:flex items-center gap-5">
-            <span className="flex items-center gap-1 text-[12px] font-[400] text-[#0E1011]">
+            <span className="flex items-center gap-1 text-[12px] font-[400] text-[#0E1011] dark:text-white">
               <span className="w-2 h-2 rounded-full bg-green-500"></span>High
             </span>
-            <span className="flex text-[12px] font-[400] items-center gap-2 text-[#0E1011]">
+            <span className="flex text-[12px] font-[400] items-center gap-2 text-[#0E1011] dark:text-white">
               <span className="w-2 h-2 rounded-full bg-yellow-400"></span>Medium
             </span>
-            <span className="flex items-center gap-2 text-[12px] font-[400] text-[#0E1011]">
+            <span className="flex items-center gap-2 text-[12px] font-[400] text-[#0E1011] dark:text-white">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>Low
             </span>
           </div>
@@ -190,9 +190,9 @@ const AiCoaching = () => {
           <div className='w-full bg-gray-200 rounded-md h-7'>
             <div className='bg-green-500 h-full rounded-md' style={{ width: '72%' }}></div>
           </div>
-          <span className='font-[500] text-[18px] text-[#000000]'>72%</span>
+          <span className='font-[500] text-[18px] text-[#000000] dark:text-white'>72%</span>
         </div>
-        <p className='text-[12px] font-[400] text-[#2B3034] pt-1'>AI-rated delivery quality (tone, pacing, clarity)</p>
+        <p className='text-[12px] font-[400] text-[#2B3034] dark:text-gray-400 pt-1'>AI-rated delivery quality (tone, pacing, clarity)</p>
       </div>
     </section>
   );

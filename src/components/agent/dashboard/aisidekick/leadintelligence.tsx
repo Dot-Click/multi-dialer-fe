@@ -46,9 +46,9 @@ const AdminLeadIntelligence = () => {
     ];
 
     return (
-        <section className="bg-white rounded-[32px] shadow-sm w-full px-[24px] pt-[24px] pb-[32px] flex flex-col gap-4">
+        <section className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm w-full px-[24px] pt-[24px] pb-[32px] flex flex-col gap-4">
 
-            <h1 className="text-[20px] font-[500] text-[#000000]">Lead Intelligence</h1>
+            <h1 className="text-[20px] font-[500] text-[#000000] dark:text-white">Lead Intelligence</h1>
 
             {/* Top Section */}
             <div className="flex flex-col md:flex-row gap-6">
@@ -57,15 +57,15 @@ const AdminLeadIntelligence = () => {
                 <div className="flex-1 flex flex-col gap-4">
                     {summaryData.map((dt) => (
                         <div key={dt.id}>
-                            <p className="text-[14px] text-[#495057] font-[500]">{dt.name}</p>
-                            <p className="text-[16px] font-[500] text-[#000000]">{dt.number}</p>
+                            <p className="text-[14px] text-[#495057] dark:text-gray-400 font-[500]">{dt.name}</p>
+                            <p className="text-[16px] font-[500] text-[#000000] dark:text-white">{dt.number}</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Right Pie Chart */}
                 <div className="flex-1 flex flex-col items-center justify-center">
-                    <h2 className="text-[14px] text-[#495057] mb-1 md:mr-[45%] font-[500] mr-[25%]">AI Lead Score</h2>
+                    <h2 className="text-[14px] text-[#495057] dark:text-gray-400 mb-1 md:mr-[45%] font-[500] mr-[25%]">AI Lead Score</h2>
 
                     <div className="flex items-center gap-3">
                         <div className="w-40 h-40 relative">
@@ -106,7 +106,7 @@ const AdminLeadIntelligence = () => {
 
 
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-[24px] font-[600] text-[#000000]">72%</span>
+                                <span className="text-[24px] dark:text-white font-[600] text-[#000000]">72%</span>
                             </div>
                         </div>
 
@@ -117,7 +117,7 @@ const AdminLeadIntelligence = () => {
                                         className="w-2 h-2 rounded-full"
                                         style={{ backgroundColor: COLORS[index] }}
                                     ></span>
-                                    <span className="text-[12px] text-[#0E1011] font-[400]">{entry.name}</span>
+                                    <span className="text-[12px] text-[#0E1011] dark:text-white font-[400]">{entry.name}</span>
                                 </div>
                             ))}
                         </div>
@@ -129,11 +129,11 @@ const AdminLeadIntelligence = () => {
             <div className="mt-2">
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-                    <h2 className="text-[16px] font-[500] text-[#0E1011]">Lead Sentiment Trend</h2>
+                    <h2 className="text-[16px] dark:text-white font-[500] text-[#0E1011]">Lead Sentiment Trend</h2>
 
                     <div className="flex items-center gap-4">
                         {lineLegendData.map((legend) => (
-                            <div key={legend.name} className="flex items-center gap-1 text-[12px] text-[#0E1011] font-[400]">
+                            <div key={legend.name} className="flex items-center gap-1 text-[12px] text-[#0E1011] dark:text-white font-[400]">
                                 <span
                                     className="w-2 h-2 rounded-full"
                                     style={{ backgroundColor: legend.color }}
@@ -200,18 +200,18 @@ const AdminLeadIntelligence = () => {
             {/* Bottom Section */}
             <div className="flex flex-col gap-2 mt-4">
                 <div className="flex items-center mb-4 justify-between">
-                    <h2 className="text-[16px] font-[500] text-[#495057]">Lead Sentiment Trend</h2>
+                    <h2 className="text-[16px] font-[500] dark:text-white text-[#495057]">Lead Sentiment Trend</h2>
 
                     <div className="hidden sm:flex items-center gap-4">
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#3DC269" }}></span>
                             High
                         </span>
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#F6BF26" }}></span>
                             Medium
                         </span>
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#D43435" }}></span>
                             Low
                         </span>
@@ -220,13 +220,13 @@ const AdminLeadIntelligence = () => {
 
                 {/* Progress Bar */}
                 <div className="flex items-center gap-3">
-                    <div className="w-full bg-gray-200 rounded-md h-7 overflow-hidden">
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-md h-7 overflow-hidden">
                         <div
                             className="h-full rounded-md"
                             style={{ width: "90%", background: "#1EAC22" }}
                         ></div>
                     </div>
-                    <span className="font-semibold text-gray-900">45%</span>
+                    <span className="font-semibold dark:text-white text-gray-900">45%</span>
                 </div>
             </div>
 

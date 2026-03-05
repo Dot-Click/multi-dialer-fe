@@ -1,24 +1,26 @@
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import { BsBell } from "react-icons/bs";
-import callIcon from "../../../assets/callsicon.png"
-
+import callIcon from "../../../assets/callsicon.png";
+import ThemeToggle from "@/components/common/ThemeToggle";
 
 const Navbar = () => {
   return (
-    <nav className="border border-[#EBEDF0] w-full h-16  bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
+    <nav className="border border-[#EBEDF0] w-full h-16   dark:bg-slate-900 dark:border-slate-700 bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
       <div>
-
-        <Button className='bg-transparent text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-200 border border-gray-400'>
-          <img src={callIcon} className='w-3 object-contain' alt="callIcon" />
+        <Button className="bg-transparent dark:text-white dark:hover:bg-slate-800 text-gray-600 cursor-pointer hover:text-gray-900 hover:bg-gray-200 border border-gray-400">
+          <img src={callIcon} className="w-3 object-contain" alt="callIcon" />
           <span>Quick Call</span>
         </Button>
       </div>
 
-      <div className='border border-gray-400 cursor-pointer hover:text-gray-900 hover:bg-gray-200  rounded-full p-1.5'>
-        <span><BsBell className='text-gray-600 text-xl' /></span>
+      <ThemeToggle />
+      <div className="border border-gray-400 cursor-pointer dark:hover:bg-slate-800 hover:text-gray-900 hover:bg-gray-200  rounded-full p-1.5">
+        <span>
+          <BsBell className="text-gray-600 dark:text-white text-xl" />
+        </span>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

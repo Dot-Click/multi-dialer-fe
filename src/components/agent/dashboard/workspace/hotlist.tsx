@@ -16,12 +16,12 @@ const HotList = () => {
     ]
 
     return (
-        <section className='bg-white flex h-fit md:h-[35vh] lg:h-[50vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]   lg:w-[45%] w-full'>
+        <section className='bg-white dark:bg-slate-800  flex h-fit md:h-[35vh] lg:h-[50vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]   lg:w-[45%] w-full'>
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-[20px] text-[#000000] font-[500]">Hotlist</h1>
+                    <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Hotlist</h1>
                 </div>
-                <Link to="/data-dialer" className="flex gap-1 text-[#2B3034] items-center ">
+                <Link to="/data-dialer" className="flex gap-1 dark:text-white text-[#2B3034] items-center ">
                     <span className="text-[16px] font-[500]">See all contacts</span>
                     <span ><IoIosArrowForward className="text-[19px] font-[400]" /></span>
                 </Link>
@@ -30,14 +30,14 @@ const HotList = () => {
 
             <div className='flex flex-col gap-5 overflow-auto custom-scrollbar'>
                 {contacts.map((cont) => (
-                    <div key={cont.id} className='flex mx-2 rounded-md border gap-2 items-center border-[#F3F4F7]'>
-                        <div  className='bg-[#FFF7DB] rounded-tr-md rounded-br-md  text-[#D66400] text-[14px] font-[500] px-3 py-3'>{cont.number}</div>
+                    <div key={cont.id} className='flex mx-2 rounded-md border gap-2 items-center dark:border-slate-700 border-[#F3F4F7]'>
+                        <div  className='bg-[#FFF7DB] rounded-tr-md rounded-br-md dark:bg-slate-700   text-[#D66400] text-[14px] font-[500] px-3 py-3'>{cont.number}</div>
                         <div className="flex justify-between w-full  pr-3 items-center">
                             <div>
-                            <h1 className="text-[16px] font-[500] text-[#000000]">{cont.name}</h1>
-                            <h1 className="text-[14px] font-[400] text-[#495057]">{cont.contact}</h1>
+                            <h1 className="text-[16px] dark:text-white font-[500] text-[#000000]">{cont.name}</h1>
+                            <h1 className="text-[14px] dark:text-gray-400 font-[400] text-[#495057]">{cont.contact}</h1>
                             </div>
-                            <div className="bg-gray-200 rounded-sm p-2 ">
+                            <div className="bg-gray-200 dark:bg-slate-700 rounded-sm p-2 ">
                                 <BsThreeDots/>
                             </div>
                         </div>
