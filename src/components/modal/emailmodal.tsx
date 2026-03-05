@@ -2,35 +2,58 @@ import { IoClose } from 'react-icons/io5';
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { updateContact } from '@/store/slices/contactSlice';
+import toast from 'react-hot-toast';
 
 interface EmailModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialData?: {
+    email: string;
+    isPrimary: boolean;
+  };
+  index?: number;
 }
 
-const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
+const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, initialData, index }) => {
   const dispatch = useAppDispatch();
   const { currentContact } = useAppSelector((state) => state.contacts);
 
   const [email, setEmail] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
 
+  React.useEffect(() => {
+    if (initialData) {
+      setEmail(initialData.email);
+      setIsPrimary(initialData.isPrimary);
+    } else {
+      setEmail('');
+      setIsPrimary(false);
+    }
+  }, [initialData, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSave = async () => {
     if (!currentContact) return;
     if (!email) {
-      alert("Please enter an email address");
+      toast.error("Please enter an email address");
       return;
     }
 
-    const newEmail = {
+    const emailEntry = {
       email: email,
       isPrimary: isPrimary
     };
 
-    // Prepare payload with old emails + new email
-    const updatedEmails = [...(currentContact.emails || []), newEmail];
+    let updatedEmails;
+    if (initialData !== undefined && index !== undefined) {
+      // Edit existing
+      updatedEmails = [...(currentContact.emails || [])];
+      updatedEmails[index] = emailEntry;
+    } else {
+      // Add new
+      updatedEmails = [...(currentContact.emails || []), emailEntry];
+    }
 
     const payload = {
       emails: updatedEmails
@@ -39,12 +62,9 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
     try {
       await dispatch(updateContact({ id: currentContact.id, payload })).unwrap();
       onClose();
-      // Reset form
-      setEmail('');
-      setIsPrimary(false);
     } catch (err) {
       console.error("Failed to update contact:", err);
-      alert("Failed to add email: " + err);
+      toast.error("Failed to update email: " + err);
     }
   };
 
@@ -59,7 +79,9 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose }) => {
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Add New Email</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            {initialData ? "Edit Email" : "Add New Email"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 transition-colors"

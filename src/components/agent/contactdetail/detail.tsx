@@ -20,7 +20,12 @@ const Detail = () => {
     const { currentContact, folders, lists, groups } = useAppSelector((state) => state.contacts);
     const [showModal, setShowModal] = useState(false);
     const [phoneModal, setPhoneModal] = useState(false);
+    const [editingPhone, setEditingPhone] = useState<any>(null);
+    const [editingPhoneIndex, setEditingPhoneIndex] = useState<number | undefined>(undefined);
+
     const [emailModal, setEmailModal] = useState(false);
+    const [editingEmail, setEditingEmail] = useState<any>(null);
+    const [editingEmailIndex, setEditingEmailIndex] = useState<number | undefined>(undefined);
 
     const [selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [selectedListId, setSelectedListId] = useState<string>('');
@@ -212,7 +217,11 @@ const Detail = () => {
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[14px] font-medium text-[#0E1011]'>Phones:</h1>
-                        <span onClick={() => setPhoneModal(true)} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
+                        <span onClick={() => {
+                            setEditingPhone(null);
+                            setEditingPhoneIndex(undefined);
+                            setPhoneModal(true);
+                        }} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
                     </div>
                     <div className='flex flex-col gap-1 '>
                         {currentContact.phones?.map((phone: any, index: number) => (
@@ -222,7 +231,14 @@ const Detail = () => {
                                     <span className='text-[#1D85F0] font-medium text-[14px]'>{phone.number}</span>
                                 </div>
                                 <div>
-                                    <BsThreeDotsVertical className='text-[#2B3034] text-[15px] cursor-pointer' />
+                                    <BsThreeDotsVertical
+                                        onClick={() => {
+                                            setEditingPhone(phone);
+                                            setEditingPhoneIndex(index);
+                                            setPhoneModal(true);
+                                        }}
+                                        className='text-[#2B3034] text-[15px] cursor-pointer hover:text-blue-500'
+                                    />
                                 </div>
                             </div>
                         ))}
@@ -232,7 +248,11 @@ const Detail = () => {
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[14px] font-medium text-[#0E1011]'>E-mails:</h1>
-                        <span onClick={() => setEmailModal(true)} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
+                        <span onClick={() => {
+                            setEditingEmail(null);
+                            setEditingEmailIndex(undefined);
+                            setEmailModal(true);
+                        }} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
                     </div>
                     <div className='flex flex-col gap-3'>
                         {currentContact.emails?.map((email: any, index: number) => (
@@ -241,7 +261,14 @@ const Detail = () => {
                                     <span className='text-[#1D85F0] font-medium text-[14px]'>{email.email}</span>
                                 </div>
                                 <div>
-                                    <BsThreeDotsVertical className='text-[#2B3034] text-[15px] cursor-pointer' />
+                                    <BsThreeDotsVertical
+                                        onClick={() => {
+                                            setEditingEmail(email);
+                                            setEditingEmailIndex(index);
+                                            setEmailModal(true);
+                                        }}
+                                        className='text-[#2B3034] text-[15px] cursor-pointer hover:text-blue-500'
+                                    />
                                 </div>
                             </div>
                         ))}
@@ -335,8 +362,30 @@ const Detail = () => {
             </div>
 
             {showModal && <EditModal onClose={() => setShowModal(false)} />}
-            {phoneModal && <PhoneModal isOpen={phoneModal} onClose={() => setPhoneModal(false)} />}
-            {emailModal && <EmailModal isOpen={emailModal} onClose={() => setEmailModal(false)} />}
+            {phoneModal && (
+                <PhoneModal
+                    isOpen={phoneModal}
+                    onClose={() => {
+                        setPhoneModal(false);
+                        setEditingPhone(null);
+                        setEditingPhoneIndex(undefined);
+                    }}
+                    initialData={editingPhone}
+                    index={editingPhoneIndex}
+                />
+            )}
+            {emailModal && (
+                <EmailModal
+                    isOpen={emailModal}
+                    onClose={() => {
+                        setEmailModal(false);
+                        setEditingEmail(null);
+                        setEditingEmailIndex(undefined);
+                    }}
+                    initialData={editingEmail}
+                    index={editingEmailIndex}
+                />
+            )}
         </section>
     )
 }
