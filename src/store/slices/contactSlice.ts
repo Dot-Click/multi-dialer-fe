@@ -273,6 +273,42 @@ export const sendLeadSheetEmail = createAsyncThunk(
   }
 );
 
+export const uploadAttachment = createAsyncThunk(
+  'contacts/uploadAttachment',
+  async ({ contactId, file }: { contactId: string; file: File }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post(`/contact/${contactId}/attachment`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to upload attachment');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error uploading attachment');
+    }
+  }
+);
+
+export const deleteAttachment = createAsyncThunk(
+  'contacts/deleteAttachment',
+  async (attachmentId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/contact/attachment/${attachmentId}`);
+      if (response.data.success) {
+        return attachmentId;
+      }
+      return rejectWithValue('Failed to delete attachment');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error deleting attachment');
+    }
+  }
+);
+
 export const contactSlice = createSlice({
   name: 'contacts',
   initialState,
@@ -390,6 +426,21 @@ export const contactSlice = createSlice({
       })
       .addCase(fetchContactGroups.fulfilled, (state, action) => {
         state.groups = action.payload;
+      })
+      .addCase(uploadAttachment.fulfilled, (state, action) => {
+        if (state.currentContact) {
+          if (!state.currentContact.attachments) {
+            state.currentContact.attachments = [];
+          }
+          state.currentContact.attachments.push(action.payload);
+        }
+      })
+      .addCase(deleteAttachment.fulfilled, (state, action) => {
+        if (state.currentContact && state.currentContact.attachments) {
+          state.currentContact.attachments = state.currentContact.attachments.filter(
+            (a: any) => a.id !== action.payload
+          );
+        }
       });
   },
 });
