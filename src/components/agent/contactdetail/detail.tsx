@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchContactFolders, fetchContactLists, assignContactToList, updateContact, fetchContactGroups, assignContactToGroups } from '@/store/slices/contactSlice'
+import {
+    fetchContactFolders,
+    fetchContactLists,
+    updateContact,
+    fetchContactGroups,
+    assignContactToGroups,
+    assignContactToList,
+} from '@/store/slices/contactSlice'
 import { CiMail } from "react-icons/ci";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { IoAddOutline } from "react-icons/io5";
@@ -49,11 +56,9 @@ const Detail = () => {
             setSelectedGroupIds(memberGroupIds);
 
             if (lists.length > 0) {
-                // Try to find which list the contact belongs to
                 const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
                 if (currentList) {
                     setSelectedListId(currentList.id);
-                    // Now find the folder that contains this list
                     const currentFolder = folders.find(f => f.listIds.includes(currentList.id));
                     if (currentFolder) {
                         setSelectedFolderId(currentFolder.id);
@@ -61,13 +66,13 @@ const Detail = () => {
                 }
             }
         }
-    }, [currentContact, lists, folders]);
+    }, [currentContact, lists, folders, groups]);
 
     if (!currentContact) return null;
 
     const handleFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedFolderId(e.target.value);
-        setSelectedListId(''); // Reset list selection when folder changes
+        setSelectedListId('');
     };
 
     const handleListChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -80,31 +85,31 @@ const Detail = () => {
             return;
         }
         try {
-            // 1. Handle List Assignment if changed
+            // 1. Handle List Assignment — use assignContactToList, NOT assignAgentsToList
             const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
             if (selectedListId && selectedListId !== currentList?.id) {
                 await dispatch(assignContactToList({
                     contactId: currentContact.id,
-                    listId: selectedListId
+                    listId: selectedListId,
                 })).unwrap();
-                // Refresh lists to sync the internal contactIds arrays
                 dispatch(fetchContactLists());
             }
 
             // 2. Handle Groups Assignment
             await dispatch(assignContactToGroups({
                 contactId: currentContact.id,
-                groupIds: selectedGroupIds
+                groupIds: selectedGroupIds,
             })).unwrap();
             dispatch(fetchContactGroups());
 
             // 3. Handle Tags
-            const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+            const tagsArray = tagsInput
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag !== "");
             await dispatch(updateContact({
                 id: currentContact.id,
-                payload: {
-                    tags: tagsArray
-                }
+                payload: { tags: tagsArray },
             })).unwrap();
 
             toast.success("Contact updated successfully!");
@@ -114,13 +119,11 @@ const Detail = () => {
         }
     };
 
-    if (!currentContact) return null;
-
     const stats = [
         { id: 1, name: "Calls", number: 0 },
         { id: 2, name: "Emails", number: currentContact.emails?.length || 0 },
         { id: 3, name: "SMS", number: 0 },
-    ]
+    ];
 
     const getPhoneIcon = (type: string) => {
         switch (type) {
@@ -130,7 +133,7 @@ const Detail = () => {
             case 'WORK': return doticon;
             default: return callsicon;
         }
-    }
+    };
 
     return (
         <section className='bg-white flex flex-col gap-8 px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
@@ -166,7 +169,6 @@ const Detail = () => {
                         ))}
                     </div>
                 </div>
-
             </div>
 
             <div className='flex lg:flex-row flex-col justify-between gap-8 items-start'>
@@ -217,13 +219,18 @@ const Detail = () => {
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[14px] font-medium text-[#0E1011]'>Phones:</h1>
-                        <span onClick={() => {
-                            setEditingPhone(null);
-                            setEditingPhoneIndex(undefined);
-                            setPhoneModal(true);
-                        }} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
+                        <span
+                            onClick={() => {
+                                setEditingPhone(null);
+                                setEditingPhoneIndex(undefined);
+                                setPhoneModal(true);
+                            }}
+                            className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'
+                        >
+                            <IoAddOutline className='text-[#495057] text-[18px]' />
+                        </span>
                     </div>
-                    <div className='flex flex-col gap-1 '>
+                    <div className='flex flex-col gap-1'>
                         {currentContact.phones?.map((phone: any, index: number) => (
                             <div key={index} className='flex px-1 py-2 justify-between border-b border-gray-100 items-center gap-2'>
                                 <div className='flex gap-4 items-center'>
@@ -248,11 +255,16 @@ const Detail = () => {
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
                         <h1 className='text-[14px] font-medium text-[#0E1011]'>E-mails:</h1>
-                        <span onClick={() => {
-                            setEditingEmail(null);
-                            setEditingEmailIndex(undefined);
-                            setEmailModal(true);
-                        }} className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'><IoAddOutline className='text-[#495057] text-[18px]' /></span>
+                        <span
+                            onClick={() => {
+                                setEditingEmail(null);
+                                setEditingEmailIndex(undefined);
+                                setEmailModal(true);
+                            }}
+                            className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'
+                        >
+                            <IoAddOutline className='text-[#495057] text-[18px]' />
+                        </span>
                     </div>
                     <div className='flex flex-col gap-3'>
                         {currentContact.emails?.map((email: any, index: number) => (
@@ -345,19 +357,21 @@ const Detail = () => {
                             <span
                                 key={group.id}
                                 onClick={() => {
-                                    if (isSelected) {
-                                        setSelectedGroupIds(prev => prev.filter(id => id !== group.id));
-                                    } else {
-                                        setSelectedGroupIds(prev => [...prev, group.id]);
-                                    }
+                                    setSelectedGroupIds(prev =>
+                                        isSelected
+                                            ? prev.filter(id => id !== group.id)
+                                            : [...prev, group.id]
+                                    );
                                 }}
-                                className={`${isSelected ? "bg-[#0E1011] text-[#FFFFFF]" : "bg-[#EBEDF0] text-[#18181B]"}  cursor-pointer rounded-[8px] text-[14px]  px-[16px] py-[5px] font-normal transition-colors`}
+                                className={`${isSelected ? "bg-[#0E1011] text-[#FFFFFF]" : "bg-[#EBEDF0] text-[#18181B]"} cursor-pointer rounded-[8px] text-[14px] px-[16px] py-[5px] font-normal transition-colors`}
                             >
                                 {group.name}
                             </span>
                         );
                     })}
-                    {groups.length === 0 && <span className="text-gray-400 text-sm">No groups available</span>}
+                    {groups.length === 0 && (
+                        <span className="text-gray-400 text-sm">No groups available</span>
+                    )}
                 </div>
             </div>
 
@@ -387,7 +401,7 @@ const Detail = () => {
                 />
             )}
         </section>
-    )
-}
+    );
+};
 
-export default Detail
+export default Detail;

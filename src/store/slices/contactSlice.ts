@@ -28,6 +28,7 @@ export interface ContactList {
   id: string;
   name: string;
   contactIds: string[];
+  agentIds: string[];
   createdAt: string;
 }
 
@@ -81,7 +82,9 @@ export interface CreateContactPayload {
   leadsheetValues?: any;
 }
 
-
+// ---------------------------------------------------------------------------
+// THUNKS
+// ---------------------------------------------------------------------------
 
 export const fetchContacts = createAsyncThunk(
   'contacts/fetchContacts',
@@ -150,16 +153,9 @@ export const createContact = createAsyncThunk(
     try {
       const response = await api.post('/contact/create', payload);
       if (response.data.success) {
-        const contact = response.data.data;
-
-        // If a list ID was provided, append this contact to that list
-        if (payload.contactListId) {
-          await api.patch(`/contact/list/${payload.contactListId}`, {
-            contactIds: [contact.id]
-          });
-        }
-
-        return contact;
+        // Backend handles adding contact to the list inside the transaction
+        // Do NOT call PATCH /list/:id here — that would wipe contactIds
+        return response.data.data;
       }
       return rejectWithValue('Failed to create contact');
     } catch (error: any) {
@@ -179,6 +175,68 @@ export const updateContact = createAsyncThunk(
       return rejectWithValue('Failed to update contact');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Error updating contact');
+    }
+  }
+);
+
+export const deleteContact = createAsyncThunk(
+  'contacts/deleteContact',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/contact/${id}`);
+      if (response.data.success) {
+        return id;
+      }
+      return rejectWithValue('Failed to delete contact');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error deleting contact');
+    }
+  }
+);
+
+// Assigns a contact to a list (moves the contact, updates source field)
+export const assignContactToList = createAsyncThunk(
+  'contacts/assignContactToList',
+  async ({ contactId, listId }: { contactId: string; listId: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/contact/${contactId}/assign`, { listId });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to assign contact to list');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to list');
+    }
+  }
+);
+
+// Assigns agents (user IDs) to a list — admin only, separate from contact assignment
+export const assignAgentsToList = createAsyncThunk(
+  'contacts/assignAgentsToList',
+  async ({ listId, agentIds }: { listId: string; agentIds: string[] }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/contact/list/${listId}/agents`, { agentIds });
+      if (response.data.success) {
+        return { listId, agentIds, data: response.data.data };
+      }
+      return rejectWithValue('Failed to assign agents');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error assigning agents');
+    }
+  }
+);
+
+export const assignContactToGroups = createAsyncThunk(
+  'contacts/assignContactToGroups',
+  async ({ contactId, groupIds }: { contactId: string; groupIds: string[] }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/contact/${contactId}/groups`, { groupIds });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue('Failed to assign contact to groups');
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to groups');
     }
   }
 );
@@ -213,21 +271,6 @@ export const fetchContactLists = createAsyncThunk(
   }
 );
 
-export const assignContactToList = createAsyncThunk(
-  'contacts/assignContactToList',
-  async ({ contactId, listId }: { contactId: string; listId: string }, { rejectWithValue }) => {
-    try {
-      const response = await api.patch(`/contact/${contactId}/assign`, { listId });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue('Failed to assign contact to list');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to list');
-    }
-  }
-);
-
 export const fetchContactGroups = createAsyncThunk(
   'contacts/fetchContactGroups',
   async (_, { rejectWithValue }) => {
@@ -243,26 +286,17 @@ export const fetchContactGroups = createAsyncThunk(
   }
 );
 
-export const assignContactToGroups = createAsyncThunk(
-  'contacts/assignContactToGroups',
-  async ({ contactId, groupIds }: { contactId: string; groupIds: string[] }, { rejectWithValue }) => {
-    try {
-      const response = await api.patch(`/contact/${contactId}/groups`, { groupIds });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue('Failed to assign contact to groups');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to groups');
-    }
-  }
-);
-
 export const sendLeadSheetEmail = createAsyncThunk(
   'contacts/sendLeadSheetEmail',
-  async ({ contactId, leadSheetId, recipientEmail }: { contactId: string; leadSheetId: string; recipientEmail: string }, { rejectWithValue }) => {
+  async (
+    { contactId, leadSheetId, recipientEmail }: { contactId: string; leadSheetId: string; recipientEmail: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await api.post(`/contact/${contactId}/leadsheet/send-email`, { leadSheetId, recipientEmail });
+      const response = await api.post(`/contact/${contactId}/leadsheet/send-email`, {
+        leadSheetId,
+        recipientEmail,
+      });
       if (response.data.success) {
         return response.data;
       }
@@ -280,9 +314,7 @@ export const uploadAttachment = createAsyncThunk(
       const formData = new FormData();
       formData.append('file', file);
       const response = await api.post(`/contact/${contactId}/attachment`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       if (response.data.success) {
         return response.data.data;
@@ -309,6 +341,10 @@ export const deleteAttachment = createAsyncThunk(
   }
 );
 
+// ---------------------------------------------------------------------------
+// SLICE
+// ---------------------------------------------------------------------------
+
 export const contactSlice = createSlice({
   name: 'contacts',
   initialState,
@@ -318,10 +354,11 @@ export const contactSlice = createSlice({
     },
     setCurrentContact: (state, action) => {
       state.currentContact = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
+      // ── fetchContacts ──────────────────────────────────────────────────────
       .addCase(fetchContacts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -334,6 +371,8 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ── fetchContactsByList ────────────────────────────────────────────────
       .addCase(fetchContactsByList.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -346,13 +385,28 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ── fetchContactById ───────────────────────────────────────────────────
+      .addCase(fetchContactById.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchContactById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentContact = action.payload;
+      })
+      .addCase(fetchContactById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // ── createContact ──────────────────────────────────────────────────────
       .addCase(createContact.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(createContact.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Map the created contact back to the local Contact interface if needed
         const newContact: Contact = {
           id: action.payload.id,
           name: action.payload.fullName || "-",
@@ -368,18 +422,8 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(fetchContactById.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchContactById.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentContact = action.payload;
-      })
-      .addCase(fetchContactById.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
+
+      // ── updateContact ──────────────────────────────────────────────────────
       .addCase(updateContact.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -387,8 +431,7 @@ export const contactSlice = createSlice({
       .addCase(updateContact.fulfilled, (state, action) => {
         state.isLoading = false;
         state.currentContact = action.payload;
-        // Also update in the contacts list if it exists there
-        const index = state.contacts.findIndex(c => c.id === action.payload.id);
+        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
         if (index !== -1) {
           state.contacts[index] = {
             id: action.payload.id,
@@ -405,28 +448,70 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ── deleteContact ──────────────────────────────────────────────────────
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        state.contacts = state.contacts.filter((c) => c.id !== action.payload);
+        if (state.currentContact?.id === action.payload) {
+          state.currentContact = null;
+        }
+      })
+
+      // ── assignContactToList ────────────────────────────────────────────────
       .addCase(assignContactToList.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentContact = action.payload;
-        // The source field is updated in action.payload
-        const index = state.contacts.findIndex(c => c.id === action.payload.id);
+        // Update source/list field in the flat contacts array
+        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
         if (index !== -1) {
           state.contacts[index].list = action.payload.source || "-";
         }
+        // Update currentContact if it's the same one
+        if (state.currentContact?.id === action.payload.id) {
+          state.currentContact = action.payload;
+        }
       })
       .addCase(assignContactToList.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ── assignAgentsToList ─────────────────────────────────────────────────
+      // Updates the agentIds on the list in local Redux state
+      .addCase(assignAgentsToList.fulfilled, (state, action) => {
+        const { listId, agentIds } = action.payload;
+        const list = state.lists.find((l) => l.id === listId);
+        if (list) {
+          list.agentIds = agentIds;
+        }
+      })
+      .addCase(assignAgentsToList.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // ── assignContactToGroups ──────────────────────────────────────────────
+      .addCase(assignContactToGroups.fulfilled, (state, action) => {
+        if (state.currentContact?.id === action.payload?.id) {
+          state.currentContact = action.payload;
+        }
+      })
+      .addCase(assignContactToGroups.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // ── fetchContactFolders ────────────────────────────────────────────────
       .addCase(fetchContactFolders.fulfilled, (state, action) => {
         state.folders = action.payload;
       })
+
+      // ── fetchContactLists ──────────────────────────────────────────────────
       .addCase(fetchContactLists.fulfilled, (state, action) => {
         state.lists = action.payload;
       })
+
+      // ── fetchContactGroups ─────────────────────────────────────────────────
       .addCase(fetchContactGroups.fulfilled, (state, action) => {
         state.groups = action.payload;
       })
+
+      // ── uploadAttachment ───────────────────────────────────────────────────
       .addCase(uploadAttachment.fulfilled, (state, action) => {
         if (state.currentContact) {
           if (!state.currentContact.attachments) {
@@ -435,8 +520,10 @@ export const contactSlice = createSlice({
           state.currentContact.attachments.push(action.payload);
         }
       })
+
+      // ── deleteAttachment ───────────────────────────────────────────────────
       .addCase(deleteAttachment.fulfilled, (state, action) => {
-        if (state.currentContact && state.currentContact.attachments) {
+        if (state.currentContact?.attachments) {
           state.currentContact.attachments = state.currentContact.attachments.filter(
             (a: any) => a.id !== action.payload
           );
