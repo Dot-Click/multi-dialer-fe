@@ -1,8 +1,9 @@
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Star, 
   Play, 
+  Pause,
   Clock, 
   Calendar, 
   Mail, 
@@ -17,10 +18,30 @@ const ContactInfoScript = () => {
   const dispatch = useAppDispatch();
   const { currentContact } = useAppSelector((state) => state.contacts);
   const { history, loading } = useAppSelector((state) => state.calling);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   useEffect(() => {
-    dispatch(getHistory());
-  }, [dispatch]);
+    if (activeTab === 'History') {
+      dispatch(getHistory());
+    }
+  }, [dispatch, activeTab]);
+
+  const togglePlay = (url: string, id: string) => {
+    if (playingId === id) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(url);
+      audio.onended = () => setPlayingId(null);
+      audio.play();
+      audioRef.current = audio;
+      setPlayingId(id);
+    }
+  };
 
   // --- RENDERING FUNCTIONS FOR TABS ---
 
@@ -103,10 +124,14 @@ const ContactInfoScript = () => {
               </div>
               {call.recordingUrl && (
                 <button 
-                  onClick={() => window.open(call.recordingUrl, '_blank')}
+                  onClick={() => togglePlay(call.recordingUrl, call.callSid || String(idx))}
                   className="flex items-center gap-1.5 text-[11px] font-bold text-[#374151] hover:text-blue-600 transition-colors"
                 >
-                  <Play size={14} fill="currentColor" /> Play
+                  {playingId === (call.callSid || String(idx)) ? (
+                    <><Pause size={14} fill="currentColor" /> Pause</>
+                  ) : (
+                    <><Play size={14} fill="currentColor" /> Play</>
+                  )}
                 </button>
               )}
             </div>
