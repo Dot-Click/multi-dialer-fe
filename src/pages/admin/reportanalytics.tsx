@@ -10,7 +10,7 @@ import { useReports } from "@/hooks/useReports";
 const ReportAnalytics = () => {
   const location = useLocation();
 
-  const [_isLoadingUsers, setIsLoadingUsers] = useState(false)
+  const [_isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
 
@@ -20,12 +20,14 @@ const ReportAnalytics = () => {
     setIsLoadingUsers(true);
     try {
       const { data, error } = await authClient.admin.listUsers({
-        query: { limit: 20 }
+        query: { limit: 20 },
       });
       if (error) {
         toast.error(error.message || "Failed to fetch users");
       } else if (data) {
-        const agents = (data.users || []).filter((user: any) => user.role === "AGENT");
+        const agents = (data.users || []).filter(
+          (user: any) => user.role === "AGENT",
+        );
         setUsers(agents);
         if (agents.length > 0 && !selectedAgentId) {
           setSelectedAgentId(agents[0].id);
@@ -52,7 +54,7 @@ const ReportAnalytics = () => {
     <div className=" min-h-screen  mr-10">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-medium text-gray-900 mb-4">
+          <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
             Reports & Analytics
           </h1>
 
@@ -61,17 +63,14 @@ const ReportAnalytics = () => {
             <select
               value={selectedAgentId}
               onChange={(e) => setSelectedAgentId(e.target.value)}
-              className="bg-white w-56 text-sm font-medium border border-gray-200 px-2.5 py-2 rounded-md"
+              className="bg-white dark:bg-slate-800 dark:text-white w-56 text-sm font-medium border border-gray-200 dark:border-slate-700 px-2.5 py-2 rounded-md [&>option]:dark:bg-slate-800"
             >
               <option value="">Select Agent</option>
-              {
-                users
-                  .map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))
-              }
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           )}
         </div>

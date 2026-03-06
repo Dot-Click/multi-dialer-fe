@@ -1,4 +1,3 @@
-
 const failedPayments = [
   {
     name: "SalesPro Agency",
@@ -24,11 +23,10 @@ const failedPayments = [
 
 const FailedPayment = () => {
   return (
-    <div className="w-full md:w-[50%] bg-white work-sans rounded-[22px] pt-5 pb-6 shadow-lg">
-      
+    <div className="w-full md:w-[50%] bg-white dark:bg-slate-800 work-sans rounded-[22px] pt-5 pb-6 shadow-lg">
       {/* Header */}
       <div className="flex justify-between px-6  items-center mb-3">
-        <h3 className="text-[22px] font-[600] text-[#2C2C2C]">
+        <h3 className="text-[22px] font-[600] text-[#2C2C2C] dark:text-white">
           Failed Payments
         </h3>
         <button className="text-[16px] font-[400] text-[#2463EB]">
@@ -41,13 +39,13 @@ const FailedPayment = () => {
         {failedPayments.map((item, index) => (
           <div
             key={index}
-            className="bg-[#FEF2F2] rounded-[12px] px-4 py-3.5 flex justify-between items-center"
+            className="bg-[#FEF2F2] dark:bg-red-900/20 rounded-[12px] px-4 py-3.5 flex justify-between items-center"
           >
             <div className="pr-2">
-              <p className="text-[16px] font-[600] text-[#1D2C45]">
+              <p className="text-[16px] font-[600] text-[#1D2C45] dark:text-white">
                 {item.name}
               </p>
-              <p className="text-[14px] font-[400] text-[#1D2C45B5]">
+              <p className="text-[14px] font-[400] text-[#1D2C45B5] dark:text-gray-400">
                 {item.reason}
               </p>
             </div>

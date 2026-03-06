@@ -75,15 +75,17 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white w-full max-w-[450px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[450px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100">
-          <h2 className="text-[#111] text-[20px] font-[600]">Add New User</h2>
+        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700">
+          <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">
+            Add New User
+          </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
           >
-            <IoClose className="text-[22px] text-gray-500" />
+            <IoClose className="text-[22px] text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
@@ -93,8 +95,8 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           {apiError && <p className="text-red-500 text-xs">{apiError}</p>}
 
           {/* Username */}
-          <div className="flex flex-col gap-1 bg-[#F3F4F6] rounded-[12px] px-4 py-2">
-            <label className="text-[#6B7280] text-[12px] font-[500]">
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
               Username
             </label>
             <input
@@ -102,13 +104,13 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter username"
-              className="bg-transparent outline-none text-[#111] text-[15px] font-[400]"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
             />
           </div>
 
           {/* Email */}
-          <div className="flex flex-col gap-1 bg-[#F3F4F6] rounded-[12px] px-4 py-2">
-            <label className="text-[#6B7280] text-[12px] font-[500]">
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
               Email
             </label>
             <input
@@ -116,7 +118,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter email address"
-              className="bg-transparent outline-none text-[#111] text-[15px] font-[400]"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
             />
           </div>
 
@@ -127,31 +129,31 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
                 setRoleOpen(!roleOpen);
                 setStatusOpen(false);
               }}
-              className="flex flex-col gap-1 bg-[#F3F4F6] rounded-[12px] px-4 py-2 cursor-pointer"
+              className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
             >
-              <label className="text-[#6B7280] text-[12px] font-[500]">
+              <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
                 Role
               </label>
               <div className="flex justify-between items-center">
                 <span
-                  className={`text-[15px] ${selectedRole === "Select Role" ? "text-[#9CA3AF]" : "text-[#111]"}`}
+                  className={`text-[15px] ${selectedRole === "Select Role" ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}
                 >
                   {selectedRole}
                 </span>
                 <img
                   src={downarrow}
                   alt="arrow"
-                  className={`h-1.5 transition-transform ${roleOpen ? "rotate-180" : ""}`}
+                  className={`h-1.5 transition-transform dark:invert ${roleOpen ? "rotate-180" : ""}`}
                 />
               </div>
             </div>
 
             {roleOpen && (
-              <div className="absolute top-[60px] left-0 w-full bg-white shadow-2xl rounded-[12px] z-50 border border-gray-100 overflow-hidden py-1">
+              <div className="absolute top-[60px] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-50 border border-gray-100 dark:border-slate-700 overflow-hidden py-1">
                 {roleOptions.map((role) => (
                   <div
                     key={role}
-                    className="px-4 py-2 hover:bg-[#F3F4F6] cursor-pointer text-[14px] text-[#111]"
+                    className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#111] dark:text-white"
                     onClick={() => {
                       setSelectedRole(role);
                       setRoleOpen(false);
@@ -171,31 +173,31 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
                 setStatusOpen(!statusOpen);
                 setRoleOpen(false);
               }}
-              className="flex flex-col gap-1 bg-[#F3F4F6] rounded-[12px] px-4 py-2 cursor-pointer"
+              className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
             >
-              <label className="text-[#6B7280] text-[12px] font-[500]">
+              <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
                 Status
               </label>
               <div className="flex justify-between items-center">
                 <span
-                  className={`text-[15px] ${selectedStatus === "Select Status" ? "text-[#9CA3AF]" : "text-[#111]"}`}
+                  className={`text-[15px] ${selectedStatus === "Select Status" ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}
                 >
                   {selectedStatus}
                 </span>
                 <img
                   src={downarrow}
                   alt="arrow"
-                  className={`h-1.5 transition-transform ${statusOpen ? "rotate-180" : ""}`}
+                  className={`h-1.5 transition-transform dark:invert ${statusOpen ? "rotate-180" : ""}`}
                 />
               </div>
             </div>
 
             {statusOpen && (
-              <div className="absolute top-[60px] left-0 w-full bg-white shadow-2xl rounded-[12px] z-50 border border-gray-100 overflow-hidden py-1">
+              <div className="absolute top-[60px] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-50 border border-gray-100 dark:border-slate-700 overflow-hidden py-1">
                 {statusOptions.map((status) => (
                   <div
                     key={status}
-                    className="px-4 py-2 hover:bg-[#F3F4F6] cursor-pointer text-[14px] text-[#111]"
+                    className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#111] dark:text-white"
                     onClick={() => {
                       setSelectedStatus(status);
                       setStatusOpen(false);
@@ -210,12 +212,12 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-5 flex gap-3 work-sans border-t border-gray-100">
+        <div className="px-6 py-5 flex gap-3 work-sans border-t border-gray-100 dark:border-slate-700">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 bg-[#F3F4F6] text-[#374151] font-[500] py-3 rounded-[12px] hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-3 rounded-[12px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

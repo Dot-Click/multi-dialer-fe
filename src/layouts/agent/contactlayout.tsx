@@ -81,15 +81,15 @@ const ContactLayout = () => {
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex w-full bottom-0 fixed bg-white shadow-2xl py-4 items-center gap-2
+        className={`flex w-full bottom-0 fixed bg-white dark:bg-slate-700 shadow-2xl py-4 items-center gap-2
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <button
           className="flex items-center gap-2"
           onClick={() => setShowExportModal(true)}
         >
-          <TfiDownload className="text-[17px] text-[#495057]" />
-          <span className="text-[16px] text-[#495057] font-medium">Export</span>
+          <TfiDownload className="text-[17px] dark:text-white text-[#495057]" />
+          <span className="text-[16px] dark:text-white text-[#495057] font-medium">Export</span>
         </button>
       </div>
 

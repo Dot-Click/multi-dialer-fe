@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Shield, ChevronDown } from 'lucide-react';
+import { useState } from "react";
+import { Shield, ChevronDown } from "lucide-react";
 
 /* ---------- Types ---------- */
 
 type ToggleKey =
-  | 'requireSpecialChars'
-  | 'requireNumbers'
-  | 'requireUppercase'
-  | 'sessionSpecialChars'
-  | 'required2FA'
-  | 'optional2FA';
+  | "requireSpecialChars"
+  | "requireNumbers"
+  | "requireUppercase"
+  | "sessionSpecialChars"
+  | "required2FA"
+  | "optional2FA";
 
 type ToggleProps = {
   active: boolean;
@@ -44,12 +44,12 @@ const SecurityAccess = () => {
     <button
       onClick={onClick}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-        active ? 'bg-[#030213]' : 'bg-[#DADBDB]'
+        active ? "bg-[#030213]" : "bg-[#DADBDB]"
       }`}
     >
       <span
         className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 ${
-          active ? 'translate-x-[22px]' : 'translate-x-[2px]'
+          active ? "translate-x-[22px]" : "translate-x-[2px]"
         }`}
       />
     </button>
@@ -61,32 +61,34 @@ const SecurityAccess = () => {
     value,
     isSelect = false,
   }: SettingsInputProps) => (
-    <div className="bg-[#F3F4F7] py-3 px-3 rounded-[12px] mb-4 work-sans w-full">
-      <label className="text-[12px] font-[500] text-[#495057] block mb-0.5">
+    <div className="bg-[#F3F4F7] dark:bg-slate-700 py-3 px-3 rounded-[12px] mb-4 work-sans w-full">
+      <label className="text-[12px] font-[500] text-[#495057] dark:text-white block mb-0.5">
         {label}
       </label>
       <div className="flex justify-between items-center">
-        <span className="text-[16px] font-[400] text-[#848C94] work-sans">
+        <span className="text-[16px] font-[400] text-[#848C94] dark:text-gray-400 work-sans">
           {value}
         </span>
-        {isSelect && <ChevronDown className="w-4 h-4 text-[#828291]" />}
+        {isSelect && (
+          <ChevronDown className="w-4 h-4 text-[#828291] dark:text-gray-400" />
+        )}
       </div>
     </div>
   );
 
   return (
-    <div className="bg-white p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
-      <h2 className="text-[18px] font-[500] inter text-[#343434] mb-5">
+    <div className="bg-white dark:bg-slate-800 p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
+      <h2 className="text-[18px] font-[500] inter text-[#343434] dark:text-white mb-5">
         Security & Access
       </h2>
 
       {/* --- Password Policy Section --- */}
       <div className="mb-8">
         <div className="flex items-center gap-6 mb-5">
-          <div className="bg-[#F4F4F5] p-2 rounded-lg">
-            <Shield className="w-5 h-5 text-[#343434]" />
+          <div className="bg-[#F4F4F5] dark:bg-slate-700 p-2 rounded-lg">
+            <Shield className="w-5 h-5 text-[#343434] dark:text-white" />
           </div>
-          <h3 className="font-[600] text-[18px] inter text-[#343434]">
+          <h3 className="font-[600] text-[18px] inter text-[#343434] dark:text-white">
             Password Policy
           </h3>
         </div>
@@ -102,46 +104,46 @@ const SecurityAccess = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Require Special Characters
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Password must include symbols (!@#$%^&*)
               </p>
             </div>
             <Toggle
               active={toggles.requireSpecialChars}
-              onClick={() => handleToggle('requireSpecialChars')}
+              onClick={() => handleToggle("requireSpecialChars")}
             />
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Require Numbers
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Password must include numeric characters
               </p>
             </div>
             <Toggle
               active={toggles.requireNumbers}
-              onClick={() => handleToggle('requireNumbers')}
+              onClick={() => handleToggle("requireNumbers")}
             />
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Require Uppercase Letters
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Password must include capital letters
               </p>
             </div>
             <Toggle
               active={toggles.requireUppercase}
-              onClick={() => handleToggle('requireUppercase')}
+              onClick={() => handleToggle("requireUppercase")}
             />
           </div>
         </div>
@@ -151,7 +153,7 @@ const SecurityAccess = () => {
 
       {/* --- Session Management Section --- */}
       <div className="mb-8">
-        <h3 className="font-[600] text-[18px] inter text-[#343434] mb-6 ml-1">
+        <h3 className="font-[600] text-[18px] inter text-[#343434] dark:text-white mb-6 ml-1">
           Session Management
         </h3>
 
@@ -163,16 +165,16 @@ const SecurityAccess = () => {
 
         <div className="flex items-center justify-between gap-4 mt-6">
           <div>
-            <h4 className="text-[14px] font-[500] text-[#34363B]">
+            <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
               Require Special Characters
             </h4>
-            <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+            <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
               Password must include symbols (!@#$%^&*)
             </p>
           </div>
           <Toggle
             active={toggles.sessionSpecialChars}
-            onClick={() => handleToggle('sessionSpecialChars')}
+            onClick={() => handleToggle("sessionSpecialChars")}
           />
         </div>
       </div>
@@ -181,38 +183,38 @@ const SecurityAccess = () => {
 
       {/* --- Two-Factor Authentication Section --- */}
       <div>
-        <h3 className="font-[600] text-[18px] inter text-[#343434] mb-6 ml-1">
+        <h3 className="font-[600] text-[18px] inter text-[#343434] dark:text-white mb-6 ml-1">
           Two-Factor Authentication
         </h3>
 
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Required Two-Factor Authentication
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Mandatory 2FA for all admin users
               </p>
             </div>
             <Toggle
               active={toggles.required2FA}
-              onClick={() => handleToggle('required2FA')}
+              onClick={() => handleToggle("required2FA")}
             />
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Allow Optional 2FA for Users
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Let non-admin users enable 2FA
               </p>
             </div>
             <Toggle
               active={toggles.optional2FA}
-              onClick={() => handleToggle('optional2FA')}
+              onClick={() => handleToggle("optional2FA")}
             />
           </div>
         </div>

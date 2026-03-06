@@ -44,7 +44,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-2 sm:p-4">
       {/* Modal Box */}
       <div
-        className="bg-white w-full max-w-[95%] sm:max-w-2xl md:max-w-3xl rounded-2xl shadow-2xl relative flex flex-col
+        className="bg-white w-full dark:bg-slate-800 max-w-[95%] sm:max-w-2xl md:max-w-3xl rounded-2xl shadow-2xl relative flex flex-col
         max-h-[90vh] overflow-hidden animate-fadeIn"
       >
         {/* Scrollable Content Area */}
@@ -58,7 +58,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
           </button>
 
           {/* Header */}
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg dark:text-white font-semibold text-gray-900">
             Data Columns
           </h2>
 
@@ -66,7 +66,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
           <div className="grid grid-cols-1  sm:grid-cols-2 gap-6">
             {/* Available Fields */}
             <div className="rounded-xl p-4 h-[320px] flex flex-col ">
-              <h3 className="text-[15px] font-medium mb-3 text-gray-800">
+              <h3 className="text-[15px] dark:text-white font-medium mb-3 text-gray-800">
                 Available fields:
               </h3>
               <div className="relative mb-3">
@@ -84,7 +84,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                   filteredAvailable.map((field) => (
                     <label
                       key={field}
-                      className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 rounded-md px-2 py-1 transition"
+                      className="flex items-center gap-2 text-sm dark:text-white text-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition"
                     >
                       <input
                         type="checkbox"
@@ -97,14 +97,14 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                     </label>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-500 text-center">No fields found</p>
+                  <p className="text-xs dark:text-white text-gray-500 text-center">No fields found</p>
                 )}
               </div>
             </div>
 
             {/* Fields to Display */}
             <div className="rounded-xl p-4 h-[320px] flex flex-col">
-              <h3 className="text-[15px] font-medium mb-3 text-gray-800">
+              <h3 className="text-[15px] dark:text-white font-medium mb-3 text-gray-800">
                 Fields to display:
               </h3>
               <div className="relative mb-3">
@@ -122,7 +122,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                   filteredDisplay.map((field) => (
                     <label
                       key={field}
-                      className="flex items-center gap-2 text-[15px] text-gray-900 cursor-pointer hover:bg-gray-50 rounded-md px-2 py-1 transition"
+                      className="flex items-center gap-2 text-[15px] dark:text-white text-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition"
                     >
                       <input
                         type="checkbox"
@@ -136,7 +136,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                     </label>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-500 text-center">No fields found</p>
+                  <p className="text-xs dark:text-white text-gray-500 text-center">No fields found</p>
                 )}
               </div>
             </div>

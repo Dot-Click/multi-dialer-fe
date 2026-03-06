@@ -25,7 +25,7 @@ const SuperAdminNavbar = () => {
   }, []);
 
   return (
-    <nav className="border border-[#EBEDF0] w-full h-16 bg-white flex justify-end items-center gap-5 pt-3 pb-4 px-9">
+    <nav className="border dark:border-gray-600 border-[#EBEDF0] w-full h-16 bg-white dark:bg-gray-800 flex justify-end items-center gap-5 pt-3 pb-4 px-9">
       <ThemeToggle />
 
       {/* Quick Call Button */}
@@ -52,9 +52,9 @@ const SuperAdminNavbar = () => {
 
         {/* Dropdown Menu */}
         {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-md z-10">
+          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded shadow-md z-10">
             <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={handleAccountSetting}
             >
               Account Setting

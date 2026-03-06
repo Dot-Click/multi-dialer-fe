@@ -39,38 +39,43 @@ const LeadStore = () => {
   return (
     <Box className="min-h-screen pr-10">
       {/* Page Title */}
-      <h1 className="text-2xl font-semibold text-gray-900 mb-4">Lead Store</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+        Lead Store
+      </h1>
 
       {/* Cards */}
       <div className="space-y-4">
         {services.map((service, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3"
+            className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm px-4 py-3"
           >
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                   {service.name}
                 </h2>
-                <p className="text-sm text-gray-500">{service.description}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {service.description}
+                </p>
               </div>
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+              <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
-
 
             {/* Price + Button (LEFT ALIGNED) */}
             <div className="flex mt-3 flex-col items-start">
               <div className="flex items-baseline gap-2 mb-3">
-                <span className="text-4xl font-bold text-gray-900">
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">
                   <span className="text-2xl">$</span>
                   {service.price}
                 </span>
-                <span className="text-sm text-gray-500">{service.period}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {service.period}
+                </span>
               </div>
 
-              <Button className="bg-yellow-400 w-40 hover:bg-yellow-500 text-gray-900 rounded-md px-6 py-2 text-sm font-medium">
+              <Button className="bg-yellow-400 w-40 hover:bg-yellow-500 text-gray-900 dark:text-black rounded-md px-6 py-2 text-sm font-medium">
                 Subscribe
               </Button>
             </div>
