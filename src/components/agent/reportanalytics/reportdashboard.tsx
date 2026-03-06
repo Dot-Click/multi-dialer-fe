@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import CallDetail from "@/components/agent/reportanalytics/calldetail";
 import Session from "@/components/agent/reportanalytics/session";
 import RecurringEvent from "@/components/agent/reportanalytics/recurringevent";
-import Neighbourhood from "@/components/agent/reportanalytics/neighbourhood";
+// import Neighbourhood from "@/components/agent/reportanalytics/neighbourhood";
 import AgentTimeSheet from "@/components/agent/reportanalytics/agenttimesheet";
-import PostingReport from "@/components/agent/reportanalytics/postingreport";
+// import PostingReport from "@/components/agent/reportanalytics/postingreport";
 import EmailStatus from "@/components/agent/reportanalytics/emailstatus";
 import CallRecording from "@/components/agent/reportanalytics/callrecording";
 import exportarrowicon from "../../../assets/exportarrowicon.png";
@@ -35,10 +35,10 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
     { id: 2, label: "Session", component: <Session userId={userId} /> },
     { id: 3, label: "Call Recording", component: <CallRecording userId={userId} /> },
     { id: 4, label: "Recurring events", component: <RecurringEvent /> },
-    { id: 5, label: "Posting Report", component: <PostingReport /> },
-    { id: 6, label: "Agent timesheet", component: <AgentTimeSheet /> },
+    // { id: 5, label: "Posting Report", component: <PostingReport /> },
+    { id: 6, label: "Agent timesheet", component: <AgentTimeSheet userId={userId} /> },
     { id: 7, label: "Email status", component: <EmailStatus /> },
-    { id: 8, label: "Neighborhood search updates", component: <Neighbourhood /> },
+    // { id: 8, label: "Neighborhood search updates", component: <Neighbourhood /> },
   ];
 
   const ActiveComponent = reportsData.find((rd) => rd.label === openData)?.component;
