@@ -92,12 +92,13 @@ const EmailInputField: React.FC<EmailInputFieldProps> = ({
 interface PhoneInputFieldProps {
   value: string;
   type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK";
+  pattern?: string;
   onChange: (val: string) => void;
   onTypeChange: (type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK") => void;
   onRemove?: () => void;
 }
 
-const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, onChange, onTypeChange, onRemove }) => {
+const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, pattern, onChange, onTypeChange, onRemove }) => {
   const [isOpen, setIsOpen] = useState(false);
   const options: ("MOBILE" | "TELEPHONE" | "HOME" | "WORK")[] = ['MOBILE', 'TELEPHONE', 'HOME', 'WORK'];
 
@@ -107,9 +108,15 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, onChange
         <div className="bg-gray-100 px-4 py-3 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
           <input
             type="tel"
-            placeholder="Phone number"
+            placeholder="+1234567890"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            pattern={pattern}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || /^\+?[0-9]*$/.test(val)) {
+                onChange(val);
+              }
+            }}
             className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
           />
         </div>
@@ -230,6 +237,12 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
   const handleSaveContact = async () => {
     if (!formData.fullName) {
       toast.error("Please enter a full name");
+      return;
+    }
+
+    const invalidPhone = phones.find(p => p.number.trim() !== "" && !/^\+[1-9]\d{1,14}$/.test(p.number));
+    if (invalidPhone) {
+      toast.error("Please enter valid E.164 formatted phone numbers (e.g., +1234567890)");
       return;
     }
 
@@ -530,6 +543,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                 key={i}
                 value={phone.number}
                 type={phone.type}
+                pattern="^\+[1-9]\d{1,14}$"
                 onChange={(val) => updatePhone(i, 'number', val)}
                 onTypeChange={(type) => updatePhone(i, 'type', type)}
                 onRemove={phones.length > 1 ? () => removePhone(i) : undefined}

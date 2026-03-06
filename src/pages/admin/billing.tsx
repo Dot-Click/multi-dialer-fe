@@ -87,6 +87,15 @@ const Billing = () => {
     }
   }
 
+  const calculateTotalHistoryCost = () => {
+    const total = subscriptions.reduce((sum, sub) => {
+      if (!sub.amount) return sum;
+      const numAmount = parseFloat(String(sub.amount).replace(/[^0-9.]/g, ''));
+      return sum + (isNaN(numAmount) ? 0 : numAmount);
+    }, 0);
+    return total.toString();
+  };
+
   const handleZohoOAuthFlow = async () => {
     try{
       // navigate('/admin/upgrade')
@@ -150,7 +159,7 @@ const Billing = () => {
             <div>
               <div className="text-sm text-gray-500 mb-1">Total cost</div>
               <div className="text-lg sm:text-xl font-semibold text-gray-900">
-                {formatCurrency(activeSubscription?.amount)}
+                {formatCurrency(calculateTotalHistoryCost())}
               </div>
             </div>
           </div>
