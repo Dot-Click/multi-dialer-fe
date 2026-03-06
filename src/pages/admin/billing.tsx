@@ -25,9 +25,10 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchSubscriptions } from '@/store/slices/subscriptionSlice'
 import { format, addMonths, addYears } from 'date-fns'
 import toast from 'react-hot-toast'
-import api from '@/lib/axios'
+import {useNavigate} from 'react-router-dom'
 
 const Billing = () => {
+  const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { subscriptions, loading, error } = useAppSelector((state) => state.subscriptions)
 
@@ -87,8 +88,7 @@ const Billing = () => {
 
   const handleZohoOAuthFlow = () => {
     try{
-      const redirect = api.defaults.baseURL+'/subscriptions/auth';
-      window.location.href = redirect;
+      navigate('/admin/upgrade')
     }catch {
       toast.error('Failed to fetch token');
     }
