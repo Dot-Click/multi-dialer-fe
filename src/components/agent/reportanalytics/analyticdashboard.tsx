@@ -46,7 +46,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading }
             {/* Header & Filters Responsive */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-6">
-                    <h2 className="text-[24px] font-[500] text-[#17181B]">
+                    <h2 className="text-[24px] font-medium text-[#17181B]">
                         Analytics
                     </h2>
 
@@ -57,7 +57,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading }
                     </div>
                 </div>
 
-                <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] hover:text-gray-950 transition">
+                <button className="flex items-center gap-2 text-[16px] font-medium text-[#495057] hover:text-gray-950 transition">
                     <img src={exportarrowicon} alt="exportarrowicon" className="" />
                     <span>Export</span>
                 </button>
