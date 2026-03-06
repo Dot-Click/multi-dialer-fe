@@ -2,9 +2,10 @@ import { TableComponent } from "@/components/common/tablecomponent";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
-import { FaPlay } from "react-icons/fa";
+import { FaPlay, FaPause } from "react-icons/fa";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useCallRecordingsReport } from "@/hooks/useCallRecordingsReport";
 
 // === Play Button Component ===
 const AudioPlayer = () => (
@@ -147,11 +148,127 @@ const columns = [
       </span>
     ),
   },
+const AudioPlayer = ({ url }: { url: string | null }) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const togglePlay = () => {
+        if (!url) return;
+
+        if (isPlaying) {
+            audioRef.current?.pause();
+        } else {
+            audioRef.current?.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+        }
+    };
+
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            setDuration(audioRef.current.duration);
+        }
+    };
+
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = Number(e.target.value);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
+    };
+
+    return (
+        <div className="flex items-center w-fit space-x-3">
+            <div
+                className={`w-9 h-9 flex items-center justify-center rounded-[4px] cursor-pointer transition ${url ? 'bg-[#F3F4F7] hover:bg-gray-300' : 'bg-gray-100 opacity-50 cursor-not-allowed'}`}
+                onClick={togglePlay}
+            >
+                {isPlaying ? <FaPause className="text-[#495057] text-[14px]" /> : <FaPlay className="text-[#495057] text-[14px]" />}
+            </div>
+            {url && (
+                <audio
+                    ref={audioRef}
+                    src={url}
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={() => {
+                        setIsPlaying(false);
+                        setCurrentTime(0);
+                    }}
+                    className="hidden"
+                />
+            )}
+
+            <div className="flex items-center justify-center w-[160px]">
+                {url ? (
+                    <input
+                        type="range"
+                        min={0}
+                        max={duration || 100}
+                        value={currentTime}
+                        onChange={handleSeek}
+                        className="w-full h-1.5 bg-[#D8DCE1] rounded-full appearance-none cursor-pointer accent-[#495057]"
+                        aria-label="Audio progress"
+                    />
+                ) : (
+                    <div className="w-[160px] h-2 bg-[#D8DCE1] rounded-full overflow-hidden opacity-50"></div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// === COLUMNS ===
+const columns = [
+    {
+        id: "select",
+        header: ({ table }: any) => (
+            <Checkbox
+                className="w-5 h-5 rounded-none border-2"
+                checked={table.getIsAllPageRowsSelected()}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all"
+            />
+        ),
+        cell: ({ row }: any) => (
+            <Checkbox
+                className="w-5 h-5 rounded-none border-2"
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                aria-label="Select row"
+            />
+        ),
+        enableSorting: false,
+    },
+    { id: "play", header: () => "Play", cell: (info: any) => <AudioPlayer url={info.row.original.recordingUrl} /> },
+    { accessorKey: "agent", header: () => "Agent", cell: (info: any) => <span className="text-[#495057] font-medium text-[14px]">{info.getValue()}</span> },
+    { accessorKey: "name", header: () => "Name", cell: (info: any) => <span className="text-[#1D85F0] font-normal text-[14px]">{info.getValue()}</span> },
+    { accessorKey: "duration", header: () => "Duration", cell: (info: any) => <span className="text-[#495057] font-normal text-[14px]">{info.getValue()}</span> },
+    { accessorKey: "callResult", header: () => "Call Result", cell: (info: any) => <span className="text-[#495057] font-normal text-[14px]">{info.getValue()}</span> },
 ];
+
+interface CallRecordingProps {
+    userId?: string;
+}
 
 // === MAIN COMPONENT ===
 const CallRecording = () => {
   const [showAllDatesButton, setShowAllDatesButton] = useState(false);
+const CallRecording: React.FC<CallRecordingProps> = ({ userId }) => {
+    const [showAllDatesButton, setShowAllDatesButton] = useState(false);
+    const { data, loading, getCallRecordings } = useCallRecordingsReport();
+
+    useEffect(() => {
+        getCallRecordings({ userId });
+    }, [userId, getCallRecordings]);
 
   useEffect(() => {
     if (
@@ -225,6 +342,17 @@ const CallRecording = () => {
       </main>
     </Box>
   );
+            <main>
+                <TableProvider data={data} columns={columns}>
+                    {() => <TableComponent />}
+                </TableProvider>
+                {loading && <div className="text-center py-4">Loading recordings...</div>}
+                {!loading && data.length === 0 && (
+                    <div className="text-center py-4 text-gray-500">No recordings found.</div>
+                )}
+            </main>
+        </Box>
+    );
 };
 
 export default CallRecording;

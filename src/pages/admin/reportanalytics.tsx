@@ -4,7 +4,6 @@ import ReportDashboard from "@/components/agent/reportanalytics/reportdashboard"
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-
 import { useReports } from "@/hooks/useReports";
 
 const ReportAnalytics = () => {
@@ -19,14 +18,26 @@ const ReportAnalytics = () => {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
+      const { data: sessionData } = await authClient.getSession();
+      const currentAdminId = sessionData?.user?.id;
+
+      if (!currentAdminId) {
+        toast.error("Unable to identify current admin");
+        return;
+      }
+
       const { data, error } = await authClient.admin.listUsers({
         query: { limit: 20 },
+        query: { limit: 100 }
       });
+
       if (error) {
         toast.error(error.message || "Failed to fetch users");
       } else if (data) {
         const agents = (data.users || []).filter(
           (user: any) => user.role === "AGENT",
+          (user: any) =>
+            user.role === "AGENT" && user.createdById === currentAdminId
         );
         setUsers(agents);
         if (agents.length > 0 && !selectedAgentId) {
@@ -51,14 +62,13 @@ const ReportAnalytics = () => {
   }, [selectedAgentId, getAgentReport]);
 
   return (
-    <div className=" min-h-screen  mr-10">
+    <div className="min-h-screen mr-10">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">
             Reports & Analytics
           </h1>
 
-          {/* Yaha route check ho raha hai */}
           {location.pathname === "/admin/reports-analytics" && (
             <select
               value={selectedAgentId}
