@@ -29,15 +29,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ data, loading }
         { icon: callsicon, label: "Calls Made", value: data?.callsMade.toString() || "0" },
         { icon: contacticon, label: "Contacts Made", value: data?.contacts.toString() || "0" },
         { icon: leadsicon, label: "Leads", value: data?.totalLeads.toString() || "0" },
-        { icon: appointmenticon, label: "Appointments Set", value: "0" },
-        { icon: appointmentsecondicon, label: "Appointments Met", value: "0" },
+        { icon: appointmenticon, label: "Appointments Set", value: data?.appointmentsSet?.toString() || "0" },
+        { icon: appointmentsecondicon, label: "Appointments Met", value: data?.appointmentsMet?.toString() || "0" },
         { icon: callhricon, label: "Calls/Hr", value: data?.callsPerHour || "0.00" },
         { icon: contacthricon, label: "Contacts/Hr", value: data?.contactsPerHour || "0.00" },
         { icon: callleadicon, label: "Calls/Lead", value: data?.callsPerLead || "0.00" },
-        { icon: contactleadicon, label: "Contacts/Lead", value: "0.00" },
-        { icon: timeicon, label: "Time/Appointment", value: "0s" },
-        { icon: callappointmenticon, label: "Calls/Appointment", value: "0.00" },
-        { icon: contactappointment, label: "Contacts/Appointment", value: "0.00" },
+        { icon: contactleadicon, label: "Contacts/Lead", value: data?.contactsPerLead || "0.00" },
+        { icon: timeicon, label: "Time/Appointment", value: data?.timePerAppointment || "0s" },
+        { icon: callappointmenticon, label: "Calls/Appointment", value: data?.callsPerAppointment || "0.00" },
+        { icon: contactappointment, label: "Contacts/Appointment", value: data?.contactsPerAppointment || "0.00" },
     ];
 
     return (
