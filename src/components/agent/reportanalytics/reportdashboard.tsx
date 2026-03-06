@@ -34,10 +34,18 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
   const reportsData = [
     { id: 1, label: "Call detail", component: <CallDetail userId={userId} /> },
     { id: 2, label: "Session", component: <Session userId={userId} /> },
-    { id: 3, label: "Call Recording", component: <CallRecording userId={userId} /> },
+    {
+      id: 3,
+      label: "Call Recording",
+      component: <CallRecording userId={userId} />,
+    },
     { id: 4, label: "Recurring events", component: <RecurringEvent /> },
     // { id: 5, label: "Posting Report", component: <PostingReport /> },
-    { id: 6, label: "Agent timesheet", component: <AgentTimeSheet userId={userId} /> },
+    {
+      id: 6,
+      label: "Agent timesheet",
+      component: <AgentTimeSheet userId={userId} />,
+    },
     { id: 7, label: "Email status", component: <EmailStatus /> },
     {
       id: 8,
@@ -74,7 +82,6 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
         {/* Left: Title */}
         <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white whitespace-nowrap">
-        <h2 className="text-[24px] font-medium text-[#17181B] whitespace-nowrap">
           Reports
         </h2>
 
@@ -137,8 +144,6 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
             alt="exportarrowicon"
             className="dark:invert"
           />
-        <button className="flex items-center gap-2 text-[16px] font-medium text-[#495057] hover:text-gray-950 transition whitespace-nowrap">
-          <img src={exportarrowicon} alt="exportarrowicon" className="" />
           <span>Export</span>
         </button>
       </div>
@@ -151,8 +156,6 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
             onClick={() => setOpenData(rdata.label)}
             className={`px-[16px] py-[8px] text-[16px] font-[500] rounded-[12px] transition whitespace-nowrap
             ${openData === rdata.label ? "bg-[#FFCA06] dark:text-black text-[#0E1011]" : "bg-[#F3F4F7] dark:bg-slate-700 text-[#495057] dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600"}`}
-            className={`px-[16px] py-[8px] text-[16px] font-medium rounded-[12px] transition whitespace-nowrap
-            ${openData === rdata.label ? "bg-[#FFCA06] text-[#0E1011]" : "bg-[#F3F4F7] text-[#495057] hover:bg-gray-300"}`}
           >
             {rdata.label}
           </button>

@@ -27,17 +27,15 @@ const ReportAnalytics = () => {
       }
 
       const { data, error } = await authClient.admin.listUsers({
-        query: { limit: 20 },
-        query: { limit: 100 }
+        query: { limit: 100 },
       });
 
       if (error) {
         toast.error(error.message || "Failed to fetch users");
       } else if (data) {
         const agents = (data.users || []).filter(
-          (user: any) => user.role === "AGENT",
           (user: any) =>
-            user.role === "AGENT" && user.createdById === currentAdminId
+            user.role === "AGENT" && user.createdById === currentAdminId,
         );
         setUsers(agents);
         if (agents.length > 0 && !selectedAgentId) {
