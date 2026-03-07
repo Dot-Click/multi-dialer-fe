@@ -107,9 +107,9 @@ const DataManagement = () => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* --- Import History Section --- */}
-        <Box className="bg-white px-4 py-5 rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800">Import history</h2>
-          <p className="mt-2 text-sm text-gray-600">
+        <Box className="bg-white dark:bg-slate-800 rounded-md shadow px-7 py-4 mt-6">
+          <h2 className="text-[24px] font-[500] dark:text-white text-[#0F1216]">Import history</h2>
+          <p className="mt-2 text-[16px] dark:text-gray-400 font-[400] text-[#495057]">
             The grid below displays your imports to the Mojo system. Use the
             action buttons to preview the import data or remove the import
             entirely in the case of an error.
@@ -124,9 +124,9 @@ const DataManagement = () => {
         </Box>
 
         {/* --- Export History Section --- */}
-        <Box className="bg-white px-4 py-5 rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800">Export history</h2>
-          <p className="mt-2 text-sm text-gray-600">
+        <Box className="bg-white dark:bg-slate-800 rounded-md shadow px-7 py-4 mt-6">
+          <h2 className="text-[24px] font-[500] dark:text-white text-[#0F1216]">Export history</h2>
+          <p className="mt-2 text-[16px] dark:text-gray-400 font-[400] text-[#495057]">
             The Export History displays each time data was exported out of Mojo
             account for the last 30 days. You will see a break down of what
             lists/groups were exported, total amount of data and the date and
@@ -145,11 +145,11 @@ const DataManagement = () => {
         </Box>
 
         {/* --- Restore Deleted Data Section --- */}
-        <Box className="bg-white px-4 py-5 rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800">
+        <Box className="bg-white dark:bg-slate-800 rounded-md shadow px-7 py-4 mt-6">
+          <h2 className="text-[24px] font-[500] dark:text-white  text-[#0F1216]">
             Restore deleted data
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-[16px] dark:text-gray-400 font-[400] text-[#495057]">
             Any data deleted in the last 30 days can be restored by clicking
             Restore next to the date it was deleted.
           </p>

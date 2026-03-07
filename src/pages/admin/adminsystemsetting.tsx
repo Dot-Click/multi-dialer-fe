@@ -39,20 +39,20 @@ const AdminSystemSetting = () => {
     return (
         <div className="min-h-screen flex flex-col gap-3 mr-10">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-[28px] dark:text-white font-[500] text-[#0E1011]">
                     System Settings
                 </h1>
             </div>
 
-            <div className="flex flex-col gap-3 bg-white rounded-lg px-5 py-4">
+            <div className="flex flex-col gap-3 bg-white dark:bg-slate-800 rounded-lg px-5 py-4">
                 {/* First Row */}
                 <div className="flex gap-3 items-center flex-wrap">
                     {firstRowButtons.map((btn) => (
                         <button
                             key={btn.id}
                             onClick={() => setOpenDialogue(btn.name)}
-                            className={`px-4 py-2.5 text-[14px] text-[#495057] cursor-pointer font-[500] rounded-md transition-colors
-                            ${openDialogue === btn.name ? "bg-[#FFCA06] text-black" : "bg-[#F3F4F7] text-[#495057]"}`}
+                            className={`px-4 py-2.5 text-[14px] text-[#495057] dark:text-gray-400 cursor-pointer font-[500] rounded-md transition-colors
+                            ${openDialogue === btn.name ? "bg-[#FFCA06] text-black dark:text-white" : "bg-[#F3F4F7] dark:bg-slate-700 dark:text-white text-[#495057]"}`}
                         >
                             {btn.name}
                         </button>
@@ -65,8 +65,8 @@ const AdminSystemSetting = () => {
                         <button
                             key={btn.id}
                             onClick={() => setOpenDialogue(btn.name)}
-                            className={`px-4 py-2.5 text-[14px] text-[#495057] cursor-pointer font-[500] rounded-md transition-colors
-                            ${openDialogue === btn.name ? "bg-[#FFCA06] text-black" : "bg-[#F3F4F7] text-[#495057]"}`}
+                            className={`px-4 py-2.5 text-[14px] text-[#495057] dark:text-gray-400 cursor-pointer font-[500] rounded-md transition-colors
+                            ${openDialogue === btn.name ? "bg-[#FFCA06] text-black dark:text-white" : "bg-[#F3F4F7] dark:bg-slate-700 dark:text-white text-[#495057]"}`}
                         >
                             {btn.name}
                         </button>
