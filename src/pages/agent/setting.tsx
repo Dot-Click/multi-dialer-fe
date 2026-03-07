@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiChevronUp, FiInfo } from 'react-icons/fi';
 import { IoChevronDown } from 'react-icons/io5';
+import { useCallerIds } from '../../hooks/useSystemSettings';
+import { authClient } from '../../lib/auth-client';
 
 const Setting = () => {
     const [activeTab, setActiveTab] = useState('personal');
@@ -8,6 +10,30 @@ const Setting = () => {
     const [isNotificationsOpen, setNotificationsOpen] = useState(true);
     const [voicemailOption, setVoicemailOption] = useState('auto');
     const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
+    const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
+    const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
+
+    // Fetch current agent's ID
+    useEffect(() => {
+        const fetchSession = async () => {
+            try {
+                const { data: sessionData } = await authClient.getSession();
+                if (sessionData?.user?.id) {
+                    setCurrentAgentId(sessionData.user.id);
+                }
+            } catch (error) {
+                console.error('Failed to fetch session:', error);
+            }
+        };
+        fetchSession();
+    }, []);
+
+    // Filter caller IDs assigned to the current agent
+    const agentCallerIds = currentAgentId
+        ? allCallerIds.filter(callerId => 
+            callerId.agentIds?.includes(currentAgentId)
+          )
+        : [];
 
     const tabs = [
         { id: 'personal', label: 'Personal Info & Notification' },
@@ -350,7 +376,7 @@ const Setting = () => {
                                     <div className="bg-[#F3F4F7] py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                                         <input
                                             type="text"
-                                            defaultValue="+1 (555) 123-456"
+                                            value={agentCallerIds.length > 0 ? agentCallerIds[0].twillioNumber || agentCallerIds[0].label : 'No Caller ID Assigned'}
                                             readOnly
                                             className="w-full bg-transparent text-[16px] text-[#0E1011] font-[400] focus:outline-none"
                                         />
@@ -366,67 +392,43 @@ const Setting = () => {
                             <div>
                                 <h3 className="text-[18px] font-[500] text-[#34363B] mb-4">Outbound Caller IDs</h3>
                                 <div className="space-y-4">
-                                    {/* Caller ID Entry 1 */}
-                                    <div className="flex items-center py-4 pl-2  rounded-lg">
-  <div className="flex items-center gap-4">
-    {/* Card */}
-    <div className="border border-gray-200 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white">
-      <p className="text-[15px] font-medium text-[#0E1011] leading-tight">
-        +1 (555) 123-4567
-      </p>
-      <p className="text-[13px] text-[#6B7280]">
-        Campaigns: Campaign A, Campaign B
-      </p>
-    </div>
+                                    {isLoadingCallerIds ? (
+                                        <div className="text-center py-8 text-gray-500">
+                                            <p>Loading caller IDs...</p>
+                                        </div>
+                                    ) : agentCallerIds.length > 0 ? (
+                                        agentCallerIds.map((callerId) => (
+                                            <div key={callerId.id} className="flex items-center py-4 pl-2 rounded-lg">
+                                                <div className="flex items-center gap-4 w-full">
+                                                    {/* Card */}
+                                                    <div className="border border-gray-200 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white flex-1">
+                                                        <p className="text-[15px] font-medium text-[#0E1011] leading-tight">
+                                                            {callerId.twillioNumber || callerId.label}
+                                                        </p>
+                                                        <p className="text-[13px] text-[#6B7280]">
+                                                            {callerId.label}
+                                                        </p>
+                                                    </div>
 
-    {/* Button */}
-    <button className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg">
-      Active
-    </button>
-  </div>
-</div>
-
-
-
-                                    {/* Caller ID Entry 2 */}
-                                    <div className="flex items-center py-4 pl-2  rounded-lg">
-  <div className="flex items-center gap-4">
-    {/* Card */}
-    <div className="border border-gray-200 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white">
-      <p className="text-[15px] font-medium text-[#0E1011] leading-tight">
-        +1 (555) 123-4567
-      </p>
-      <p className="text-[13px] text-[#6B7280]">
-        Campaigns: Campaign A, Campaign B
-      </p>
-    </div>
-
-    {/* Button */}
-    <button className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg">
-      Active
-    </button>
-  </div>
-</div>
-
-                                    {/* Caller ID Entry 3 */}
-                                   <div className="flex items-center py-4 pl-2  rounded-lg">
-  <div className="flex items-center gap-4">
-    {/* Card */}
-    <div className="border border-gray-200 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white">
-      <p className="text-[15px] font-medium text-[#0E1011] leading-tight">
-        +1 (555) 123-4567
-      </p>
-      <p className="text-[13px] text-[#6B7280]">
-        Campaigns: Campaign A, Campaign B
-      </p>
-    </div>
-
-    {/* Button */}
-    <button className="px-4 py-1.5 bg-gray-300 text-black text-sm font-medium rounded-lg">
-                                            Inactive
-                                        </button>
-  </div>
-</div>
+                                                    {/* Button */}
+                                                    <button 
+                                                        className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
+                                                            callerId.status === 'active' || callerId.status === 'ACTIVE'
+                                                                ? 'bg-black'
+                                                                : 'bg-gray-300 text-gray-700'
+                                                        }`}
+                                                    >
+                                                        {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 border border-dashed border-gray-300 rounded-lg">
+                                            <p className="text-gray-500">No caller IDs assigned to you yet.</p>
+                                            <p className="text-gray-400 text-sm mt-1">Contact your admin to get a caller ID assigned.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
