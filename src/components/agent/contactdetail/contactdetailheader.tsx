@@ -17,6 +17,8 @@ import AppointmentModal from "@/components/modal/appointmentmodal";
 import TaskModal from "@/components/modal/taskmodal";
 import CallBackModal from "@/components/modal/callbackmodal";
 import TakeActionModal from "@/components/modal/takeactionmodal";
+import DncSelectionModal from "@/components/modal/dncselectionmodal";
+import api from "@/lib/axios";
 
 const ContactDetailHeader = () => {
   const dispatch = useAppDispatch();
@@ -25,6 +27,7 @@ const ContactDetailHeader = () => {
   const [isTaskModalOpen, setTaskModalOpen] = useState(false);
   const [isCallBackModalOpen, setCallBackModalOpen] = useState(false);
   const [isActionModalOpen, setActionModalOpen] = useState(false);
+  const [isDncModalOpen, setDncModalOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
@@ -127,6 +130,37 @@ const ContactDetailHeader = () => {
     toast.success("Email client opened");
   };
 
+  const onConfirmDnc = async (phoneIds: string[]) => {
+    if (!currentContact) return;
+    try {
+      const response = await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds });
+      if (response.data.success) {
+        toast.success("Successfully moved selected numbers to DNC");
+        setDncModalOpen(false);
+        // Refresh contact data if needed
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to move to DNC");
+    }
+  };
+
+  const handleDncClick = () => {
+    if (!currentContact) return;
+    if (!currentContact.phones || currentContact.phones.length === 0) {
+      toast.error("Contact has no phone numbers");
+      return;
+    }
+
+    if (currentContact.phones.length === 1) {
+      if (window.confirm(`Are you sure you want to move ${currentContact.phones[0].number} to DNC?`)) {
+        onConfirmDnc([currentContact.phones[0].id]);
+      }
+    } else {
+      setDncModalOpen(true);
+    }
+    setShowActionMenu(false);
+  };
+
   const headerLinks = [
     {
       id: 1,
@@ -173,10 +207,7 @@ const ContactDetailHeader = () => {
                   Export
                 </button>
                 <button
-                  onClick={() => {
-                    setShowActionMenu(false);
-                    toast("Move to DNC functionality is not implemented yet", { icon: "ℹ️" });
-                  }}
+                  onClick={handleDncClick}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-[#0E1011]"
                 >
                   Move to DNC
@@ -290,6 +321,13 @@ const ContactDetailHeader = () => {
       <TakeActionModal
         isOpen={isActionModalOpen}
         onClose={() => setActionModalOpen(false)}
+      />
+      <DncSelectionModal
+        isOpen={isDncModalOpen}
+        onClose={() => setDncModalOpen(false)}
+        onConfirm={onConfirmDnc}
+        phones={currentContact?.phones || []}
+        contactName={currentContact?.fullName || ""}
       />
     </>
   );

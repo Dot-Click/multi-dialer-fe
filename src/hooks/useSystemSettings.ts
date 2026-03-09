@@ -106,6 +106,28 @@ export interface ActionPlan {
     steps?: ActionStep[];
 }
 
+export interface RegulatorySettings {
+    id: string;
+    tcpaFrom: string;
+    tcpaTo: string;
+    tcpaAutodialing: boolean;
+    gdprRetentionDays: number;
+    gdprDeleteRelated: boolean;
+    systemSettingId: string;
+}
+
+export interface AuditLog {
+    id: string;
+    action: string;
+    details?: string;
+    userId: string;
+    user: {
+        fullName: string;
+        role: string;
+    };
+    createdAt: string;
+}
+
 export interface NotificationSettings {
     id: string;
     enableAppointmentReminders: boolean;
@@ -552,4 +574,50 @@ export const useTwilioNumbers = (filters?: { countryCode?: string; cityName?: st
         availableNumbers: availableNumbersQuery,
         buyNumber: buyNumberMutation
     };
+};
+export const useDncList = () => {
+    return useQuery({
+        queryKey: ['dnc-list'],
+        queryFn: async () => {
+            const response = await api.get('/contact/dnc-list');
+            return response.data.data as any[];
+        }
+    });
+};
+
+export const useRegulatorySettings = () => {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['regulatory-settings'],
+        queryFn: async (): Promise<RegulatorySettings> => {
+            const response = await api.get('/system-settings/regulatory');
+            return response.data.data || response.data;
+        }
+    });
+
+    const updateRegulatorySettings = useMutation({
+        mutationFn: async (data: Partial<RegulatorySettings>) => {
+            const response = await api.put('/system-settings/regulatory', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['regulatory-settings'] });
+        }
+    });
+
+    return {
+        ...query,
+        updateRegulatorySettings
+    };
+};
+
+export const useAuditLogs = () => {
+    return useQuery({
+        queryKey: ['audit-logs'],
+        queryFn: async (): Promise<AuditLog[]> => {
+            const response = await api.get('/system-settings/audit-logs');
+            return response.data.data || response.data;
+        }
+    });
 };

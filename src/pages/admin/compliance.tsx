@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Search,
   Download,
@@ -29,171 +28,105 @@ import {
 import { Box } from "@/components/ui/box";
 import { Label } from "@/components/ui/label";
 
+import { useCallerIds, useDncList, useRegulatorySettings, useAuditLogs } from '@/hooks/useSystemSettings'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { downloadCSV } from '@/utils/csvDownload'
+
 const Compliance = () => {
-  const [autodialing, setAutodialing] = useState(false);
-  // Purchased Numbers Data
-  const purchasedNumbers = [
-    {
-      number: "Number 1",
-      status: "Healthy",
-      country: "United States/Canada",
-      addedOn: "09/09/2025",
-    },
-    {
-      number: "Number 2",
-      status: "Healthy",
-      country: "United States/Canada",
-      addedOn: "09/09/2025",
-    },
-    {
-      number: "Number 3",
-      status: "Unhealthy",
-      country: "United States/Canada",
-      addedOn: "09/09/2025",
-    },
-    {
-      number: "Number 4",
-      status: "Healthy",
-      country: "United States/Canada",
-      addedOn: "09/09/2025",
-    },
-  ];
+  const { data: callerIds } = useCallerIds();
+  const { data: realDncList } = useDncList();
+  const { data: regulatory, updateRegulatorySettings } = useRegulatorySettings();
+  const { data: realAuditLogs } = useAuditLogs();
+  const navigate = useNavigate()
 
-  // DNC List Data
-  const dncList = [
-    {
-      name: "Kathlyn Murphy",
-      lastCalled: "09/09/2025",
-      phone: "+1 234 567 8900",
-      email: "kathlyn@example.com",
-      list: "List 1",
-      tags: ["Intere", "Follow"],
-    },
-    {
-      name: "Robert Fox",
-      lastCalled: "09/09/2025",
-      phone: "+1 234 567 8901",
-      email: "robert@example.com",
-      list: "List 2",
-      tags: ["Past"],
-    },
-    {
-      name: "Annette Black",
-      lastCalled: "09/09/2025",
-      phone: "+1 234 567 8902",
-      email: "annette@example.com",
-      list: "List 1",
-      tags: ["Intere"],
-    },
-    {
-      name: "Cody Fisher",
-      lastCalled: "09/10/2025",
-      phone: "+1 234 567 8903",
-      email: "cody@example.com",
-      list: "List 3",
-      tags: ["New", "Interested"],
-    },
-    {
-      name: "Devon Lane",
-      lastCalled: "09/11/2025",
-      phone: "+1 234 567 8904",
-      email: "devon@example.com",
-      list: "List 2",
-      tags: ["Follow"],
-    },
-    {
-      name: "Courtney Henry",
-      lastCalled: "09/12/2025",
-      phone: "+1 234 567 8905",
-      email: "courtney@example.com",
-      list: "List 4",
-      tags: ["Pending"],
-    },
-    {
-      name: "Theresa Webb",
-      lastCalled: "09/13/2025",
-      phone: "+1 234 567 8906",
-      email: "theresa@example.com",
-      list: "List 1",
-      tags: ["Follow", "Intere"],
-    },
-    {
-      name: "Guy Hawkins",
-      lastCalled: "09/14/2025",
-      phone: "+1 234 567 8907",
-      email: "guy@example.com",
-      list: "List 2",
-      tags: ["Past"],
-    },
-    {
-      name: "Jenny Wilson",
-      lastCalled: "09/15/2025",
-      phone: "+1 234 567 8908",
-      email: "jenny@example.com",
-      list: "List 3",
-      tags: ["Follow"],
-    },
-    {
-      name: "Jacob Jones",
-      lastCalled: "09/16/2025",
-      phone: "+1 234 567 8909",
-      email: "jacob@example.com",
-      list: "List 4",
-      tags: ["New", "Interested"],
-    },
-  ];
+  // Purchased Numbers Data from API
+  const purchasedNumbers = callerIds?.map((item) => ({
+    number: item.twillioNumber || 'Unknown Number',
+    status: item.status || 'Healthy',
+    country: item.countryCode === 'US' ? 'United States/Canada' : (item.countryCode || 'United States/Canada'),
 
-  // Audit Logs Data
-  const auditLogs = [
-    {
-      date: "09/09/2025",
-      user: "Celia McCullough",
-      role: "Agent",
-      action: "Added [number] to DNC",
-    },
-    {
-      date: "08/09/2025",
-      user: "Johnathan Schultz",
-      role: "Admin",
-      action: "Changed TCPA call hours",
-    },
-    {
-      date: "07/09/2025",
-      user: "Shelley Cremin",
-      role: "Agent",
-      action: "Deleted [contact name] with GDPR removal",
-    },
-    {
-      date: "09/09/2025",
-      user: "Celia McCullough",
-      role: "Agent",
-      action: "Added [number] to DNC",
-    },
-    {
-      date: "08/09/2025",
-      user: "Johnathan Schultz",
-      role: "Admin",
-      action: "Changed TCPA call hours",
-    },
-    {
-      date: "07/09/2025",
-      user: "Shelley Cremin",
-      role: "Agent",
-      action: "Deleted [contact name] with GDPR removal",
-    },
-    {
-      date: "09/09/2025",
-      user: "Celia McCullough",
-      role: "Agent",
-      action: "Added [number] to DNC",
-    },
-    {
-      date: "08/09/2025",
-      user: "Johnathan Schultz",
-      role: "Admin",
-      action: "Changed TCPA call hours",
-    },
-  ];
+    addedOn: new Date(item.createdAt).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    }),
+    label: item.label || 'Unnamed Number'
+  })) || []
+
+
+  // DNC List Data from API
+  const dncList = realDncList?.map((item) => ({
+    name: item.name || 'Unknown',
+    lastCalled: new Date(item.createdAt).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    }),
+    phone: item.number,
+    email: item.email || '-',
+    list: item.source || '-',
+    tags: [] // Tags not stored in DNC table currently
+  })) || [];
+
+  const handleExportDNC = () => {
+    if (!dncList || dncList.length === 0) {
+      toast.error("No DNC records to export");
+      return;
+    }
+
+    const fieldMapping = {
+      "Name": "name",
+      "Last Called Date": "lastCalled",
+      "Phone Number": "phone",
+      "Email": "email",
+      "List": "list",
+      "Tags": "tags"
+    };
+
+    downloadCSV(
+      dncList,
+      Object.keys(fieldMapping),
+      fieldMapping,
+      `DNC_List_${new Date().toISOString().split('T')[0]}.csv`
+    );
+    toast.success("DNC list exported successfully");
+  };
+
+  const handleExportAuditLogs = () => {
+    if (!auditLogs || auditLogs.length === 0) {
+      toast.error("No audit logs to export");
+      return;
+    }
+
+    const fieldMapping = {
+      "Date": "date",
+      "User": "user",
+      "Role": "role",
+      "Action": "action"
+    };
+
+    downloadCSV(
+      auditLogs,
+      Object.keys(fieldMapping),
+      fieldMapping,
+      `Audit_Logs_${new Date().toISOString().split('T')[0]}.csv`
+    );
+    toast.success("Audit logs exported successfully");
+  };
+
+
+  // Audit Logs Data from API
+  const auditLogs = realAuditLogs?.map((item) => ({
+    date: new Date(item.createdAt).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    }),
+    user: item.user?.fullName || 'Unknown',
+    role: item.user?.role === 'AGENT' ? 'Agent' : 'Admin',
+    action: item.action + (item.details ? ` (${item.details})` : '')
+  })) || [];
 
   return (
     <Box className="min-h-screen pr-3 lg:pr-6">
@@ -205,13 +138,8 @@ const Compliance = () => {
       {/* Purchased Numbers Section */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-            Purchased Numbers
-          </h2>
-          <Button
-            variant="outline"
-            className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 w-full sm:w-auto"
-          >
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Purchased Numbers</h2>
+          <Button onClick={() => navigate("/admin/system-settings")} variant="outline" className="rounded-md bg-gray-100 hover:bg-gray-50 w-full sm:w-auto">
             Go to Call Settings
           </Button>
         </div>
@@ -225,23 +153,19 @@ const Compliance = () => {
               {/* Left Column - Number Details */}
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-base font-medium text-gray-900 dark:text-white">
-                    {item.number}
-                  </span>
+                  <span className="text-base font-medium text-gray-900">{item.number}</span>
                   <Badge
-                    className={`${
-                      item.status === "Healthy"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border-0"
-                        : "bg-gray-900 text-white dark:bg-slate-600 border-0"
-                    } rounded-full px-3 py-1 text-xs font-medium`}
+                    className={`${item.status === 'Healthy'
+                      ? 'bg-green-100 text-green-700 border-0'
+                      : 'bg-gray-900 text-white border-0'
+                      } rounded-full px-3 py-1 text-xs font-medium`}
                   >
                     {item.status}
                   </Badge>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-normal">
-                  CallScout ID
-                </div>
+                <div className="text-sm text-gray-600 font-normal">{item.label}</div>
               </div>
+
 
               {/* Middle Column - Country */}
               <div>
@@ -268,36 +192,15 @@ const Compliance = () => {
       </div>
 
       {/* DNC List Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-            DNC List
-          </h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">DNC List</h2>
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="rounded-md border border-gray-200 dark:border-slate-700 dark:bg-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 flex-1 sm:flex-initial"
-            >
-              {/* Upload Icon */}
-              <svg
-                width="15"
-                height="20"
-                viewBox="0 0 15 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M13.75 1.504C13.9489 1.504 14.1397 1.42498 14.2803 1.28433C14.421 1.14368 14.5 0.952912 14.5 0.754C14.5 0.555088 14.421 0.364322 14.2803 0.22367C14.1397 0.0830175 13.9489 0.00399995 13.75 0.00399995L0.75 0C0.551088 0 0.360322 0.0790175 0.21967 0.21967C0.0790175 0.360322 0 0.551088 0 0.75C0 0.948912 0.0790175 1.13968 0.21967 1.28033C0.360322 1.42098 0.551088 1.5 0.75 1.5L13.75 1.504ZM7.148 19.992L7.25 19.999C7.43139 19.999 7.60662 19.9332 7.74323 19.8139C7.87984 19.6945 7.96857 19.5297 7.993 19.35L8 19.249L7.999 5.564L11.721 9.284C11.848 9.41102 12.0163 9.48825 12.1955 9.50164C12.3746 9.51504 12.5525 9.46371 12.697 9.357L12.782 9.284C12.9091 9.15683 12.9863 8.98821 12.9996 8.80888C13.0128 8.62955 12.9611 8.45143 12.854 8.307L12.781 8.223L7.784 3.227C7.65701 3.09998 7.48866 3.02275 7.30955 3.00936C7.13044 2.99596 6.95247 3.04729 6.808 3.154L6.723 3.226L1.72 8.224C1.58546 8.35766 1.50655 8.53732 1.49915 8.72682C1.49176 8.91632 1.55642 9.10158 1.68013 9.24532C1.80384 9.38906 1.97741 9.48059 2.1659 9.5015C2.35439 9.52241 2.5438 9.47113 2.696 9.358L2.78 9.285L6.499 5.572L6.5 19.249C6.5 19.629 6.782 19.942 7.148 19.992Z"
-                  fill="#495057"
-                />
-              </svg>
-
-              <span className="hidden sm:inline">Import</span>
-            </Button>
 
             <Button
               variant="outline"
-              className="rounded-md border border-gray-200 dark:border-slate-700 dark:bg-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 flex-1 sm:flex-initial"
+              onClick={handleExportDNC}
+              className="rounded-md hover:bg-gray-50 flex-1 sm:flex-initial border-0"
             >
               {/* Download Icon */}
               <svg
@@ -312,6 +215,10 @@ const Compliance = () => {
                   fill="#495057"
                 />
               </svg>
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+          </div>
+        </div>
 
               <span className="hidden sm:inline">Export</span>
             </Button>
@@ -322,13 +229,8 @@ const Compliance = () => {
         <div className="mb-6">
           <Input
             placeholder="Search by name, email, phone number..."
-            rightIcon={
-              <Search
-                className="mr-4 text-gray-500 dark:text-gray-400"
-                size={18}
-              />
-            }
-            className=" xl:w-[50%] text-black dark:text-white w-full bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 px-5 py-5 rounded-full"
+            rightIcon={<Search className="mr-4" size={18} />}
+            className=" xl:w-[50%] text-black w-full bg-white px-5 py-5 rounded-full"
           />
         </div>
 
@@ -377,10 +279,8 @@ const Compliance = () => {
                   </TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <Phone className="size-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                      <span className="text-sm sm:text-base whitespace-nowrap">
-                        {item.phone}
-                      </span>
+                      <Phone className="size-4 text-gray-500 shrink-0" />
+                      <span className="text-sm sm:text-base whitespace-nowrap">{item.phone}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">
@@ -423,32 +323,37 @@ const Compliance = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {/* From */}
             <div>
-              <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-                From
-              </Label>
-              <Select defaultValue="8:00">
-                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
+              <Label className="text-sm text-gray-700 block mb-2">From</Label>
+              <Select
+                value={regulatory?.tcpaFrom || "08:00"}
+                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaFrom: val })}
+              >
+                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="8:00">8:00</SelectItem>
-                  <SelectItem value="9:00">9:00</SelectItem>
+                <SelectContent>
+                  <SelectItem value="08:00">8:00</SelectItem>
+                  <SelectItem value="09:00">9:00</SelectItem>
+                  <SelectItem value="10:00">10:00</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* To */}
             <div>
-              <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-                To
-              </Label>
-              <Select defaultValue="18:00">
-                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
+              <Label className="text-sm text-gray-700 block mb-2">To</Label>
+              <Select
+                value={regulatory?.tcpaTo || "18:00"}
+                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaTo: val })}
+              >
+                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
                   <SelectItem value="18:00">18:00</SelectItem>
                   <SelectItem value="19:00">19:00</SelectItem>
+                  <SelectItem value="20:00">20:00</SelectItem>
+                  <SelectItem value="21:00">21:00</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -463,17 +368,12 @@ const Compliance = () => {
               <input
                 type="checkbox"
                 className="sr-only peer"
-                checked={autodialing}
-                onChange={(e) => setAutodialing(e.target.checked)}
+                checked={regulatory?.tcpaAutodialing || false}
+                onChange={(e) => updateRegulatorySettings.mutate({ tcpaAutodialing: e.target.checked })}
               />
-              <div
-                className={`w-11 h-6 rounded-full bg-gray-300 dark:bg-slate-600 peer-checked:bg-gray-500 dark:peer-checked:bg-green-500 transition-all`}
-              >
-                <div
-                  className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${
-                    autodialing ? "translate-x-5" : "translate-x-0"
-                  }`}
-                ></div>
+              <div className={`w-11 h-6 rounded-full bg-gray-300 peer-checked:bg-gray-500 transition-all`}>
+                <div className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${regulatory?.tcpaAutodialing ? 'translate-x-5' : 'translate-x-0'
+                  }`}></div>
               </div>
             </label>
           </div>
@@ -485,17 +385,19 @@ const Compliance = () => {
             GDPR Settings (EU)
           </h3>
           <div className="mb-4">
-            <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-              Keep contact data for:
-            </Label>
-            <Select defaultValue="30">
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
+            <Label className="text-sm text-gray-700 block mb-2">Keep contact data for:</Label>
+            <Select
+              value={String(regulatory?.gdprRetentionDays || 30)}
+              onValueChange={(val) => updateRegulatorySettings.mutate({ gdprRetentionDays: Number(val) })}
+            >
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
                 <SelectItem value="30">30 days</SelectItem>
                 <SelectItem value="60">60 days</SelectItem>
                 <SelectItem value="90">90 days</SelectItem>
+                <SelectItem value="365">1 year</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -504,8 +406,9 @@ const Compliance = () => {
             <input
               type="checkbox"
               id="gdpr-delete"
-              defaultChecked
-              className="h-4 w-4 accent-black dark:accent-gray-400 focus:ring-black border-gray-400 rounded cursor-pointer mt-1 sm:mt-0"
+              checked={regulatory?.gdprDeleteRelated || false}
+              onChange={(e) => updateRegulatorySettings.mutate({ gdprDeleteRelated: e.target.checked })}
+              className="h-4 w-4 accent-black focus:ring-black border-gray-400 rounded cursor-pointer mt-1 sm:mt-0"
             />
             <Label
               htmlFor="gdpr-delete"
@@ -518,21 +421,18 @@ const Compliance = () => {
       </div>
 
       {/* Audit Logs Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-white mt-6 rounded-xl shadow-sm p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+
           {/* Left Side: Heading + All Dates beside it */}
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-              Audit Logs
-            </h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Audit Logs</h2>
 
             {/* All Dates Badge — right beside heading */}
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-800">
-              <ChevronLeft className="size-4 text-gray-500 dark:text-gray-400" />
-              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-                All Dates
-              </span>
-              <ChevronRight className="size-4 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 bg-white">
+              <ChevronLeft className="size-4 text-gray-500" />
+              <span className="text-xs sm:text-sm text-gray-700">All Dates</span>
+              <ChevronRight className="size-4 text-gray-500" />
             </div>
           </div>
 
@@ -540,7 +440,8 @@ const Compliance = () => {
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               variant="outline"
-              className="rounded-md hover:bg-gray-50 border border-gray-200 dark:border-slate-700 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 flex items-center justify-center gap-2"
+              className="rounded-md hover:bg-gray-50 flex items-center justify-center gap-2"
+              onClick={handleExportAuditLogs}
             >
               <Download className="size-4" />
               <span className="hidden sm:inline">Export Audit Log</span>
@@ -552,52 +453,34 @@ const Compliance = () => {
         {/* Audit Logs Table */}
         <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
           <Table>
-            <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
-              <TableRow className="border-b border-gray-200 dark:border-slate-700 hover:bg-transparent dark:hover:bg-transparent">
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Date
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  User
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Role
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3">
-                  Action
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 w-12"></TableHead>
+            <TableHeader className="sticky top-0 bg-white z-10">
+              <TableRow className="border-b border-gray-200 hover:bg-transparent">
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Date</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">User</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Role</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3">Action</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {auditLogs.map((item, index) => (
-                <TableRow
-                  key={index}
-                  className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
-                >
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
-                    {item.date}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.user}
-                  </TableCell>
+                <TableRow key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.date}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.user}</TableCell>
                   <TableCell className="px-2 sm:px-4 py-4">
                     <Badge
-                      className={`${
-                        item.role === "Agent"
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 border-0"
-                          : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border-0"
-                      } rounded-full px-3 py-1 text-xs font-medium`}
+                      className={`${item.role === 'Agent'
+                        ? 'bg-blue-100 text-blue-700 border-0'
+                        : 'bg-orange-100 text-orange-700 border-0'
+                        } rounded-full px-3 py-1 text-xs font-medium`}
                     >
                       {item.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.action}
-                  </TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.action}</TableCell>
                   <TableCell className="px-2 sm:px-4 py-4">
-                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-md transition-colors">
-                      <MoreVertical className="size-4 text-gray-600 dark:text-gray-400" />
+                    <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors">
+                      <MoreVertical className="size-4 text-gray-600" />
                     </button>
                   </TableCell>
                 </TableRow>
@@ -607,7 +490,7 @@ const Compliance = () => {
         </div>
       </div>
     </Box>
-  );
-};
+  )
+}
 
-export default Compliance;
+export default Compliance
