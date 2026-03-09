@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../lib/axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../lib/axios";
 
 export interface Contact {
   id: string;
@@ -15,6 +15,8 @@ export interface Contact {
 
 interface ContactState {
   contacts: Contact[];
+  importHistory: any[];
+  exportHistory: any[];
   currentContact: any | null;
   queue: any[];
   folders: ContactFolder[];
@@ -48,6 +50,8 @@ export interface ContactGroup {
 
 const initialState: ContactState = {
   contacts: [],
+  importHistory: [],
+  exportHistory: [],
   currentContact: null,
   queue: [],
   folders: [],
@@ -60,6 +64,12 @@ const initialState: ContactState = {
 export interface CreateContactEmail {
   email: string;
   isPrimary: boolean;
+}
+
+interface ExportContactPayload {
+  fieldNames: string[]; // selected fields
+  listId?: string | null; // optional
+  groupId?: string | null; // optional
 }
 
 export interface CreateContactPhone {
@@ -87,10 +97,10 @@ export interface CreateContactPayload {
 // ---------------------------------------------------------------------------
 
 export const fetchContacts = createAsyncThunk(
-  'contacts/fetchContacts',
+  "contacts/fetchContacts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact');
+      const response = await api.get("/contact");
       if (response.data.success) {
         return response.data.data.map((c: any) => ({
           id: c.id,
@@ -102,15 +112,17 @@ export const fetchContacts = createAsyncThunk(
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
         }));
       }
-      return rejectWithValue('Failed to fetch contacts');
+      return rejectWithValue("Failed to fetch contacts");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contacts');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contacts",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactsByList = createAsyncThunk(
-  'contacts/fetchContactsByList',
+  "contacts/fetchContactsByList",
   async (listId: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/contact/contacts-list/${listId}`);
@@ -125,58 +137,87 @@ export const fetchContactsByList = createAsyncThunk(
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
         }));
       }
-      return rejectWithValue('Failed to fetch contacts for this list');
+      return rejectWithValue("Failed to fetch contacts for this list");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contacts for this list');
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Error fetching contacts for this list",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactById = createAsyncThunk(
-  'contacts/fetchContactById',
+  "contacts/fetchContactById",
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/contact/${id}`);
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to fetch contact details');
+      return rejectWithValue("Failed to fetch contact details");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contact details');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contact details",
+      );
     }
-  }
+  },
 );
 
 export const createContact = createAsyncThunk(
-  'contacts/createContact',
+  "contacts/createContact",
   async (payload: CreateContactPayload, { rejectWithValue }) => {
     try {
-      const response = await api.post('/contact/create', payload);
+      const response = await api.post("/contact/create", payload);
       if (response.data.success) {
         // Backend handles adding contact to the list inside the transaction
         // Do NOT call PATCH /list/:id here — that would wipe contactIds
         return response.data.data;
       }
-      return rejectWithValue('Failed to create contact');
+      return rejectWithValue("Failed to create contact");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error creating contact');
+      return rejectWithValue(
+        error.response?.data?.message || "Error creating contact",
+      );
     }
-  }
+  },
+);
+
+export const getAllImportedContacts = createAsyncThunk(
+  "contacts/getAllImportedContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/import-contacts");
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to fetch import history");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching import history",
+      );
+    }
+  },
 );
 
 export const updateContact = createAsyncThunk(
-  'contacts/updateContact',
-  async ({ id, payload }: { id: string; payload: any }, { rejectWithValue }) => {
+  "contacts/updateContact",
+  async (
+    { id, payload }: { id: string; payload: any },
+    { rejectWithValue },
+  ) => {
     try {
       const response = await api.put(`/contact/${id}`, payload);
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to update contact');
+      return rejectWithValue("Failed to update contact");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error updating contact');
+      return rejectWithValue(
+        error.response?.data?.message || "Error updating contact",
+      );
     }
-  }
+  },
 );
 
 export const deleteContact = createAsyncThunk(
@@ -242,48 +283,54 @@ export const assignContactToGroups = createAsyncThunk(
 );
 
 export const fetchContactFolders = createAsyncThunk(
-  'contacts/fetchContactFolders',
+  "contacts/fetchContactFolders",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact/folder');
+      const response = await api.get("/contact/folder");
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to fetch contact folders');
+      return rejectWithValue("Failed to fetch contact folders");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contact folders');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contact folders",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactLists = createAsyncThunk(
-  'contacts/fetchContactLists',
+  "contacts/fetchContactLists",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact/list');
+      const response = await api.get("/contact/list");
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to fetch contact lists');
+      return rejectWithValue("Failed to fetch contact lists");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contact lists');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contact lists",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactGroups = createAsyncThunk(
-  'contacts/fetchContactGroups',
+  "contacts/fetchContactGroups",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact/group');
+      const response = await api.get("/contact/group");
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to fetch contact groups');
+      return rejectWithValue("Failed to fetch contact groups");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error fetching contact groups');
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contact groups",
+      );
     }
-  }
+  },
 );
 
 export const sendLeadSheetEmail = createAsyncThunk(
@@ -304,7 +351,53 @@ export const sendLeadSheetEmail = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Error sending lead sheet email');
     }
-  }
+  },
+);
+
+export const exportContactCSV = createAsyncThunk(
+  "contacts/exportContactCSV",
+  async (
+    { fieldNames, listId, groupId }: ExportContactPayload,
+    { rejectWithValue },
+  ) => {
+    try {
+      const payload = {
+        fieldNames,
+        listId: listId ?? null,
+        groupId: groupId ?? null,
+      };
+
+      const response = await api.post(`/contact/export-csv`, payload);
+
+      if (response.data.success) {
+        // backend sirf contactsCount ya metadata return karega
+        return response.data.data;
+      }
+
+      return rejectWithValue("Failed to export contact to csv");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error exporting contact to csv",
+      );
+    }
+  },
+);
+
+export const getAllExportContacts = createAsyncThunk(
+  "contacts/getAllExportContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/export-csv");
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to fetch export history");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching export history",
+      );
+    }
+  },
 );
 
 export const uploadAttachment = createAsyncThunk(
@@ -346,7 +439,7 @@ export const deleteAttachment = createAsyncThunk(
 // ---------------------------------------------------------------------------
 
 export const contactSlice = createSlice({
-  name: 'contacts',
+  name: "contacts",
   initialState,
   reducers: {
     setQueue: (state, action) => {
@@ -414,7 +507,10 @@ export const contactSlice = createSlice({
           phone: action.payload.phones?.[0]?.number || "-",
           email: action.payload.emails?.[0]?.email || "-",
           list: action.payload.source || "-",
-          tags: action.payload.tags?.length > 0 ? action.payload.tags.join(", ") : "-",
+          tags:
+            action.payload.tags?.length > 0
+              ? action.payload.tags.join(", ")
+              : "-",
         };
         state.contacts.unshift(newContact);
       })
@@ -440,7 +536,10 @@ export const contactSlice = createSlice({
             phone: action.payload.phones?.[0]?.number || "-",
             email: action.payload.emails?.[0]?.email || "-",
             list: action.payload.source || "-",
-            tags: action.payload.tags?.length > 0 ? action.payload.tags.join(", ") : "-",
+            tags:
+              action.payload.tags?.length > 0
+                ? action.payload.tags.join(", ")
+                : "-",
           };
         }
       })
@@ -510,8 +609,18 @@ export const contactSlice = createSlice({
       .addCase(fetchContactGroups.fulfilled, (state, action) => {
         state.groups = action.payload;
       })
-
-      // ── uploadAttachment ───────────────────────────────────────────────────
+      .addCase(getAllExportContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllExportContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.exportHistory = action.payload;
+      })
+      .addCase(getAllExportContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(uploadAttachment.fulfilled, (state, action) => {
         if (state.currentContact) {
           if (!state.currentContact.attachments) {

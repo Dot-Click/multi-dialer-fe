@@ -11,9 +11,13 @@ const ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeItem, setActiveItem] = useState<{ type: string; id?: string; name: string }>({
+  const [activeItem, setActiveItem] = useState<{
+    type: string;
+    id?: string;
+    name: string;
+  }>({
     type: "allContacts",
-    name: "All Contacts"
+    name: "All Contacts",
   });
 
   // ✅ Handle responsive behavior
@@ -37,9 +41,11 @@ const ContactLayout = () => {
     <div className="min-h-screen w-full relative">
       {/* 🔹 Sidebar (hidden on mobile unless open) */}
       {(!isMobile || isOpen) && (
-        <div className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
+        <div
+          className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
     ${isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
-  `}>
+  `}
+        >
           <AllContactSidebar onSelectItem={setActiveItem} />
         </div>
       )}
@@ -67,7 +73,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-4 bg-[#F7F7F7] w-full transition-all duration-300
+        className={`absolute top-16 pt-4 bg-[#F7F7F7] dark:bg-slate-900 w-full transition-all duration-300
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <Outlet context={{ activeItem }} />
@@ -75,21 +81,24 @@ const ContactLayout = () => {
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex w-full bottom-0 fixed bg-white shadow-2xl py-4 items-center gap-2
+        className={`flex w-full bottom-0 fixed bg-white dark:bg-slate-700 shadow-2xl py-4 items-center gap-2
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <button
           className="flex items-center gap-2"
           onClick={() => setShowExportModal(true)}
         >
-          <TfiDownload className="text-[17px] text-[#495057]" />
-          <span className="text-[16px] text-[#495057] font-medium">Export</span>
+          <TfiDownload className="text-[17px] dark:text-white text-[#495057]" />
+          <span className="text-[16px] dark:text-white text-[#495057] font-medium">Export</span>
         </button>
       </div>
 
       {/* 🔹 Export Modal */}
       {showExportModal && (
-        <ExportFieldsModal onClose={() => setShowExportModal(false)} />
+        <ExportFieldsModal
+          onClose={() => setShowExportModal(false)}
+          activeItem={activeItem}
+        />
       )}
     </div>
   );

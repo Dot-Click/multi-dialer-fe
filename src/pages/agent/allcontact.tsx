@@ -55,7 +55,7 @@ const AllContact = () => {
           </span>
         )}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-          <h1 className="text-[24px] text-[#0E1011] sm:text-[28px] font-medium">
+          <h1 className="text-[24px] text-[#0E1011] dark:text-white sm:text-[28px] font-medium">
             {renderHeading()}
           </h1>
 
@@ -66,7 +66,7 @@ const AllContact = () => {
           >
             <img src={managecolicon} className='w-[20px] h-[16px] object-contain' alt="managecolicon" />
 
-            <span className="text-[16px] font-medium text-[#495057] inline">
+            <span className="text-[16px] font-medium text-[#495057] dark:text-white inline">
               Manage Columns
             </span>
           </div>
@@ -77,11 +77,11 @@ const AllContact = () => {
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
         {/* Search + Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="bg-white flex items-center justify-between w-full sm:w-[40vw] rounded-[1000000px] border border-[#D8DCE1] py-[12px] px-[24px]">
+          <div className="bg-white dark:bg-slate-700 flex items-center justify-between w-full sm:w-[40vw] rounded-[1000000px] border border-[#D8DCE1] dark:border-slate-600 py-[12px] px-[24px]">
             <input
               type="search"
               placeholder="Search by name, email, phone number..."
-              className="w-full placeholder:text-[16px] font-normal text-[#495057] text-[16px] outline-none"
+              className="w-full placeholder:text-[16px] font-normal text-[#495057] dark:text-white text-[16px] outline-none"
             />
             <IoIosSearch className="text-2xl text-gray-600" />
           </div>
