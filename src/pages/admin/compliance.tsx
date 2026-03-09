@@ -4,12 +4,12 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+  MoreVertical
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
@@ -131,22 +131,12 @@ const Compliance = () => {
   return (
     <Box className="min-h-screen pr-3 lg:pr-6">
       {/* Page Title */}
-      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
-        Compliance & DNC
-      </h1>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4 sm:mb-6">Compliance & DNC</h1>
 
       {/* Purchased Numbers Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-            Purchased Numbers
-          </h2>
-          <Button
-            variant="outline"
-            className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 w-full sm:w-auto"
-          >
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Purchased Numbers</h2>
-          <Button onClick={() => navigate("/admin/system-settings")} variant="outline" className="rounded-md bg-gray-100 hover:bg-gray-50 w-full sm:w-auto">
           <Button onClick={() => navigate("/admin/system-settings")} variant="outline" className="rounded-md bg-gray-100 hover:bg-gray-50 w-full sm:w-auto">
             Go to Call Settings
           </Button>
@@ -154,28 +144,11 @@ const Compliance = () => {
 
         <div className="space-y-4">
           {purchasedNumbers.map((item, index) => (
-            <div
-              key={index}
-              className="grid px-4 py-3 rounded-xl grid-cols-1 sm:grid-cols-3 gap-4 border border-gray-200 dark:border-slate-700 sm:gap-6"
-            >
+            <div key={index} className="grid px-4 py-3   rounded-xl grid-cols-1 sm:grid-cols-3 gap-4 border border-xl sm:gap-6  ">
               {/* Left Column - Number Details */}
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-base font-medium text-gray-900 dark:text-white">
-                    {item.number}
-                  </span>
-                  <Badge
-                    className={`${
-                      item.status === "Healthy"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border-0"
-                        : "bg-gray-900 text-white dark:bg-slate-600 border-0"
-                    } rounded-full px-3 py-1 text-xs font-medium`}
                   <span className="text-base font-medium text-gray-900">{item.number}</span>
-                  <Badge
-                    className={`${item.status === 'Healthy'
-                      ? 'bg-green-100 text-green-700 border-0'
-                      : 'bg-gray-900 text-white border-0'
-                      } rounded-full px-3 py-1 text-xs font-medium`}
                   <Badge
                     className={`${item.status === 'Healthy'
                       ? 'bg-green-100 text-green-700 border-0'
@@ -189,25 +162,16 @@ const Compliance = () => {
               </div>
 
 
-
               {/* Middle Column - Country */}
               <div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-normal mb-1">
-                  Country
-                </div>
-                <div className="text-base font-medium text-gray-900 dark:text-white">
-                  {item.country}
-                </div>
+                <div className="text-sm text-gray-600 font-normal mb-1">Country</div>
+                <div className="text-base font-medium text-gray-900">{item.country}</div>
               </div>
 
               {/* Right Column - Added On */}
               <div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-normal mb-1">
-                  Added on
-                </div>
-                <div className="text-base font-medium text-gray-900 dark:text-white">
-                  {item.addedOn}
-                </div>
+                <div className="text-sm text-gray-600 font-normal mb-1">Added on</div>
+                <div className="text-base font-medium text-gray-900">{item.addedOn}</div>
               </div>
             </div>
           ))}
@@ -256,65 +220,41 @@ const Compliance = () => {
         {/* DNC Table */}
         <div className="overflow-x-auto  max-h-[400px] overflow-y-auto">
           <Table>
-            <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
-              <TableRow className="border-b border-gray-200 dark:border-slate-700 bg-gray-200 dark:bg-slate-700 ">
+            <TableHeader className="sticky top-0 bg-white z-10">
+              <TableRow className="border-b border-gray-200 bg-gray-200 ">
                 <TableHead className="w-12 px-2 sm:px-4 py-3">
-                  <Checkbox className="dark:border-white" />
+                  <Checkbox />
                 </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Name
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Last Called Date
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Phone Number
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Email
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  List
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Tags
-                </TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Name</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Last Called Date</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Phone Number</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Email</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">List</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Tags</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {dncList.map((item, index) => (
-                <TableRow
-                  key={index}
-                  className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
-                >
+                <TableRow key={index} className="border-b border-gray-100 hover:bg-gray-50">
                   <TableCell className="px-2 sm:px-4 py-4">
-                    <Checkbox className="dark:border-white" />
+                    <Checkbox />
                   </TableCell>
-                  <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.name}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
-                    {item.lastCalled}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
+                  <TableCell className="text-blue-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.name}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.lastCalled}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4">
                     <div className="flex items-center gap-2">
                       <Phone className="size-4 text-gray-500 shrink-0" />
                       <span className="text-sm sm:text-base whitespace-nowrap">{item.phone}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">
-                    {item.email}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.list}
-                  </TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{item.email}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.list}</TableCell>
                   <TableCell className="px-2 sm:px-4 py-4">
                     <div className="flex items-center gap-2 flex-wrap">
                       {item.tags.map((tag, tagIndex) => (
                         <Badge
-                        <Badge
                           key={tagIndex}
-                          className="bg-gray-100 text-gray-700 dark:bg-slate-600 dark:text-gray-200 border-0 hover:bg-gray-100 dark:hover:bg-slate-500 rounded-full px-2 py-1 text-xs font-medium"
+                          className="bg-gray-100 text-gray-700 border-0 hover:bg-gray-100 rounded-full px-2 py-1 text-xs font-medium"
                         >
                           {tag}
                         </Badge>
@@ -329,35 +269,21 @@ const Compliance = () => {
       </div>
 
       {/* Regulatory Settings Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-slate-700">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
           Regulatory Settings
         </h2>
 
         {/* TCPA Settings */}
         <div className="mb-8">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
             TCPA Settings (US)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {/* From */}
             <div>
-              <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-                From
-              </Label>
-              <Select defaultValue="8:00">
-                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="8:00">8:00</SelectItem>
-                  <SelectItem value="9:00">9:00</SelectItem>
               <Label className="text-sm text-gray-700 block mb-2">From</Label>
-              <Select
-                value={regulatory?.tcpaFrom || "08:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaFrom: val })}
-              >
               <Select
                 value={regulatory?.tcpaFrom || "08:00"}
                 onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaFrom: val })}
@@ -369,25 +295,13 @@ const Compliance = () => {
                   <SelectItem value="08:00">8:00</SelectItem>
                   <SelectItem value="09:00">9:00</SelectItem>
                   <SelectItem value="10:00">10:00</SelectItem>
-                  <SelectItem value="08:00">8:00</SelectItem>
-                  <SelectItem value="09:00">9:00</SelectItem>
-                  <SelectItem value="10:00">10:00</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* To */}
             <div>
-              <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-                To
-              </Label>
-              <Select defaultValue="18:00">
-                <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
               <Label className="text-sm text-gray-700 block mb-2">To</Label>
-              <Select
-                value={regulatory?.tcpaTo || "18:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaTo: val })}
-              >
               <Select
                 value={regulatory?.tcpaTo || "18:00"}
                 onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaTo: val })}
@@ -395,11 +309,9 @@ const Compliance = () => {
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
+                <SelectContent>
                   <SelectItem value="18:00">18:00</SelectItem>
                   <SelectItem value="19:00">19:00</SelectItem>
-                  <SelectItem value="20:00">20:00</SelectItem>
-                  <SelectItem value="21:00">21:00</SelectItem>
                   <SelectItem value="20:00">20:00</SelectItem>
                   <SelectItem value="21:00">21:00</SelectItem>
                 </SelectContent>
@@ -409,29 +321,15 @@ const Compliance = () => {
 
           {/* Autodialing toggle */}
           <div className="flex items-center gap-3">
-            <Label className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-              Autodialing
-            </Label>
+            <Label className="text-sm text-gray-700 whitespace-nowrap">Autodialing</Label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 className="sr-only peer"
                 checked={regulatory?.tcpaAutodialing || false}
                 onChange={(e) => updateRegulatorySettings.mutate({ tcpaAutodialing: e.target.checked })}
-                checked={regulatory?.tcpaAutodialing || false}
-                onChange={(e) => updateRegulatorySettings.mutate({ tcpaAutodialing: e.target.checked })}
               />
-              <div
-                className={`w-11 h-6 rounded-full bg-gray-300 dark:bg-slate-600 peer-checked:bg-gray-500 dark:peer-checked:bg-green-500 transition-all`}
-              >
-                <div
-                  className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${
-                    autodialing ? "translate-x-5" : "translate-x-0"
-                  }`}
-                ></div>
               <div className={`w-11 h-6 rounded-full bg-gray-300 peer-checked:bg-gray-500 transition-all`}>
-                <div className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${regulatory?.tcpaAutodialing ? 'translate-x-5' : 'translate-x-0'
-                  }`}></div>
                 <div className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full transition-transform ${regulatory?.tcpaAutodialing ? 'translate-x-5' : 'translate-x-0'
                   }`}></div>
               </div>
@@ -441,20 +339,11 @@ const Compliance = () => {
 
         {/* GDPR Settings */}
         <div>
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
             GDPR Settings (EU)
           </h3>
           <div className="mb-4">
-            <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">
-              Keep contact data for:
-            </Label>
-            <Select defaultValue="30">
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-0">
             <Label className="text-sm text-gray-700 block mb-2">Keep contact data for:</Label>
-            <Select
-              value={String(regulatory?.gdprRetentionDays || 30)}
-              onValueChange={(val) => updateRegulatorySettings.mutate({ gdprRetentionDays: Number(val) })}
-            >
             <Select
               value={String(regulatory?.gdprRetentionDays || 30)}
               onValueChange={(val) => updateRegulatorySettings.mutate({ gdprRetentionDays: Number(val) })}
@@ -462,11 +351,10 @@ const Compliance = () => {
               <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
+              <SelectContent>
                 <SelectItem value="30">30 days</SelectItem>
                 <SelectItem value="60">60 days</SelectItem>
                 <SelectItem value="90">90 days</SelectItem>
-                <SelectItem value="365">1 year</SelectItem>
                 <SelectItem value="365">1 year</SelectItem>
               </SelectContent>
             </Select>
@@ -480,10 +368,7 @@ const Compliance = () => {
               onChange={(e) => updateRegulatorySettings.mutate({ gdprDeleteRelated: e.target.checked })}
               className="h-4 w-4 accent-black focus:ring-black border-gray-400 rounded cursor-pointer mt-1 sm:mt-0"
             />
-            <Label
-              htmlFor="gdpr-delete"
-              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-            >
+            <Label htmlFor="gdpr-delete" className="text-sm text-gray-700 cursor-pointer">
               Delete related call records and notes along with a contact.
             </Label>
           </div>
@@ -497,17 +382,7 @@ const Compliance = () => {
           {/* Left Side: Heading + All Dates beside it */}
           <div className="flex items-center gap-3">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Audit Logs</h2>
-          {/* Left Side: Heading + All Dates beside it */}
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Audit Logs</h2>
 
-            {/* All Dates Badge — right beside heading */}
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 bg-white">
-              <ChevronLeft className="size-4 text-gray-500" />
-              <span className="text-xs sm:text-sm text-gray-700">All Dates</span>
-              <ChevronRight className="size-4 text-gray-500" />
-            </div>
-          </div>
             {/* All Dates Badge — right beside heading */}
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 bg-white">
               <ChevronLeft className="size-4 text-gray-500" />
@@ -570,108 +445,7 @@ const Compliance = () => {
         </div>
       </div>
     </Box>
-        {/* Audit Logs Table */}
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-white z-10">
-              <TableRow className="border-b border-gray-200 hover:bg-transparent">
-                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Date</TableHead>
-                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">User</TableHead>
-                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Role</TableHead>
-                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3">Action</TableHead>
-                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditLogs.map((item, index) => (
-                <TableRow key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.date}</TableCell>
-                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.user}</TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <Badge
-                      className={`${item.role === 'Agent'
-                        ? 'bg-blue-100 text-blue-700 border-0'
-                        : 'bg-orange-100 text-orange-700 border-0'
-                        } rounded-full px-3 py-1 text-xs font-medium`}
-                    >
-                      {item.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.action}</TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors">
-                      <MoreVertical className="size-4 text-gray-600" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </Box>
   )
 }
 
-        {/* Audit Logs Table */}
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
-              <TableRow className="border-b border-gray-200 dark:border-slate-700 hover:bg-transparent dark:hover:bg-transparent">
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Date
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  User
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Role
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3">
-                  Action
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditLogs.map((item, index) => (
-                <TableRow
-                  key={index}
-                  className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
-                >
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
-                    {item.date}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.user}
-                  </TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <Badge
-                      className={`${
-                        item.role === "Agent"
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 border-0"
-                          : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border-0"
-                      } rounded-full px-3 py-1 text-xs font-medium`}
-                    >
-                      {item.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.action}
-                  </TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-md transition-colors">
-                      <MoreVertical className="size-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </Box>
-  );
-};
-
-export default Compliance;
+export default Compliance
