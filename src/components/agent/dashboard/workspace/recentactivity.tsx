@@ -16,9 +16,9 @@ const RecentActivity = () => {
 
 
     return (
-        <section className='bg-white flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
+        <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
             <div className="flex flex-col justify-between gap-1.5">
-                <h1 className="text-[20px] text-[#000000] font-[500]">Recent Activity</h1>
+                <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Recent Activity</h1>
 
             </div>
 
@@ -27,10 +27,10 @@ const RecentActivity = () => {
                 {recentActivity.map((gr) => (
                     <div key={gr.id} className='flex mx-2 rounded-md border-b gap-2 items-center border-gray-200'>
                         <div className="flex flex-col gap-1.5 justify-between w-full">
-                            <h1 className=" text-[10px] md:text-[14px] font-[500] text-[#000000]">{gr.name}</h1>
+                            <h1 className=" text-[10px] dark:text-white md:text-[14px] font-[500] text-[#000000]">{gr.name}</h1>
                             <div className='flex items-center gap-2'>
-                                <h1 className="text-[9px] md:text-[12px] font-[400] text-[#495057]">{gr.date}</h1>
-                                <h1 className="text-[9px] md:text-[12px] font-[400] text-[#495057]">{gr.time}</h1>
+                                <h1 className="text-[9px] dark:text-gray-400 md:text-[12px] font-[400] text-[#495057]">{gr.date}</h1>
+                                <h1 className="text-[9px] dark:text-gray-400 md:text-[12px] font-[400] text-[#495057]">{gr.time}</h1>
                             </div>
                         </div>
                     </div>

@@ -210,15 +210,15 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   const standaloneLists = lists.filter(list => !folderListIds.has(list.id));
 
   return (
-    <aside className="bg-white flex gap-4 flex-col px-5 py-4 w-64 h-screen  ">
+    <aside className="bg-white dark:bg-slate-800 flex gap-4 flex-col px-5 py-4 w-64 h-screen  ">
 
       {/* ✅ Updated Back Button */}
       <Link
         to={backTo}
-        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
+        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] dark:text-white transition"
       >
         <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] font-[500]">Back To Home</span>
+        <span className="text-[16px] text-[#495057] dark:text-white font-[500]">Back To Home</span>
       </Link>
 
       <div className="border-b border-gray-100 h-1"></div>
@@ -230,14 +230,14 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
           ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
       >
         <img src={usericon} alt="usericon" className="w-6 h-6" />
-        <h1 className="text-[#495057] font-[500] text-[14px]">All Contacts</h1>
+        <h1 className="text-[#495057] dark:text-white font-[500] text-[14px]">All Contacts</h1>
       </div>
 
       <div className="border-b border-gray-100 h-1"></div>
 
       {/* Calling Lists */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] font-[500] uppercase text-[14px]">Calling Lists</h1>
+        <h1 className="text-[#495057] dark:text-white font-[500] uppercase text-[14px]">Calling Lists</h1>
         <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {folders.map((folder: ContactFolder) => (
             <div key={folder.id} className="flex flex-col gap-1.5">
@@ -247,7 +247,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
                    bg-gray-50 hover:bg-[#FFCA06]`}
               >
                 <VscFolderOpened className="text-lg" />
-                <h1 className="text-[#495057] font-[500] text-[14px] truncate">
+                <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">
                   {folder.name}
                 </h1>
               </div>
@@ -260,10 +260,10 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
                       <div
                         key={list.id}
                         onClick={() => handleClick("list", list.name, list.id)}
-                        className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+                        className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                           ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
                       >
-                        <h1 className="text-[#495057] font-[500] text-[14px] truncate">{list.name}</h1>
+                        <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">{list.name}</h1>
                         <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5">
                           {getInitials(list.name)}
                         </h1>
@@ -279,10 +279,10 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
             <div
               key={list.id}
               onClick={() => handleClick("list", list.name, list.id)}
-              className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+              className={`text-[#495057]  dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                 ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
             >
-              <h1 className="text-[#495057] font-[500] text-[14px] truncate">{list.name}</h1>
+              <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">{list.name}</h1>
               <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5">
                 {getInitials(list.name)}
               </h1>
@@ -293,7 +293,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
 
       {/* Groups */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#495057] uppercase font-[500] text-[14px]">Groups</h1>
+        <h1 className="text-[#495057] dark:text-white uppercase font-[500] text-[14px]">Groups</h1>
         <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
           {groups.map((gro: ContactGroup) => (
             <div

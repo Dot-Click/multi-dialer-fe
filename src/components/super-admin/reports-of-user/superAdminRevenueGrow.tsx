@@ -38,8 +38,8 @@ const lineData = [
 
 const SuperAdminRevenueGrow = () => {
   return (
-    <div className="w-full work-sans p-4 md:p-[24.9px] bg-white rounded-[33.21px] shadow-sm ">
-      <h2 className="text-[20.75px] font-[500] mb-8 text-[#000000]">Revenue Grow</h2>
+    <div className="w-full outfit p-4 md:p-[24.9px] bg-white dark:bg-slate-800 rounded-[33.21px] shadow-sm ">
+      <h2 className="text-[20.75px] font-[500] mb-8 text-[#000000] dark:text-white">Revenue Grow</h2>
 
       {/* Grid container: Mobile par 1 column, badi screens par 2 columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

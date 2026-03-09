@@ -641,7 +641,7 @@ export default function CustomCalendar() {
               style={{ backgroundColor: it.color }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-gray-700 truncate">{it.title}</p>
+              <p className="font-medium  text-gray-700 truncate">{it.title}</p>
               <p className="text-gray-500 truncate">{formatEventTime(it)}</p>
             </div>
           </div>
@@ -667,7 +667,7 @@ export default function CustomCalendar() {
       {/* ------- header ------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <h2 className="text-base sm:text-[28px] font-medium text-[#0E1011]">
+          <h2 className="text-base sm:text-[28px] dark:text-white font-medium text-[#0E1011]">
             {currentDate.format("MMMM YYYY")}
           </h2>
           <div className="flex gap-2">

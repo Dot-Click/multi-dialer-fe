@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logo from "@/assets/logo.png";
 import sidebaricon from "@/assets/sidebaricon.png";
 import settingicon from "@/assets/settingicon.png";
 import exiticon from "@/assets/exiticon.png";
@@ -13,7 +12,7 @@ import dashIcon from "@/assets/dashIcon.png";
 
 import { FiMenu } from "react-icons/fi";
 import { logout } from "@/store/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 interface SuperAdminSidebarProps {
   isOpen: boolean;
@@ -29,9 +28,9 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   setIsMobile,
 }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  const { mode } = useAppSelector((state) => state.theme);
 
-  
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -100,7 +99,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-300 z-40
+        className={`fixed top-0 left-0 h-screen bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 z-40
           ${isOpen ? "w-64" : "w-16"}
           ${isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"}
         `}
@@ -111,7 +110,9 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
             {/* Logo only shows when sidebar is OPEN */}
             {isOpen && (
               <img
-                src={logo}
+                src={
+                  mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"
+                }
                 alt="Logo"
                 className="object-contain w-36 transition-all duration-300"
               />
@@ -132,13 +133,17 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
           {/* User Info */}
           {isOpen && (
-            <div className="flex bg-gray-50 border border-gray-200 px-3 py-2 rounded-md flex-col">
-              <h1 className="font-semibold text-gray-950 text-sm">John Lee</h1>
-              <p className="text-gray-600 text-xs">j.lee@example.com</p>
+            <div className="flex bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-md flex-col">
+              <h1 className="font-semibold text-gray-950 dark:text-slate-100 text-sm">
+                John Lee
+              </h1>
+              <p className="text-gray-600 dark:text-slate-400 text-xs">
+                j.lee@example.com
+              </p>
             </div>
           )}
 
-          <div className="border-t border-gray-200"></div>
+          <div className="border-t border-gray-200 dark:border-slate-800"></div>
 
           {/* Links */}
           <div className="flex flex-col gap-1 justify-center">
@@ -153,11 +158,14 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
                   ${
                     isActive
                       ? "bg-[#FFCA06] font-[600] text-gray-900"
-                      : "hover:bg-[#FFCA06] text-gray-700"
+                      : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                   }`
                 }
               >
-                <img src={slinks.icon} className="h-4 w-4 object-contain" />
+                <img
+                  src={slinks.icon}
+                  className="h-4 w-4 dark:invert object-contain"
+                />
                 {isOpen && (
                   <span className="text-[12px] font-medium">{slinks.name}</span>
                 )}
@@ -167,11 +175,11 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
         </div>
 
         {/* Bottom Links */}
-        <div className="px-3 pb-4 border-t border-gray-200 pt-3 flex flex-col gap-1">
+        <div className="px-3 pb-4 border-t border-gray-200 dark:border-slate-800 pt-3 flex flex-col gap-1">
           {/* EXIT BUTTON */}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 hover:text-white transition-all
+            className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 dark:text-slate-300 hover:text-white transition-all
               ${!isOpen ? "justify-center" : ""}`}
           >
             <img src={exiticon} className="h-3 w-3 object-contain" />

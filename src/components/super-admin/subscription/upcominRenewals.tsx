@@ -1,5 +1,3 @@
-
-
 const upcomingRenewals = [
   {
     name: "TechCorp Solutions",
@@ -21,15 +19,14 @@ const upcomingRenewals = [
     reason: "Payment failed - Bank declined transaction",
     amount: "$6,120",
   },
-];     
+];
 
 const UpcomingRenewals = () => {
   return (
-    <div className="w-full md:w-[50%] bg-white work-sans rounded-[22px] py-6 shadow-lg">
-      
+    <div className="w-full md:w-[50%] bg-white dark:bg-slate-800 work-sans rounded-[22px] py-6 shadow-lg">
       {/* Header */}
       <div className="flex justify-between px-6  items-center mb-3">
-        <h3 className="text-[22px] font-[600] text-[#2C2C2C]">
+        <h3 className="text-[22px] font-[600] text-[#2C2C2C] dark:text-white">
           Upcoming Renewals
         </h3>
         <button className="text-[16px] font-[400] text-[#2463EB]">
@@ -42,13 +39,13 @@ const UpcomingRenewals = () => {
         {upcomingRenewals.map((item, index) => (
           <div
             key={index}
-            className="bg-[#FEFCE8] rounded-[12px] px-4 py-3.5 flex justify-between items-center"
+            className="bg-[#FEFCE8] dark:bg-yellow-900/20 rounded-[12px] px-4 py-3.5 flex justify-between items-center"
           >
             <div className="pr-2">
-              <p className="text-[16px] font-[600] text-[#1D2C45]">
+              <p className="text-[16px] font-[600] text-[#1D2C45] dark:text-white">
                 {item.name}
               </p>
-              <p className="text-[14px] font-[400] text-[#1D2C45B5]">
+              <p className="text-[14px] font-[400] text-[#1D2C45B5] dark:text-gray-400">
                 {item.reason}
               </p>
             </div>

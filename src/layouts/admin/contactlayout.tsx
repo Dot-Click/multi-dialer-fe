@@ -10,7 +10,6 @@
 // import { FaChevronDown } from "react-icons/fa";
 // import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 
-
 // const ContactLayout = () => {
 //   const [isOpen, setIsOpen] = useState(true);
 //   const [isMobile, setIsMobile] = useState(false);
@@ -49,8 +48,8 @@
 //       {isMobile && (
 //         <button
 //           onClick={() => setIsOpen(!isOpen)}
-//           className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition 
-//             bg-gray-100 hover:bg-gray-200 
+//           className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition
+//             bg-gray-100 hover:bg-gray-200
 //             ${isOpen ? "left-52" : "left-4"}`}
 //         >
 //           {isOpen ? (
@@ -105,7 +104,6 @@
 //           <span className="text-sm text-gray-700"><FaChevronDown /></span>
 //         </Link>
 
-
 //         <button
 //           className="flex items-center gap-2"
 //           onClick={() => setShowExportModal(true)}
@@ -124,7 +122,6 @@
 
 // export default ContactLayout;
 
-
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -142,9 +139,13 @@ const ContactLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeItem, setActiveItem] = useState<{ type: string; id?: string; name: string }>({
+  const [activeItem, setActiveItem] = useState<{
+    type: string;
+    id?: string;
+    name: string;
+  }>({
     type: "allContacts",
-    name: "All Contacts"
+    name: "All Contacts",
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -177,11 +178,12 @@ const ContactLayout = () => {
       {(!isMobile || isOpen) && (
         <div
           className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
-            ${isMobile
-              ? isOpen
-                ? "translate-x-0"
-                : "-translate-x-full"
-              : "translate-x-0"
+            ${
+              isMobile
+                ? isOpen
+                  ? "translate-x-0"
+                  : "-translate-x-full"
+                : "translate-x-0"
             }
           `}
         >
@@ -212,7 +214,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] w-full transition-all duration-300
+        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] dark:bg-slate-900 w-full transition-all duration-300
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <Outlet context={{ activeItem }} />
@@ -263,7 +265,10 @@ const ContactLayout = () => {
 
       {/* 🔹 Export Modal */}
       {showExportModal && (
-        <ExportFieldsModal onClose={() => setShowExportModal(false)} />
+        <ExportFieldsModal
+          onClose={() => setShowExportModal(false)}
+          activeItem={activeItem}
+        />
       )}
 
       {/* 🔹 Delete Confirmation Modal */}
@@ -271,7 +276,9 @@ const ContactLayout = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000]">
           <div className="bg-white w-[380px] rounded-xl shadow-lg p-6 text-center relative">
             {/* Warning Icon */}
-            <div className="text-red-500 flex justify-center text-4xl mb-3"><TbInfoTriangle /></div>
+            <div className="text-red-500 flex justify-center text-4xl mb-3">
+              <TbInfoTriangle />
+            </div>
             <h2 className="text-lg font-medium mb-1">Delete Lead?</h2>
             <p className="text-sm text-gray-500 mb-5">
               Once deleted, this action cannot be undone. Are you sure you want

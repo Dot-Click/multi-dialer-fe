@@ -23,9 +23,9 @@ const FoldersList = () => {
     const [active, setActive] = useState(1);
 
     return (
-        <section className='bg-white flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
+        <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
             <div className="flex flex-col justify-between gap-1.5">
-                <h1 className="text-[20px] text-[#000000] font-[500]">Folders & Lists</h1>
+                <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Folders & Lists</h1>
                 <div className='flex gap-3'>
                     {folderLists.map((dt) => (
                         <button
@@ -33,8 +33,8 @@ const FoldersList = () => {
                             onClick={() => setActive(dt.id)}
                             className={
                                 active === dt.id
-                                    ? "border px-2 rounded-md font-[500] cursor-pointer py-1 text-[9px] md:text-[12px] bg-[#0E1011] text-white"
-                                    : "border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]"
+                                    ? "border px-2 rounded-md font-[500] cursor-pointer py-1 text-[9px] md:text-[12px] dark:bg-slate-700 bg-[#0E1011] text-white"
+                                    : "border px-2 rounded-md text-gray-950 dark:text-gray-400 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]"
                             }
                         >
                             {dt.name}
@@ -45,10 +45,10 @@ const FoldersList = () => {
 
             <div className='flex flex-col gap-5  overflow-auto custom-scrollbar'>
                 {listName.map((gr) => (
-                    <div key={gr.id} className='flex mx-2 rounded-md border-b gap-2 items-center border-gray-200'>
+                    <div key={gr.id} className='flex mx-2  border-b gap-2 items-center border-gray-200'>
                         <div className="flex flex-col justify-between w-full">
-                            <h1 className="text-[14px] font-[500] text-[#000000]">{gr.name}</h1>
-                            <h1 className="text-[14px] font-[400] text-[#495057]">Contacts: {gr.contact}</h1>
+                            <h1 className="text-[14px] dark:text-white font-[500] text-[#000000]">{gr.name}</h1>
+                            <h1 className="text-[14px] dark:text-gray-400 font-[400] text-[#495057]">Contacts: {gr.contact}</h1>
                         </div>
                     </div>
                 ))}
