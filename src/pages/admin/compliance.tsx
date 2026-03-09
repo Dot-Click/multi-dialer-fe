@@ -4,12 +4,12 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+  MoreVertical
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -17,16 +17,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Box } from "@/components/ui/box";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/select'
+import { Box } from '@/components/ui/box'
+import { Label } from '@/components/ui/label'
 
 import { useCallerIds, useDncList, useRegulatorySettings, useAuditLogs } from '@/hooks/useSystemSettings'
 import { useNavigate } from 'react-router-dom'
@@ -131,12 +131,10 @@ const Compliance = () => {
   return (
     <Box className="min-h-screen pr-3 lg:pr-6">
       {/* Page Title */}
-      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
-        Compliance & DNC
-      </h1>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4 sm:mb-6">Compliance & DNC</h1>
 
       {/* Purchased Numbers Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Purchased Numbers</h2>
           <Button onClick={() => navigate("/admin/system-settings")} variant="outline" className="rounded-md bg-gray-100 hover:bg-gray-50 w-full sm:w-auto">
@@ -146,10 +144,7 @@ const Compliance = () => {
 
         <div className="space-y-4">
           {purchasedNumbers.map((item, index) => (
-            <div
-              key={index}
-              className="grid px-4 py-3 rounded-xl grid-cols-1 sm:grid-cols-3 gap-4 border border-gray-200 dark:border-slate-700 sm:gap-6"
-            >
+            <div key={index} className="grid px-4 py-3   rounded-xl grid-cols-1 sm:grid-cols-3 gap-4 border border-xl sm:gap-6  ">
               {/* Left Column - Number Details */}
               <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -169,22 +164,14 @@ const Compliance = () => {
 
               {/* Middle Column - Country */}
               <div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-normal mb-1">
-                  Country
-                </div>
-                <div className="text-base font-medium text-gray-900 dark:text-white">
-                  {item.country}
-                </div>
+                <div className="text-sm text-gray-600 font-normal mb-1">Country</div>
+                <div className="text-base font-medium text-gray-900">{item.country}</div>
               </div>
 
               {/* Right Column - Added On */}
               <div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 font-normal mb-1">
-                  Added on
-                </div>
-                <div className="text-base font-medium text-gray-900 dark:text-white">
-                  {item.addedOn}
-                </div>
+                <div className="text-sm text-gray-600 font-normal mb-1">Added on</div>
+                <div className="text-base font-medium text-gray-900">{item.addedOn}</div>
               </div>
             </div>
           ))}
@@ -220,10 +207,6 @@ const Compliance = () => {
           </div>
         </div>
 
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-          </div>
-        </div>
 
         {/* Search Bar */}
         <div className="mb-6">
@@ -237,64 +220,41 @@ const Compliance = () => {
         {/* DNC Table */}
         <div className="overflow-x-auto  max-h-[400px] overflow-y-auto">
           <Table>
-            <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
-              <TableRow className="border-b border-gray-200 dark:border-slate-700 bg-gray-200 dark:bg-slate-700 ">
+            <TableHeader className="sticky top-0 bg-white z-10">
+              <TableRow className="border-b border-gray-200 bg-gray-200 ">
                 <TableHead className="w-12 px-2 sm:px-4 py-3">
-                  <Checkbox className="dark:border-white" />
+                  <Checkbox />
                 </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Name
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Last Called Date
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Phone Number
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Email
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  List
-                </TableHead>
-                <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
-                  Tags
-                </TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Name</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Last Called Date</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Phone Number</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Email</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">List</TableHead>
+                <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Tags</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {dncList.map((item, index) => (
-                <TableRow
-                  key={index}
-                  className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
-                >
+                <TableRow key={index} className="border-b border-gray-100 hover:bg-gray-50">
                   <TableCell className="px-2 sm:px-4 py-4">
-                    <Checkbox className="dark:border-white" />
+                    <Checkbox />
                   </TableCell>
-                  <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.name}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
-                    {item.lastCalled}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
+                  <TableCell className="text-blue-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.name}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.lastCalled}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4">
                     <div className="flex items-center gap-2">
                       <Phone className="size-4 text-gray-500 shrink-0" />
                       <span className="text-sm sm:text-base whitespace-nowrap">{item.phone}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">
-                    {item.email}
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                    {item.list}
-                  </TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{item.email}</TableCell>
+                  <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.list}</TableCell>
                   <TableCell className="px-2 sm:px-4 py-4">
                     <div className="flex items-center gap-2 flex-wrap">
                       {item.tags.map((tag, tagIndex) => (
                         <Badge
                           key={tagIndex}
-                          className="bg-gray-100 text-gray-700 dark:bg-slate-600 dark:text-gray-200 border-0 hover:bg-gray-100 dark:hover:bg-slate-500 rounded-full px-2 py-1 text-xs font-medium"
+                          className="bg-gray-100 text-gray-700 border-0 hover:bg-gray-100 rounded-full px-2 py-1 text-xs font-medium"
                         >
                           {tag}
                         </Badge>
@@ -309,14 +269,14 @@ const Compliance = () => {
       </div>
 
       {/* Regulatory Settings Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-slate-700">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
           Regulatory Settings
         </h2>
 
         {/* TCPA Settings */}
         <div className="mb-8">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
             TCPA Settings (US)
           </h3>
 
@@ -349,7 +309,7 @@ const Compliance = () => {
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
+                <SelectContent>
                   <SelectItem value="18:00">18:00</SelectItem>
                   <SelectItem value="19:00">19:00</SelectItem>
                   <SelectItem value="20:00">20:00</SelectItem>
@@ -361,9 +321,7 @@ const Compliance = () => {
 
           {/* Autodialing toggle */}
           <div className="flex items-center gap-3">
-            <Label className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
-              Autodialing
-            </Label>
+            <Label className="text-sm text-gray-700 whitespace-nowrap">Autodialing</Label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -381,7 +339,7 @@ const Compliance = () => {
 
         {/* GDPR Settings */}
         <div>
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-4">
             GDPR Settings (EU)
           </h3>
           <div className="mb-4">
@@ -393,7 +351,7 @@ const Compliance = () => {
               <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-10 rounded-lg border-0 bg-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
+              <SelectContent>
                 <SelectItem value="30">30 days</SelectItem>
                 <SelectItem value="60">60 days</SelectItem>
                 <SelectItem value="90">90 days</SelectItem>
@@ -410,10 +368,7 @@ const Compliance = () => {
               onChange={(e) => updateRegulatorySettings.mutate({ gdprDeleteRelated: e.target.checked })}
               className="h-4 w-4 accent-black focus:ring-black border-gray-400 rounded cursor-pointer mt-1 sm:mt-0"
             />
-            <Label
-              htmlFor="gdpr-delete"
-              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-            >
+            <Label htmlFor="gdpr-delete" className="text-sm text-gray-700 cursor-pointer">
               Delete related call records and notes along with a contact.
             </Label>
           </div>
