@@ -123,7 +123,7 @@
 // export default ContactLayout;
 
 import { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { TfiDownload } from "react-icons/tfi";
 import movetoicon from "../../assets/movetoicon.png";
@@ -140,7 +140,6 @@ import { useAppDispatch } from "@/store/hooks";
 
 const ContactLayout = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
