@@ -18,6 +18,8 @@ import toast from "react-hot-toast";
 // ✅ Define type for the Outlet context
 type OutletContextType = {
     activeItem: { type: string; id?: string; name: string };
+    selectedContacts: any[];
+    setSelectedContacts: (contacts: any[]) => void;
 };
 
 const AdminAllContact = () => {
@@ -28,7 +30,6 @@ const AdminAllContact = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -36,7 +37,7 @@ const AdminAllContact = () => {
     const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-    const { activeItem } = useOutletContext<OutletContextType>();
+    const { activeItem, selectedContacts, setSelectedContacts } = useOutletContext<OutletContextType>();
 
     // Fetch users for assignment
     const fetchUsers = async () => {

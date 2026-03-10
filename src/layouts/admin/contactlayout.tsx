@@ -134,8 +134,12 @@ import { FaChevronUp } from "react-icons/fa6";
 import { FaChevronDown } from "react-icons/fa";
 import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 import { TbInfoTriangle } from "react-icons/tb";
+import { deleteContact } from "@/store/slices/contactSlice";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "@/store/hooks";
 
 const ContactLayout = () => {
+  const dispatch = useAppDispatch();
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -147,8 +151,9 @@ const ContactLayout = () => {
     type: "allContacts",
     name: "All Contacts",
   });
+  const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   // ✅ Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
@@ -167,9 +172,32 @@ const ContactLayout = () => {
   }, []);
 
   // ✅ Delete handler
-  const handleConfirmDelete = () => {
-    setShowDeleteModal(false);
-    console.log("✅ Lead deleted successfully!");
+  const handleConfirmDelete = async () => {
+    setLoading(true);
+    if (!selectedContacts || selectedContacts.length === 0) {
+      toast.error("Please select a contact to delete");
+      setLoading(false);
+      setShowDeleteModal(false);
+      return;
+    }
+    try {
+      // Loop through all selected contacts and delete them
+      for (const contact of selectedContacts) {
+        if (contact.id) {
+          await dispatch(deleteContact(contact.id)).unwrap();
+          setLoading(false);
+        }
+      }
+      toast.success("Contact(s) deleted successfully");
+      setSelectedContacts([]); // Clear selection after hit
+      setShowDeleteModal(false);
+    } catch (error: any) {
+      setLoading(false);
+      toast.error(error || "Failed to delete contact(s)");
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
@@ -217,7 +245,7 @@ const ContactLayout = () => {
         className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] dark:bg-slate-900 w-full transition-all duration-300
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
-        <Outlet context={{ activeItem }} />
+        <Outlet context={{ activeItem, selectedContacts, setSelectedContacts }} />
       </div>
 
       {/* 🔹 Bottom Bar */}
@@ -294,10 +322,10 @@ const ContactLayout = () => {
                 Cancel
               </button>
               <button
-                onClick={handleConfirmDelete}
+                onClick={() => handleConfirmDelete()}
                 className="bg-[#FFCA06] w-full hover:bg-[#ffd633] text-[#2B3034] font-semibold px-5 py-2 rounded-lg"
               >
-                Yes, Delete
+                {loading ? "Deleting..." : `Yes, Delete`}
               </button>
             </div>
           </div>
