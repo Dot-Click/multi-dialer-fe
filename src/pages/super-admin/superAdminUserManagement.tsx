@@ -4,7 +4,7 @@ import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import tableIcon from "@/assets/tableIcon.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { useUser, type User } from "@/hooks/useUser";
+import { useUser } from "@/hooks/useUser";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { getAllUsers } from "@/store/slices/userSlice";
