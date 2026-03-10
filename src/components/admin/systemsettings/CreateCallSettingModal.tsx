@@ -302,28 +302,37 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                         >
                             Cancel
                         </button>
+                        <button onClick={
+                            () => navigate("/contact-info", {
+                                state: { contacts: selectedContacts }
+                            })
+                        } className="bg-[#FECD56] hover:bg-[#F0D500] px-4 text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all ">
+                            Proceed without saving
+                        </button>
                         <button
                             type="button"
                             onClick={handleSave}
                             disabled={isLoading}
-                            className="flex-2 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all disabled:opacity-50"
+                            className="flex-1 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all disabled:opacity-50"
                         >
                             {isLoading ? "Saving..." : editId ? "Update Setting" : "Save Setting"}
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Add Recording sub-modal */}
-            {isAddRecordingOpen && (
-                <AddRecordingModal
-                    onClose={() => setIsAddRecordingOpen(false)}
-                    onSuccess={async () => {
-                        const updated = await getRecordings();
-                        setRecordings(updated);
-                    }}
-                />
-            )}
+            {
+                isAddRecordingOpen && (
+                    <AddRecordingModal
+                        onClose={() => setIsAddRecordingOpen(false)}
+                        onSuccess={async () => {
+                            const updated = await getRecordings();
+                            setRecordings(updated);
+                        }}
+                    />
+                )
+            }
         </>
     );
 };

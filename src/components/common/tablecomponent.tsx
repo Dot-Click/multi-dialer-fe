@@ -97,7 +97,7 @@ const TableComponent: FC<
                   return (
                     <TableHead
                       key={header.id}
-                      className="py-5 text-left tracking-wide px-5"
+                      className="py-5 text-left dark:bg-slate-800 dark:text-white text-slate-700  tracking-wide px-5"
                     >
                       {header.isPlaceholder
                         ? null

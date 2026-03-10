@@ -17,10 +17,10 @@ const data = [
 
 const RevenueByPlan = () => {
   return (
-    <div className="bg-white rounded-[32px] shadow-sm px-8 py-7 w-full lg:w-[65%] border border-gray-100">
+    <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm px-8 py-7 w-full lg:w-[65%] border border-gray-100 dark:border-slate-700">
       {/* Header & Custom Legend */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
-        <h2 className="text-[22px] font-[600] text-[#2C2C2C]">
+        <h2 className="text-[22px] font-[600] text-[#2C2C2C] dark:text-white">
           Revenue by Plan
         </h2>
 
@@ -33,10 +33,10 @@ const RevenueByPlan = () => {
                 style={{ backgroundColor: item.color }}
               />
               <div className="flex flex-col items-center">
-                <span className="text-[#0E1011] text-[12px] font-[400] leading-none">
+                <span className="text-[#0E1011] dark:text-gray-300 text-[12px] font-[400] leading-none">
                   {item.name}
                 </span>
-                <span className="text-[#0E1011] text-[14px] font-[500]">
+                <span className="text-[#0E1011] dark:text-white text-[14px] font-[500]">
                   ${item.value.toLocaleString()}
                 </span>
               </div>
@@ -48,9 +48,9 @@ const RevenueByPlan = () => {
       {/* Chart */}
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart 
-            data={data} 
-            barSize={120} 
+          <BarChart
+            data={data}
+            barSize={120}
             margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
           >
             {/* Dotted grid lines both horizontal and vertical */}
@@ -62,7 +62,7 @@ const RevenueByPlan = () => {
             <XAxis
               dataKey="name"
               tick={{ fill: "#666", fontSize: 14 }}
-              axisLine={{ stroke: '#999' }}
+              axisLine={{ stroke: "#999" }}
               tickLine={false}
               dy={10}
             />
@@ -76,7 +76,11 @@ const RevenueByPlan = () => {
             />
             <Tooltip
               cursor={{ fill: "transparent" }}
-              contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              contentStyle={{
+                borderRadius: "10px",
+                border: "none",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              }}
             />
             <Bar
               dataKey="value"

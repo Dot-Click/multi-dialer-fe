@@ -10,7 +10,6 @@
 // import { FaChevronDown } from "react-icons/fa";
 // import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 
-
 // const ContactLayout = () => {
 //   const [isOpen, setIsOpen] = useState(true);
 //   const [isMobile, setIsMobile] = useState(false);
@@ -49,8 +48,8 @@
 //       {isMobile && (
 //         <button
 //           onClick={() => setIsOpen(!isOpen)}
-//           className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition 
-//             bg-gray-100 hover:bg-gray-200 
+//           className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition
+//             bg-gray-100 hover:bg-gray-200
 //             ${isOpen ? "left-52" : "left-4"}`}
 //         >
 //           {isOpen ? (
@@ -105,7 +104,6 @@
 //           <span className="text-sm text-gray-700"><FaChevronDown /></span>
 //         </Link>
 
-
 //         <button
 //           className="flex items-center gap-2"
 //           onClick={() => setShowExportModal(true)}
@@ -124,9 +122,8 @@
 
 // export default ContactLayout;
 
-
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { TfiDownload } from "react-icons/tfi";
 import movetoicon from "../../assets/movetoicon.png";
@@ -137,17 +134,27 @@ import { FaChevronUp } from "react-icons/fa6";
 import { FaChevronDown } from "react-icons/fa";
 import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 import { TbInfoTriangle } from "react-icons/tb";
+import { deleteContact } from "@/store/slices/contactSlice";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "@/store/hooks";
 
 const ContactLayout = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [activeItem, setActiveItem] = useState<{ type: string; id?: string; name: string }>({
+  const [activeItem, setActiveItem] = useState<{
+    type: string;
+    id?: string;
+    name: string;
+  }>({
     type: "allContacts",
-    name: "All Contacts"
+    name: "All Contacts",
   });
+  const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   // ✅ Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
@@ -166,9 +173,32 @@ const ContactLayout = () => {
   }, []);
 
   // ✅ Delete handler
-  const handleConfirmDelete = () => {
-    setShowDeleteModal(false);
-    console.log("✅ Lead deleted successfully!");
+  const handleConfirmDelete = async () => {
+    setLoading(true);
+    if (!selectedContacts || selectedContacts.length === 0) {
+      toast.error("Please select a contact to delete");
+      setLoading(false);
+      setShowDeleteModal(false);
+      return;
+    }
+    try {
+      // Loop through all selected contacts and delete them
+      for (const contact of selectedContacts) {
+        if (contact.id) {
+          await dispatch(deleteContact(contact.id)).unwrap();
+          setLoading(false);
+        }
+      }
+      toast.success("Contact(s) deleted successfully");
+      setSelectedContacts([]); // Clear selection after hit
+      setShowDeleteModal(false);
+    } catch (error: any) {
+      setLoading(false);
+      toast.error(error || "Failed to delete contact(s)");
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
@@ -177,11 +207,12 @@ const ContactLayout = () => {
       {(!isMobile || isOpen) && (
         <div
           className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
-            ${isMobile
-              ? isOpen
-                ? "translate-x-0"
-                : "-translate-x-full"
-              : "translate-x-0"
+            ${
+              isMobile
+                ? isOpen
+                  ? "translate-x-0"
+                  : "-translate-x-full"
+                : "translate-x-0"
             }
           `}
         >
@@ -212,10 +243,10 @@ const ContactLayout = () => {
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] w-full transition-all duration-300
+        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] dark:bg-slate-900 w-full transition-all duration-300
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
-        <Outlet context={{ activeItem }} />
+        <Outlet context={{ activeItem, selectedContacts, setSelectedContacts }} />
       </div>
 
       {/* 🔹 Bottom Bar */}
@@ -263,7 +294,10 @@ const ContactLayout = () => {
 
       {/* 🔹 Export Modal */}
       {showExportModal && (
-        <ExportFieldsModal onClose={() => setShowExportModal(false)} />
+        <ExportFieldsModal
+          onClose={() => setShowExportModal(false)}
+          activeItem={activeItem}
+        />
       )}
 
       {/* 🔹 Delete Confirmation Modal */}
@@ -271,7 +305,9 @@ const ContactLayout = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000]">
           <div className="bg-white w-[380px] rounded-xl shadow-lg p-6 text-center relative">
             {/* Warning Icon */}
-            <div className="text-red-500 flex justify-center text-4xl mb-3"><TbInfoTriangle /></div>
+            <div className="text-red-500 flex justify-center text-4xl mb-3">
+              <TbInfoTriangle />
+            </div>
             <h2 className="text-lg font-medium mb-1">Delete Lead?</h2>
             <p className="text-sm text-gray-500 mb-5">
               Once deleted, this action cannot be undone. Are you sure you want
@@ -287,10 +323,10 @@ const ContactLayout = () => {
                 Cancel
               </button>
               <button
-                onClick={handleConfirmDelete}
+                onClick={() => handleConfirmDelete()}
                 className="bg-[#FFCA06] w-full hover:bg-[#ffd633] text-[#2B3034] font-semibold px-5 py-2 rounded-lg"
               >
-                Yes, Delete
+                {loading ? "Deleting..." : `Yes, Delete`}
               </button>
             </div>
           </div>

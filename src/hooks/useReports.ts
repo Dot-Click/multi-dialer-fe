@@ -10,6 +10,12 @@ export interface AgentReport {
     callsPerHour: string;
     contactsPerHour: string;
     callsPerLead: string;
+    contactsPerLead: string;
+    appointmentsSet: number;
+    appointmentsMet: number;
+    timePerAppointment: string;
+    callsPerAppointment: string;
+    contactsPerAppointment: string;
     period: {
         start: string;
         end: string;

@@ -18,11 +18,11 @@ const SubscriptionDistribution = () => {
   const percentage = 72; 
 
   return (
-    <section className="mt-3 bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm pt-[23px] rounded-[32px] h-[400px] w-full md:w-[30%]">
+    <section className="mt-3 bg-[#FFFFFF] dark:bg-slate-800 work-sans flex flex-col gap-4 shadow-sm pt-[23px] rounded-[32px] h-[400px] w-full md:w-[30%]">
       
       {/* Heading */}
       <div className="flex items-center px-[24px]">
-        <h1 className="text-[#000000] font-[500] text-[20px] whitespace-nowrap">
+        <h1 className="text-[#000000] dark:text-white font-[500] text-[20px] whitespace-nowrap">
           Subscription Distribution
         </h1>
       </div>
@@ -53,7 +53,7 @@ const SubscriptionDistribution = () => {
           className="absolute rounded-full  flex items-center justify-center"
           
         >
-          <span className="text-[30px] font-[600] text-black ">
+          <span className="text-[30px] dark:text-white font-[600] text-black ">
             {percentage}%
           </span>
         </div>
@@ -63,14 +63,14 @@ const SubscriptionDistribution = () => {
       <div className="flex flex-col gap-4 px-[24px] pb-[30px] mt-2">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-[#9400BD]" />
-          <p className="text-[12px] font-[400] text-[#0E1011] opacity-80">
+          <p className="text-[12px] dark:text-white font-[400] text-[#0E1011] opacity-80">
             Active Subscriptions: {realData[0].value}
           </p>
         </div>
 
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-[#F91E4A]" />
-          <p className="text-[12px] font-[400] text-[#0E1011] opacity-80">
+          <p className="text-[12px] dark:text-white font-[400] text-[#0E1011] opacity-80">
             Inactive Subscriptions: {realData[1].value}
           </p>
         </div>

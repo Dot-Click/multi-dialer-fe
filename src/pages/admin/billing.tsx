@@ -1,16 +1,16 @@
-import { 
-  ArrowUp, 
-  Users, 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ArrowUp,
+  Users,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
   Download,
   CreditCard,
-  Loader2
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -34,58 +34,60 @@ const Billing = () => {
   const { subscriptions, loading, error } = useAppSelector((state) => state.subscriptions)
 
   useEffect(() => {
-    dispatch(fetchSubscriptions())
-  }, [dispatch])
+    dispatch(fetchSubscriptions());
+  }, [dispatch]);
 
   const formatCurrency = (amount: string | undefined) => {
-    if (!amount) return '$0'
-    return amount.startsWith('$') ? amount : `$${amount}`
-  }
+    if (!amount) return "$0";
+    return amount.startsWith("$") ? amount : `$${amount}`;
+  };
 
   const formatPlan = (plan: string) => {
-    return plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase()
-  }
+    return plan.charAt(0).toUpperCase() + plan.slice(1).toLowerCase();
+  };
 
   const getStatusBadge = (status: string) => {
-    const s = status.toUpperCase()
-    if (s === 'PAID' || s === 'ACTIVE') {
+    const s = status.toUpperCase();
+    if (s === "PAID" || s === "ACTIVE") {
       return (
         <Badge className="bg-green-100 text-green-700 border-0 hover:bg-green-100 rounded-full px-3 py-1 text-xs font-medium">
           {status}
         </Badge>
-      )
+      );
     }
     return (
       <Badge className="bg-yellow-100 text-yellow-700 border-0 hover:bg-yellow-100 rounded-full px-3 py-1 text-xs font-medium">
         {status}
       </Badge>
-    )
-  }
+    );
+  };
 
-  const sortedSubscriptions = [...subscriptions].sort((a, b) => 
-    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  const sortedSubscriptions = [...subscriptions].sort(
+    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
   );
 
-  const activeSubscription = sortedSubscriptions.find(s => s.status.toLowerCase() === 'active') || sortedSubscriptions[0];
+  const activeSubscription =
+    sortedSubscriptions.find((s) => s.status.toLowerCase() === "active") ||
+    sortedSubscriptions[0];
 
   const calculateUnitPrice = (amount: string | undefined, count: number) => {
-    if (!amount || count === 0) return '0';
-    const numAmount = parseFloat(amount.replace(/[^0-9.]/g, ''));
+    if (!amount || count === 0) return "0";
+    const numAmount = parseFloat(amount.replace(/[^0-9.]/g, ""));
     return (numAmount / count).toFixed(0);
-  }
+  };
 
   const calculateNextPaymentDate = (subscription: any) => {
-    if (!subscription?.startDate) return 'N/A';
+    if (!subscription?.startDate) return "N/A";
     try {
       const date = new Date(subscription.startDate);
-      if (subscription.billingCycle?.toLowerCase() === 'yearly') {
-        return format(addYears(date, 1), 'MM/dd/yyyy');
+      if (subscription.billingCycle?.toLowerCase() === "yearly") {
+        return format(addYears(date, 1), "MM/dd/yyyy");
       }
-      return format(addMonths(date, 1), 'MM/dd/yyyy');
+      return format(addMonths(date, 1), "MM/dd/yyyy");
     } catch (e) {
-      return 'N/A';
+      return "N/A";
     }
-  }
+  };
 
   const calculateTotalHistoryCost = () => {
     const total = subscriptions.reduce((sum, sub) => {
@@ -111,19 +113,25 @@ const Billing = () => {
     <Box className="p-4 sm:p-6 min-h-screen">
       {/* Header Section */}
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-2">Billing</h1>
-        <p className="text-sm text-gray-500">Payment proceed automatically every month.</p>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-white mb-2">
+          Billing
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Payment proceed automatically every month.
+        </p>
       </div>
 
       {/* Current Plan Details Card */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <Badge className="bg-yellow-100 text-yellow-800 border-0 hover:bg-yellow-100 px-3 py-1 text-xs font-medium">
-            {activeSubscription ? formatPlan(activeSubscription.plan) + ' Plan' : 'No Plan'}
+            {activeSubscription
+              ? formatPlan(activeSubscription.plan) + " Plan"
+              : "No Plan"}
           </Badge>
-          <Button 
+          <Button
             onClick={handleZohoOAuthFlow}
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:text-black rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
           >
             <ArrowUp className="size-4" />
             Upgrade
@@ -132,29 +140,39 @@ const Billing = () => {
 
         <div className="mb-6 sm:mb-8">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-bold text-gray-900">
-              ${activeSubscription ? calculateUnitPrice(activeSubscription.amount, activeSubscription.usersCount) : '0'}
+            <span className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+              $
+              {activeSubscription
+                ? calculateUnitPrice(
+                    activeSubscription.amount,
+                    activeSubscription.usersCount,
+                  )
+                : "0"}
             </span>
-            <span className="text-sm sm:text-base text-gray-600">/user/month</span>
+            <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              /user/month
+            </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gray-100 rounded-lg flex-shrink-0">
-              <Users className="size-5 text-gray-600" />
+            <div className="p-2.5 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0">
+              <Users className="size-5 text-gray-600 dark:text-gray-300" />
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Users</div>
-              <div className="text-lg sm:text-xl font-semibold text-gray-900">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Users
+              </div>
+              <div className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                 {activeSubscription?.usersCount || 0}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gray-100 rounded-lg flex-shrink-0">
-              <CreditCard className="size-5 text-gray-600" />
+            <div className="p-2.5 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0">
+              <CreditCard className="size-5 text-gray-600 dark:text-gray-300" />
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Total cost</div>
@@ -165,13 +183,17 @@ const Billing = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gray-100 rounded-lg flex-shrink-0">
-              <Calendar className="size-5 text-gray-600" />
+            <div className="p-2.5 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0">
+              <Calendar className="size-5 text-gray-600 dark:text-gray-300" />
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Next Payment Date</div>
-              <div className="text-lg sm:text-xl font-semibold text-gray-900">
-                {activeSubscription ? calculateNextPaymentDate(activeSubscription) : 'N/A'}
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Next Payment Date
+              </div>
+              <div className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                {activeSubscription
+                  ? calculateNextPaymentDate(activeSubscription)
+                  : "N/A"}
               </div>
             </div>
           </div>
@@ -179,17 +201,24 @@ const Billing = () => {
       </div>
 
       {/* Billing History Section */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Billing History</h2>
-            <div className="flex items-center gap-2 px-2 sm:px-3 py-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 bg-white w-full sm:w-auto justify-center">
-              <ChevronLeft className="size-4 text-gray-500" />
-              <span className="text-xs sm:text-sm text-gray-700">&lt; All Dates &gt;</span>
-              <ChevronRight className="size-4 text-gray-500" />
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white">
+              Billing History
+            </h2>
+            <div className="flex items-center gap-2 px-2 sm:px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-700 w-full sm:w-auto justify-center">
+              <ChevronLeft className="size-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                &lt; All Dates &gt;
+              </span>
+              <ChevronRight className="size-4 text-gray-500 dark:text-gray-400" />
             </div>
           </div>
-          <Button variant="outline" className="rounded-md border-gray-200 hover:bg-gray-50 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="rounded-md border-gray-200 dark:border-slate-700 dark:bg-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 w-full sm:w-auto"
+          >
             <Download className="size-4" />
             Export
           </Button>
@@ -197,54 +226,76 @@ const Billing = () => {
 
         <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
           {loading ? (
-             <div className="flex items-center justify-center py-10">
-                <Loader2 className="animate-spin size-8 text-gray-400" />
-             </div>
-          ) : error ? (
-            <div className="text-center py-10 text-red-500">
-              {error}
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="animate-spin size-8 text-gray-400" />
             </div>
+          ) : error ? (
+            <div className="text-center py-10 text-red-500">{error}</div>
           ) : (
             <Table>
-              <TableHeader className="sticky top-0 bg-white z-10">
-                <TableRow className="border-b border-gray-200 hover:bg-transparent">
+              <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
+                <TableRow className="border-b border-gray-200 dark:border-slate-700 hover:bg-transparent dark:hover:bg-transparent">
                   <TableHead className="w-12 px-2 sm:px-4 py-3">
-                    <Checkbox />
+                    <Checkbox className="dark:border-white" />
                   </TableHead>
-                  <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Invoice</TableHead>
-                  <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Plan</TableHead>
-                  <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Amount</TableHead>
-                  <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Date</TableHead>
-                  <TableHead className="text-gray-700 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Status</TableHead>
+                  <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
+                    Invoice
+                  </TableHead>
+                  <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
+                    Plan
+                  </TableHead>
+                  <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
+                    Amount
+                  </TableHead>
+                  <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
+                    Date
+                  </TableHead>
+                  <TableHead className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">
+                    Status
+                  </TableHead>
                   <TableHead className="w-12 px-2 sm:px-4 py-3"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {subscriptions.length > 0 ? (
                   subscriptions.map((item) => (
-                    <TableRow key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <TableRow
+                      key={item.id}
+                      className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                    >
                       <TableCell className="px-2 sm:px-4 py-4">
-                        <Checkbox />
+                        <Checkbox className="dark:border-white" />
                       </TableCell>
-                      <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">#{item.billingId || item.id.slice(0, 8)}</TableCell>
-                      <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base">{formatPlan(item.plan)}</TableCell>
-                      <TableCell className="text-gray-700 font-medium px-2 sm:px-4 py-4 text-sm sm:text-base">{formatCurrency(item.amount)}</TableCell>
-                      <TableCell className="text-gray-700 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{format(new Date(item.startDate), 'MM/dd/yyyy')}</TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
+                        #{item.billingId || item.id.slice(0, 8)}
+                      </TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
+                        {formatPlan(item.plan)}
+                      </TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-4 text-sm sm:text-base">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
+                        {format(new Date(item.startDate), "MM/dd/yyyy")}
+                      </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
                         {getStatusBadge(item.status)}
                       </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
-                        <button className="p-1.5 hover:bg-gray-100 rounded-md transition-colors">
-                          <Download className="size-4 text-gray-600" />
+                        <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-md transition-colors">
+                          <Download className="size-4 text-gray-600 dark:text-gray-400" />
                         </button>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                     <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                        No billing history found.
-                     </TableCell>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-10 text-gray-500 dark:text-gray-400"
+                    >
+                      No billing history found.
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -253,7 +304,7 @@ const Billing = () => {
         </div>
       </div>
     </Box>
-  )
-}
+  );
+};
 
-export default Billing
+export default Billing;

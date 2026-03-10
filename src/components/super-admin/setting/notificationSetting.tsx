@@ -94,15 +94,15 @@ const NotificationSetting = () => {
           <Check className="text-white w-3.5 h-3.5" strokeWidth={2} />
         )}
       </div>
-      <span className="text-[14px] work-sans font-[400] text-[#495057] group-hover:text-gray-800 transition-colors">
+      <span className="text-[14px] work-sans font-[400] text-[#495057] group-hover:text-gray-800 transition-colors dark:text-white">
         {label}
       </span>
     </div>
   );
 
   return (
-    <div className="bg-white p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
-      <h2 className="text-[18px] font-[500] inter text-[#343434] mb-8">
+    <div className="bg-white dark:bg-slate-800 p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
+      <h2 className="text-[18px] font-[500] inter text-[#343434] dark:text-white mb-8">
         Notifications Settings
       </h2>
 
@@ -116,7 +116,7 @@ const NotificationSetting = () => {
               className="h-[21.5] object-contain"
             />
           </div>
-          <h3 className="font-[600] text-[18px] inter text-[#343434]">
+          <h3 className="font-[600] text-[18px] inter text-[#343434] dark:text-white">
             System Alerts
           </h3>
         </div>
@@ -124,10 +124,10 @@ const NotificationSetting = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Failed Payment Alerts
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Notify when customer payments fail
               </p>
             </div>
@@ -139,10 +139,10 @@ const NotificationSetting = () => {
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Upcoming Renewal Reminders
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Notify about scheduled maintenance
               </p>
             </div>
@@ -154,10 +154,10 @@ const NotificationSetting = () => {
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Show Maintenance Notices
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Notify about scheduled maintenance
               </p>
             </div>
@@ -169,10 +169,10 @@ const NotificationSetting = () => {
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B]">
+              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
                 Critical Error Alerts
               </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291]">
+              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
                 Immediate notification for system errors
               </p>
             </div>
@@ -197,7 +197,7 @@ const NotificationSetting = () => {
               className="h-[18] object-contain"
             />
           </div>
-          <h3 className="font-[600] text-[18px] inter text-[#34363B]">
+          <h3 className="font-[600] text-[18px] inter text-[#34363B] dark:text-white">
             Email Notification Preferences
           </h3>
         </div>

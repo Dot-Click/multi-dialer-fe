@@ -27,40 +27,40 @@ const SuperAdminDetailedBilling = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-[16.54px] outfit p-6 shadow-sm   ">
+    <div className="w-full bg-white dark:bg-slate-800 rounded-[16.54px] outfit p-6 shadow-sm   ">
       {/* Header Section */}
       <div className="mb-6">
-        <h2 className="text-[20.75px] font-[500] text-[#000000] work-sans">Detailed Billing Report</h2>
-        <p className="text-[15.41px] font-[400] text-[#434343]">Recent platform incidents and their status</p>
+        <h2 className="text-[20.75px] font-[500] text-[#000000] dark:text-white work-sans">Detailed Billing Report</h2>
+        <p className="text-[15.41px] font-[400] text-[#434343] dark:text-gray-400">Recent platform incidents and their status</p>
       </div>
 
       {/* Table Wrapper with requested classes */}
       <div className="overflow-auto custom-scrollbar">
         <table className="w-full border-separate border-spacing-y-3 min-w-[1000px]">
           <thead>
-            <tr className="text-left bg-[#FAF9FE] ">
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500]">User Name</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500]">Email</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500]">Plan</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500] text-center">Status</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500]">Total Billed</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500]">Last Payment</th>
-              <th className="py-4 px-4 text-[#1D2C45] text-[15.03px] font-[500] text-center">Invoice Status</th>
+            <tr className="text-left bg-[#FAF9FE] dark:bg-slate-700">
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">User Name</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">Email</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">Plan</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500] text-center">Status</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">Total Billed</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">Last Payment</th>
+              <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500] text-center">Invoice Status</th>
             </tr>
           </thead>
           <tbody>
             {billingData.map((row, index) => (
               <tr 
                 key={index} 
-                className="bg-[#FAFAFA] hover:bg-gray-100 transition-colors rounded-[9.02px]"
+                className="bg-[#FAFAFA] hover:bg-gray-100 transition-colors rounded-[9.02px] dark:bg-slate-900"
               >
-                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {row.name}
                 </td>
-                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {row.email}
                 </td>
-                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {row.plan}
                 </td>
                 <td className="py-1 px-2 text-center">
@@ -68,10 +68,10 @@ const SuperAdminDetailedBilling = () => {
                     {row.status}
                   </span>
                 </td>
-                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]  dark:text-white">
                   {row.billed}
                 </td>
-                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C]">
+                <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {row.lastPayment}
                 </td>
                 <td className="py-1 px-2 text-center">

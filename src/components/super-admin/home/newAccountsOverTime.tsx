@@ -49,9 +49,9 @@ const NewAccountsOverTime = () => {
 
   return (
     // Container and Header kept exactly as your original
-    <section className="mt-3 h-[450px] bg-[#FFFFFF] shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
+    <section className="mt-3 h-[450px] bg-[#FFFFFF] dark:bg-gray-800 shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
       <div>
-        <h1 className="text-[#000000] font-[500] text-[20px]">
+        <h1 className="text-[#000000] dark:text-white font-[500] text-[20px]">
           New Accounts Over Time
         </h1>
 
@@ -60,8 +60,8 @@ const NewAccountsOverTime = () => {
             onClick={() => setActiveTab("this")}
             className={`text-[14px] font-[500] px-[12px] py-[8px] rounded-[8px] transition ${
               activeTab === "this"
-                ? "bg-[#0E1011] text-white"
-                : "border border-[#EBEDF0] text-[#0E1011]"
+                ? "bg-[#0E1011] dark:bg-gray-600 text-white"
+                : "border border-[#EBEDF0] dark:border-gray-600 text-[#0E1011] dark:text-white"
             }`}
           >
             This Month
@@ -71,8 +71,8 @@ const NewAccountsOverTime = () => {
             onClick={() => setActiveTab("last")}
             className={`text-[14px] font-[500] px-[12px] py-[8px] rounded-[8px] transition ${
               activeTab === "last"
-                ? "bg-[#0E1011] text-white"
-                : "border border-[#EBEDF0] text-[#0E1011]"
+                ? "bg-[#0E1011] dark:bg-gray-600 text-white"
+                : "border border-[#EBEDF0] dark:border-gray-600 text-[#0E1011] dark:text-white"
             }`}
           >
             Last Month
