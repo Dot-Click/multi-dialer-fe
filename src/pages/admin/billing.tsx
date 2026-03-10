@@ -18,20 +18,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Box } from '@/components/ui/box'
-import { useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchSubscriptions } from '@/store/slices/subscriptionSlice'
-import { format, addMonths, addYears } from 'date-fns'
-import toast from 'react-hot-toast'
-// import {useNavigate} from 'react-router-dom'
-import api from '@/lib/axios'
+} from "@/components/ui/table";
+import { Box } from "@/components/ui/box";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchSubscriptions } from "@/store/slices/subscriptionSlice";
+import { format, addMonths, addYears } from "date-fns";
+import toast from "react-hot-toast";
+import api from "@/lib/axios";
 
 const Billing = () => {
   // const navigate = useNavigate()
-  const dispatch = useAppDispatch()
-  const { subscriptions, loading, error } = useAppSelector((state) => state.subscriptions)
+  const dispatch = useAppDispatch();
+  const { subscriptions, loading, error } = useAppSelector(
+    (state) => state.subscriptions,
+  );
 
   useEffect(() => {
     dispatch(fetchSubscriptions());
@@ -92,20 +93,20 @@ const Billing = () => {
   const calculateTotalHistoryCost = () => {
     const total = subscriptions.reduce((sum, sub) => {
       if (!sub.amount) return sum;
-      const numAmount = parseFloat(String(sub.amount).replace(/[^0-9.]/g, ''));
+      const numAmount = parseFloat(String(sub.amount).replace(/[^0-9.]/g, ""));
       return sum + (isNaN(numAmount) ? 0 : numAmount);
     }, 0);
     return total.toString();
   };
 
   const handleZohoOAuthFlow = async () => {
-    try{
+    try {
       // navigate('/admin/upgrade')
-      const res = await api.post('/subscriptions/update-card-link')
+      const res = await api.post("/subscriptions/update-card-link");
       // console.log(res)
-      window.location.href = res.data.data.hostedpage.url
-    }catch {
-      toast.error('Failed to fetch token');
+      window.location.href = res.data.data.hostedpage.url;
+    } catch {
+      toast.error("Failed to fetch token");
     }
   };
 
@@ -175,8 +176,10 @@ const Billing = () => {
               <CreditCard className="size-5 text-gray-600 dark:text-gray-300" />
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Total cost</div>
-              <div className="text-lg sm:text-xl font-semibold text-gray-900">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Total cost
+              </div>
+              <div className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                 {formatCurrency(calculateTotalHistoryCost())}
               </div>
             </div>
