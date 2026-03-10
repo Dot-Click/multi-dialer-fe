@@ -26,14 +26,14 @@ const AdminWorkspace = () => {
       </div>
       <div className='flex gap-6 md:flex-row flex-col justify-between items-start'>
         <AdminFoldersList />
-        <AdminRecentActivity/>
+        <AdminRecentActivity />
       </div>
       <div className='flex gap-6 md:flex-row flex-col justify-between items-start'>
         <AdminSalesAgent />
-        <AdminCallMetrics/>
+        <AdminCallMetrics />
       </div>
 
-  
+
 
     </div>
   )

@@ -541,14 +541,14 @@ import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 // import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 
 const formatEventTime = (event: CalendarEvent) => {
-    const start = dayjs(event.startDate);
-    if (event.eventType === 'ALL_DAY') return "All Day";
-    if (event.eventType === 'START_ONLY') return start.format("HH:mm");
-    if (event.eventType === 'FROM_TO' && event.endDate) {
-        const end = dayjs(event.endDate);
-        return `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
-    }
-    return start.format("HH:mm");
+  const start = dayjs(event.startDate);
+  if (event.eventType === 'ALL_DAY') return "All Day";
+  if (event.eventType === 'START_ONLY') return start.format("HH:mm");
+  if (event.eventType === 'FROM_TO' && event.endDate) {
+    const end = dayjs(event.endDate);
+    return `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
+  }
+  return start.format("HH:mm");
 };
 
 /* --------------------------------------------------
@@ -559,7 +559,7 @@ export default function CustomCalendar() {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const { getEvents } = useCalendar();
+  const { getAllEvents } = useCalendar();
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -582,7 +582,7 @@ export default function CustomCalendar() {
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
 
   const fetchEvents = async () => {
-    const data = await getEvents();
+    const data = await getAllEvents();
     setEvents(data);
   };
 
@@ -602,7 +602,7 @@ export default function CustomCalendar() {
 
   const showAdd = () => {
     setOptionsOpen(false);
-    setAddOpen(true); 
+    setAddOpen(true);
   };
 
   const handleAddClose = (success?: boolean) => {

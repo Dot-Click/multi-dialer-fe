@@ -1,31 +1,30 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const COLORS = [
-  "#37B5EF",  // 1 top
-  "#9400BD",  // 2
-  "#FF7F3A",  // 3
-  "#F91E4A",  // 4
-  "#EC7490",  // 5
-  "#3DC269",  // 6
+  "#37B5EF",  // Interested
+  "#9400BD",  // Follow-Up
+  "#FF7F3A",  // No Answer
+  "#F91E4A",  // Not Interested
+  "#EC7490",  // DNC
+  "#3DC269",  // Extra
 ];
 
-const data = [
-  { value: 20 },
-  { value: 20 },
-  { value: 20 },
-  { value: 20 },
-  { value: 20 },
-  { value: 20 },
-];
-
-const CallStatisticChart = () => {
+const CallStatisticChart = ({ data }: { data?: { value: number }[] }) => {
+  const chartData = data && data.length > 0 ? data : [
+    { value: 20 },
+    { value: 20 },
+    { value: 20 },
+    { value: 20 },
+    { value: 20 },
+    { value: 0 },
+  ];
   return (
     <div style={{ width: 170, height: 170 }}>
       <ResponsiveContainer>
         <PieChart>
 
           <Pie
-            data={data}
+            data={chartData}
             dataKey="value"
             innerRadius="50%"
             outerRadius="80%"
@@ -35,12 +34,12 @@ const CallStatisticChart = () => {
             stroke="#fff"
             strokeWidth={2}      // <--- thin clean gap
           >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i]} />
+            {chartData.map((_, i) => (
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
 
-         
+
         </PieChart>
       </ResponsiveContainer>
     </div>
