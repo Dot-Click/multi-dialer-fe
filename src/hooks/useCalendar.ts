@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../lib/axios';
 
 export type EventType = 'START_ONLY' | 'FROM_TO' | 'ALL_DAY';
+export type EventStatus = 'SET' | 'MET' | 'CANCELLED';
 
 export interface CalendarEvent {
     id: string;
@@ -11,6 +12,7 @@ export interface CalendarEvent {
     eventType: EventType;
     startDate: string;
     endDate?: string;
+    status: EventStatus;
     assignToId: string;
     assignById: string;
     contactId?: string;
@@ -36,6 +38,7 @@ export interface CreateCalendarEventPayload {
     eventType: EventType;
     startDate: string;
     endDate?: string;
+    status?: EventStatus;
     assignToId?: string;
     contactId?: string;
     leadId?: string;

@@ -1,43 +1,16 @@
+import { useAgentCallMetrics } from "@/hooks/useWorkspace";
+import { Loader2 } from "lucide-react";
+
 const AdminCallMetrics = () => {
-  // Sample data for sales agents
-  const salesAgents = [
-    {
-      name: "Dianne Russell",
-      avgcalltime: "2m 15s",
-      objhandling: "67%",
-      interest: "15%",
-    },
-    {
-      name: "Marvin McKinney",
-      avgcalltime: "1m 14s",
-      objhandling: "34%",
-      interest: "10%",
-    },
-    {
-      name: "Kristin Watson",
-      avgcalltime: "4m 20s",
-      objhandling: "40%",
-      interest: "20%",
-    },
-    {
-      name: "Dianne Russell",
-      avgcalltime: "2m 15s",
-      objhandling: "67%",
-      interest: "15%",
-    },
-    {
-      name: "Marvin McKinney",
-      avgcalltime: "1m 14s",
-      objhandling: "34%",
-      interest: "10%",
-    },
-    {
-      name: "Kristin Watson",
-      avgcalltime: "4m 20s",
-      objhandling: "40%",
-      interest: "20%",
-    },
-  ];
+  const { data: salesAgents, isLoading } = useAgentCallMetrics();
+
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] items-center justify-center rounded-4xl md:w-[50%] w-full">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-4 rounded-4xl px-6 py-5 md:w-[50%]  w-full ">
@@ -65,25 +38,33 @@ const AdminCallMetrics = () => {
           </thead>
           <tbody>
             {/* Table Body - Mapping over agent data */}
-            {salesAgents.map((agent, index) => (
-              <tr
-                key={index}
-                className="border-t border-gray-200 dark:border-slate-700"
-              >
-                <td className="p-3 text-[11px] font-medium  text-gray-900 dark:text-white">
-                  {agent.name}
-                </td>
-                <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
-                  {agent.avgcalltime}
-                </td>
-                <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
-                  {agent.objhandling}
-                </td>
-                <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
-                  {agent.interest}
+            {salesAgents && salesAgents.length > 0 ? (
+              salesAgents.map((agent, index) => (
+                <tr
+                  key={index}
+                  className="border-t border-gray-200 dark:border-slate-700"
+                >
+                  <td className="p-3 text-[11px] font-medium  text-gray-900 dark:text-white">
+                    {agent.name}
+                  </td>
+                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                    {agent.avgcalltime}
+                  </td>
+                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                    {agent.objhandling}
+                  </td>
+                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                    {agent.interest}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="p-10 text-center text-gray-500 text-sm">
+                  No call metrics data available for this month.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

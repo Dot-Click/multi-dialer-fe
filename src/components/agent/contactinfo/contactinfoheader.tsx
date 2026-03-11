@@ -4,6 +4,7 @@ import { HiPlus } from "react-icons/hi";
 import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useTwilio } from "@/providers/twilio.provider";
+import AddEventForm from "@/components/modal/addeventmodal";
 
 interface ContactInfoHeaderProps {
   contact?: any;
@@ -15,6 +16,8 @@ interface ContactInfoHeaderProps {
 const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"] // just for testing 
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const [eventDefaults, setEventDefaults] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
 
   const handleCallToggle = () => {
@@ -50,12 +53,24 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
 
         {/* Desktop Buttons - hidden on mobile */}
         <div className="hidden md:flex items-center gap-3">
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors">
+          <button 
+            onClick={() => {
+              setEventDefaults({ title: 'Task', color: '#8b5cf6' });
+              setEventModalOpen(true);
+            }}
+            className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors"
+          >
             <HiPlus className="text-lg" />
             <span className="text-[#0E1011] text-sm font-medium">Task</span>
           </button>
 
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors">
+          <button 
+            onClick={() => {
+              setEventDefaults({ title: 'Follow Up', color: '#3b82f6' });
+              setEventModalOpen(true);
+            }}
+            className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors"
+          >
             <HiPlus className="text-lg" />
             <span className="text-[#0E1011] text-sm font-medium">Follow Up</span>
           </button>
@@ -106,12 +121,26 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-[#EBEDF0] bg-white px-4 py-5 flex flex-col gap-3">
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]">
+          <button 
+            onClick={() => {
+              setEventDefaults({ title: 'Task', color: '#8b5cf6' });
+              setEventModalOpen(true);
+              setIsMenuOpen(false);
+            }}
+            className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]"
+          >
             <HiPlus className="text-xl" />
             <span className="text-[#0E1011] font-medium">Task</span>
           </button>
 
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]">
+          <button 
+            onClick={() => {
+              setEventDefaults({ title: 'Follow Up', color: '#3b82f6' });
+              setEventModalOpen(true);
+              setIsMenuOpen(false);
+            }}
+            className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]"
+          >
             <HiPlus className="text-xl" />
             <span className="text-[#0E1011] font-medium">Follow Up</span>
           </button>
@@ -149,6 +178,14 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           </div>
         </div>
       )}
+
+      <AddEventForm
+        open={isEventModalOpen}
+        onClose={() => setEventModalOpen(false)}
+        contactId={contact?.id}
+        defaultTitle={eventDefaults.title}
+        defaultColor={eventDefaults.color}
+      />
     </div>
   );
 };
