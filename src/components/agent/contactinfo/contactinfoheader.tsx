@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoPlayOutline } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
 import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useTwilio } from "@/providers/twilio.provider";
 import AddEventForm from "@/components/modal/addeventmodal";
+import api from "@/lib/axios";
+import toast from "react-hot-toast";
 
 interface ContactInfoHeaderProps {
   contact?: any;
@@ -12,23 +14,66 @@ interface ContactInfoHeaderProps {
   onPrev?: () => void;
   currentIndex?: number;
   totalContacts?: number;
+  settingsInfo?: any;
 }
-const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"] // just for testing 
-const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
+const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0, settingsInfo }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [eventDefaults, setEventDefaults] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
+  
+  const [fromNumbers, setFromNumbers] = useState<string[]>([]);
 
-  const handleCallToggle = () => {
+  useEffect(() => {
+    const fetchAndFilterCallerIds = async () => {
+      try {
+        const callerId = settingsInfo?.callerId;
+        if (!callerId) return;
+
+        const response = await api.get('/calling/callerIds');
+        const callerIdsList = response.data?.data || [];
+        
+        const matchedItem = callerIdsList.find((item: any) => item.id === callerId || item.twillioNumber === callerId);
+        
+        if (matchedItem) {
+          const restItems = callerIdsList.filter((item: any) => item.id !== matchedItem.id);
+          
+          // Select random 4 numbers from the remaining
+          const shuffledRests = [...restItems].sort(() => 0.5 - Math.random());
+          const selectedRest = shuffledRests.slice(0, 4);
+          
+          const finalNumbers = [
+            matchedItem.twillioNumber,
+            ...selectedRest.map((item: any) => item.twillioNumber)
+          ];
+          setFromNumbers(finalNumbers);
+        } else {
+          // Fallback if no match found
+          const shuffledAll = [...callerIdsList].sort(() => 0.5 - Math.random());
+          setFromNumbers(shuffledAll.slice(0, 5).map((item: any) => item.twillioNumber));
+        }
+      } catch (error) {
+        console.log("Error fetching caller IDs:", error);
+      }
+    };
+
+    fetchAndFilterCallerIds();
+  }, [settingsInfo]);
+
+  const handleCallToggle = async () => {
     if (isCalling) {
       endCall();
     } else {
-      const fromNumber = fromNumbers[Math.floor(Math.random() * fromNumbers.length)]; // just for testing
-      console.log(fromNumber);
-      // Use the primary phone from the contact's phones array
+      const fromNumber = fromNumbers.length > 0 ? fromNumbers[Math.floor(Math.random() * fromNumbers.length)] : undefined;
+      
+      if (!fromNumber) {
+        toast.error("No caller ID available to make call");
+        return;
+      }
+      
+      // fetch the fromNumber from this data and use it in calling
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      startCall(phone, fromNumber, contact?.id);
+      startCall(phone, fromNumber, contact?.id, settingsInfo?.callerId);
     }
   };
 

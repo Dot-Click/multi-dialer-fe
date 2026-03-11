@@ -9,7 +9,7 @@ interface TwilioContextType {
   isCalling: boolean;
   appStatus: string;
   activeCallSid: string | null;
-  startCall: (phone: string, from: string, contactId: string) => Promise<void>;
+  startCall: (phone: string, from: string, contactId: string, callerId: string) => Promise<void>;
   endCall: () => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
@@ -50,7 +50,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log('Registered with identity:', agentIdentity);
 
       const newDevice = new Device(data.data.token, {
-        codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
+        codecPreferences: [Call.Codec.PCMU],
       });
 
       newDevice.on('registered', () => {
@@ -122,7 +122,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Note: Speaker status usually persists across calls on the device level
   }, []);
 
-  const startCall = async (phone: string, from: string, contactId: string) => {
+  const startCall = async (phone: string, from: string, contactId: string, callerId: string) => {
     if (isCalling) return;
     
     setIsCalling(true);
@@ -131,6 +131,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTranscriptionLogs([]);
 
     try {
+      const res = await api.patch('/calling/set-counter', { callerId, from})
+      console.log('Counter set:', res.data);
       const call = await device!.connect({
         params: { 
           To: phone, 
