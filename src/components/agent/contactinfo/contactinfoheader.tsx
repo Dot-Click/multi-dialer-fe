@@ -4,6 +4,7 @@ import { HiPlus } from "react-icons/hi";
 import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useTwilio } from "@/providers/twilio.provider";
+import AddEventForm from "@/components/modal/addeventmodal";
 
 interface ContactInfoHeaderProps {
   contact?: any;
@@ -15,6 +16,8 @@ interface ContactInfoHeaderProps {
 const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"] // just for testing 
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const [eventDefaults, setEventDefaults] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
 
   const handleCallToggle = () => {
@@ -149,6 +152,14 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           </div>
         </div>
       )}
+
+      <AddEventForm
+        open={isEventModalOpen}
+        onClose={() => setEventModalOpen(false)}
+        contactId={contact?.id}
+        defaultTitle={eventDefaults.title}
+        defaultColor={eventDefaults.color}
+      />
     </div>
   );
 };

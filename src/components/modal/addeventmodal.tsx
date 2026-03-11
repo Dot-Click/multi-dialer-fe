@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input, Radio, DatePicker } from 'antd';
 import { IoClose } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
-import { useCalendar, type EventType } from '@/hooks/useCalendar';
+import { useCalendar, type CalendarEvent, type EventType, type EventStatus } from '@/hooks/useCalendar';
 import { useUser, type User } from '@/hooks/useUser';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -15,10 +15,15 @@ const eventColors = ["#F59E0B", "#8B5CF6", "#3B82F6", "#FCD34D", "#10B981", "#F4
 interface AddEventFormProps {
   open: boolean;
   onClose: (success?: boolean) => void;
+  event?: CalendarEvent | null;
+  contactId?: string;
+  leadId?: string;
+  defaultTitle?: string;
+  defaultColor?: string;
 }
 
-const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
-  const { createEvent, loading: calendarLoading } = useCalendar();
+const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, contactId, leadId, defaultTitle, defaultColor }) => {
+  const { createEvent, updateEvent, loading: calendarLoading } = useCalendar();
   const { getUsers, loading: usersLoading } = useUser();
 
   const [users, setUsers] = useState<User[]>([]);
@@ -31,7 +36,8 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
     startDate: null as dayjs.Dayjs | null,
     endDate: null as dayjs.Dayjs | null,
     assignToId: 'None',
-    color: eventColors[0]
+    color: eventColors[0],
+    status: 'SET' as EventStatus
   });
 
   useEffect(() => {
@@ -41,8 +47,32 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
         setUsers(data);
       };
       fetchUsers();
+
+      if (event) {
+        setFormData({
+          title: event.title,
+          description: event.description || '',
+          eventType: event.eventType,
+          startDate: event.startDate ? dayjs(event.startDate) : null,
+          endDate: event.endDate ? dayjs(event.endDate) : null,
+          assignToId: event.assignToId || 'None',
+          color: event.color || eventColors[0],
+          status: event.status || 'SET'
+        });
+      } else {
+        setFormData({
+          title: defaultTitle || '',
+          description: '',
+          eventType: 'START_ONLY',
+          startDate: null,
+          endDate: null,
+          assignToId: 'None',
+          color: defaultColor || eventColors[0],
+          status: 'SET'
+        });
+      }
     }
-  }, [open]);
+  }, [open, event, defaultTitle, defaultColor]);
 
   const handleSave = async () => {
     if (!formData.title) {
@@ -59,16 +89,27 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
     }
 
     try {
-      await createEvent({
+      const payload = {
         title: formData.title,
         description: formData.description,
         color: formData.color,
         eventType: formData.eventType,
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate?.toISOString(),
-        assignToId: formData.assignToId === 'None' ? undefined : formData.assignToId
-      });
-      toast.success('Event created successfully');
+        assignToId: formData.assignToId === 'None' ? undefined : formData.assignToId,
+        status: formData.status,
+        contactId: event?.contactId || contactId,
+        leadId: event?.leadId || leadId
+      };
+
+      if (event?.id) {
+        await updateEvent(event.id, payload);
+        toast.success('Event updated successfully');
+      } else {
+        await createEvent(payload);
+        toast.success('Event created successfully');
+      }
+      
       onClose(true);
       // Reset form
       setFormData({
@@ -78,10 +119,11 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
         startDate: null,
         endDate: null,
         assignToId: 'None',
-        color: eventColors[0]
+        color: eventColors[0],
+        status: 'SET'
       });
     } catch (err: any) {
-      toast.error(err.message || 'Failed to create event');
+      toast.error(err.message || `Failed to ${event?.id ? 'update' : 'create'} event`);
     }
   };
 
@@ -236,6 +278,20 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
                 />
               ))}
             </div>
+          </div>
+
+          {/* Status */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-600 mb-2">Status</label>
+            <Radio.Group
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              value={formData.status}
+              className="w-full flex gap-4"
+            >
+              <Radio value="SET">Set</Radio>
+              <Radio value="MET">Completed</Radio>
+              <Radio value="CANCELLED">Cancelled</Radio>
+            </Radio.Group>
           </div>
         </div>
 

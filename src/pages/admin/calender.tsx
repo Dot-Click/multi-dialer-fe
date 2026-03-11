@@ -527,6 +527,8 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
+import { toast } from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
 
 //  --------------------------------------------------
 // import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
@@ -550,7 +552,7 @@ export default function CustomCalendar() {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const { getEvents } = useCalendar();
+  const { getAllEvents, updateEvent } = useCalendar();
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -571,13 +573,16 @@ export default function CustomCalendar() {
     null,
   );
 
+  // const { users } = useAppSelector((state) => state.user);
+  const { session } = useAppSelector((state) => state.auth);
+
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(
     null,
   );
 
   const fetchEvents = async () => {
-    const data = await getEvents();
+    const data = await getAllEvents();
     setEvents(data);
   };
 
@@ -745,7 +750,15 @@ export default function CustomCalendar() {
       </Modal>
 
       {/* ------- add-event modal ------- */}
-      <AddEventForm open={addOpen} onClose={handleAddClose} />
+      <AddEventForm
+        open={addOpen}
+        event={selectedEvent}
+        onClose={(success) => {
+          setAddOpen(false);
+          setSelectedEvent(null);
+          if (success) fetchEvents();
+        }}
+      />
 
       {/* ------- show-all modal ------- */}
       <Modal
@@ -815,7 +828,7 @@ export default function CustomCalendar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle edit action - you can add edit functionality here
+                  setAddOpen(true);
                   setDetailOpen(false);
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -850,6 +863,16 @@ export default function CustomCalendar() {
                   <span>{selectedEventDate?.format("dddd, MMMM DD")}</span>
                   <span className="text-gray-400">|</span>
                   <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
+                  {selectedEvent?.status === 'MET' && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">
+                      Completed
+                    </span>
+                  )}
+                  {selectedEvent?.status === 'CANCELLED' && (
+                    <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">
+                      Cancelled
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -874,6 +897,28 @@ export default function CustomCalendar() {
                 {selectedEvent?.description || "No description available."}
               </p>
             </div>
+
+            {/* Quick Actions */}
+            {selectedEvent && selectedEvent.status !== 'MET' && (
+              <div className="mt-6 pt-4 border-t">
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await updateEvent(selectedEvent.id, { status: 'MET' });
+                      fetchEvents();
+                      setDetailOpen(false);
+                      toast.success('Event marked as completed');
+                    } catch (err) {
+                      toast.error('Failed to update event status');
+                    }
+                  }}
+                  className="w-full bg-green-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Mark as Completed
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Modal>
