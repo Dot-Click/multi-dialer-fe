@@ -9,6 +9,7 @@ import smsReducer from "./slices/smsSlice";
 import subscriptionReducer from "./slices/subscriptionSlice";
 import themeReducer from "./slices/themeSlice";
 import appearanceReducer from "./slices/appearanceSlice";
+import userReducer from "./slices/userSlice";
 
 const rootReducer = combineReducers({
   example: exampleReducer,
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   sms: smsReducer,
   subscriptions: subscriptionReducer,
   appearance: appearanceReducer,
+  user: userReducer,
 });
 
 export default rootReducer;

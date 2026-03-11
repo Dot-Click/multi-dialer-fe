@@ -537,6 +537,8 @@ import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
+import { toast } from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
 
 // Helper to group events by date
 const groupEventsByDate = (eventList: CalendarEvent[]) => {
@@ -565,7 +567,7 @@ const formatEventTime = (event: CalendarEvent) => {
  *  MAIN COMPONENT
  * -------------------------------------------------- */
 export default function CustomCalendar() {
-  const { getEvents, loading } = useCalendar();
+  const { getEvents, updateEvent, loading } = useCalendar();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
@@ -576,6 +578,10 @@ export default function CustomCalendar() {
   const [showAllOpen, setShowAllOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // const { currentContact } = useAppSelector((state) => state.contacts);
+  const { session } = useAppSelector((state) => state.auth);
+  // const { users } = useAppSelector((state) => state.user);
 
   /* filter options */
   const [filters, setFilters] = useState({
@@ -599,7 +605,12 @@ export default function CustomCalendar() {
     fetchEvents();
   }, []);
 
-  const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+  const myEvents = useMemo(() => {
+    if (!session?.user?.id) return events;
+    return events.filter(e => e.assignToId === session.user.id || e.assignById === session.user.id);
+  }, [events, session?.user?.id]);
+
+  const groupedEvents = useMemo(() => groupEventsByDate(myEvents), [myEvents]);
 
   const getEventData = (date: Dayjs) => {
     const key = date.format("YYYY-MM-DD");
@@ -754,8 +765,10 @@ export default function CustomCalendar() {
       {/* ------- add-event modal ------- */}
       <AddEventForm
         open={addOpen}
+        event={selectedEvent}
         onClose={(success) => {
           setAddOpen(false);
+          setSelectedEvent(null);
           if (success) fetchEvents();
         }}
       />
@@ -822,7 +835,7 @@ export default function CustomCalendar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle edit action - you can add edit functionality here
+                  setAddOpen(true);
                   setDetailOpen(false);
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -856,6 +869,16 @@ export default function CustomCalendar() {
                   </span>
                   <span className="text-gray-400">|</span>
                   <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
+                  {selectedEvent?.status === 'MET' && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">
+                      Completed
+                    </span>
+                  )}
+                  {selectedEvent?.status === 'CANCELLED' && (
+                    <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">
+                      Cancelled
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -882,6 +905,28 @@ export default function CustomCalendar() {
                 {selectedEvent?.description || "No description available."}
               </p>
             </div>
+
+            {/* Quick Actions */}
+            {selectedEvent && selectedEvent.status !== 'MET' && (
+              <div className="mt-6 pt-4 border-t">
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await updateEvent(selectedEvent.id, { status: 'MET' });
+                      fetchEvents();
+                      setDetailOpen(false);
+                      toast.success('Event marked as completed');
+                    } catch (err) {
+                      toast.error('Failed to update event status');
+                    }
+                  }}
+                  className="w-full bg-green-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Mark as Completed
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Modal>

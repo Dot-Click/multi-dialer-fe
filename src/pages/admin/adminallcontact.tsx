@@ -65,7 +65,7 @@ const AdminAllContact = () => {
 
     useEffect(() => {
         if (session?.user?.id) {
-            fetchUsers();
+            // fetchUsers();
             dispatch(fetchContactLists());
         }
     }, [session?.user?.id]);
