@@ -5,6 +5,8 @@ import { IoIosAdd } from "react-icons/io";
 import { CalendarCheck2, ListTodo, Phone, Loader2, Clock, User } from 'lucide-react';
 import api from '@/lib/axios';
 import dayjs from 'dayjs';
+import AddEventForm from '@/components/modal/addeventmodal';
+import type { CalendarEvent as CalendarEventType } from '@/hooks/useCalendar';
 
 interface CalendarEvent {
   id: string;
@@ -22,12 +24,12 @@ interface CalendarEvent {
 }
 
 
-const getEventCategory = (event: CalendarEvent) => {
-  const t = event.title.toLowerCase();
-  if (t.startsWith('call back')) return 'callback';
-
-  if (event.color === '#495057') return 'task';
-  return 'appointment';
+const getEventCategory = (event: CalendarEvent): 'appointment' | 'task' | 'callback' => {
+  const title = (event.title || '').toLowerCase();
+  if (title.includes('appointment')) return 'appointment';
+  if (title.includes('task')) return 'task';
+  if (title.includes('call back') || title.includes('callback') || event.color === '#007bff' || event.color === '#3b82f6') return 'callback';
+  return 'task';
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -43,7 +45,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const EventCard = ({ event }: { event: CalendarEvent }) => {
+const EventCard = ({ event, onClick }: { event: CalendarEvent, onClick?: () => void }) => {
   const category = getEventCategory(event);
 
   const config = {
@@ -53,7 +55,10 @@ const EventCard = ({ event }: { event: CalendarEvent }) => {
   }[category];
 
   return (
-    <div className={`border border-gray-100 border-l-4 ${config.border} rounded-xl p-4 flex gap-3 hover:shadow-sm transition-shadow`}>
+    <div 
+      className={`border border-gray-100 border-l-4 ${config.border} rounded-xl p-4 flex gap-3 hover:shadow-sm transition-shadow cursor-pointer`}
+      onClick={onClick}
+    >
       <div className={`shrink-0 w-9 h-9 rounded-full ${config.iconBg} flex items-center justify-center`}>
         <config.Icon className={`w-4 h-4 ${config.color}`} />
       </div>
@@ -91,14 +96,33 @@ const Activities = () => {
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'appointment' | 'task' | 'callback'>('all');
 
-  useEffect(() => {
+  const fetchEvents = () => {
     if (!currentContact?.id) return;
     setLoading(true);
     api.get(`/calendar/contact/${currentContact.id}`)
       .then(res => setEvents(res.data.data || []))
       .catch(err => console.error('Failed to fetch activities:', err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchEvents();
+
+    const handleUpdate = () => {
+      fetchEvents();
+    };
+
+    window.addEventListener('CALENDAR_UPDATED', handleUpdate);
+    return () => window.removeEventListener('CALENDAR_UPDATED', handleUpdate);
   }, [currentContact?.id]);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+
+  const handleEditClick = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setIsEditModalOpen(true);
+  };
 
   const appointments = events.filter(e => getEventCategory(e) === 'appointment');
   const tasks = events.filter(e => getEventCategory(e) === 'task');
@@ -153,9 +177,20 @@ const Activities = () => {
               <p className="text-xs text-gray-400">Use the header buttons to add an Appointment, Task, or Call Back</p>
             </div>
           ) : (
-            filtered.map(event => <EventCard key={event.id} event={event} />)
+            filtered.map(event => <EventCard key={event.id} event={event} onClick={() => handleEditClick(event)} />)
           )}
         </div>
+
+        <AddEventForm 
+          open={isEditModalOpen}
+          onClose={(success) => {
+            setIsEditModalOpen(false);
+            setSelectedEvent(null);
+            if (success) fetchEvents();
+          }}
+          event={selectedEvent as unknown as CalendarEventType}
+          contactId={currentContact?.id}
+        />
       </div>
 
       {/* RIGHT — Information Panel */}

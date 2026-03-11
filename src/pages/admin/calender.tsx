@@ -536,6 +536,8 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
+import { toast } from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
 
 //  --------------------------------------------------
 // import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
@@ -559,7 +561,7 @@ export default function CustomCalendar() {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const { getAllEvents } = useCalendar();
+  const { getAllEvents, updateEvent } = useCalendar();
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -578,6 +580,9 @@ export default function CustomCalendar() {
   /* selected event for detail */
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
+  // const { users } = useAppSelector((state) => state.user);
+  const { session } = useAppSelector((state) => state.auth);
+
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
 
@@ -591,7 +596,11 @@ export default function CustomCalendar() {
   }, []);
 
   const getEventDataForDate = (date: Dayjs) => {
-    return events.filter(event => dayjs(event.startDate).format("YYYY-MM-DD") === date.format("YYYY-MM-DD"));
+    const filteredEvents = events.filter(e => {
+        if (!session?.user?.id) return true;
+        return e.assignToId === session.user.id || e.assignById === session.user.id;
+    });
+    return filteredEvents.filter(event => dayjs(event.startDate).format("YYYY-MM-DD") === date.format("YYYY-MM-DD"));
   };
 
   /* handlers */
@@ -603,13 +612,6 @@ export default function CustomCalendar() {
   const showAdd = () => {
     setOptionsOpen(false);
     setAddOpen(true);
-  };
-
-  const handleAddClose = (success?: boolean) => {
-    setAddOpen(false);
-    if (success) {
-      fetchEvents();
-    }
   };
 
   const showAll = () => {
@@ -635,7 +637,10 @@ export default function CustomCalendar() {
     return (
       <div className="flex flex-col gap-1 py-2 h-full text-left">
         {list.slice(0, max).map((it, i) => (
-          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight">
+          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
+            e.stopPropagation();
+            openDetail(it, value);
+          }}>
             <div
               className="w-1 rounded-full self-stretch shrink-0"
               style={{ backgroundColor: it.color }}
@@ -743,7 +748,15 @@ export default function CustomCalendar() {
       </Modal>
 
       {/* ------- add-event modal ------- */}
-      <AddEventForm open={addOpen} onClose={handleAddClose} />
+      <AddEventForm
+        open={addOpen}
+        event={selectedEvent}
+        onClose={(success) => {
+          setAddOpen(false);
+          setSelectedEvent(null);
+          if (success) fetchEvents();
+        }}
+      />
 
       {/* ------- show-all modal ------- */}
       <Modal
@@ -807,7 +820,7 @@ export default function CustomCalendar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle edit action - you can add edit functionality here
+                  setAddOpen(true);
                   setDetailOpen(false);
                 }}
                 className="text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -841,6 +854,16 @@ export default function CustomCalendar() {
                   </span>
                   <span className="text-gray-400">|</span>
                   <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
+                  {selectedEvent?.status === 'MET' && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">
+                      Completed
+                    </span>
+                  )}
+                  {selectedEvent?.status === 'CANCELLED' && (
+                    <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">
+                      Cancelled
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -867,6 +890,28 @@ export default function CustomCalendar() {
                 {selectedEvent?.description || "No description available."}
               </p>
             </div>
+
+            {/* Quick Actions */}
+            {selectedEvent && selectedEvent.status !== 'MET' && (
+              <div className="mt-6 pt-4 border-t">
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      await updateEvent(selectedEvent.id, { status: 'MET' });
+                      fetchEvents();
+                      setDetailOpen(false);
+                      toast.success('Event marked as completed');
+                    } catch (err) {
+                      toast.error('Failed to update event status');
+                    }
+                  }}
+                  className="w-full bg-green-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Mark as Completed
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Modal>
