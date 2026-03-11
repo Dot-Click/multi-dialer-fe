@@ -714,6 +714,18 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      .addCase(getAllImportedContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllImportedContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.importHistory = action.payload;
+      })
+      .addCase(getAllImportedContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(uploadAttachment.fulfilled, (state, action) => {
         if (state.currentContact) {
           if (!state.currentContact.attachments) {

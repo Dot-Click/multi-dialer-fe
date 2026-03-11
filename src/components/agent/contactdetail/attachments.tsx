@@ -57,7 +57,7 @@ const Attachments = () => {
     return (
         <div className='flex gap-6 flex-col min-h-40'>
             <div className="flex justify-between items-center">
-                <h1 className='text-[#0E1011] text-[18px] font-medium'>Attachments:</h1>
+                <h1 className='text-[#0E1011] dark:text-white text-[18px] font-medium'>Attachments:</h1>
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -67,29 +67,29 @@ const Attachments = () => {
                 <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className='flex bg-[#EBEDF0] py-[6px] px-[16px] cursor-pointer hover:bg-gray-300 rounded-[12px] gap-2 items-center justify-center disabled:opacity-50'
+                    className='flex bg-[#EBEDF0] dark:bg-gray-700 py-[6px] px-[16px] cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 rounded-[12px] gap-2 items-center justify-center transition-colors disabled:opacity-50'
                 >
-                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FiPaperclip className="text-[14px]" />}
-                    <span className='text-[#0E1011] text-[14px] font-medium'>
+                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FiPaperclip className="text-[14px] dark:text-white" />}
+                    <span className='text-[#0E1011] dark:text-white text-[14px] font-medium'>
                         {isUploading ? "Uploading..." : "Upload File"}
                     </span>
-                    {!isUploading && <span className='text-[12px] font-normal text-[#495057]'>(max 10 MB)</span>}
+                    {!isUploading && <span className='text-[12px] font-normal text-[#495057] dark:text-gray-400'>(max 10 MB)</span>}
                 </button>
             </div>
 
             {attachments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {attachments.map((file: any) => (
-                        <div key={file.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white transition-colors group">
+                        <div key={file.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-750 transition-colors group">
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="p-2 rounded-lg bg-white border border-gray-100 flex-shrink-0">
+                                <div className="p-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-100 dark:border-gray-600 flex-shrink-0">
                                     <FiPaperclip className="text-[#1D85F0]" />
                                 </div>
                                 <div className="flex flex-col overflow-hidden">
-                                    <span className="text-[14px] font-medium text-[#0E1011] truncate" title={file.fileName}>
+                                    <span className="text-[14px] font-medium text-[#0E1011] dark:text-white truncate" title={file.fileName}>
                                         {file.fileName}
                                     </span>
-                                    <span className="text-[12px] text-gray-500">
+                                    <span className="text-[12px] text-gray-500 dark:text-gray-400">
                                         {formatSize(file.fileSize)}
                                     </span>
                                 </div>
@@ -99,14 +99,14 @@ const Attachments = () => {
                                     href={file.fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300"
                                     title="Download"
                                 >
                                     <FiDownload size={16} />
                                 </a>
                                 <button
                                     onClick={() => handleDelete(file.id)}
-                                    className="p-2 hover:bg-red-50 rounded-lg text-red-500"
+                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500"
                                     title="Delete"
                                 >
                                     <FiTrash2 size={16} />
@@ -117,8 +117,8 @@ const Attachments = () => {
                 </div>
             ) : (
                 <div className='flex justify-center md:mt-12 gap-2 items-center w-full text-center md:w-[50%] mx-auto flex-col'>
-                    <h1 className='text-[#000000] text-[14px] font-medium'>No Data Available</h1>
-                    <p className='text-[#848C94] text-[14px] font-normal'>There have been no attachments uploaded yet</p>
+                    <h1 className='text-[#000000] dark:text-white text-[14px] font-medium'>No Data Available</h1>
+                    <p className='text-[#848C94] dark:text-gray-400 text-[14px] font-normal'>There have been no attachments uploaded yet</p>
                 </div>
             )}
         </div>

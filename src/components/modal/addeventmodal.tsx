@@ -96,13 +96,13 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40 ">
 
       {/* Modal Box */}
-      <div className="w-[400px] bg-white rounded-xl shadow-xl overflow-hidden animate-[fadeIn_0.25s_ease] flex flex-col max-h-[90vh]">
+      <div className="w-[400px] bg-white dark:bg-slate-800 rounded-xl shadow-xl overflow-hidden animate-[fadeIn_0.25s_ease] flex flex-col max-h-[90vh] transition-colors">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-semibold text-gray-800">Add New Event</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10 transition-colors">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Event</h2>
           <button onClick={() => onClose()}>
-            <IoClose className="text-gray-500 hover:text-gray-700 text-xl" />
+            <IoClose className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl" />
           </button>
         </div>
 
@@ -112,7 +112,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
 
           {/* Title */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Title</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Title</label>
             <Input
               placeholder="Enter event's title"
               value={formData.title}
@@ -122,7 +122,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
 
           {/* Description */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Description</label>
             <TextArea
               rows={4}
               placeholder="Enter event's description"
@@ -133,7 +133,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
 
           {/* Type of Event */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-600 mb-2">Type of event</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Type of event</label>
             <Radio.Group
               onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
               value={formData.eventType}
@@ -141,7 +141,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
             >
               <div className="space-y-4">
                 <div>
-                  <Radio value="START_ONLY">Start Only</Radio>
+                  <Radio value="START_ONLY" className="dark:text-white">Start Only</Radio>
                   {formData.eventType === 'START_ONLY' && (
                     <DatePicker
                       showTime
@@ -154,7 +154,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
                 </div>
 
                 <div>
-                  <Radio value="FROM_TO">From - To</Radio>
+                  <Radio value="FROM_TO" className="dark:text-white">From - To</Radio>
                   {formData.eventType === 'FROM_TO' && (
                     <div className="mt-2 space-y-2">
                       <DatePicker
@@ -176,7 +176,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
                 </div>
 
                 <div>
-                  <Radio value="ALL_DAY">All Day</Radio>
+                  <Radio value="ALL_DAY" className="dark:text-white">All Day</Radio>
                   {formData.eventType === 'ALL_DAY' && (
                     <DatePicker
                       placeholder="Select Date"
@@ -192,7 +192,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
 
           {/* Assign To */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-600 mb-2">Assign to</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Assign to</label>
             <Input
               placeholder="Search"
               prefix={<FiSearch className="text-gray-400" />}
@@ -200,7 +200,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <div className="border rounded-md max-h-36 overflow-y-auto">
+            <div className="border dark:border-slate-700 rounded-md max-h-36 overflow-y-auto">
               {usersLoading ? (
                 <div className="p-4 text-center text-gray-500 text-sm">Loading users...</div>
               ) : (
@@ -209,12 +209,12 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
                   value={formData.assignToId}
                   className="w-full"
                 >
-                  <div key="none" className={`p-2 border-b last:border-b-0 ${formData.assignToId === 'None' ? 'bg-gray-100' : ''}`}>
-                    <Radio value="None" className="w-full">None</Radio>
+                  <div key="none" className={`p-2 border-b dark:border-slate-700 last:border-b-0 ${formData.assignToId === 'None' ? 'bg-gray-100 dark:bg-slate-700' : ''}`}>
+                    <Radio value="None" className="w-full transition-colors">None</Radio>
                   </div>
                   {filteredUsers.map(user => (
-                    <div key={user.id} className={`p-2 border-b last:border-b-0 ${formData.assignToId === user.id ? 'bg-gray-100' : ''}`}>
-                      <Radio value={user.id} className="w-full">{user.fullName}</Radio>
+                    <div key={user.id} className={`p-2 border-b dark:border-slate-700 last:border-b-0 ${formData.assignToId === user.id ? 'bg-gray-100 dark:bg-slate-700' : ''}`}>
+                      <Radio value={user.id} className="w-full transition-colors">{user.fullName}</Radio>
                     </div>
                   ))}
                 </Radio.Group>
@@ -224,7 +224,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
 
           {/* Event Color */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-600 mb-2">Event Color</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Event Color</label>
             <div className="flex items-center gap-2 flex-wrap">
               {eventColors.map(color => (
                 <button
@@ -240,11 +240,11 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white px-6 py-4 border-t flex justify-center gap-3">
+        <div className="sticky bottom-0 bg-white dark:bg-slate-800 px-6 py-4 border-t dark:border-slate-700 flex justify-center gap-3 transition-colors">
           <button
             type="button"
             onClick={() => onClose()}
-            className="px-6 py-2 w-full bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200"
+            className="px-6 py-2 w-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
           >
             Cancel
           </button>
@@ -258,6 +258,54 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose }) => {
           </button>
         </div>
       </div>
+      <style>{`
+        /* Dark Mode Overrides for Ant Design Components in Modal */
+        .dark .ant-input,
+        .dark .ant-input-affix-wrapper {
+          background-color: #334155 !important;
+          border-color: #475569 !important;
+          color: #f8fafc !important;
+        }
+
+        .dark .ant-input::placeholder {
+          color: #94a3b8 !important;
+        }
+
+        .dark .ant-input-affix-wrapper .ant-input {
+          background-color: transparent !important;
+        }
+
+        .dark .ant-picker {
+          background-color: #334155 !important;
+          border-color: #475569 !important;
+        }
+
+        .dark .ant-picker input {
+          color: #f8fafc !important;
+        }
+
+        .dark .ant-picker input::placeholder {
+          color: #94a3b8 !important;
+        }
+
+        .dark .ant-picker-suffix {
+          color: #94a3b8 !important;
+        }
+
+        .dark .ant-radio-wrapper {
+          color: #e2e8f0 !important;
+        }
+
+        .dark .ant-radio-inner {
+          background-color: #1e293b !important;
+          border-color: #475569 !important;
+        }
+
+        .dark .ant-radio-checked .ant-radio-inner {
+          border-color: #fbbf24 !important;
+          background-color: #fbbf24 !important;
+        }
+      `}</style>
     </div>
   );
 };

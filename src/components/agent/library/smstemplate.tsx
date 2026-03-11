@@ -370,12 +370,12 @@ const SMSTemplate = () => {
                       <div
                         className={`block w-[48px] h-[24px] rounded-[25.95px] transition-colors duration-300 ${
                           template.status
-                            ? "bg-black"
+                            ? "bg-black dark:bg-yellow-400"
                             : "bg-gray-300 dark:bg-slate-700"
                         }`}
                       ></div>
                       <div
-                        className={`dot absolute left-0.5 top-0.5 bg-white w-[20px] h-[20px] rounded-[25.95px] transition-transform duration-300 ${
+                        className={`dot absolute left-0.5 top-0.5 bg-white dark:bg-slate-900 w-[20px] h-[20px] rounded-[25.95px] transition-transform duration-300 ${
                           template.status ? "translate-x-6" : ""
                         }`}
                       ></div>

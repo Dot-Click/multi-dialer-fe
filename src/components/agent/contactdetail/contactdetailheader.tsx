@@ -185,48 +185,48 @@ const ContactDetailHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="shadow-sm bg-white flex items-center justify-between px-3 sm:px-5 md:px-6 w-full h-16">
+      <header className="shadow-sm bg-white dark:bg-slate-800 flex items-center justify-between px-3 sm:px-5 md:px-6 w-full h-16">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}
           <div className="relative" ref={actionMenuRef}>
             <button
               onClick={() => setShowActionMenu(!showActionMenu)}
-              className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-medium text-[#0E1011]"
+              className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-[16px] font-medium text-[#0E1011] dark:text-white"
             >
               Action
               <MdKeyboardArrowDown className="text-lg" />
             </button>
 
             {showActionMenu && (
-              <div className="absolute top-14 left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50 animate-fadeIn">
+              <div className="absolute top-14 left-0 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50 animate-fadeIn">
                 <button
                   onClick={handleExport}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-[#0E1011]"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
                 >
                   Export
                 </button>
                 <button
                   onClick={handleDncClick}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-[#0E1011]"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
                 >
                   Move to DNC
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-red-600"
                 >
                   Delete Contact
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-[#0E1011]"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
                 >
                   Print contact form
                 </button>
                 <button
                   onClick={handleEmail}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-[#0E1011]"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
                 >
                   Email contact form
                 </button>
@@ -237,7 +237,7 @@ const ContactDetailHeader = () => {
           {/* Take Action */}
           <button
             onClick={() => setActionModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-md bg-[#EBEDF0] hover:bg-gray-200 text-sm sm:text-[16px] font-medium text-[#0E1011]"
+            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-md bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-[16px] font-medium text-[#0E1011] dark:text-white"
           >
             Take Action
           </button>
@@ -248,7 +248,7 @@ const ContactDetailHeader = () => {
               <button
                 key={btn.id}
                 onClick={btn.onClick}
-                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 font-medium text-[#495057]"
+                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-[#495057] dark:text-white"
               >
                 <span className="text-lg">{btn.icon}</span>
                 {btn.name}
@@ -259,20 +259,20 @@ const ContactDetailHeader = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="flex md:hidden items-center p-2 rounded-md bg-gray-100 hover:bg-gray-200"
+            className="flex md:hidden items-center p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
           >
-            <MdMoreVert className="text-xl text-gray-700" />
+            <MdMoreVert className="text-xl text-gray-700 dark:text-white" />
           </button>
 
           {/* Mobile Dropdown Menu */}
           {showMobileMenu && (
-            <div className="absolute top-16 left-3 right-3 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-col z-50 animate-fadeIn">
+            <div className="absolute top-16 left-3 right-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 flex flex-col z-50 animate-fadeIn text-[#0E1011] dark:text-white">
               <button
                 onClick={() => {
                   setActionModalOpen(true);
                   setShowMobileMenu(false);
                 }}
-                className="text-sm text-gray-800 px-3 py-2 rounded-md hover:bg-gray-100 text-left"
+                className="text-sm px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
               >
                 Take Action
               </button>
@@ -283,7 +283,7 @@ const ContactDetailHeader = () => {
                     btn.onClick();
                     setShowMobileMenu(false);
                   }}
-                  className="text-sm text-gray-800 px-3 py-2 rounded-md hover:bg-gray-100 text-left flex items-center gap-2"
+                  className="text-sm px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-left flex items-center gap-2"
                 >
                   {btn.icon}
                   {btn.name}
@@ -296,8 +296,8 @@ const ContactDetailHeader = () => {
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-1.5 sm:gap-2">
 
-          <button className="border bg-gray-100 rounded-md p-1.5 sm:p-2 hover:bg-gray-200">
-            <IoCloseOutline className="text-gray-700 text-lg" />
+          <button className="border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <IoCloseOutline className="text-gray-700 dark:text-white text-lg" />
           </button>
         </div>
       </header>

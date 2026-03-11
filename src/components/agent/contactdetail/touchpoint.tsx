@@ -25,10 +25,10 @@ const TouchPoints = () => {
   ];
 
   return (
-    <div className="w-full bg-white  p-4 md:p-8 font-inter text-[#0E1011]">
+    <div className="w-full bg-white dark:bg-slate-800 p-4 md:p-8 font-inter text-[#0E1011] dark:text-white transition-colors">
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-[18px] font-bold">SMS Messaging</h1>
+        <h1 className="text-[18px] font-bold dark:text-white">SMS Messaging</h1>
         <p className="text-[#848C94] text-[13px] mt-1">
           Manage automated Email and Direct Mail campaigns
         </p>
@@ -43,17 +43,17 @@ const TouchPoints = () => {
         </button>
 
         {/* Direct Mail Campaigns Tab (Inactive) */}
-        <button className="flex-1 bg-white border border-[#E5E7EB] text-[#111111] py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 transition-all hover:bg-gray-50">
-          <HiOutlineChatAlt2 className="text-xl text-gray-700" />
+        <button className="flex-1 bg-white dark:bg-gray-700 border border-[#E5E7EB] dark:border-gray-600 text-[#111111] dark:text-white py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 transition-all hover:bg-gray-50 dark:hover:bg-gray-600">
+          <HiOutlineChatAlt2 className="text-xl text-gray-700 dark:text-gray-300" />
           <span className="text-[15px] font-medium">Direct Mail Campaigns</span>
         </button>
       </div>
 
       {/* Add Touch Point Action */}
       <div className="mb-10">
-        <button className="w-full border border-[#E5E7EB] py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
-          <FiPlus className="text-gray-600 text-lg" />
-          <span className="text-[15px] font-medium text-[#111111]">Add Touch Point</span>
+        <button className="w-full border border-[#E5E7EB] dark:border-gray-700 py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+          <FiPlus className="text-gray-600 dark:text-gray-300 text-lg" />
+          <span className="text-[15px] font-medium text-[#111111] dark:text-white">Add Touch Point</span>
         </button>
       </div>
 
@@ -62,10 +62,10 @@ const TouchPoints = () => {
         {campaigns.map((camp) => (
           <div
             key={camp.id}
-            className="w-full bg-[#F4F5F8] p-6 rounded-xl flex items-center justify-between group cursor-default transition-all hover:bg-[#EEF0F4]"
+            className="w-full bg-[#F4F5F8] dark:bg-gray-700 p-6 rounded-xl flex items-center justify-between group cursor-default transition-all hover:bg-[#EEF0F4] dark:hover:bg-gray-600"
           >
             <div className="flex flex-col gap-1">
-              <h3 className="text-[16px] font-semibold text-[#111111]">
+              <h3 className="text-[16px] font-semibold text-[#111111] dark:text-white">
                 {camp.title}
               </h3>
               <p className="text-[13px] text-[#848C94] font-normal">

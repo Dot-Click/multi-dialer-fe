@@ -51,38 +51,38 @@ const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integratio
 
   return (
     <div 
-       className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-[1200] p-4"
+       className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[1200] p-4"
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative"
+        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6 relative border dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
         >
-          <FiX size={18} className="text-gray-600" />
+          <FiX size={18} className="text-gray-600 dark:text-gray-300" />
         </button>
 
         {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 mb-4 pr-8">Connect {integrationName}</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pr-8">Connect {integrationName}</h2>
 
         {/* Description */}
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
           Enter your API key or credentials for {integrationName} integration.
         </p>
 
         {/* API Key Input */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 mb-2">API Key</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">API Key</label>
           <input
             type="text"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Enter API key"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50 dark:bg-slate-900 dark:text-white dark:placeholder-gray-500"
           />
         </div>
 
@@ -90,7 +90,7 @@ const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integratio
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md transition-colors"
           >
             Cancel
           </button>
@@ -154,38 +154,38 @@ const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration,
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative"
+        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6 relative border dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
         >
-          <FiX size={18} className="text-gray-600" />
+          <FiX size={18} className="text-gray-600 dark:text-gray-300" />
         </button>
 
         {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 mb-6 pr-8">Manage {integration.name} Integration</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 pr-8">Manage {integration.name} Integration</h2>
 
         {/* Status Section */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 mb-2">Status</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">Status</label>
           <p className={`text-sm font-bold ${getStatusColor()}`}>{getStatusText()}</p>
         </div>
 
         {/* API Key Section */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 mb-2">API Key</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">API Key</label>
           <input
             type="text"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50 dark:bg-slate-900 dark:text-white"
             readOnly={integration.status === 'connected'}
           />
         </div>
@@ -194,7 +194,7 @@ const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration,
         <div className="flex gap-3">
           <button
             onClick={handleDisconnect}
-            className="flex-1 px-4 py-2 text-sm font-medium text-black bg-red-100 hover:bg-red-200 rounded-md transition-colors"
+            className="flex-1 px-4 py-2 text-sm font-medium text-black bg-red-100 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 rounded-md transition-colors"
           >
             Disconnect
           </button>
@@ -348,17 +348,17 @@ const Integrations: React.FC = () => {
       case 'processing':
         return {
           text: 'Processing...',
-          color: 'text-blue-500',
+          color: 'text-blue-500 dark:text-blue-400',
           icon: <FiLoader className="animate-spin" size={14} />,
         };
       case 'connected':
-        return { text: 'Connected', color: 'text-green-600', icon: <BsCheckCircle size={14} /> };
+        return { text: 'Connected', color: 'text-green-600 dark:text-green-400', icon: <BsCheckCircle size={14} /> };
       case 'failed':
-        return { text: 'Connection failed', color: 'text-red-600', icon: <BsXCircle size={14} /> };
+        return { text: 'Connection failed', color: 'text-red-600 dark:text-red-400', icon: <BsXCircle size={14} /> };
       case 'setup':
         return {
           text: 'Need setup',
-          color: 'text-orange-500',
+          color: 'text-orange-500 dark:text-orange-400',
           icon: <BsExclamationTriangle size={14} />,
         };
       default:
@@ -421,7 +421,7 @@ const Integrations: React.FC = () => {
             return (
               <div
                 key={integration.id}
-                className="bg-white rounded-lg px-4 py-3 border border-gray-200 hover:shadow-sm transition-shadow"
+                className="bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-gray-200 dark:border-slate-700 hover:shadow-sm transition-shadow"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 flex-shrink-0">
 
@@ -429,8 +429,8 @@ const Integrations: React.FC = () => {
                   <div className="flex items-start gap-4 flex-1 min-w-0">
                     <div className="flex-shrink-0">{integration.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">{integration.name}</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">{integration.description}</p>
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{integration.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{integration.description}</p>
                     </div>
                   </div>
 
@@ -446,7 +446,7 @@ const Integrations: React.FC = () => {
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                         isConnectButton
                           ? 'bg-yellow-400 text-black hover:bg-yellow-500'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                       }`}
                     >
                       {integration.buttonText}

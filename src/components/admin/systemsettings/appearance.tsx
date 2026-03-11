@@ -345,11 +345,11 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
       type="button"
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-        enabled ? "bg-black" : "bg-gray-300"
+        enabled ? "bg-black dark:bg-slate-900" : "bg-gray-300 dark:bg-slate-700"
       }`}
     >
       <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${
+        className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-slate-300 transition ${
           enabled ? "translate-x-6" : "translate-x-0.5"
         }`}
       />
@@ -521,12 +521,12 @@ const Appearance: React.FC = () => {
           </p>
         </div>
         <div className="mt-6">
-          <label className="flex items-center text-[#495057] font-[400] inter text-[16px] gap-2">
+          <label className="flex items-center text-[#495057] dark:text-gray-400 font-[400] inter text-[16px] gap-2">
             <input
               type="checkbox"
               checked={toggles.lockGroups}
               onChange={(e) => handleToggleChange("lockGroups", e.target.checked)}
-              className="accent-black h-4 w-4"
+              className="accent-black dark:accent-yellow-400 h-4 w-4"
             />
             Lock Groups
           </label>
@@ -589,8 +589,8 @@ const Appearance: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setTheme("light")}
-            className={`p-3 border flex justify-center items-center gap-4 rounded-[16px] ${
-              theme === "light" ? "border-[#FFCB05] bg-[#FFCB0514]" : ""
+            className={`p-3 border flex justify-center items-center gap-4 rounded-[16px] transition-all ${
+              theme === "light" ? "border-[#FFCB05] bg-[#FFCB0514] shadow-sm" : "border-gray-200 dark:border-slate-700"
             }`}
           >
             <span>
@@ -608,8 +608,8 @@ const Appearance: React.FC = () => {
 
           <button
             onClick={() => setTheme("dark")}
-            className={`p-3 border flex justify-center items-center gap-4 rounded-[16px] ${
-              theme === "dark" ? "border-[#FFCB05] bg-[#FFCB0514]" : ""
+            className={`p-3 border flex justify-center items-center gap-4 rounded-[16px] transition-all ${
+              theme === "dark" ? "border-[#FFCB05] bg-[#FFCB0514] shadow-sm" : "border-gray-200 dark:border-slate-700"
             }`}
           >
             <span>

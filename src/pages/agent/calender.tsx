@@ -675,7 +675,7 @@ export default function CustomCalendar() {
       {/* ------- header ------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <h2 className="text-base sm:text-[28px] font-[500] text-[#0E1011]">
+          <h2 className="text-base sm:text-[28px] dark:text-white font-[500] text-[#0E1011]">
             {currentDate.format("MMMM YYYY")}
           </h2>
           <div className="flex gap-2">

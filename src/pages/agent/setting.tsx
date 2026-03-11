@@ -423,23 +423,23 @@ const Setting = () => {
           )}
 
                     {activeTab === 'caller-id' && (
-                        <div className="bg-white rounded-[12px] shadow-sm p-6">
-                            <h2 className="text-[24px] font-[500] text-[#17181B] mb-6">Caller ID & Campaigns</h2>
+                        <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
+                            <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white mb-6">Caller ID & Campaigns</h2>
                             
                             {/* Default CallID */}
                             <div className="mb-8">
-                                <label className="text-[14px] font-[500] text-[#495057] block mb-2">Default CallID</label>
+                                <label className="text-[14px] font-[500] text-[#495057] dark:text-gray-400 block mb-2">Default CallID</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <div className="bg-[#F3F4F7] py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
+                                    <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                                         <input
                                             type="text"
                                             value={agentCallerIds.length > 0 ? agentCallerIds[0].twillioNumber || agentCallerIds[0].label : 'No Caller ID Assigned'}
                                             readOnly
-                                            className="w-full bg-transparent text-[16px] text-[#0E1011] font-[400] focus:outline-none"
+                                            className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-[400] focus:outline-none"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2 text-[14px] text-[#495057]">
-                                        <FiInfo className="w-4 h-4 text-gray-300" />
+                                    <div className="flex items-center gap-2 text-[14px] text-[#495057] dark:text-gray-400">
+                                        <FiInfo className="w-4 h-4 text-gray-300 dark:text-gray-500" />
                                         <span className="test-gray-300">Caller IDs are managed by Admin</span>
                                     </div>
                                 </div>
@@ -447,7 +447,7 @@ const Setting = () => {
 
                             {/* Outbound Caller IDs */}
                             <div>
-                                <h3 className="text-[18px] font-[500] text-[#34363B] mb-4">Outbound Caller IDs</h3>
+                                <h3 className="text-[18px] font-[500] text-[#34363B] dark:text-gray-200 mb-4">Outbound Caller IDs</h3>
                                 <div className="space-y-4">
                                     {isLoadingCallerIds ? (
                                         <div className="text-center py-8 text-gray-500">
@@ -458,11 +458,11 @@ const Setting = () => {
                                             <div key={callerId.id} className="flex items-center py-4 pl-2 rounded-lg">
                                                 <div className="flex items-center gap-4 w-full">
                                                     {/* Card */}
-                                                    <div className="border border-gray-200 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white flex-1">
-                                                        <p className="text-[15px] font-medium text-[#0E1011] leading-tight">
+                                                    <div className="border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white dark:bg-slate-700 flex-1">
+                                                        <p className="text-[15px] font-medium text-[#0E1011] dark:text-white leading-tight">
                                                             {callerId.twillioNumber || callerId.label}
                                                         </p>
-                                                        <p className="text-[13px] text-[#6B7280]">
+                                                        <p className="text-[13px] text-[#6B7280] dark:text-gray-400">
                                                             {callerId.label}
                                                         </p>
                                                     </div>
@@ -471,8 +471,8 @@ const Setting = () => {
                                                     <button 
                                                         className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
                                                             callerId.status === 'active' || callerId.status === 'ACTIVE'
-                                                                ? 'bg-black'
-                                                                : 'bg-gray-300 text-gray-700'
+                                                                ? 'bg-black dark:bg-yellow-400 dark:text-black'
+                                                                : 'bg-gray-300 dark:bg-slate-600 text-gray-700 dark:text-gray-300'
                                                         }`}
                                                     >
                                                         {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
@@ -481,9 +481,9 @@ const Setting = () => {
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="text-center py-8 border border-dashed border-gray-300 rounded-lg">
-                                            <p className="text-gray-500">No caller IDs assigned to you yet.</p>
-                                            <p className="text-gray-400 text-sm mt-1">Contact your admin to get a caller ID assigned.</p>
+                                        <div className="text-center py-8 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
+                                            <p className="text-gray-500 dark:text-gray-400">No caller IDs assigned to you yet.</p>
+                                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Contact your admin to get a caller ID assigned.</p>
                                         </div>
                                     )}
                                 </div>

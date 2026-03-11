@@ -51,38 +51,38 @@ const ContactInfoScript = () => {
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
         <div>
-          <label className="text-[13px] font-bold text-[#374151] block mb-1">Company</label>
-          <p className="text-[15px] text-[#6b7280]">{currentContact.source || "N/A"}</p>
+          <label className="text-[13px] font-bold text-[#374151] dark:text-white block mb-1">Company</label>
+          <p className="text-[15px] text-[#6b7280] dark:text-gray-400">{currentContact.source || "N/A"}</p>
         </div>
         <div>
-          <label className="text-[13px] font-bold text-[#374151] block mb-1">City / State</label>
-          <p className="text-[15px] text-[#6b7280]">{currentContact.city || "-"}, {currentContact.state || "-"}</p>
+          <label className="text-[13px] font-bold text-[#374151] dark:text-white block mb-1">City / State</label>
+          <p className="text-[15px] text-[#6b7280] dark:text-gray-400">{currentContact.city || "-"}, {currentContact.state || "-"}</p>
         </div>
         <div>
-          <label className="text-[13px] font-bold text-[#374151] block mb-1">Zip Code</label>
-          <p className="text-[15px] text-[#6b7280]">{currentContact.zip || "-"}</p>
+          <label className="text-[13px] font-bold text-[#374151] dark:text-white block mb-1">Zip Code</label>
+          <p className="text-[15px] text-[#6b7280] dark:text-gray-400">{currentContact.zip || "-"}</p>
         </div>
-        <div className="h-[1px] bg-gray-100 w-full"></div>
+        <div className="h-[1px] bg-gray-100 dark:bg-slate-700 w-full"></div>
         <div className="flex items-center gap-3">
-          <label className="text-[15px] font-bold text-[#374151]">Lead Status</label>
+          <label className="text-[15px] font-bold text-[#374151] dark:text-white">Lead Status</label>
           <span className="bg-[#5c6aff] text-white text-[11px] font-semibold px-3 py-0.5 rounded-full">New Lead</span>
         </div>
         <div>
-          <label className="text-[15px] font-bold text-[#374151] block mb-2">Interest Level</label>
+          <label className="text-[15px] font-bold text-[#374151] dark:text-white block mb-2">Interest Level</label>
           <div className="flex gap-1">
             {[...Array(5)].map((_, i) => <Star key={i} size={18} fill={i < 3 ? "#FFDE00" : "none"} color="#FFDE00" />)}
           </div>
         </div>
-        <div className="h-[1px] bg-gray-100 w-full"></div>
-        <div className="bg-[#f8f9fa] rounded-xl p-4 min-h-[120px]">
-          <p className="text-sm text-[#9ca3af]">Add Notes about this lead..</p>
+        <div className="h-[1px] bg-gray-100 dark:bg-slate-700 w-full"></div>
+        <div className="bg-[#f8f9fa] dark:bg-slate-700/50 rounded-xl p-4 min-h-[120px]">
+          <p className="text-sm text-[#9ca3af] dark:text-gray-400">Add Notes about this lead..</p>
         </div>
         <div className="space-y-3">
-          <label className="text-[13px] font-bold text-[#6b7280] block">Tags</label>
+          <label className="text-[13px] font-bold text-[#6b7280] dark:text-gray-400 block">Tags</label>
           <div className="flex flex-wrap gap-2">
             {(currentContact.tags || []).length > 0 ? currentContact.tags.map((tag: any) => (
-              <span key={tag} className="px-3 py-1 border border-gray-200 rounded-full text-[12px] font-semibold text-[#4b5563]">{tag}</span>
-            )) : <span className="text-gray-400 text-xs italic">No tags</span>}
+              <span key={tag} className="px-3 py-1 border border-gray-200 dark:border-slate-600 rounded-full text-[12px] font-semibold text-[#4b5563] dark:text-gray-300">{tag}</span>
+            )) : <span className="text-gray-400 dark:text-gray-500 text-xs italic">No tags</span>}
           </div>
         </div>
       </div>
@@ -108,24 +108,24 @@ const ContactInfoScript = () => {
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-[15px] font-bold text-[#1f2937]">Call History</h3>
-          <span className="text-[11px] font-semibold text-gray-500 border border-gray-200 px-2 py-0.5 rounded-lg">
+          <h3 className="text-[15px] font-bold text-[#1f2937] dark:text-white">Call History</h3>
+          <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-700 px-2 py-0.5 rounded-lg">
             {history.length} {history.length === 1 ? 'call' : 'calls'}
           </span>
         </div>
         {history.map((call, idx) => (
-          <div key={idx} className="border border-gray-100 rounded-xl p-4 space-y-3">
+          <div key={idx} className="border border-gray-100 dark:border-slate-700 rounded-xl p-4 space-y-3">
             <div className="flex justify-between items-start">
               <div>
-                <h4 className="text-sm font-bold text-[#374151]">
+                <h4 className="text-sm font-bold text-[#374151] dark:text-white">
                   {call.contact?.fullName || "Unknown"}
                 </h4>
-                <p className="text-[12px] text-gray-400 font-medium">{call.callSid}</p>
+                <p className="text-[12px] text-gray-400 dark:text-gray-500 font-medium">{call.callSid}</p>
               </div>
               {call.recordingUrl && (
                 <button 
                   onClick={() => togglePlay(call.recordingUrl, call.callSid || String(idx))}
-                  className="flex items-center gap-1.5 text-[11px] font-bold text-[#374151] hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-1.5 text-[11px] font-bold text-[#374151] dark:text-white hover:text-blue-600 transition-colors"
                 >
                   {playingId === (call.callSid || String(idx)) ? (
                     <><Pause size={14} fill="currentColor" /> Pause</>
@@ -135,7 +135,7 @@ const ContactInfoScript = () => {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-4 text-gray-400 text-[11px] font-medium">
+            <div className="flex items-center gap-4 text-gray-400 dark:text-gray-500 text-[11px] font-medium">
               <div className="flex items-center gap-1">
                 <Clock size={14}/> {Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}
               </div>
@@ -155,56 +155,56 @@ const ContactInfoScript = () => {
   const renderTouchPoints = () => (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="space-y-4">
-        <h3 className="text-[15px] font-bold text-[#1f2937]">Touch Point Plans</h3>
+        <h3 className="text-[15px] font-bold text-[#1f2937] dark:text-white">Touch Point Plans</h3>
         
         {/* Email card */}
-        <div className="border border-gray-100 rounded-xl p-4 flex gap-4">
-          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
-            <Mail size={18} className="text-gray-500" />
+        <div className="border border-gray-100 dark:border-slate-700 rounded-xl p-4 flex gap-4">
+          <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-gray-100 dark:border-slate-600">
+            <Mail size={18} className="text-gray-500 dark:text-gray-400" />
           </div>
           <div className="space-y-2">
             <div>
-              <h4 className="text-sm font-bold text-[#374151]">Email Follow Up</h4>
-              <p className="text-[12px] text-gray-400 leading-tight">Send personalized email with case studies and pricing.</p>
+              <h4 className="text-sm font-bold text-[#374151] dark:text-white">Email Follow Up</h4>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 leading-tight">Send personalized email with case studies and pricing.</p>
             </div>
             <div className="flex gap-2">
-              <span className="px-2.5 py-1 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-500">Scheduled</span>
-              <span className="px-2.5 py-1 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-500">+2 hours</span>
+              <span className="px-2.5 py-1 border border-gray-200 dark:border-slate-600 rounded-lg text-[10px] font-bold text-gray-500 dark:text-gray-400">Scheduled</span>
+              <span className="px-2.5 py-1 border border-gray-200 dark:border-slate-600 rounded-lg text-[10px] font-bold text-gray-500 dark:text-gray-400">+2 hours</span>
             </div>
           </div>
         </div>
 
         {/* SMS card */}
-        <div className="border border-gray-100 rounded-xl p-4 flex gap-4">
-          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
-            <MessageSquare size={18} className="text-gray-500" />
+        <div className="border border-gray-100 dark:border-slate-700 rounded-xl p-4 flex gap-4">
+          <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-gray-100 dark:border-slate-600">
+            <MessageSquare size={18} className="text-gray-500 dark:text-gray-400" />
           </div>
           <div className="space-y-2">
             <div>
-              <h4 className="text-sm font-bold text-[#374151]">SMS Reminder</h4>
-              <p className="text-[12px] text-gray-400 leading-tight">Quick text reminder about the call and next steps.</p>
+              <h4 className="text-sm font-bold text-[#374151] dark:text-white">SMS Reminder</h4>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 leading-tight">Quick text reminder about the call and next steps.</p>
             </div>
-            <span className="inline-block px-2.5 py-1 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-500">Draft</span>
+            <span className="inline-block px-2.5 py-1 border border-gray-200 dark:border-slate-600 rounded-lg text-[10px] font-bold text-gray-500 dark:text-gray-400">Draft</span>
           </div>
         </div>
 
         {/* Mail card */}
-        <div className="border border-gray-100 rounded-xl p-4 flex gap-4">
-          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
-            <Send size={18} className="text-gray-500 rotate-[-45deg]" />
+        <div className="border border-gray-100 dark:border-slate-700 rounded-xl p-4 flex gap-4">
+          <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-gray-100 dark:border-slate-600">
+            <Send size={18} className="text-gray-500 dark:text-gray-400 rotate-[-45deg]" />
           </div>
           <div className="space-y-2">
             <div>
-              <h4 className="text-sm font-bold text-[#374151]">Direct Mail (Stannp)</h4>
-              <p className="text-[12px] text-gray-400 leading-tight">Send physical brochure and product samples</p>
+              <h4 className="text-sm font-bold text-[#374151] dark:text-white">Direct Mail (Stannp)</h4>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 leading-tight">Send physical brochure and product samples</p>
             </div>
-            <span className="inline-block px-2.5 py-1 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-500">Not Scheduled</span>
+            <span className="inline-block px-2.5 py-1 border border-gray-200 dark:border-slate-600 rounded-lg text-[10px] font-bold text-gray-500 dark:text-gray-400">Not Scheduled</span>
           </div>
         </div>
       </div>
 
       <div className="space-y-4 pt-2">
-        <h3 className="text-[15px] font-bold text-[#1f2937]">Recent Touch Points</h3>
+        <h3 className="text-[15px] font-bold text-[#1f2937] dark:text-white">Recent Touch Points</h3>
         <div className="space-y-3 pl-1">
           {[
             { color: 'bg-[#5c6aff]', text: 'Email sent - Jan 10, 2026' },
@@ -213,7 +213,7 @@ const ContactInfoScript = () => {
           ].map((item, idx) => (
             <div key={idx} className="flex items-center gap-3">
               <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
-              <span className="text-[12px] font-medium text-gray-500">{item.text}</span>
+              <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400">{item.text}</span>
             </div>
           ))}
         </div>
@@ -222,10 +222,10 @@ const ContactInfoScript = () => {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full h-[600px] flex flex-col font-inter overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm w-full h-[600px] flex flex-col font-inter overflow-hidden">
       {/* Tabs Header */}
       <div className="p-3">
-        <div className="flex bg-[#f1f3f9] rounded-xl p-1">
+        <div className="flex bg-[#f1f3f9] dark:bg-slate-700 rounded-xl p-1">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -233,7 +233,7 @@ const ContactInfoScript = () => {
               className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all duration-200 ${
                 activeTab === tab
                   ? 'bg-[#FECD56] text-[#1a1a1a] shadow-sm'
-                  : 'text-[#6b7280] hover:text-gray-900'
+                  : 'text-[#6b7280] dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {tab}
@@ -256,6 +256,10 @@ const ContactInfoScript = () => {
           background: #d1d5db;
           border-radius: 10px;
           border: 3px solid white;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border: 3px solid #1e293b;
         }
       `}} />
     </div>

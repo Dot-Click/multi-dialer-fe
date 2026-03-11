@@ -33,12 +33,12 @@ const Notes = () => {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder='Type your note here'
-                className='w-full h-40 p-[16px] rounded-[12px] resize-none bg-[#F7F7F7] border border-transparent focus:border-[#FFCA06] transition-all outline-none text-[#495057] font-normal text-[16px]'
+                className='w-full h-40 p-[16px] rounded-[12px] resize-none bg-[#F7F7F7] dark:bg-gray-700 border border-transparent focus:border-[#FFCA06] transition-all outline-none text-[#495057] dark:text-white font-normal text-[16px]'
             ></textarea>
             <div className='flex justify-end'>
                 <button
                     onClick={handleSave}
-                    className="bg-[#0E1011] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                    className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-[#ffd633] transition-colors"
                 >
                     Save Notes
                 </button>

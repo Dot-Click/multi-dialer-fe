@@ -98,6 +98,8 @@ const DataManagement = () => {
     (state) => state.contacts,
   );
 
+
+
   useEffect(() => {
     dispatch(getAllImportedContacts());
     dispatch(getAllExportContacts());
@@ -156,7 +158,7 @@ const DataManagement = () => {
           <div className="mt-6">
             <button
               onClick={() => navigate("/admin/restore-data")}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
             >
               <span className="text-sm font-medium">Restore data</span>
               <FaChevronRight size={12} />
@@ -185,12 +187,21 @@ const DataManagement = () => {
             border-bottom: 1px solid #dee2e6 !important;
             white-space: nowrap;
           }
+          .dark table thead tr th {
+            background-color: #1e293b !important;
+            color: #cbd5e1 !important;
+            border-bottom: 1px solid #334155 !important;
+          }
           table tbody tr td {
             padding: 12px 16px !important;
             font-size: 14px;
             color: #343a40;
             border-bottom: 1px solid #EBEDF0 !important;
             white-space: nowrap;
+          }
+          .dark table tbody tr td {
+            color: #e2e8f0;
+            border-bottom: 1px solid #334155 !important;
           }
           table tbody tr:last-child td {
             border-bottom: none !important;

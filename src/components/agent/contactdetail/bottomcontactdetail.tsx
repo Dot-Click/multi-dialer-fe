@@ -72,14 +72,14 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white flex flex-col gap-8  mb-6 px-6 py-5 w-[96%] mx-auto rounded-[24px]">
+        <section className="bg-white dark:bg-slate-800 flex flex-col gap-8 mb-6 px-6 py-5 w-[96%] mx-auto rounded-[24px] shadow-sm">
             {/* Tabs */}
-            <div className="flex bg-[#F3F4F7] gap-5 md:gap-0 max-w-screen overflow-x-auto  whitespace-nowrap  rounded-[16px] p-[4px] justify-between items-center">
+            <div className="flex bg-[#F3F4F7] dark:bg-gray-700 gap-5 md:gap-0 max-w-screen overflow-x-auto whitespace-nowrap rounded-[16px] p-[4px] justify-between items-center transition-colors">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
                         onClick={() => setOpenStatus(stg.name)}
-                        className={`${openStatus === stg.name ? "bg-[#FFCA06]" : ""} px-[12px] text-center w-[130px] py-[8px]  rounded-[12px]  cursor-pointer text-sm text-[#0E1011] font-medium`}
+                        className={`${openStatus === stg.name ? "bg-[#FFCA06] dark:bg-[#FFCA06] text-[#0E1011]" : "text-[#0E1011] dark:text-white"} px-[12px] text-center w-[130px] py-[8px] rounded-[12px] cursor-pointer text-sm font-medium transition-all`}
                     >
                         {stg.name}
                     </button>

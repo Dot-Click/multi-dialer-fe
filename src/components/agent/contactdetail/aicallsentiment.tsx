@@ -43,11 +43,11 @@ const renderLegend = (props: LegendProps) => {
               style={{ backgroundColor: entry.color }}
             ></span>
 
-            <span className="text-[14px] text-[#0E1011] font-[400]">
+            <span className="text-[14px] text-[#0E1011] dark:text-white font-[400]">
               {entry.payload.name}
               
             </span>
-            <span className="font-[500] text-[#0E1011] text-[14px]">
+            <span className="font-[500] text-[#0E1011] dark:text-white text-[14px]">
             {displayValue}%
             </span>
           </li>
@@ -67,7 +67,7 @@ const AiCallSentiment = () => {
 
           {/* --- Left Column: AI Call Sentiment --- */}
           <div className="flex flex-col gap-6">
-            <h2 className="text-[18px] font-[500] text-[#0E1011]">AI Call Sentiment:</h2>
+            <h2 className="text-[18px] font-[500] text-[#0E1011] dark:text-white">AI Call Sentiment:</h2>
 
             <div className="flex flex-row items-center justify-center sm:justify-start gap-4">
 
@@ -96,7 +96,7 @@ const AiCallSentiment = () => {
 
                 {/* Center Text */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <span className="text-[24px] font-[600] text-[#000000]">65%</span>
+                  <span className="text-[24px] font-[600] text-[#000000] dark:text-white">65%</span>
                 </div>
               </div>
 
@@ -110,35 +110,35 @@ const AiCallSentiment = () => {
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-[15px] border border-gray-200 text-center">
-                <p className="text-[14px] text-[#495057] mb-1">Confidence</p>
-                <p className="text-[20px] font-[500] text-[#000000]">62%</p>
+              <div className="p-4 rounded-[15px] border border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-1">Confidence</p>
+                <p className="text-[20px] font-[500] text-[#000000] dark:text-white">62%</p>
               </div>
 
-              <div className="p-4 rounded-[15px] border border-gray-200 text-center">
-                <p className="text-[14px] text-[#495057] mb-1">Objections handled</p>
-                <p className="text-[20px] font-[500] text-[#000000]">45%</p>
+              <div className="p-4 rounded-[15px] border border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-1">Objections handled</p>
+                <p className="text-[20px] font-[500] text-[#000000] dark:text-white">45%</p>
               </div>
             </div>
           </div>
 
           {/* --- Right Column: AI Suggested Actions --- */}
           <div className="flex flex-col gap-6">
-            <h2 className="text-[18px] font-[500] text-[#0E1011]">AI Suggested Actions</h2>
+            <h2 className="text-[18px] font-[500] text-[#0E1011] dark:text-white">AI Suggested Actions</h2>
 
             <div className="space-y-4">
 
               {/* Card 1 */}
-              <div className="p-3 rounded-lg border border-gray-300 ">
+              <div className="p-3 rounded-lg border border-gray-300 dark:border-gray-700">
                 <div className="flex items-start gap-4">
                   <img src={callsicon} alt="callsicon" className="mt-1" />
 
                   <div className="flex-1">
-                    <h3 className="font-[500] text-[16px] text-[#000000]">Schedule a follow-up call</h3>
-                    <p className="text-[14px] font-[400] text-[#2B3034] mt-1 mb-3">
+                    <h3 className="font-[500] text-[16px] text-[#000000] dark:text-white">Schedule a follow-up call</h3>
+                    <p className="text-[14px] font-[400] text-[#2B3034] dark:text-gray-300 mt-1 mb-3">
                       Lead was positive about pricing but requested time to decide.
                     </p>
-                    <button className="bg-[#EBEDF0] text-[#0E1011] text-[16px] font-[500] px-[12px] py-[8px] rounded-[8px] hover:bg-gray-200 transition-colors">
+                    <button className="bg-[#EBEDF0] dark:bg-gray-700 text-[#0E1011] dark:text-white text-[16px] font-[500] px-[12px] py-[8px] rounded-[8px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                       Follow Up
                     </button>
                   </div>
@@ -146,15 +146,15 @@ const AiCallSentiment = () => {
               </div>
 
               {/* Card 2 */}
-              <div className="p-3 rounded-lg border border-gray-300">
+              <div className="p-3 rounded-lg border border-gray-300 dark:border-gray-700">
                 <div className="flex items-start gap-4">
                   <FiMail className="text-xl text-gray-500 mt-1 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="font-[500] text-[16px] text-[#000000]">Send recap email with brochure</h3>
-                    <p className="text-[14px] font-[400] text-[#2B3034] mt-1 mb-3">
+                    <h3 className="font-[500] text-[16px] text-[#000000] dark:text-white">Send recap email with brochure</h3>
+                    <p className="text-[14px] font-[400] text-[#2B3034] dark:text-gray-300 mt-1 mb-3">
                       Asked for product sheet and integration details.
                     </p>
-                    <button className="bg-[#EBEDF0] text-[#0E1011] text-[16px] font-[500] px-[12px] py-[8px] rounded-[8px] hover:bg-gray-200 transition-colors">
+                    <button className="bg-[#EBEDF0] dark:bg-gray-700 text-[#0E1011] dark:text-white text-[16px] font-[500] px-[12px] py-[8px] rounded-[8px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                       Send Email
                     </button>
                   </div>
@@ -162,17 +162,15 @@ const AiCallSentiment = () => {
               </div>
 
               {/* Card 3 */}
-              <div className="p-3 rounded-lg border border-gray-300">
-                <h3 className="font-semibold text-[#000000] mb-2">More AI ideas</h3>
-
-                <ul className="list-disc font-[400] list-inside space-y-1 text-[14px] text-[#2B3034]">
+              <div className="p-3 rounded-lg border border-gray-300 dark:border-gray-700">
+                <h3 className="font-semibold text-[#000000] dark:text-white mb-2">More AI ideas</h3>
+                <ul className="list-disc font-[400] list-inside space-y-1 text-[14px] text-[#2B3034] dark:text-gray-300">
                   <li>
-                    Tag contact as <span className="font-[500] text-[#0E1011]">Interested.</span>
+                    Tag contact as <span className="font-[500] text-[#0E1011] dark:text-white">Interested.</span>
                   </li>
                   <li>Attach call summary to CRM record.</li>
                   <li>Share success story relevant to the industry.</li>
                 </ul>
-
               </div>
 
             </div>
