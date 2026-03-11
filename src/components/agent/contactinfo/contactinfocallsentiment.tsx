@@ -103,15 +103,15 @@ const CallSentiment = () => {
   const isProcessing = ['polling_status', 'fetching_sentiment', 'processing_sentiment'].includes(sentimentStatus);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 w-full font-inter flex flex-col h-full">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 w-full font-inter flex flex-col h-full">
       {/* Header */}
       <div className="flex justify-between items-center mb-5 shrink-0">
-        <div className="flex items-center gap-2 text-[#4b5563]">
+        <div className="flex items-center gap-2 text-[#4b5563] dark:text-gray-400">
           <div className="relative">
              <Bot size={20} strokeWidth={1.5} />
-             <Sparkles size={8} className="absolute -top-1 -right-1 text-gray-400" />
+             <Sparkles size={8} className="absolute -top-1 -right-1 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-[15px] font-medium text-gray-600">Call Sentiment</h3>
+          <h3 className="text-[15px] font-medium text-gray-600 dark:text-white">Call Sentiment</h3>
         </div>
         
         {/* Status */}
@@ -133,9 +133,9 @@ const CallSentiment = () => {
       <div className="space-y-3 overflow-y-auto pr-1">
         
         {/* AI Sidekick Box */}
-        <div className="bg-[#f4f6fa] rounded-xl p-4">
-          <p className="text-[13px] font-bold text-[#1a1a1a] mb-1">AI Sidekick:</p>
-          <p className="text-[14px] text-[#374151] leading-relaxed">
+        <div className="bg-[#f4f6fa] dark:bg-slate-700/50 rounded-xl p-4">
+          <p className="text-[13px] font-bold text-[#1a1a1a] dark:text-white mb-1">AI Sidekick:</p>
+          <p className="text-[14px] text-[#374151] dark:text-gray-300 leading-relaxed">
             {sentimentStatus === 'polling_status' ? 'Waiting for call analysis...' : 
              (sentimentStatus === 'fetching_sentiment' || sentimentStatus === 'processing_sentiment') ? 'Analyzing call...' :
              sentimentData?.aiSummary || 'Analysis will appear here after the call.'}

@@ -47,7 +47,7 @@ const ContactInfo = () => {
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-100 dark:bg-slate-900 min-h-screen">
             <ContactInfoHeader
                 contact={currentContact}
                 onNext={handleNextContact}

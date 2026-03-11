@@ -38,40 +38,40 @@ const LeadSheetItem: React.FC<LeadSheetItemProps> = ({
         : null;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex justify-between items-center transition hover:shadow-md hover:border-gray-300 gap-3">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 flex justify-between items-center transition hover:shadow-md dark:hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 gap-3">
             <div className="flex items-center gap-3 min-w-0">
-                <h3 className="font-semibold text-gray-800 text-sm truncate">{name}</h3>
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 whitespace-nowrap shrink-0">
+                <h3 className="font-semibold text-gray-800 dark:text-white text-sm truncate">{name}</h3>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 whitespace-nowrap shrink-0 border dark:border-slate-600">
                     {questionCount} {questionCount === 1 ? "question" : "questions"}
                 </span>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
                 {formatted && (
-                    <span className="text-xs text-gray-400 hidden sm:block">{formatted}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">{formatted}</span>
                 )}
 
                 {/* Actions menu */}
                 <div className="relative" ref={menuRef}>
                     <button
                         onClick={() => setMenuOpen((o) => !o)}
-                        className="text-gray-400 p-2 rounded-full hover:bg-gray-100"
+                        className="text-gray-400 dark:text-gray-500 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                     >
                         <BsThreeDots size={18} />
                     </button>
 
                     {menuOpen && (
-                        <div className="absolute right-0 mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg w-36 py-1 overflow-hidden">
+                        <div className="absolute right-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg w-36 py-1 overflow-hidden">
                             <button
                                 onClick={() => { onEdit(id); setMenuOpen(false); }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                             >
-                                <FiEdit2 size={14} />
+                                <FiEdit2 size={14} className="text-yellow-500" />
                                 Edit
                             </button>
                             <button
                                 onClick={() => { onDelete(id, name); setMenuOpen(false); }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50"
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >
                                 <FiTrash2 size={14} />
                                 Delete
@@ -118,7 +118,7 @@ const LeadSheet: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="p-8 text-center text-gray-500 bg-white rounded-lg min-h-[200px] flex items-center justify-center">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-slate-800 rounded-lg min-h-[200px] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mr-3" />
                 Loading Lead Sheets...
             </div>
@@ -127,19 +127,19 @@ const LeadSheet: React.FC = () => {
 
     if (isError) {
         return (
-            <div className="p-8 text-center text-red-500 bg-white rounded-lg">
+            <div className="p-8 text-center text-red-500 dark:text-red-400 bg-white dark:bg-slate-800 rounded-lg">
                 Error: {(error as any)?.message || "Failed to fetch lead sheets"}
             </div>
         );
     }
 
     return (
-        <div className="bg-white min-h-screen px-4 py-5 rounded-lg">
+        <div className="bg-white dark:bg-slate-900 min-h-screen px-4 py-5 rounded-lg">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                    <h1 className="text-2xl font-bold text-gray-900">Lead Sheet</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Lead Sheet</h1>
                     <Link
                         to="/admin/add-lead-sheet"
                         className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors text-sm shadow-sm"
@@ -152,8 +152,8 @@ const LeadSheet: React.FC = () => {
                 {/* List */}
                 <main className="space-y-4">
                     {!leadSheets || leadSheets.length === 0 ? (
-                        <div className="text-center py-16 border border-dashed border-gray-300 rounded-xl">
-                            <p className="text-gray-500 mb-3">No Lead Sheets found.</p>
+                        <div className="text-center py-16 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl">
+                            <p className="text-gray-500 dark:text-gray-400 mb-3">No Lead Sheets found.</p>
                             <Link
                                 to="/admin/add-lead-sheet"
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold text-sm rounded-lg"

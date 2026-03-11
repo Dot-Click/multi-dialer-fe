@@ -23,11 +23,11 @@ const MediaCenter = () => {
     fetchMedia();
   }, []);
 
-  const handleDelete = (id: string) => {
+    const handleDelete = (id: string) => {
     toast(
       (t) => (
         <span className="flex flex-wrap items-center gap-2">
-          Are you sure you want to delete this recording?
+          <span className="dark:text-white">Are you sure you want to delete this recording?</span>
           <div className="flex gap-2 ml-auto">
             <button
               onClick={async () => {
@@ -44,14 +44,14 @@ const MediaCenter = () => {
             </button>
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+              className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
             >
               Cancel
             </button>
           </div>
         </span>
       ),
-      { duration: 6000 },
+      { duration: 6000, style: { background: '#1e293b', color: '#fff' } },
     );
     setOpenMenuId(null);
   };

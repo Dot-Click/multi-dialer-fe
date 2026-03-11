@@ -56,10 +56,10 @@ const SMS = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white p-4 md:p-8 font-sans">
+    <div className="w-full min-h-screen bg-white dark:bg-slate-800 p-4 md:p-8 font-sans transition-colors">
       <div className="w-full max-w-full">
         {/* Header */}
-        <h2 className="text-[#0E1011] text-[18px] font-semibold mb-10">
+        <h2 className="text-[#0E1011] dark:text-white text-[18px] font-semibold mb-10">
           SMS Messaging
         </h2>
 
@@ -67,18 +67,18 @@ const SMS = () => {
         <div className="space-y-10 mb-6">
           {/* SMS Templates Input */}
           <div className="w-full">
-            <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
+            <label className="block text-[#0E1011] dark:text-white text-[14px] font-medium mb-1">
               SMS Templates
             </label>
-            <div className="border-b border-[#E5E7EB] w-full">
+            <div className="border-b border-[#E5E7EB] dark:border-gray-700 w-full">
               <select
                 value={selectedTemplateId}
                 onChange={handleTemplateChange}
-                className="w-full bg-transparent outline-none py-2 text-[15px] appearance-none cursor-pointer"
+                className="w-full bg-transparent dark:text-white outline-none py-2 text-[15px] appearance-none cursor-pointer"
               >
-                <option value="">Select a template</option>
+                <option value="" className="dark:bg-slate-800">Select a template</option>
                 {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
+                  <option key={template.id} value={template.id} className="dark:bg-slate-800">
                     {template.templateName}
                   </option>
                 ))}
@@ -88,14 +88,14 @@ const SMS = () => {
 
           {/* Message Input */}
           <div className="w-full">
-            <label className="block text-[#0E1011] text-[14px] font-medium mb-1">
+            <label className="block text-[#0E1011] dark:text-white text-[14px] font-medium mb-1">
               Message
             </label>
-            <div className="border-b border-[#E5E7EB] w-full">
+            <div className="border-b border-[#E5E7EB] dark:border-gray-700 w-full">
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-transparent outline-none py-2 text-[15px] resize-none min-h-[80px]"
+                className="w-full bg-transparent dark:text-white outline-none py-2 text-[15px] resize-none min-h-[80px]"
                 rows={3}
                 placeholder="Type your message here..."
               />
