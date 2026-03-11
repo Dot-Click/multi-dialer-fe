@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FiChevronUp, FiInfo } from 'react-icons/fi';
 import { IoChevronDown } from 'react-icons/io5';
 import { useCallerIds } from '../../hooks/useSystemSettings';
 import { authClient } from '../../lib/auth-client';
+import api from '../../lib/axios';
+import toast from 'react-hot-toast';
 
 const Setting = () => {
     const [activeTab, setActiveTab] = useState('personal');
@@ -10,28 +12,17 @@ const Setting = () => {
     const [isNotificationsOpen, setNotificationsOpen] = useState(true);
     const [voicemailOption, setVoicemailOption] = useState('auto');
     const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
-    const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
-    const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
+    const { data: sessionData, refetch } = authClient.useSession();
+    const currentAgentId = sessionData?.user?.id;
+    const defaultCallerId = (sessionData?.user as any)?.defaultCallerId;
 
-    // Fetch current agent's ID
-    useEffect(() => {
-        const fetchSession = async () => {
-            try {
-                const { data: sessionData } = await authClient.getSession();
-                if (sessionData?.user?.id) {
-                    setCurrentAgentId(sessionData.user.id);
-                }
-            } catch (error) {
-                console.error('Failed to fetch session:', error);
-            }
-        };
-        fetchSession();
-    }, []);
+    const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
 
     // Filter caller IDs assigned to the current agent
     const agentCallerIds = currentAgentId
         ? allCallerIds.filter(callerId => 
-            callerId.agentIds?.includes(currentAgentId)
+            callerId.agents?.some((a: any) => a.id === currentAgentId) || 
+            (callerId as any).agentIds?.includes(currentAgentId)
           )
         : [];
 
@@ -105,7 +96,7 @@ const Setting = () => {
                         <input
                           type="text"
                           id="fullName"
-                          defaultValue="John Lee"
+                          defaultValue={sessionData?.user?.name || ''}
                           readOnly
                           className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-[400] focus:outline-none"
                         />
@@ -123,7 +114,7 @@ const Setting = () => {
                           <input
                             type="email"
                             id="email"
-                            defaultValue="user@example.com"
+                            defaultValue={sessionData?.user?.email || ''}
                             readOnly
                             className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-[400] focus:outline-none"
                           />
@@ -433,7 +424,7 @@ const Setting = () => {
                                     <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                                         <input
                                             type="text"
-                                            value={agentCallerIds.length > 0 ? agentCallerIds[0].twillioNumber || agentCallerIds[0].label : 'No Caller ID Assigned'}
+                                            value={agentCallerIds.find(c => c.id === defaultCallerId)?.twillioNumber || agentCallerIds.find(c => c.id === defaultCallerId)?.label || (agentCallerIds.length > 0 ? (defaultCallerId ? 'Default ID Mismatch' : 'Not Set') : 'No Caller ID Assigned')}
                                             readOnly
                                             className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-[400] focus:outline-none"
                                         />
@@ -468,15 +459,35 @@ const Setting = () => {
                                                     </div>
 
                                                     {/* Button */}
-                                                    <button 
-                                                        className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
-                                                            callerId.status === 'active' || callerId.status === 'ACTIVE'
-                                                                ? 'bg-black dark:bg-yellow-400 dark:text-black'
-                                                                : 'bg-gray-300 dark:bg-slate-600 text-gray-700 dark:text-gray-300'
-                                                        }`}
-                                                    >
-                                                        {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button 
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await api.put(`/user/${currentAgentId}`, { defaultCallerId: callerId.id });
+                                                                    await refetch();
+                                                                    toast.success('Default caller ID updated');
+                                                                } catch (err) {
+                                                                    toast.error('Failed to update default caller ID');
+                                                                }
+                                                            }}
+                                                            className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                                                                defaultCallerId === callerId.id
+                                                                    ? 'bg-yellow-400 text-black shadow-sm'
+                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                            }`}
+                                                        >
+                                                            {defaultCallerId === callerId.id ? 'Default' : 'Set as Default'}
+                                                        </button>
+                                                        <button 
+                                                            className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
+                                                                callerId.status === 'active' || callerId.status === 'ACTIVE'
+                                                                    ? 'bg-black'
+                                                                    : 'bg-gray-300 text-gray-700'
+                                                            }`}
+                                                        >
+                                                            {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))

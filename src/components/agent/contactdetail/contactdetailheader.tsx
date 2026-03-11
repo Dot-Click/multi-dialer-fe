@@ -13,9 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { deleteContact, fetchContactFolders, fetchContactLists } from "@/store/slices/contactSlice";
 import { downloadCSV } from "@/utils/csvDownload";
 import toast from "react-hot-toast";
-import AppointmentModal from "@/components/modal/appointmentmodal";
-import TaskModal from "@/components/modal/taskmodal";
-import CallBackModal from "@/components/modal/callbackmodal";
+import AddEventForm from "@/components/modal/addeventmodal";
 import TakeActionModal from "@/components/modal/takeactionmodal";
 import DncSelectionModal from "@/components/modal/dncselectionmodal";
 import api from "@/lib/axios";
@@ -23,9 +21,8 @@ import api from "@/lib/axios";
 const ContactDetailHeader = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [isTaskModalOpen, setTaskModalOpen] = useState(false);
-  const [isCallBackModalOpen, setCallBackModalOpen] = useState(false);
+  const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const [eventDefaults, setEventDefaults] = useState({ title: '', color: '#FFCA06' });
   const [isActionModalOpen, setActionModalOpen] = useState(false);
   const [isDncModalOpen, setDncModalOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -166,19 +163,28 @@ const ContactDetailHeader = () => {
       id: 1,
       name: "Appointment",
       icon: <IoAddOutline />,
-      onClick: () => setModalOpen(true),
+      onClick: () => {
+        setEventDefaults({ title: 'Appointment', color: '#10b981' }); // Green for Appointment
+        setEventModalOpen(true);
+      },
     },
     {
       id: 2,
       name: "Task",
       icon: <IoAddOutline />,
-      onClick: () => setTaskModalOpen(true),
+      onClick: () => {
+        setEventDefaults({ title: 'Task', color: '#8b5cf6' }); // Purple for Task
+        setEventModalOpen(true);
+      },
     },
     {
       id: 3,
       name: "Call Back",
       icon: <IoAddOutline />,
-      onClick: () => setCallBackModalOpen(true),
+      onClick: () => {
+        setEventDefaults({ title: 'Call Back', color: '#3b82f6' }); // Blue for Call Back
+        setEventModalOpen(true);
+      },
     },
   ];
 
@@ -303,20 +309,18 @@ const ContactDetailHeader = () => {
       </header>
 
       {/* MODALS */}
-      <AppointmentModal
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
+      <AddEventForm
+        open={isEventModalOpen}
+        onClose={(success) => {
+          setEventModalOpen(false);
+          if (success) {
+            // Dispatch custom event to refresh activities
+            window.dispatchEvent(new CustomEvent('CALENDAR_UPDATED'));
+          }
+        }}
         contactId={currentContact?.id}
-      />
-      <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setTaskModalOpen(false)}
-        contactId={currentContact?.id}
-      />
-      <CallBackModal
-        isOpen={isCallBackModalOpen}
-        onClose={() => setCallBackModalOpen(false)}
-        contactId={currentContact?.id}
+        defaultTitle={eventDefaults.title}
+        defaultColor={eventDefaults.color}
       />
       <TakeActionModal
         isOpen={isActionModalOpen}

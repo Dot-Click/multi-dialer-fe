@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiChevronDown } from 'react-icons/fi';
+import { FiX, FiChevronDown, FiSettings } from 'react-icons/fi';
+import api from '@/lib/axios';
 import { useCallerIds, type CallerId } from '@/hooks/useSystemSettings';
 import { useMediaCenter, type MediaCenterItem } from '@/hooks/useMediaCenter';
 import toast from 'react-hot-toast';
@@ -22,7 +23,7 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
   const [isSaving, setIsSaving] = useState(false);
 
   // Agent State
-  const [agents, setAgents] = useState<{ id: string; fullName: string; email: string }[]>([]);
+  const [agents, setAgents] = useState<{ id: string; fullName: string; email: string; defaultCallerId?: string | null }[]>([]);
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
   const { data: session } = authClient.useSession();
@@ -64,7 +65,8 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
               .map((u: any) => ({
                 id: u.id,
                 fullName: u.fullName || u.name || 'Unknown Agent',
-                email: u.email
+                email: u.email,
+                defaultCallerId: u.defaultCallerId
               }));
 
             setAgents(filteredAgents);
@@ -202,6 +204,27 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
                         <p className="text-[12px] font-bold text-gray-800 dark:text-white truncate">{agent.fullName}</p>
                         <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{agent.email}</p>
                       </div>
+                      {selectedAgentIds.includes(agent.id) && (
+                        <button
+                          title={agent.defaultCallerId === (createdCallerId?.id || callerIds?.find(c => c.twillioNumber === selectedNumber)?.id) ? "Primary Caller ID" : "Set as Primary"}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const cid = createdCallerId?.id || callerIds?.find(c => c.twillioNumber === selectedNumber)?.id;
+                            if (!cid) return;
+                            try {
+                              await api.put(`/user/${agent.id}`, { defaultCallerId: cid });
+                              setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, defaultCallerId: cid } : a));
+                              toast.success(`Set as primary for ${agent.fullName}`);
+                            } catch (err) {
+                              toast.error('Failed to set default caller ID');
+                            }
+                          }}
+                          className={`p-1.5 rounded-lg transition-colors ${agent.defaultCallerId === (createdCallerId?.id || callerIds?.find(c => c.twillioNumber === selectedNumber)?.id) ? 'text-yellow-500 bg-yellow-50' : 'text-gray-300 hover:text-yellow-500 hover:bg-gray-100'}`}
+                        >
+                          <FiSettings size={14} />
+                        </button>
+                      )}
                     </label>
                   ))}
                 </div>
