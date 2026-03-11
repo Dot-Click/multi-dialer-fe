@@ -4,7 +4,10 @@ import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import tableIcon from "@/assets/tableIcon.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { useUser, type User } from "@/hooks/useUser";
+import { useUser } from "@/hooks/useUser";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
+import { getAllUsers } from "@/store/slices/userSlice";
 import Loader from "@/components/common/Loader";
 
 const getStatusStyles = (status?: string | null) => {
@@ -39,8 +42,11 @@ const formatDate = (dateString?: string | null) => {
 };
 
 const SuperAdminUserManagement = () => {
-  const { getUsers, loading, error, deleteUser } = useUser();
-  const [users, setUsers] = useState<User[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, loading, error } = useSelector(
+    (state: RootState) => state.user,
+  );
+  const { deleteUser } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [selectedRole, setSelectedRole] = useState("All Roles");
@@ -51,13 +57,12 @@ const SuperAdminUserManagement = () => {
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
-    const data = await getUsers();
-    setUsers(data);
+    dispatch(getAllUsers());
   };
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -216,7 +221,9 @@ const SuperAdminUserManagement = () => {
 
       {/* table */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 mt-5">
-        <h1 className="text-[20px] font-medium text-[#111] dark:text-white mb-4">User List</h1>
+        <h1 className="text-[20px] font-medium text-[#111] dark:text-white mb-4">
+          User List
+        </h1>
 
         <div className="overflow-x-auto">
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
@@ -318,7 +325,10 @@ const SuperAdminUserManagement = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-gray-500 dark:text-white">
+                    <td
+                      colSpan={6}
+                      className="text-center py-10 text-gray-500 dark:text-white"
+                    >
                       {error ? `Error: ${error}` : "No users found."}
                     </td>
                   </tr>

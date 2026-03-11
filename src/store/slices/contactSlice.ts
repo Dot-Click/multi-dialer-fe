@@ -17,6 +17,7 @@ interface ContactState {
   contacts: Contact[];
   importHistory: any[];
   exportHistory: any[];
+  backupHistory: any[];
   currentContact: any | null;
   queue: any[];
   folders: ContactFolder[];
@@ -52,6 +53,7 @@ const initialState: ContactState = {
   contacts: [],
   importHistory: [],
   exportHistory: [],
+  backupHistory: [],
   currentContact: null,
   queue: [],
   folders: [],
@@ -221,65 +223,105 @@ export const updateContact = createAsyncThunk(
 );
 
 export const deleteContact = createAsyncThunk(
-  'contacts/deleteContact',
+  "contacts/deleteContact",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/contact/${id}`);
+      const response = await api.delete(`/contact/${id}?restore=false`);
       if (response.data.success) {
         return id;
       }
-      return rejectWithValue('Failed to delete contact');
+      return rejectWithValue("Failed to delete contact");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error deleting contact');
+      return rejectWithValue(
+        error.response?.data?.message || "Error deleting contact",
+      );
     }
-  }
+  },
+);
+
+export const restoreContact = createAsyncThunk(
+  "contacts/restoreContact",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/contact/${id}?restore=true`);
+      if (response.data.success) {
+        return id;
+      }
+      return rejectWithValue("Failed to restore contact");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error restoring contact",
+      );
+    }
+  },
 );
 
 // Assigns a contact to a list (moves the contact, updates source field)
 export const assignContactToList = createAsyncThunk(
-  'contacts/assignContactToList',
-  async ({ contactId, listId }: { contactId: string; listId: string }, { rejectWithValue }) => {
+  "contacts/assignContactToList",
+  async (
+    { contactId, listId }: { contactId: string; listId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await api.patch(`/contact/${contactId}/assign`, { listId });
+      const response = await api.patch(`/contact/${contactId}/assign`, {
+        listId,
+      });
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to assign contact to list');
+      return rejectWithValue("Failed to assign contact to list");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to list');
+      return rejectWithValue(
+        error.response?.data?.message || "Error assigning contact to list",
+      );
     }
-  }
+  },
 );
 
 // Assigns agents (user IDs) to a list — admin only, separate from contact assignment
 export const assignAgentsToList = createAsyncThunk(
-  'contacts/assignAgentsToList',
-  async ({ listId, agentIds }: { listId: string; agentIds: string[] }, { rejectWithValue }) => {
+  "contacts/assignAgentsToList",
+  async (
+    { listId, agentIds }: { listId: string; agentIds: string[] },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await api.patch(`/contact/list/${listId}/agents`, { agentIds });
+      const response = await api.patch(`/contact/list/${listId}/agents`, {
+        agentIds,
+      });
       if (response.data.success) {
         return { listId, agentIds, data: response.data.data };
       }
-      return rejectWithValue('Failed to assign agents');
+      return rejectWithValue("Failed to assign agents");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error assigning agents');
+      return rejectWithValue(
+        error.response?.data?.message || "Error assigning agents",
+      );
     }
-  }
+  },
 );
 
 export const assignContactToGroups = createAsyncThunk(
-  'contacts/assignContactToGroups',
-  async ({ contactId, groupIds }: { contactId: string; groupIds: string[] }, { rejectWithValue }) => {
+  "contacts/assignContactToGroups",
+  async (
+    { contactId, groupIds }: { contactId: string; groupIds: string[] },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await api.patch(`/contact/${contactId}/groups`, { groupIds });
+      const response = await api.patch(`/contact/${contactId}/groups`, {
+        groupIds,
+      });
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to assign contact to groups');
+      return rejectWithValue("Failed to assign contact to groups");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error assigning contact to groups');
+      return rejectWithValue(
+        error.response?.data?.message || "Error assigning contact to groups",
+      );
     }
-  }
+  },
 );
 
 export const fetchContactFolders = createAsyncThunk(
@@ -334,22 +376,31 @@ export const fetchContactGroups = createAsyncThunk(
 );
 
 export const sendLeadSheetEmail = createAsyncThunk(
-  'contacts/sendLeadSheetEmail',
+  "contacts/sendLeadSheetEmail",
   async (
-    { contactId, leadSheetId, recipientEmail }: { contactId: string; leadSheetId: string; recipientEmail: string },
-    { rejectWithValue }
+    {
+      contactId,
+      leadSheetId,
+      recipientEmail,
+    }: { contactId: string; leadSheetId: string; recipientEmail: string },
+    { rejectWithValue },
   ) => {
     try {
-      const response = await api.post(`/contact/${contactId}/leadsheet/send-email`, {
-        leadSheetId,
-        recipientEmail,
-      });
+      const response = await api.post(
+        `/contact/${contactId}/leadsheet/send-email`,
+        {
+          leadSheetId,
+          recipientEmail,
+        },
+      );
       if (response.data.success) {
         return response.data;
       }
-      return rejectWithValue('Failed to send lead sheet email');
+      return rejectWithValue("Failed to send lead sheet email");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error sending lead sheet email');
+      return rejectWithValue(
+        error.response?.data?.message || "Error sending lead sheet email",
+      );
     }
   },
 );
@@ -401,37 +452,65 @@ export const getAllExportContacts = createAsyncThunk(
 );
 
 export const uploadAttachment = createAsyncThunk(
-  'contacts/uploadAttachment',
-  async ({ contactId, file }: { contactId: string; file: File }, { rejectWithValue }) => {
+  "contacts/uploadAttachment",
+  async (
+    { contactId, file }: { contactId: string; file: File },
+    { rejectWithValue },
+  ) => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      const response = await api.post(`/contact/${contactId}/attachment`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      formData.append("file", file);
+      const response = await api.post(
+        `/contact/${contactId}/attachment`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
       if (response.data.success) {
         return response.data.data;
       }
-      return rejectWithValue('Failed to upload attachment');
+      return rejectWithValue("Failed to upload attachment");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error uploading attachment');
+      return rejectWithValue(
+        error.response?.data?.message || "Error uploading attachment",
+      );
     }
-  }
+  },
 );
 
 export const deleteAttachment = createAsyncThunk(
-  'contacts/deleteAttachment',
+  "contacts/deleteAttachment",
   async (attachmentId: string, { rejectWithValue }) => {
     try {
       const response = await api.delete(`/contact/attachment/${attachmentId}`);
       if (response.data.success) {
         return attachmentId;
       }
-      return rejectWithValue('Failed to delete attachment');
+      return rejectWithValue("Failed to delete attachment");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Error deleting attachment');
+      return rejectWithValue(
+        error.response?.data?.message || "Error deleting attachment",
+      );
     }
-  }
+  },
+);
+
+export const getAllBackupContacts = createAsyncThunk(
+  "contacts/getAllBackupContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/backup-contacts");
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to fetch backup contacts");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching backup contacts",
+      );
+    }
+  },
 );
 
 // ---------------------------------------------------------------------------
@@ -527,7 +606,9 @@ export const contactSlice = createSlice({
       .addCase(updateContact.fulfilled, (state, action) => {
         state.isLoading = false;
         state.currentContact = action.payload;
-        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
+        const index = state.contacts.findIndex(
+          (c) => c.id === action.payload.id,
+        );
         if (index !== -1) {
           state.contacts[index] = {
             id: action.payload.id,
@@ -556,10 +637,22 @@ export const contactSlice = createSlice({
         }
       })
 
+      // ── restoreContact ─────────────────────────────────────────────────────
+      .addCase(restoreContact.fulfilled, (state, action) => {
+        // Remove the restored contact from the backup history table
+        state.backupHistory = state.backupHistory.filter(
+          (item) =>
+            item.contacts?.[0]?.id !== action.payload &&
+            item.id !== action.payload, // Some APIs might return the backup ID instead, filter both just in case
+        );
+      })
+
       // ── assignContactToList ────────────────────────────────────────────────
       .addCase(assignContactToList.fulfilled, (state, action) => {
         // Update source/list field in the flat contacts array
-        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
+        const index = state.contacts.findIndex(
+          (c) => c.id === action.payload.id,
+        );
         if (index !== -1) {
           state.contacts[index].list = action.payload.source || "-";
         }
@@ -633,10 +726,25 @@ export const contactSlice = createSlice({
       // ── deleteAttachment ───────────────────────────────────────────────────
       .addCase(deleteAttachment.fulfilled, (state, action) => {
         if (state.currentContact?.attachments) {
-          state.currentContact.attachments = state.currentContact.attachments.filter(
-            (a: any) => a.id !== action.payload
-          );
+          state.currentContact.attachments =
+            state.currentContact.attachments.filter(
+              (a: any) => a.id !== action.payload,
+            );
         }
+      })
+
+      // ── getAllBackupContacts ───────────────────────────────────────────────
+      .addCase(getAllBackupContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllBackupContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.backupHistory = action.payload;
+      })
+      .addCase(getAllBackupContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
