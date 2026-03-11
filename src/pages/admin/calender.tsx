@@ -528,7 +528,6 @@ import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import { toast } from "react-hot-toast";
-import { useAppSelector } from "@/store/hooks";
 
 //  --------------------------------------------------
 // import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
@@ -574,7 +573,7 @@ export default function CustomCalendar() {
   );
 
   // const { users } = useAppSelector((state) => state.user);
-  const { session } = useAppSelector((state) => state.auth);
+  // const { session } = useAppSelector((state) => state.auth);
 
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(
@@ -609,12 +608,12 @@ export default function CustomCalendar() {
     setAddOpen(true);
   };
 
-  const handleAddClose = (success?: boolean) => {
-    setAddOpen(false);
-    if (success) {
-      fetchEvents();
-    }
-  };
+  // const handleAddClose = (success?: boolean) => {
+  //   setAddOpen(false);
+  //   if (success) {
+  //     fetchEvents();
+  //   }
+  // };
 
   const showAll = () => {
     setOptionsOpen(false);

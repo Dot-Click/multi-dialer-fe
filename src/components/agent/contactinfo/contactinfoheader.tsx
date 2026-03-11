@@ -17,7 +17,7 @@ const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+135021690
 const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
-  const [eventDefaults, setEventDefaults] = useState({ title: '', color: '#FFCA06' });
+  const [eventDefaults, _] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
 
   const handleCallToggle = () => {
