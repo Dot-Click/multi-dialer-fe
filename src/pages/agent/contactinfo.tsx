@@ -30,7 +30,7 @@ const ContactInfo = () => {
     useEffect(() => {
         const selectedContacts = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
-        
+
         if (selectedContacts && selectedContacts.length > 0) {
             dispatch(setQueue(selectedContacts));
             setCurrentIndex(0);
@@ -92,7 +92,7 @@ const ContactInfo = () => {
 
         // 3. Find next available from list (rotation)
         const startIdx = currentCallerId ? (callerIds.indexOf(currentCallerId) + 1) % callerIds.length : 0;
-        
+
         for (let i = 0; i < callerIds.length; i++) {
             const idx = (startIdx + i) % callerIds.length;
             const cid = callerIds[idx];
@@ -150,7 +150,7 @@ const ContactInfo = () => {
                     <ContactInfoCallSentiment />
                 </div>
             </div>
-            
+
             {/* Debug/Info Overlay for User */}
             <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 z-50 text-[12px]">
                 <p className="font-bold text-gray-700 dark:text-gray-200">Session Stats</p>
