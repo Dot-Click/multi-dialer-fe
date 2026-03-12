@@ -40,10 +40,10 @@ export interface CallSettings {
   onHoldRecording2Id?: string;
   ivrRecordingId?: string;
   answeringMachineRecordingId?: string;
-  onHoldRecording1?: string;
-  onHoldRecording2?: string;
-  ivrRecording?: string;
-  answeringMachineRecording?: string;
+  onHoldRecording1?: any;
+  onHoldRecording2?: any;
+  ivrRecording?: any;
+  answeringMachineRecording?: any;
   enableAutoPause: boolean;
   enableRecording: boolean;
   sendOutlookAppointment: boolean;

@@ -92,10 +92,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 9, name: "Billing", link: "/admin/billing", icon: billingicon },
   ];
 
-  const bottomLinks = [
-    // { id: 10, name: "Training", link: "/training", icon: trainingicon },
-    { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
-  ];
+  // const bottomLinks = [
+  //   { id: 10, name: "Training", link: "/training", icon: trainingicon },
+  //   { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
+  // ];
 
   return (
     <>
@@ -188,7 +188,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {/* Bottom Links */}
         <div className="px-3 pb-4 border-t border-gray-200 dark:border-slate-800 pt-3 flex flex-col gap-1">
-          {bottomLinks.map((item) => (
+          {/* {bottomLinks.map((item) => (
             <NavLink
               key={item.id}
               to={item.link}
@@ -211,7 +211,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <span className="text-[12px] font-medium">{item.name}</span>
               )}
             </NavLink>
-          ))}
+          ))} */}
 
           {/* EXIT BUTTON */}
           <button
