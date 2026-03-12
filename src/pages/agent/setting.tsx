@@ -7,24 +7,24 @@ import api from '../../lib/axios';
 import toast from 'react-hot-toast';
 
 const Setting = () => {
-    const [activeTab, setActiveTab] = useState('personal');
-    const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
-    const [isNotificationsOpen, setNotificationsOpen] = useState(true);
-    const [voicemailOption, setVoicemailOption] = useState('auto');
-    const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
-    const { data: sessionData, refetch } = authClient.useSession();
-    const currentAgentId = sessionData?.user?.id;
-    const defaultCallerId = (sessionData?.user as any)?.defaultCallerId;
+  const [activeTab, setActiveTab] = useState('personal');
+  const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
+  const [isNotificationsOpen, setNotificationsOpen] = useState(true);
+  const [voicemailOption, setVoicemailOption] = useState('auto');
+  const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
+  const { data: sessionData, refetch } = authClient.useSession();
+  const currentAgentId = sessionData?.user?.id;
+  const defaultCallerId = (sessionData?.user as any)?.defaultCallerId;
 
-    const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
+  const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
 
-    // Filter caller IDs assigned to the current agent
-    const agentCallerIds = currentAgentId
-        ? allCallerIds.filter(callerId => 
-            callerId.agents?.some((a: any) => a.id === currentAgentId) || 
-            (callerId as any).agentIds?.includes(currentAgentId)
-          )
-        : [];
+  // Filter caller IDs assigned to the current agent
+  const agentCallerIds = currentAgentId
+    ? allCallerIds.filter(callerId =>
+      callerId.agents?.some((a: any) => a.id === currentAgentId) ||
+      (callerId as any).agentIds?.includes(currentAgentId)
+    )
+    : [];
 
   const tabs = [
     { id: "personal", label: "Personal Info & Notification" },
@@ -39,12 +39,12 @@ const Setting = () => {
       <div className="">
         {/* Header */}
         <header className="flex items-center gap-7 mb-6">
-          <h1 className="text-[#0E1011] dark:text-white text-[20px]  md:text-[26px] lg:text-[28px] font-[500]">
+          <h1 className="text-[#0E1011] dark:text-white text-[20px]  md:text-[26px] lg:text-[28px] font-medium">
             Settings
           </h1>
-          <p className="text-[16px] font-[500] text-[#495057] dark:text-white">
+          {/* <p className="text-[16px] font-medium text-[#495057] dark:text-white">
             Changes saved 18:09
-          </p>
+          </p> */}
         </header>
 
         {/* Tab Navigation */}
@@ -53,11 +53,10 @@ const Setting = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition-colors ${
-                activeTab === tab.id
+              className={`px-4 py-2 rounded-lg text-base font-medium transition-colors ${activeTab === tab.id
                   ? "bg-yellow-400 text-gray-900"
                   : "bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-white hover:bg-gray-300"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -74,7 +73,7 @@ const Setting = () => {
                   className="flex items-center pt-[24px] py-[32px] px-[24px] justify-between w-full  text-left"
                   onClick={() => setPersonalInfoOpen(!isPersonalInfoOpen)}
                 >
-                  <h2 className="text-[24px] -translate-x-2 inter font-[500] text-[#17181B] dark:text-white">
+                  <h2 className="text-[24px] -translate-x-2 inter font-medium text-[#17181B] dark:text-white">
                     Personal Info
                   </h2>
                   <FiChevronUp
@@ -89,7 +88,7 @@ const Setting = () => {
                       <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                         <label
                           htmlFor="fullName"
-                          className="text-[12px] font-[500] dark:text-gray-400  text-[#495057] block"
+                          className="text-[12px] font-medium dark:text-gray-400  text-[#495057] block"
                         >
                           Full Name
                         </label>
@@ -98,7 +97,7 @@ const Setting = () => {
                           id="fullName"
                           defaultValue={sessionData?.user?.name || ''}
                           readOnly
-                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-[400] focus:outline-none"
+                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none"
                         />
                       </div>
 
@@ -107,7 +106,7 @@ const Setting = () => {
                         <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                           <label
                             htmlFor="email"
-                            className="text-[12px] font-[500] dark:text-gray-400  text-[#495057] block"
+                            className="text-[12px] font-medium dark:text-gray-400  text-[#495057] block"
                           >
                             Email
                           </label>
@@ -116,35 +115,34 @@ const Setting = () => {
                             id="email"
                             defaultValue={sessionData?.user?.email || ''}
                             readOnly
-                            className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-[400] focus:outline-none"
+                            className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none"
                           />
                         </div>
-                        <button className=" bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-[500] rounded-[8px] hover:bg-gray-300 transition-colors w-full sm:w-auto">
+                        <button className=" bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors w-full sm:w-auto">
                           Change Email
                         </button>
                       </div>
 
                       {/* Time Zone */}
-                      <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm relative">
+                      {/* <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm relative">
                         <label
                           htmlFor="timezone"
-                          className="text-[12px] font-[500] dark:text-gray-400  text-[#495057] block"
+                          className="text-[12px] font-medium dark:text-gray-400  text-[#495057] block"
                         >
                           Time zone
                         </label>
 
                         <select
                           id="timezone"
-                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-[400] focus:outline-none appearance-none pr-8"
+                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none appearance-none pr-8"
                         >
                           <option>GMT+3</option>
                           <option>GMT+5</option>
                           <option>GMT-8</option>
                         </select>
 
-                        {/* React Icon */}
                         <IoChevronDown className="absolute text-[#47474C] right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[18px]" />
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 )}
@@ -156,7 +154,7 @@ const Setting = () => {
                   className="flex items-center justify-between w-full pt-[24px] py-[32px] px-[24px] text-left"
                   onClick={() => setNotificationsOpen(!isNotificationsOpen)}
                 >
-                  <h2 className="text-[24px] -translate-x-2 inter font-[500] text-[#17181B] dark:text-white">
+                  <h2 className="text-[24px] -translate-x-2 inter font-medium text-[#17181B] dark:text-white">
                     Notification Preferences
                   </h2>
                   <FiChevronUp
@@ -169,7 +167,7 @@ const Setting = () => {
                     <div className="space-y-8">
                       {/* Channels - Checkbox */}
                       <div className="space-y-2 ">
-                        <h3 className="font-[500] -translate-x-2  inter text-[18px] text-[#34363B] dark:text-gray-200">
+                        <h3 className="font-medium -translate-x-2  inter text-[18px] text-[#34363B] dark:text-gray-200">
                           Channels:
                         </h3>
 
@@ -204,7 +202,7 @@ const Setting = () => {
                           </label>
                           <label
                             htmlFor="channel-email"
-                            className="text-[16px]  inter font-[400] text-[#495057] dark:text-gray-300 cursor-pointer"
+                            className="text-[16px]  inter font-normal text-[#495057] dark:text-gray-300 cursor-pointer"
                           >
                             Email
                           </label>
@@ -241,7 +239,7 @@ const Setting = () => {
                           </label>
                           <label
                             htmlFor="channel-inapp"
-                            className="text-[16px] inter font-[400] text-[#495057] dark:text-gray-300 cursor-pointer"
+                            className="text-[16px] inter font-normal text-[#495057] dark:text-gray-300 cursor-pointer"
                           >
                             In-App
                           </label>
@@ -250,7 +248,7 @@ const Setting = () => {
 
                       {/* Reminders - Radio */}
                       <div className="space-y-2">
-                        <h3 className="font-[500] -translate-x-2 inter text-[18px] text-[#34363B] dark:text-gray-200">
+                        <h3 className="font-medium -translate-x-2 inter text-[18px] text-[#34363B] dark:text-gray-200">
                           Reminders:
                         </h3>
                         <div className="flex items-center gap-3">
@@ -259,11 +257,11 @@ const Setting = () => {
                             id="rem-none"
                             name="reminders"
                             defaultChecked
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
                           />
                           <label
                             htmlFor="rem-none"
-                            className="cursor-pointer font-[400] text-[16px] inter text-[#495057] dark:text-gray-300"
+                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
                           >
                             None
                           </label>
@@ -273,11 +271,11 @@ const Setting = () => {
                             type="radio"
                             id="rem-5min"
                             name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
                           />
                           <label
                             htmlFor="rem-5min"
-                            className="cursor-pointer font-[400] text-[16px] inter text-[#495057] dark:text-gray-300"
+                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
                           >
                             5 min
                           </label>
@@ -287,11 +285,11 @@ const Setting = () => {
                             type="radio"
                             id="rem-10min"
                             name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
                           />
                           <label
                             htmlFor="rem-10min"
-                            className="cursor-pointer font-[400] text-[16px] inter text-[#495057] dark:text-gray-300"
+                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
                           >
                             10 min
                           </label>
@@ -301,11 +299,11 @@ const Setting = () => {
                             type="radio"
                             id="rem-15min"
                             name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
                           />
                           <label
                             htmlFor="rem-15min"
-                            className="cursor-pointer font-[400] text-[16px] inter text-[#495057] dark:text-gray-300"
+                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
                           >
                             15 min
                           </label>
@@ -315,11 +313,11 @@ const Setting = () => {
                             type="radio"
                             id="rem-30min"
                             name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
                           />
                           <label
                             htmlFor="rem-30min"
-                            className="cursor-pointer font-[400] text-[16px] inter text-[#495057] dark:text-gray-300"
+                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
                           >
                             30 min
                           </label>
@@ -328,7 +326,7 @@ const Setting = () => {
 
                       {/* Campaign Events - Checkbox */}
                       <div className="space-y-2">
-                        <h3 className="inter -translate-x-2 font-[500] text-[#34363B] dark:text-gray-200 text-[18px] cursor-pointer">
+                        <h3 className="inter -translate-x-2 font-medium text-[#34363B] dark:text-gray-200 text-[18px] cursor-pointer">
                           Notification for Campaign Events:
                         </h3>
 
@@ -363,7 +361,7 @@ const Setting = () => {
                           </label>
                           <label
                             htmlFor="event-incoming"
-                            className="inter font-[400] text-[#495057] dark:text-gray-300 text-[16px] cursor-pointer"
+                            className="inter font-normal text-[#495057] dark:text-gray-300 text-[16px] cursor-pointer"
                           >
                             Incoming follow-up calls
                           </label>
@@ -400,7 +398,7 @@ const Setting = () => {
                           </label>
                           <label
                             htmlFor="event-scheduled"
-                            className="inter font-[400] text-[#495057] dark:text-gray-300 text-[16px] cursor-pointer"
+                            className="inter font-normal text-[#495057] dark:text-gray-300 text-[16px] cursor-pointer"
                           >
                             Scheduled meetings from campaigns
                           </label>
@@ -413,105 +411,103 @@ const Setting = () => {
             </>
           )}
 
-                    {activeTab === 'caller-id' && (
-                        <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
-                            <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white mb-6">Caller ID & Campaigns</h2>
-                            
-                            {/* Default CallID */}
-                            <div className="mb-8">
-                                <label className="text-[14px] font-[500] text-[#495057] dark:text-gray-400 block mb-2">Default CallID</label>
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
-                                        <input
-                                            type="text"
-                                            value={agentCallerIds.find(c => c.id === defaultCallerId)?.twillioNumber || agentCallerIds.find(c => c.id === defaultCallerId)?.label || (agentCallerIds.length > 0 ? (defaultCallerId ? 'Default ID Mismatch' : 'Not Set') : 'No Caller ID Assigned')}
-                                            readOnly
-                                            className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-[400] focus:outline-none"
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[14px] text-[#495057] dark:text-gray-400">
-                                        <FiInfo className="w-4 h-4 text-gray-300 dark:text-gray-500" />
-                                        <span className="test-gray-300">Caller IDs are managed by Admin</span>
-                                    </div>
-                                </div>
-                            </div>
+          {activeTab === 'caller-id' && (
+            <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
+              <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white mb-6">Caller ID & Campaigns</h2>
 
-                            {/* Outbound Caller IDs */}
-                            <div>
-                                <h3 className="text-[18px] font-[500] text-[#34363B] dark:text-gray-200 mb-4">Outbound Caller IDs</h3>
-                                <div className="space-y-4">
-                                    {isLoadingCallerIds ? (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <p>Loading caller IDs...</p>
-                                        </div>
-                                    ) : agentCallerIds.length > 0 ? (
-                                        agentCallerIds.map((callerId) => (
-                                            <div key={callerId.id} className="flex items-center py-4 pl-2 rounded-lg">
-                                                <div className="flex items-center gap-4 w-full">
-                                                    {/* Card */}
-                                                    <div className="border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white dark:bg-slate-700 flex-1">
-                                                        <p className="text-[15px] font-medium text-[#0E1011] dark:text-white leading-tight">
-                                                            {callerId.twillioNumber || callerId.label}
-                                                        </p>
-                                                        <p className="text-[13px] text-[#6B7280] dark:text-gray-400">
-                                                            {callerId.label}
-                                                        </p>
-                                                    </div>
+              {/* Default CallID */}
+              <div className="mb-8">
+                <label className="text-[14px] font-medium text-[#495057] dark:text-gray-400 block mb-2">Default CallID</label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
+                    <input
+                      type="text"
+                      value={agentCallerIds.find(c => c.id === defaultCallerId)?.twillioNumber || agentCallerIds.find(c => c.id === defaultCallerId)?.label || (agentCallerIds.length > 0 ? (defaultCallerId ? 'Default ID Mismatch' : 'Not Set') : 'No Caller ID Assigned')}
+                      readOnly
+                      className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-normal focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-[14px] text-[#495057] dark:text-gray-400">
+                    <FiInfo className="w-4 h-4 text-gray-300 dark:text-gray-500" />
+                    <span className="test-gray-300">Caller IDs are managed by Admin</span>
+                  </div>
+                </div>
+              </div>
 
-                                                    {/* Button */}
-                                                    <div className="flex items-center gap-2">
-                                                        <button 
-                                                            onClick={async () => {
-                                                                try {
-                                                                    await api.put(`/user/${currentAgentId}`, { defaultCallerId: callerId.id });
-                                                                    await refetch();
-                                                                    toast.success('Default caller ID updated');
-                                                                } catch (err) {
-                                                                    toast.error('Failed to update default caller ID');
-                                                                }
-                                                            }}
-                                                            className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
-                                                                defaultCallerId === callerId.id
-                                                                    ? 'bg-yellow-400 text-black shadow-sm'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                            }`}
-                                                        >
-                                                            {defaultCallerId === callerId.id ? 'Default' : 'Set as Default'}
-                                                        </button>
-                                                        <button 
-                                                            className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${
-                                                                callerId.status === 'active' || callerId.status === 'ACTIVE'
-                                                                    ? 'bg-black'
-                                                                    : 'bg-gray-300 text-gray-700'
-                                                            }`}
-                                                        >
-                                                            {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-8 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
-                                            <p className="text-gray-500 dark:text-gray-400">No caller IDs assigned to you yet.</p>
-                                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Contact your admin to get a caller ID assigned.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+              {/* Outbound Caller IDs */}
+              <div>
+                <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-4">Outbound Caller IDs</h3>
+                <div className="space-y-4">
+                  {isLoadingCallerIds ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>Loading caller IDs...</p>
+                    </div>
+                  ) : agentCallerIds.length > 0 ? (
+                    agentCallerIds.map((callerId) => (
+                      <div key={callerId.id} className="flex items-center py-4 pl-2 rounded-lg">
+                        <div className="flex items-center gap-4 w-full">
+                          {/* Card */}
+                          <div className="border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 sm:pr-34 pr-16 bg-white dark:bg-slate-700 flex-1">
+                            <p className="text-[15px] font-medium text-[#0E1011] dark:text-white leading-tight">
+                              {callerId.twillioNumber || callerId.label}
+                            </p>
+                            <p className="text-[13px] text-[#6B7280] dark:text-gray-400">
+                              {callerId.label}
+                            </p>
+                          </div>
+
+                          {/* Button */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await api.put(`/user/${currentAgentId}`, { defaultCallerId: callerId.id });
+                                  await refetch();
+                                  toast.success('Default caller ID updated');
+                                } catch (err) {
+                                  toast.error('Failed to update default caller ID');
+                                }
+                              }}
+                              className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${defaultCallerId === callerId.id
+                                  ? 'bg-yellow-400 text-black shadow-sm'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                              {defaultCallerId === callerId.id ? 'Default' : 'Set as Default'}
+                            </button>
+                            <button
+                              className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${callerId.status === 'active' || callerId.status === 'ACTIVE'
+                                  ? 'bg-black'
+                                  : 'bg-gray-300 text-gray-700'
+                                }`}
+                            >
+                              {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                            </button>
+                          </div>
                         </div>
-                    )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
+                      <p className="text-gray-500 dark:text-gray-400">No caller IDs assigned to you yet.</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Contact your admin to get a caller ID assigned.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === "dialer" && (
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
-              <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white mb-6">
+              <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white mb-6">
                 Dialer Settings
               </h2>
 
               <div className="space-y-8">
                 {/* Voicemail Handling */}
                 <div>
-                  <h3 className="text-[18px] font-[500] text-[#34363B] dark:text-gray-200 mb-2">
+                  <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                     Voicemail Handling
                   </h3>
                   <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-4">
@@ -526,7 +522,7 @@ const Setting = () => {
                         value="manual"
                         checked={voicemailOption === "manual"}
                         onChange={(e) => setVoicemailOption(e.target.value)}
-                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
+                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
                       />
                       <div className="flex-1">
                         <p className="text-[16px] font-medium text-[#17181B] dark:text-white group-hover:text-yellow-400 transition-colors">
@@ -545,7 +541,7 @@ const Setting = () => {
                         value="auto"
                         checked={voicemailOption === "auto"}
                         onChange={(e) => setVoicemailOption(e.target.value)}
-                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-[4px] checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
+                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
                       />
                       <div className="flex-1">
                         <p className="text-[16px] font-medium text-[#17181B] dark:text-white group-hover:text-yellow-400 transition-colors">
@@ -561,7 +557,7 @@ const Setting = () => {
 
                 {/* Time Zone */}
                 <div>
-                  <h3 className="text-[18px] font-[500] text-[#34363B] dark:text-gray-200 mb-2">
+                  <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                     Time Zone
                   </h3>
                   <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-4">
@@ -569,7 +565,7 @@ const Setting = () => {
                   </p>
 
                   <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm relative group">
-                    <select className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-[400] focus:outline-none appearance-none pr-8 cursor-pointer">
+                    <select className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-normal focus:outline-none appearance-none pr-8 cursor-pointer">
                       <option className="dark:bg-slate-800">
                         Eastern Time (ET)
                       </option>
@@ -596,7 +592,7 @@ const Setting = () => {
                 {/* Live Answer Beep */}
                 <div className="flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all">
                   <div className="flex-1">
-                    <h3 className="text-[18px] font-[500] text-[#34363B] dark:text-gray-200 mb-2">
+                    <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                       Live Answer Beep
                     </h3>
                     <p className="text-[14px] text-[#495057] dark:text-gray-400">
@@ -605,16 +601,14 @@ const Setting = () => {
                   </div>
                   <button
                     onClick={() => setLiveAnswerBeep(!liveAnswerBeep)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${
-                      liveAnswerBeep
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${liveAnswerBeep
                         ? "bg-yellow-400"
                         : "bg-gray-300 dark:bg-slate-700"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                        liveAnswerBeep ? "translate-x-6" : "translate-x-1"
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${liveAnswerBeep ? "translate-x-6" : "translate-x-1"
+                        }`}
                     />
                   </button>
                 </div>
@@ -626,7 +620,7 @@ const Setting = () => {
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
               {/* Header with title and Create button */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
+                <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
                   Touch Point
                 </h2>
                 <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
@@ -688,7 +682,7 @@ const Setting = () => {
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
               {/* Header with title and Manage Templates button */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
+                <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
                   Lead Sheet Templates
                 </h2>
                 <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
