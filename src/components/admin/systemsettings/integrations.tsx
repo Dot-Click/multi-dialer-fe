@@ -1,31 +1,15 @@
 import React, { useState } from 'react';
 import { FiLoader, FiX } from 'react-icons/fi';
-import { BsCheckCircle, BsXCircle, BsExclamationTriangle } from 'react-icons/bs';
-import twilioLogo from "../../../assets/twillo.png";
-import googleMapLogo from "../../../assets/googlemap.png";
-import realtorLogo from "../../../assets/realtor.png";
-import bombbombLogo from "../../../assets/bomb.png";
-import gmailLogo from "../../../assets/gmail.png";
 import stanppLogo from "../../../assets/stamnp.png";
-import myplusLogo from "../../../assets/myplus.png";
-import zapierLogo from "../../../assets/zapier.png";
-
-
-interface Integration {
-  id: string;
-  name: string;
-  description: string;
-  status: 'na' | 'processing' | 'connected' | 'failed' | 'setup';
-  buttonText: 'Connect' | 'Manage';
-  icon: React.ReactNode;
-  apiKey?: string;
-}
+import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
+import toast from 'react-hot-toast';
 
 interface ConnectModalProps {
   isOpen: boolean;
   onClose: () => void;
   integrationName: string;
-  onSave: (apiKey: string) => void;
+  onSave: (credentials: { apiKey: string; senderName: string }) => void;
+  loading: boolean;
 }
 
 interface ManageModalProps {
@@ -33,72 +17,81 @@ interface ManageModalProps {
   onClose: () => void;
   integration: Integration;
   onDisconnect: () => void;
-  onSave: (apiKey: string) => void;
+  onSave: (credentials: { apiKey: string; senderName: string }) => void;
+  loading: boolean;
 }
 
-const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integrationName, onSave }) => {
+const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integrationName, onSave, loading }) => {
   const [apiKey, setApiKey] = useState('');
+  const [senderName, setSenderName] = useState('');
 
   if (!isOpen) return null;
 
   const handleSave = () => {
     if (apiKey.trim()) {
-      onSave(apiKey);
+      onSave({ apiKey, senderName });
       setApiKey('');
-      onClose();
+      setSenderName('');
     }
   };
 
   return (
-    <div 
-       className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[1200] p-4"
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-1200 p-4"
       onClick={onClose}
     >
-      <div 
-        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6 relative border dark:border-slate-700"
+      <div
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-8 relative border dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
         >
           <FiX size={18} className="text-gray-600 dark:text-gray-300" />
         </button>
 
-        {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pr-8">Connect {integrationName}</h2>
-
-        {/* Description */}
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Enter your API key or credentials for {integrationName} integration.
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Connect {integrationName}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 font-medium">
+          Enter your Stannp credentials to enable Direct Mail campaigns.
         </p>
 
-        {/* API Key Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">API Key</label>
-          <input
-            type="text"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter API key"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50 dark:bg-slate-900 dark:text-white dark:placeholder-gray-500"
-          />
+        <div className="space-y-5 mb-8">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Stannp API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your private API key"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Sender Name</label>
+            <input
+              type="text"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              placeholder="e.g. CallScout Team"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm"
+            />
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+            className="flex-1 py-3 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-all"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-black bg-yellow-400 hover:bg-yellow-500 rounded-md transition-colors"
+            disabled={loading || !apiKey}
+            className="flex-2 py-3 text-sm font-bold text-black bg-yellow-400 hover:bg-yellow-500 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            Save & Connect
+            {loading ? <FiLoader className="animate-spin" /> : 'Connect Integration'}
           </button>
         </div>
       </div>
@@ -106,103 +99,72 @@ const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, integratio
   );
 };
 
-const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration, onDisconnect, onSave }) => {
-  const [apiKey, setApiKey] = useState(integration.apiKey || '************************************');
-  
+const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration, onDisconnect, onSave, loading }) => {
+  const [apiKey, setApiKey] = useState(integration.credentials?.apiKey || '');
+  const [senderName, setSenderName] = useState(integration.credentials?.senderName || '');
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(apiKey);
-    onClose();
-  };
-
-  const handleDisconnect = () => {
-    onDisconnect();
-    onClose();
-  };
-
-  const getStatusColor = () => {
-    switch (integration.status) {
-      case 'connected':
-        return 'text-green-600';
-      case 'failed':
-        return 'text-red-600';
-      case 'processing':
-        return 'text-blue-500';
-      case 'setup':
-        return 'text-orange-500';
-      default:
-        return 'text-gray-400';
-    }
-  };
-
-  const getStatusText = () => {
-    switch (integration.status) {
-      case 'connected':
-        return 'Connected';
-      case 'failed':
-        return 'Connection failed';
-      case 'processing':
-        return 'Processing...';
-      case 'setup':
-        return 'Need setup';
-      default:
-        return 'N/A';
-    }
+     onSave({ apiKey, senderName });
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div 
-        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6 relative border dark:border-slate-700"
+      <div
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-8 relative border dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
         >
           <FiX size={18} className="text-gray-600 dark:text-gray-300" />
         </button>
 
-        {/* Title */}
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 pr-8">Manage {integration.name} Integration</h2>
-
-        {/* Status Section */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">Status</label>
-          <p className={`text-sm font-bold ${getStatusColor()}`}>{getStatusText()}</p>
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Manage Stannp</h2>
+        <div className="flex items-center gap-2 mb-8">
+           <div className={`w-2 h-2 rounded-full ${integration.status === 'CONNECTED' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+           <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{integration.status}</span>
         </div>
 
-        {/* API Key Section */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">API Key</label>
-          <input
-            type="text"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-gray-50 dark:bg-slate-900 dark:text-white"
-            readOnly={integration.status === 'connected'}
-          />
+        <div className="space-y-5 mb-8">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Stannp API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Sender Name</label>
+            <input
+              type="text"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm"
+            />
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleDisconnect}
-            className="flex-1 px-4 py-2 text-sm font-medium text-black bg-red-100 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 rounded-md transition-colors"
-          >
-            Disconnect
-          </button>
+        <div className="flex flex-col gap-3">
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2 text-sm font-medium text-black bg-yellow-400 hover:bg-yellow-500 rounded-md transition-colors"
+            disabled={loading}
+            className="w-full py-4 text-sm font-bold text-black bg-yellow-400 hover:bg-yellow-500 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
           >
-            Save & Connect
+            {loading ? <FiLoader className="animate-spin" /> : 'Update Settings'}
+          </button>
+          <button
+            onClick={onDisconnect}
+            className="w-full py-4 text-sm font-bold text-red-500 bg-red-50 dark:bg-red-900/10 rounded-xl hover:bg-red-100 transition-all"
+          >
+            Disconnect Integration
           </button>
         </div>
       </div>
@@ -211,281 +173,113 @@ const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, integration,
 };
 
 const Integrations: React.FC = () => {
-  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const { data: serverIntegrations, isLoading, upsertIntegration, deleteIntegration } = useIntegrations();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
 
-  const [integrations, setIntegrations] = useState<Integration[]>([
-    {
-      id: "twilio",
-      name: "Twilio",
-      description: "Connect Twilio for calls, SMS, and number management.",
-      status: "na",
-      buttonText: "Connect",
-      icon: (
-        <img
-          src={twilioLogo}
-          alt="Twilio"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "google-maps",
-      name: "Google Maps",
-      description: "Use Google Maps and Street View for maps and addresses.",
-      status: "processing",
-      buttonText: "Manage",
-      apiKey: "************************************",
-      icon: (
-        <img
-          src={googleMapLogo}
-          alt="Google Maps"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "realtor",
-      name: "Realtor.com",
-      description: "Connect Realtor.com for property data.",
-      status: "connected",
-      buttonText: "Manage",
-      apiKey: "************************************",
-      icon: (
-        <img
-          src={realtorLogo}
-          alt="Realtor"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "bombbomb",
-      name: "BombBomb",
-      description: "Use BombBomb for video messages.",
-      status: "failed",
-      buttonText: "Manage",
-      icon: (
-        <img
-          src={bombbombLogo}
-          alt="BombBomb"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "gmail",
-      name: "Gmail",
-      description: "Connect Gmail to send emails through CallScout.",
-      status: "setup",
-      buttonText: "Manage",
-      icon: (
-        <img
-          src={gmailLogo}
-          alt="Gmail"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "stanpp",
-      name: "Stanpp.com",
-      description: "Connect Stanpp.com for direct mail.",
-      status: "connected",
-      buttonText: "Manage",
-      apiKey: "************************************",
-      icon: (
-        <img
-          src={stanppLogo}
-          alt="Stanpp"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "myplusleads",
-      name: "MyPlusLeads",
-      description: "Use MyPlusLeads for daily lead imports.",
-      status: "connected",
-      buttonText: "Manage",
-      apiKey: "************************************",
-      icon: (
-        <img
-          src={myplusLogo}
-          alt="MyPlusLeads"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  
-    {
-      id: "zapier",
-      name: "Zapier",
-      description: "Integrate with HubSpot, Lofty, Salesforce, and others.",
-      status: "na",
-      buttonText: "Connect",
-      icon: (
-        <img
-          src={zapierLogo}
-          alt="Zapier"
-          className="w-10 h-10 object-contain rounded"
-        />
-      ),
-    },
-  ]);
-  
-  const getStatusDisplay = (status: Integration['status']) => {
-    switch (status) {
-      case 'na':
-        return { text: 'N/A', color: 'text-gray-400', icon: null };
-      case 'processing':
-        return {
-          text: 'Processing...',
-          color: 'text-blue-500 dark:text-blue-400',
-          icon: <FiLoader className="animate-spin" size={14} />,
-        };
-      case 'connected':
-        return { text: 'Connected', color: 'text-green-600 dark:text-green-400', icon: <BsCheckCircle size={14} /> };
-      case 'failed':
-        return { text: 'Connection failed', color: 'text-red-600 dark:text-red-400', icon: <BsXCircle size={14} /> };
-      case 'setup':
-        return {
-          text: 'Need setup',
-          color: 'text-orange-500 dark:text-orange-400',
-          icon: <BsExclamationTriangle size={14} />,
-        };
-      default:
-        return { text: 'N/A', color: 'text-gray-400', icon: null };
+  const stannp = serverIntegrations?.find(i => i.provider === 'STANPP_DOT_COM');
+
+  const handleSave = async (credentials: any) => {
+    try {
+      await upsertIntegration.mutateAsync({
+        provider: 'STANPP_DOT_COM',
+        credentials
+      });
+      toast.success('Stannp integration updated successfully!');
+      setIsConnectModalOpen(false);
+      setIsManageModalOpen(false);
+    } catch (error) {
+       toast.error('Failed to save integration settings.');
     }
   };
 
-  const handleConnect = (integration: Integration) => {
-    setSelectedIntegration(integration);
-    setIsConnectModalOpen(true);
-  };
-
-  const handleManage = (integration: Integration) => {
-    setSelectedIntegration(integration);
-    setIsManageModalOpen(true);
-  };
-
-  const handleSaveConnect = (apiKey: string) => {
-    if (selectedIntegration) {
-      setIntegrations((prev) =>
-        prev.map((int) =>
-          int.id === selectedIntegration.id
-            ? { ...int, status: 'connected' as const, buttonText: 'Manage' as const, apiKey }
-            : int
-        )
-      );
+  const handleDisconnect = async () => {
+    if (!stannp) return;
+    try {
+      await deleteIntegration.mutateAsync(stannp.id);
+      toast.success('Stannp disconnected.');
+      setIsManageModalOpen(false);
+    } catch (error) {
+      toast.error('Failed to disconnect.');
     }
   };
 
-  const handleSaveManage = (apiKey: string) => {
-    if (selectedIntegration) {
-      setIntegrations((prev) =>
-        prev.map((int) =>
-          int.id === selectedIntegration.id ? { ...int, apiKey } : int
-        )
-      );
-    }
-  };
-
-  const handleDisconnect = () => {
-    if (selectedIntegration) {
-      setIntegrations((prev) =>
-        prev.map((int) =>
-          int.id === selectedIntegration.id
-            ? { ...int, status: 'na' as const, buttonText: 'Connect' as const, apiKey: undefined }
-            : int
-        )
-      );
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <FiLoader className="animate-spin text-yellow-400 text-3xl" />
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="min-h-screen">
-        <div className="space-y-4">
-          {integrations.map((integration) => {
-            const statusDisplay = getStatusDisplay(integration.status);
-            const isConnectButton = integration.buttonText === 'Connect';
-
-            return (
-              <div
-                key={integration.id}
-                className="bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-gray-200 dark:border-slate-700 hover:shadow-sm transition-shadow"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 flex-shrink-0">
-
-                  {/* Left Side: Icon, Name, Description */}
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="flex-shrink-0">{integration.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{integration.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{integration.description}</p>
-                    </div>
-                  </div>
-
-                  {/* Right Side: Status and Button */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-shrink-0">
-                    <div className={`flex items-center gap-2 ${statusDisplay.color}`}>
-                      {statusDisplay.icon}
-                      <span className="text-sm font-medium whitespace-nowrap">{statusDisplay.text}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => (isConnectButton ? handleConnect(integration) : handleManage(integration))}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
-                        isConnectButton
-                          ? 'bg-yellow-400 text-black hover:bg-yellow-500'
-                          : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                      }`}
-                    >
-                      {integration.buttonText}
-                    </button>
-                  </div>
-                </div>
+    <div className="min-h-screen">
+      <div className="space-y-6">
+        {/* Stannp Integration Card */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="w-20 h-20 bg-gray-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center p-3 shrink-0">
+              <img src={stanppLogo} alt="Stannp" className="w-full h-full object-contain" />
+            </div>
+            
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-3 mb-2">
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">Stannp.com</h3>
+                {stannp && (
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+                    Connected
+                  </span>
+                )}
               </div>
-            );
-          })}
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-lg">
+                Connect your Stannp.com account to send letters, postcards, and marketing mailers directly to your contacts from the dashboard.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-3 sm:min-w-[150px]">
+              {stannp ? (
+                <button
+                  onClick={() => {
+                    // setSelectedIntegration(stannp);
+                    setIsManageModalOpen(true);
+                  }}
+                  className="w-full px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 transition-all text-sm"
+                >
+                  Edit Settings
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="w-full px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg hover:shadow-yellow-400/20 text-sm"
+                >
+                  Connect Stannp
+                </button>
+              )}
+              {!stannp && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Setup Required</span>}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Connect Modal */}
-      {selectedIntegration && (
-        <ConnectModal
-          isOpen={isConnectModalOpen}
-          onClose={() => {
-            setIsConnectModalOpen(false);
-            setSelectedIntegration(null);
-          }}
-          integrationName={selectedIntegration.name}
-          onSave={handleSaveConnect}
-        />
-      )}
+      <ConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        integrationName="Stannp.com"
+        onSave={handleSave}
+        loading={upsertIntegration.isPending}
+      />
 
-      {/* Manage Modal */}
-      {selectedIntegration && (
+      {stannp && (
         <ManageModal
           isOpen={isManageModalOpen}
-          onClose={() => {
-            setIsManageModalOpen(false);
-            setSelectedIntegration(null);
-          }}
-          integration={selectedIntegration}
+          onClose={() => setIsManageModalOpen(false)}
+          integration={stannp}
           onDisconnect={handleDisconnect}
-          onSave={handleSaveManage}
+          onSave={handleSave}
+          loading={upsertIntegration.isPending}
         />
       )}
-    </>
+    </div>
   );
 };
 
