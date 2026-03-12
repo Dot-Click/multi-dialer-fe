@@ -224,13 +224,13 @@ const ContactLayout = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition 
-            bg-gray-100 hover:bg-gray-200 
+            bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 
             ${isOpen ? "left-52" : "left-4"}`}
         >
           {isOpen ? (
-            <FiX size={17} className="text-gray-800" />
+            <FiX size={17} className="text-gray-800 dark:text-white" />
           ) : (
-            <FiMenu size={17} className="text-gray-800" />
+            <FiMenu size={17} className="text-gray-800 dark:text-white" />
           )}
         </button>
       )}
@@ -250,7 +250,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex w-full gap-7 bottom-0 fixed bg-white shadow-2xl py-4 items-center
+        className={`flex w-full gap-7 bottom-0 fixed bg-white dark:bg-slate-800 shadow-2xl py-4 items-center
           ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
       >
         <button
@@ -258,8 +258,8 @@ const ContactLayout = () => {
           onClick={() => setShowExportModal(true)}
         >
           <img src={movetoicon} className="w-4" alt="movetoicon" />
-          <span className="text-[14px] text-[#495057] font-[500]">Move To</span>
-          <span className="text-sm text-gray-700">
+          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">Move To</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300">
             <FaChevronUp />
           </span>
         </button>
@@ -268,16 +268,16 @@ const ContactLayout = () => {
           className="flex items-center gap-2"
           onClick={() => setShowExportModal(true)}
         >
-          <TfiDownload className="text-[17px] text-[#495057]" />
-          <span className="text-[14px] text-[#495057] font-[500]">Export</span>
+          <TfiDownload className="text-[17px] text-[#495057] dark:text-white" />
+          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">Export</span>
         </button>
 
         <Link className="flex items-center gap-2" to="/admin/find-duplicate">
           <img src={duplicatesicon} className="w-4" alt="duplicatesicon" />
-          <span className="text-[14px] text-[#495057] font-[500]">
+          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">
             Find Duplicates
           </span>
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
             <FaChevronDown />
           </span>
         </Link>
@@ -302,13 +302,13 @@ const ContactLayout = () => {
       {/* 🔹 Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000]">
-          <div className="bg-white w-[380px] rounded-xl shadow-lg p-6 text-center relative">
+          <div className="bg-white dark:bg-slate-800 w-[380px] rounded-xl shadow-lg p-6 text-center relative">
             {/* Warning Icon */}
             <div className="text-red-500 flex justify-center text-4xl mb-3">
               <TbInfoTriangle />
             </div>
-            <h2 className="text-lg font-medium mb-1">Delete Lead?</h2>
-            <p className="text-sm text-gray-500 mb-5">
+            <h2 className="text-lg font-medium mb-1 dark:text-white">Delete Lead?</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
               Once deleted, this action cannot be undone. Are you sure you want
               to proceed?
             </p>
@@ -317,7 +317,7 @@ const ContactLayout = () => {
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-100 w-full hover:bg-gray-200 text-gray-700 font-medium px-5 py-2 rounded-lg"
+                className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-white font-medium px-5 py-2 rounded-lg"
               >
                 Cancel
               </button>

@@ -59,21 +59,21 @@ const CallSection = () => {
           const status = getUiStatus(isActive);
 
           return (
-            <div
-              key={call.id || index}
-              className={`min-w-[240px] md:min-w-[260px] h-[190px] 
-                         bg-white rounded-2xl border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-[#F1F3F9] shadow-sm'}
-                         flex flex-col items-center justify-between p-6
-                         transition-all duration-200`}
-            >
+             <div
+               key={call.id || index}
+               className={`min-w-[240px] md:min-w-[260px] h-[190px] 
+                          bg-white dark:bg-slate-800 rounded-2xl border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-[#F1F3F9] dark:border-slate-700 shadow-sm'}
+                          flex flex-col items-center justify-between p-6
+                          transition-all duration-200`}
+             >
               {/* Top Section: Name and Info */}
               <div className="text-center space-y-2">
-                <h3 className="text-[19px] font-semibold text-[#374151]">
+                <h3 className="text-[19px] font-semibold text-[#374151] dark:text-white">
                   {call.fullName || call.name}
                 </h3>
                 
-                <div className="flex items-center justify-center gap-2 text-[#6B7280]">
-                  <Briefcase size={18} strokeWidth={1.5} className="text-gray-500" />
+                <div className="flex items-center justify-center gap-2 text-[#6B7280] dark:text-gray-400">
+                  <Briefcase size={18} strokeWidth={1.5} className="text-gray-500 dark:text-gray-400" />
                   <span className="text-[17px] font-medium tracking-tight">
                     {call.phones?.[0]?.number || call.phone || "No phone"}
                   </span>
@@ -99,6 +99,9 @@ const CallSection = () => {
         .no-scrollbar::-webkit-scrollbar-thumb {
           background: #E5E7EB;
           border-radius: 10px;
+        }
+        .dark .no-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
         }
       `}} />
     </div>

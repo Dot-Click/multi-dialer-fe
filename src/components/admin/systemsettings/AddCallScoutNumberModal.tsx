@@ -70,11 +70,11 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
 
     return (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/30 backdrop-blur-[2px] p-4 font-sans">
-            <div className="bg-white w-full max-w-[500px] rounded-4xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white dark:bg-slate-800 w-full max-w-[500px] rounded-4xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border dark:border-slate-700">
                 {/* Header */}
                 <div className="px-8 pt-8 pb-2 flex justify-between items-center">
-                    <h2 className="text-[20px] font-bold text-gray-900">Add CallScout Number</h2>
-                    <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+                    <h2 className="text-[20px] font-bold text-gray-900 dark:text-white">Add CallScout Number</h2>
+                    <button onClick={onClose} className="p-1.5 bg-gray-100 dark:bg-slate-700 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <FiX size={20} />
                     </button>
                 </div>
@@ -87,7 +87,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             <select
                                 value={filters.countryCode}
                                 onChange={(e) => setFilters({ ...filters, countryCode: e.target.value, state: '', cityName: '' })}
-                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                                className="w-full bg-[#F3F4F8] dark:bg-slate-700 dark:text-white rounded-xl py-3 px-3 text-[13px] outline-none"
                             >
                                 {countries.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
                             </select>
@@ -97,7 +97,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             <select
                                 value={filters.state}
                                 onChange={(e) => setFilters({ ...filters, state: e.target.value, cityName: '' })}
-                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                                className="w-full bg-[#F3F4F8] dark:bg-slate-700 dark:text-white rounded-xl py-3 px-3 text-[13px] outline-none"
                             >
                                 <option value="">Select State</option>
                                 {states.map(s => <option key={s.isoCode} value={s.isoCode}>{s.name}</option>)}
@@ -108,7 +108,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             <select
                                 value={filters.cityName}
                                 onChange={(e) => setFilters({ ...filters, cityName: e.target.value })}
-                                className="w-full bg-[#F3F4F8] rounded-xl py-3 px-3 text-[13px] outline-none"
+                                className="w-full bg-[#F3F4F8] dark:bg-slate-700 dark:text-white rounded-xl py-3 px-3 text-[13px] outline-none"
                                 disabled={!filters.state}
                             >
                                 <option value="">
@@ -127,9 +127,9 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                     </div>
 
                     {/* Numbers List */}
-                    <div className="bg-[#F9FAFB] rounded-3xl p-4">
+                    <div className="bg-[#F9FAFB] dark:bg-slate-900/50 rounded-3xl p-4">
                         <div className="flex justify-between items-center mb-3 ml-1">
-                            <h3 className="text-[12px] font-extrabold text-gray-500 uppercase">
+                            <h3 className="text-[12px] font-extrabold text-gray-500 dark:text-gray-400 uppercase">
                                 Available Numbers ({numbersList.length})
                             </h3>
                             {availableNumbers.isFetching && <Loader2 size={14} className="animate-spin text-yellow-500" />}
@@ -157,8 +157,8 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                         key={item.phoneNumber}
                                         onClick={() => setSelectedNumber(item.phoneNumber)}
                                         className={`flex items-center gap-4 p-4 rounded-[18px] cursor-pointer transition-all border-2 ${selectedNumber === item.phoneNumber
-                                                ? 'bg-white border-yellow-400 shadow-sm'
-                                                : 'bg-white border-transparent hover:border-gray-100'
+                                                ? 'bg-white dark:bg-slate-800 border-yellow-400 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 border-transparent dark:border-slate-700 hover:border-gray-100 dark:hover:border-slate-600'
                                             }`}
                                     >
                                         <FiPhone
@@ -166,16 +166,16 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                             className={selectedNumber === item.phoneNumber ? 'text-yellow-500' : 'text-gray-400'}
                                         />
                                         <div className="flex-1">
-                                            <p className="text-[14px] font-bold text-gray-900">
+                                            <p className="text-[14px] font-bold text-gray-900 dark:text-white">
                                                 {item.friendlyName || item.phoneNumber}
                                             </p>
-                                            <p className="text-[10px] font-extrabold text-[#9CA3AF] uppercase tracking-tight">
+                                            <p className="text-[10px] font-extrabold text-[#9CA3AF] dark:text-gray-500 uppercase tracking-tight">
                                                 {item.locality ?? '—'}, {item.region ?? '—'} ({item.isoCountry})
                                             </p>
                                         </div>
                                         {pricingInfo && (
                                             <div className="text-right">
-                                                <p className="text-[11px] font-bold text-gray-700">{pricingInfo}</p>
+                                                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-300">{pricingInfo}</p>
                                             </div>
                                         )}
                                     </div>
@@ -188,7 +188,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                     <div className="flex gap-4">
                         <button
                             onClick={onClose}
-                            className="flex-1 bg-[#F3F4F6] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] hover:bg-gray-200 transition-colors"
+                            className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-gray-900 dark:text-white text-[14px] font-extrabold py-4 rounded-[18px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                         >
                             Cancel
                         </button>
@@ -197,12 +197,6 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             disabled={isSubmitting || !selectedNumber || availableNumbers.isLoading}
                             className="flex-2 bg-[#FECD56] text-gray-900 text-[14px] font-extrabold py-4 rounded-[18px] shadow-sm hover:bg-[#F0D500] transition-colors disabled:opacity-50"
                         >
-                            {isSubmitting ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <Loader2 size={18} className="animate-spin" />
-                                    Processing...
-                                </span>
-                            ) : 'Buy & Add Number'}
                             {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <Loader2 size={18} className="animate-spin" />

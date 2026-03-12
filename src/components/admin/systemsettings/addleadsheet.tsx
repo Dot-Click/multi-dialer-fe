@@ -239,19 +239,19 @@ const AddLeadSheet: React.FC = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen py-6 px-4 sm:px-6">
+    <div className="min-h-screen bg-transparent dark:bg-slate-900 py-6 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {editId ? "Edit Lead Sheet" : "Add Lead Sheet"}
           </h1>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => navigate("/admin/system-settings")}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -267,9 +267,9 @@ const AddLeadSheet: React.FC = () => {
         </div>
 
         {/* Lead Sheet Title */}
-        <div className="mb-6 bg-white p-4 rounded-xl">
+        <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl border dark:border-slate-700 shadow-sm">
           <div className="flex items-center gap-4">
-            <label className="text-[12px] font-medium text-gray-700 whitespace-nowrap">
+            <label className="text-[12px] font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
               Lead Sheet Title
             </label>
             <input
@@ -277,7 +277,7 @@ const AddLeadSheet: React.FC = () => {
               value={leadSheetTitle}
               onChange={(e) => setLeadSheetTitle(e.target.value)}
               placeholder="e.g. Buyer Qualification Sheet"
-              className="w-full bg-transparent border-0 border-b border-gray-300 focus:border-b focus:border-gray-400 focus:ring-0 outline-none text-[13px] pb-1"
+              className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-slate-600 focus:border-b focus:border-yellow-400 focus:ring-0 outline-none text-[13px] pb-1 dark:text-white dark:placeholder-gray-500"
             />
           </div>
         </div>
@@ -289,11 +289,11 @@ const AddLeadSheet: React.FC = () => {
               <div className="flex gap-4 justify-center items-center">
 
                 {/* Drag Handle */}
-                <div className="cursor-move shrink-0 bg-gray-100 p-2 rounded-lg">
-                  <HiOutlineMenu size={16} className="text-gray-500" />
+                <div className="cursor-move shrink-0 bg-gray-100 dark:bg-slate-700 p-2 rounded-lg">
+                  <HiOutlineMenu size={16} className="text-gray-500 dark:text-gray-400" />
                 </div>
 
-                <div className="flex items-center w-full p-3 rounded-lg bg-white gap-3 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center w-full p-3 rounded-lg bg-white dark:bg-slate-800 border dark:border-slate-700 gap-3 flex-wrap sm:flex-nowrap">
 
                   {/* Question Input */}
                   <div className="flex-1 min-w-[200px] bg-white p-2 rounded-lg">
@@ -302,7 +302,7 @@ const AddLeadSheet: React.FC = () => {
                       value={question.question}
                       onChange={(e) => handleQuestionChange(question.id, "question", e.target.value)}
                       placeholder="Add Question"
-                      className="w-full bg-transparent border-0 border-b border-gray-300 focus:border-b focus:border-gray-400 focus:ring-0 outline-none text-[13px] pb-1"
+                      className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-slate-600 focus:border-b focus:border-yellow-400 focus:ring-0 outline-none text-[13px] pb-1 dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
 
@@ -311,7 +311,7 @@ const AddLeadSheet: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setOpenDropdown(openDropdown === question.id ? null : question.id)}
-                      className="w-full flex items-center justify-between bg-transparent border-none text-sm text-gray-800"
+                      className="w-full flex items-center justify-between bg-transparent border-none text-sm text-gray-800 dark:text-white"
                     >
                       <div className="flex items-center gap-2">
                         {getTypeOption(question.type)?.icon}
@@ -320,10 +320,10 @@ const AddLeadSheet: React.FC = () => {
                       <FiChevronDown className="text-gray-500" />
                     </button>
 
-                    <div className="h-px bg-gray-300 mt-1" />
+                    <div className="h-px bg-gray-300 dark:bg-slate-700 mt-1" />
 
                     {openDropdown === question.id && (
-                      <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-full">
+                      <div className="absolute z-20 mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg w-full">
                         {questionTypeOptions.map((option) => (
                           <div
                             key={option.value}
@@ -331,7 +331,7 @@ const AddLeadSheet: React.FC = () => {
                               handleQuestionChange(question.id, "type", option.value);
                               setOpenDropdown(null);
                             }}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${question.type === option.value ? "text-yellow-500" : "text-gray-800"
+                             className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 ${question.type === option.value ? "text-yellow-500" : "text-gray-800 dark:text-gray-200"
                               }`}
                           >
                             {option.icon}
@@ -358,25 +358,25 @@ const AddLeadSheet: React.FC = () => {
               {/* Options (for dropdown / radio / checkbox) */}
               {CHOICE_TYPES.includes(question.type) && (
                 <div className="mt-4 ml-12">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Options
-                    <span className="text-xs text-gray-400 font-normal ml-1">(at least 2 required)</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-normal ml-1">(at least 2 required)</span>
                   </label>
 
                   <div className="space-y-2">
                     {question.options.map((option, idx) => (
                       <div key={idx} className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                        <div className="cursor-move shrink-0 bg-gray-100 p-2 rounded-lg">
-                          <HiOutlineMenu size={14} className="text-gray-500" />
+                        <div className="cursor-move shrink-0 bg-gray-100 dark:bg-slate-700 p-2 rounded-lg">
+                          <HiOutlineMenu size={14} className="text-gray-500 dark:text-gray-400" />
                         </div>
 
-                        <div className="flex-1 min-w-[200px] bg-white p-2 rounded-lg">
+                        <div className="flex-1 min-w-[200px] bg-white dark:bg-slate-800 border dark:border-slate-700 p-2 rounded-lg">
                           <input
                             type="text"
                             value={option}
                             onChange={(e) => handleOptionChange(question.id, idx, e.target.value)}
                             placeholder={`Option ${idx + 1}`}
-                            className="w-full bg-transparent border-0 border-b border-gray-300 focus:border-yellow-400 focus:ring-0 text-[13px] pb-1 outline-none"
+                            className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-slate-600 focus:border-yellow-400 focus:ring-0 text-[13px] pb-1 outline-none dark:text-white dark:placeholder-gray-500"
                           />
                         </div>
 
@@ -393,7 +393,7 @@ const AddLeadSheet: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleAddOption(question.id)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg mt-2 w-full sm:w-auto"
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg mt-2 w-full sm:w-auto transition-colors"
                     >
                       <FiPlus size={16} />
                       Add Option
@@ -419,7 +419,7 @@ const AddLeadSheet: React.FC = () => {
         <button
           type="button"
           onClick={handleAddQuestion}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors border-2 border-dashed border-gray-200 dark:border-slate-700"
         >
           <FiPlus size={18} />
           Add Question

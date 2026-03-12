@@ -26,12 +26,12 @@ const SettingSection = ({
     titleAddon,
     children,
 }: SettingSectionProps) => (
-    <div className="py-6 border-b border-gray-200 last:border-b-0">
+    <div className="py-6 border-b border-gray-200 dark:border-slate-700 last:border-b-0">
         <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
             {titleAddon}
         </div>
-        <p className="text-sm text-gray-600 mb-4 leading-relaxed">{description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">{description}</p>
         <div className="space-y-3">{children}</div>
     </div>
 );
@@ -44,10 +44,10 @@ const CustomCheckbox = ({ id, label, checked, onChange }: CustomCheckboxProps) =
             type="checkbox"
             checked={checked}
             onChange={onChange}
-            className="h-4 w-4 border-gray-300 text-gray-800 focus:ring-gray-500 cursor-pointer"
+            className="h-4 w-4 border-gray-300 dark:border-slate-600 text-gray-800 dark:text-slate-200 focus:ring-gray-500 cursor-pointer dark:bg-slate-700"
             style={{ borderRadius: '2px' }}
         />
-        <label htmlFor={id} className="ml-3 text-sm font-normal text-gray-900 cursor-pointer">
+        <label htmlFor={id} className="ml-3 text-sm font-normal text-gray-900 dark:text-gray-300 cursor-pointer">
             {label}
         </label>
     </div>
@@ -63,13 +63,13 @@ interface TimeSelectProps {
 
 const TimeSelect = ({ label, value, onChange, disabled = false }: TimeSelectProps) => (
     <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-normal text-gray-500">{label}:</label>
+        <label className="text-xs font-normal text-gray-500 dark:text-gray-400">{label}:</label>
         <div className="relative">
             <select
                 value={value}
                 onChange={onChange}
                 disabled={disabled}
-                className="w-32 appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="w-32 appearance-none bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 disabled:bg-gray-100 dark:disabled:bg-slate-900 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
                 {Array.from({ length: 24 }, (_, i) => (
                     <option key={i} value={`${i.toString().padStart(2, '0')}:00`}>
@@ -77,7 +77,7 @@ const TimeSelect = ({ label, value, onChange, disabled = false }: TimeSelectProp
                     </option>
                 ))}
             </select>
-            <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+            <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
         </div>
     </div>
 );
@@ -148,14 +148,14 @@ const DialerSetting = () => {
         });
     };
 
-    if (isLoading) return <div className="p-8 text-center text-gray-500">Loading Dialer Settings...</div>;
+    if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading Dialer Settings...</div>;
 
     return (
-        <div className="bg-gray-50 min-h-screen p-6">
-            <div className="bg-white rounded-lg shadow-sm w-full">
+        <div className="bg-gray-50 dark:bg-slate-900 min-h-screen p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm w-full">
                 <div className="px-6 py-5">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">Dialer Settings</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dialer Settings</h1>
                         <button
                             onClick={handleSave}
                             disabled={updateDialerSettings.isPending}
@@ -170,7 +170,7 @@ const DialerSetting = () => {
                         title="Time Shield"
                         description="Time Shield prevents calls from being placed outside appropriate local hours. It checks each contact's time zone and ensures you only call within suitable times."
                         titleAddon={
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                                 <FiHelpCircle size={16} />
                             </button>
                         }

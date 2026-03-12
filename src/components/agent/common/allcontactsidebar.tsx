@@ -244,7 +244,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
               <div
                 onClick={() => toggleFolder(folder.id)}
                 className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                   bg-gray-50 hover:bg-[#FFCA06]`}
+                   bg-gray-50 dark:bg-slate-700/50 hover:bg-[#FFCA06]`}
               >
                 <VscFolderOpened className="text-lg" />
                 <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">
@@ -264,7 +264,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
                           ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
                       >
                         <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">{list.name}</h1>
-                        <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5">
+                        <h1 className="border border-gray-200 dark:border-slate-600 rounded-full text-[12px] px-2 py-1.5">
                           {getInitials(list.name)}
                         </h1>
                       </div>
@@ -283,7 +283,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
                 ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
             >
               <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">{list.name}</h1>
-              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5">
+              <h1 className="border border-gray-200 dark:border-slate-600 rounded-full text-[12px] px-2 py-1.5">
                 {getInitials(list.name)}
               </h1>
             </div>
@@ -302,10 +302,10 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
                 ${activeItem === `group-${gro.id}`
                   ? "bg-[#FFCA06]"
-                  : "bg-gray-50 hover:bg-[#FFCA06]"
+                  : "bg-gray-50 dark:bg-slate-700/50 hover:bg-[#FFCA06]"
                 }`}
             >
-              <h1 className="text-[#495057] font-[500] text-[14px] truncate">
+              <h1 className="text-[#495057] dark:text-white font-[500] text-[14px] truncate">
                 {gro.name}
               </h1>
             </div>

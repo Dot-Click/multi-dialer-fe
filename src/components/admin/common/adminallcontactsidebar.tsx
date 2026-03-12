@@ -109,14 +109,14 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   };
 
   return (
-    <aside className="bg-white flex flex-col px-5 py-4 w-64 h-screen shadow-sm">
+    <aside className="bg-white dark:bg-slate-800 flex flex-col px-5 py-4 w-64 h-screen shadow-sm">
       {/* Back Button */}
       <Link
         to={backTo}
-        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
+        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] dark:text-white transition"
       >
         <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] font-medium">
+        <span className="text-[16px] text-[#495057] dark:text-white font-medium">
           Back To Home
         </span>
       </Link>
@@ -130,14 +130,14 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
           ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
       >
         <img src={usericon} alt="usericon" className="w-6 h-6" />
-        <h1 className="text-[#495057] font-medium text-[14px]">All Contacts</h1>
+        <h1 className="text-[#495057] dark:text-white font-medium text-[14px]">All Contacts</h1>
       </div>
 
       <div className="border-b border-gray-100 h-1 my-3"></div>
 
       {/* Calling Lists */}
       <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] font-medium uppercase text-[14px]">
+        <h1 className="text-[#495057] dark:text-white font-medium uppercase text-[14px]">
           Calling Lists
         </h1>
         <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
@@ -146,10 +146,10 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
               <div
                 onClick={() => toggleFolder(folder.id)}
                 className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                  bg-gray-50 hover:bg-[#FFCA06]`}
+                  bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]`}
               >
                 <VscFolderOpened className="text-lg" />
-                <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
                   {folder.name}
                 </h1>
               </div>
@@ -160,10 +160,10 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
                     <div
                       key={list.id}
                       onClick={() => handleClick("list", list.name, list.id)}
-                      className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+                      className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                       ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
                     >
-                      <h1 className="text-[#495057] font-medium text-[14px] truncate">
+                      <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
                         {list.name}
                       </h1>
                       <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
@@ -180,10 +180,10 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
             <div
               key={list.id}
               onClick={() => handleClick("list", list.name, list.id)}
-              className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
+              className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
                 ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
             >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">
+              <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
                 {list.name}
               </h1>
               <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
@@ -204,7 +204,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
       {/* Groups */}
       <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] uppercase font-medium text-[14px]">
+        <h1 className="text-[#495057] dark:text-white uppercase font-medium text-[14px]">
           Groups
         </h1>
         <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
@@ -213,9 +213,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
               key={gro.id}
               onClick={() => handleClick("group", gro.name, gro.id)}
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
+                ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]"}`}
             >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">
+              <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
                 {gro.name}
               </h1>
             </div>
@@ -228,11 +228,10 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
         </div>
       </div>
 
-      {/* ✅ Import Modal */}
       <div className="mt-auto pt-2">
         <button
           onClick={openImportModal}
-          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] hover:bg-[#EBE1F0] text-[#0E1011] font-medium rounded-md transition"
+          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] dark:bg-gray-700 hover:bg-[#EBE1F0] text-[#0E1011] dark:text-white font-medium rounded-md transition"
         >
           <LuArrowUpToLine className="text-base" />
           Import File

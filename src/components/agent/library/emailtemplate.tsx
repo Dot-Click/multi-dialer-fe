@@ -352,10 +352,10 @@ const EmailTemplate = () => {
                         }
                       />
                       <div
-                        className={`block w-[48px] h-[24px] rounded-full transition-colors ${template.status ? "bg-black" : "bg-gray-300 dark:bg-slate-700"}`}
+                        className={`block w-[48px] h-[24px] rounded-full transition-colors ${template.status ? "bg-black dark:bg-yellow-400" : "bg-gray-300 dark:bg-slate-700"}`}
                       ></div>
                       <div
-                        className={`dot absolute left-0.5 top-0.5 bg-white w-[20px] h-[20px] rounded-full transition-transform ${template.status ? "translate-x-6" : ""}`}
+                        className={`dot absolute left-0.5 top-0.5 bg-white dark:bg-slate-900 w-[20px] h-[20px] rounded-full transition-transform ${template.status ? "translate-x-6" : ""}`}
                       ></div>
                     </div>
                   </label>

@@ -19,19 +19,19 @@ const ContactDetail = () => {
   }, [id, dispatch])
 
   if (isLoading && !currentContact) {
-    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7]"><Loader /></div>
+    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7] dark:bg-slate-900"><Loader /></div>
   }
 
   if (error) {
-    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7] text-red-500">{error}</div>
+    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7] dark:bg-slate-900 text-red-500">{error}</div>
   }
 
   if (!currentContact) {
-    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7]">Contact not found</div>
+    return <div className="h-screen flex items-center justify-center bg-[#f7f7f7] dark:bg-slate-900 dark:text-gray-400">Contact not found</div>
   }
 
   return (
-    <section className='flex flex-col bg-[#f7f7f7] overflow-auto gap-6'>
+    <section className='flex flex-col bg-[#f7f7f7] dark:bg-slate-900 overflow-auto gap-6'>
       <ContactDetailHeader />
       <Detail />
       <BottomContactDetail />

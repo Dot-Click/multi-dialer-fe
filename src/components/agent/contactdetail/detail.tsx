@@ -136,15 +136,15 @@ const Detail = () => {
     };
 
     return (
-        <section className='bg-white flex flex-col gap-8 px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
+        <section className='bg-white dark:bg-slate-800 flex flex-col gap-8 px-6 py-5 w-[96%] mx-auto rounded-[24px] transition-colors'>
             <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
                 <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col'>
                         <div className='flex items-center gap-7'>
-                            <h1 className='text-[20px] md:text-[28px] text-[#0E1011] font-medium'>
+                            <h1 className='text-[20px] md:text-[28px] text-[#0E1011] dark:text-white font-medium'>
                                 {currentContact.fullName || "Unnamed Contact"}
                             </h1>
-                            <span className="bg-[#F7F7F7] p-2 rounded-[12px]">
+                            <span className="bg-[#F7F7F7] dark:bg-gray-700 p-2 rounded-[12px]">
                                 <img
                                     src={editcontactdetail}
                                     onClick={() => setShowModal(true)}
@@ -154,17 +154,17 @@ const Detail = () => {
                             </span>
                         </div>
                         <div className='flex items-center gap-2'>
-                            <span className='text-[14px] font-medium text-[#2B3034]'>
+                            <span className='text-[14px] font-medium text-[#2B3034] dark:text-gray-300'>
                                 {currentContact.fullName}
                             </span>
-                            <span className='text-[14px] font-normal text-[#495057]'>(Owner)</span>
+                            <span className='text-[14px] font-normal text-[#495057] dark:text-gray-400'>(Owner)</span>
                         </div>
                     </div>
                     <div className='flex items-center gap-5'>
                         {stats.map((dt) => (
                             <span key={dt.id} className='flex text-[14px] gap-1 items-center'>
-                                <h1 className='text-[#2B3034] font-medium'>{dt.name}:</h1>
-                                <h1 className='text-[#0E1011] font-semibold'>{dt.number}</h1>
+                                <h1 className='text-[#2B3034] dark:text-gray-300 font-medium'>{dt.name}:</h1>
+                                <h1 className='text-[#0E1011] dark:text-white font-semibold'>{dt.number}</h1>
                             </span>
                         ))}
                     </div>
@@ -177,40 +177,40 @@ const Detail = () => {
                         <img src={propertyicon} className='w-[15px] translate-y-0.5 object-contain' alt="prop" />
                         <div className='flex flex-col gap-1'>
                             <span>
-                                <h1 className='text-[14px] font-medium text-[#0E1011]'>Property Address:</h1>
+                                <h1 className='text-[14px] font-medium text-[#0E1011] dark:text-white'>Property Address:</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Address: {currentContact.address || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>Address: {currentContact.address || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.city || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>City: {currentContact.city || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.state || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>State: {currentContact.state || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.zip || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>Zip code: {currentContact.zip || '-'}</h1>
                             </span>
                         </div>
                     </div>
 
                     <div className='flex gap-1 items-start'>
-                        <h1><CiMail className='text-[19px] translate-y-0.5 font-medium text-[#0E1011]' /></h1>
+                        <h1><CiMail className='text-[19px] translate-y-0.5 font-medium text-[#0E1011] dark:text-white' /></h1>
                         <div className='flex flex-col gap-1'>
                             <span>
-                                <h1 className='text-[14px] font-medium text-[#0E1011]'>Mailing Address:</h1>
+                                <h1 className='text-[14px] font-medium text-[#0E1011] dark:text-white'>Mailing Address:</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Address: {currentContact.mailingAddress || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>Address: {currentContact.mailingAddress || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>City: {currentContact.mailingCity || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>City: {currentContact.mailingCity || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>State: {currentContact.mailingState || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>State: {currentContact.mailingState || '-'}</h1>
                             </span>
                             <span>
-                                <h1 className='text-[#495057] text-[14px] font-medium'>Zip code: {currentContact.mailingZip || '-'}</h1>
+                                <h1 className='text-[#495057] dark:text-gray-400 text-[14px] font-medium'>Zip code: {currentContact.mailingZip || '-'}</h1>
                             </span>
                         </div>
                     </div>
@@ -218,23 +218,23 @@ const Detail = () => {
 
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
-                        <h1 className='text-[14px] font-medium text-[#0E1011]'>Phones:</h1>
+                        <h1 className='text-[14px] font-medium text-[#0E1011] dark:text-white'>Phones:</h1>
                         <span
                             onClick={() => {
                                 setEditingPhone(null);
                                 setEditingPhoneIndex(undefined);
                                 setPhoneModal(true);
                             }}
-                            className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'
+                            className='p-1 rounded-[8px] bg-[#F7F7F7] dark:bg-gray-700 cursor-pointer'
                         >
-                            <IoAddOutline className='text-[#495057] text-[18px]' />
+                            <IoAddOutline className='text-[#495057] dark:text-white text-[18px]' />
                         </span>
                     </div>
                     <div className='flex flex-col gap-1'>
                         {currentContact.phones?.map((phone: any, index: number) => (
-                            <div key={index} className='flex px-1 py-2 justify-between border-b border-gray-100 items-center gap-2'>
+                            <div key={index} className='flex px-1 py-2 justify-between border-b border-gray-100 dark:border-gray-700 items-center gap-2'>
                                 <div className='flex gap-4 items-center'>
-                                    <img src={getPhoneIcon(phone.type)} alt="icon" />
+                                    <img src={getPhoneIcon(phone.type)} alt="icon" className="dark:brightness-200" />
                                     <span className='text-[#1D85F0] font-medium text-[14px]'>{phone.number}</span>
                                 </div>
                                 <div>
@@ -244,7 +244,7 @@ const Detail = () => {
                                             setEditingPhoneIndex(index);
                                             setPhoneModal(true);
                                         }}
-                                        className='text-[#2B3034] text-[15px] cursor-pointer hover:text-blue-500'
+                                        className='text-[#2B3034] dark:text-gray-300 text-[15px] cursor-pointer hover:text-blue-500'
                                     />
                                 </div>
                             </div>
@@ -254,21 +254,21 @@ const Detail = () => {
 
                 <div className='flex w-full lg:w-1/3 flex-col gap-1'>
                     <div className='flex justify-between items-center'>
-                        <h1 className='text-[14px] font-medium text-[#0E1011]'>E-mails:</h1>
+                        <h1 className='text-[14px] font-medium text-[#0E1011] dark:text-white'>E-mails:</h1>
                         <span
                             onClick={() => {
                                 setEditingEmail(null);
                                 setEditingEmailIndex(undefined);
                                 setEmailModal(true);
                             }}
-                            className='p-1 rounded-[8px] bg-[#F7F7F7] cursor-pointer'
+                            className='p-1 rounded-[8px] bg-[#F7F7F7] dark:bg-gray-700 cursor-pointer'
                         >
-                            <IoAddOutline className='text-[#495057] text-[18px]' />
+                            <IoAddOutline className='text-[#495057] dark:text-white text-[18px]' />
                         </span>
                     </div>
                     <div className='flex flex-col gap-3'>
                         {currentContact.emails?.map((email: any, index: number) => (
-                            <div key={index} className='flex px-1 py-2 justify-between border-b border-gray-100 items-center gap-2'>
+                            <div key={index} className='flex px-1 py-2 justify-between border-b border-gray-100 dark:border-gray-700 items-center gap-2'>
                                 <div className='flex gap-4 items-center'>
                                     <span className='text-[#1D85F0] font-medium text-[14px]'>{email.email}</span>
                                 </div>
@@ -279,7 +279,7 @@ const Detail = () => {
                                             setEditingEmailIndex(index);
                                             setEmailModal(true);
                                         }}
-                                        className='text-[#2B3034] text-[15px] cursor-pointer hover:text-blue-500'
+                                        className='text-[#2B3034] dark:text-gray-300 text-[15px] cursor-pointer hover:text-blue-500'
                                     />
                                 </div>
                             </div>
@@ -290,58 +290,58 @@ const Detail = () => {
 
             <div className='flex flex-col lg:flex-row w-full lg:items-center gap-6'>
                 <div className='flex w-full items-center gap-4'>
-                    <label htmlFor="folder" className='text-[14px] text-[#0E1011] font-medium whitespace-nowrap'>Folder:</label>
+                    <label htmlFor="folder" className='text-[14px] text-[#0E1011] dark:text-white font-medium whitespace-nowrap'>Folder:</label>
                     <select
                         id="folder"
                         value={selectedFolderId}
                         onChange={handleFolderChange}
-                        className='border-b py-1 px-2 font-normal text-[#18181B] border-gray-300 flex-1 text-[16px] outline-none bg-transparent'
+                        className='border-b py-1 px-2 font-normal text-[#18181B] dark:text-white border-gray-300 dark:border-gray-700 flex-1 text-[16px] outline-none bg-transparent'
                     >
-                        <option value="">Select Folder</option>
+                        <option value="" className="dark:bg-slate-800">Select Folder</option>
                         {folders.map(folder => (
-                            <option key={folder.id} value={folder.id}>{folder.name}</option>
+                            <option key={folder.id} value={folder.id} className="dark:bg-slate-800">{folder.name}</option>
                         ))}
                     </select>
                 </div>
 
                 <div className='flex w-full items-center gap-4'>
-                    <label htmlFor="list" className='text-[14px] text-[#0E1011] font-medium whitespace-nowrap'>List:</label>
+                    <label htmlFor="list" className='text-[14px] text-[#0E1011] dark:text-white font-medium whitespace-nowrap'>List:</label>
                     <select
                         id="list"
                         value={selectedListId}
                         onChange={handleListChange}
                         disabled={!selectedFolderId}
-                        className='border-b py-1 px-2 font-normal text-[#18181B] border-gray-300 flex-1 text-[16px] outline-none bg-transparent disabled:opacity-50'
+                        className='border-b py-1 px-2 font-normal text-[#18181B] dark:text-white border-gray-300 dark:border-gray-700 flex-1 text-[16px] outline-none bg-transparent disabled:opacity-50'
                     >
-                        <option value="">Select List</option>
+                        <option value="" className="dark:bg-slate-800">Select List</option>
                         {lists
                             .filter(list => {
                                 const folder = folders.find(f => f.id === selectedFolderId);
                                 return folder ? folder.listIds.includes(list.id) : false;
                             })
                             .map(list => (
-                                <option key={list.id} value={list.id}>{list.name}</option>
+                                <option key={list.id} value={list.id} className="dark:bg-slate-800">{list.name}</option>
                             ))
                         }
                     </select>
                 </div>
 
                 <div className='flex w-full items-center gap-4'>
-                    <label htmlFor="tags" className='text-[14px] text-[#0E1011] font-medium whitespace-nowrap'>Tags:</label>
+                    <label htmlFor="tags" className='text-[14px] text-[#0E1011] dark:text-white font-medium whitespace-nowrap'>Tags:</label>
                     <input
                         type="text"
                         id="tags"
                         value={tagsInput}
                         onChange={(e) => setTagsInput(e.target.value)}
                         placeholder="Tag1, Tag2..."
-                        className='border-b py-1 px-2 font-normal text-[#18181B] border-gray-300 flex-1 text-[16px] outline-none'
+                        className='border-b py-1 px-2 font-normal text-[#18181B] dark:text-white border-gray-300 dark:border-gray-700 flex-1 text-[16px] outline-none bg-transparent'
                     />
                 </div>
 
                 <div className="flex items-center">
                     <button
                         onClick={handleUpdateOrg}
-                        className="bg-[#0E1011] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                        className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-[#ffd633] transition-colors"
                     >
                         Update
                     </button>
@@ -349,7 +349,7 @@ const Detail = () => {
             </div>
 
             <div className='flex flex-col gap-3'>
-                <h1 className='text-[14px] text-[#0E1011] font-medium'>Groups:</h1>
+                <h1 className='text-[14px] text-[#0E1011] dark:text-white font-medium'>Groups:</h1>
                 <div className='flex gap-4 flex-wrap items-center'>
                     {groups.map((group) => {
                         const isSelected = selectedGroupIds.includes(group.id);
@@ -363,14 +363,14 @@ const Detail = () => {
                                             : [...prev, group.id]
                                     );
                                 }}
-                                className={`${isSelected ? "bg-[#0E1011] text-[#FFFFFF]" : "bg-[#EBEDF0] text-[#18181B]"} cursor-pointer rounded-[8px] text-[14px] px-[16px] py-[5px] font-normal transition-colors`}
+                                className={`${isSelected ? "bg-[#0E1011] dark:bg-[#FFCA06] text-[#FFFFFF] dark:text-[#2B3034]" : "bg-[#EBEDF0] dark:bg-gray-700 text-[#18181B] dark:text-white"} cursor-pointer rounded-[8px] text-[14px] px-[16px] py-[5px] font-normal transition-colors`}
                             >
                                 {group.name}
                             </span>
                         );
                     })}
                     {groups.length === 0 && (
-                        <span className="text-gray-400 text-sm">No groups available</span>
+                        <span className="text-gray-400 dark:text-gray-500 text-sm">No groups available</span>
                     )}
                 </div>
             </div>

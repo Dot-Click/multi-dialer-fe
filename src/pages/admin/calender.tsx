@@ -1,6 +1,3 @@
-
-
-
 // import { useState } from "react";
 // import { Calendar, ConfigProvider, Modal } from "antd";
 // import enGB from "antd/locale/en_GB";
@@ -134,7 +131,7 @@
 //       </Modal>
 
 //       {/* Add Event Form Modal */}
-//       <AddEventForm 
+//       <AddEventForm
 //         open={addEventModalOpen}
 //         onClose={() => setAddEventModalOpen(false)}
 //       />
@@ -326,8 +323,6 @@
 
 // // export default CustomCalendar;
 
-
-
 // import { useState } from "react";
 // import { Calendar, ConfigProvider, Modal } from "antd";
 // import enGB from "antd/locale/en_GB";
@@ -400,7 +395,6 @@
 //     </div>
 //   );
 // };
-
 
 //   const onDateClick = (value: Dayjs) => {
 //     setSelectedDate(value);
@@ -517,14 +511,11 @@
 //   }
 // `}</style>
 
-
-
 //     </div>
 //   );
 // };
 
 // export default CustomCalendar;
-
 
 import { useEffect, useState } from "react";
 import { Calendar, ConfigProvider, Modal } from "antd";
@@ -537,16 +528,15 @@ import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import { toast } from "react-hot-toast";
-import { useAppSelector } from "@/store/hooks";
 
 //  --------------------------------------------------
 // import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 
 const formatEventTime = (event: CalendarEvent) => {
   const start = dayjs(event.startDate);
-  if (event.eventType === 'ALL_DAY') return "All Day";
-  if (event.eventType === 'START_ONLY') return start.format("HH:mm");
-  if (event.eventType === 'FROM_TO' && event.endDate) {
+  if (event.eventType === "ALL_DAY") return "All Day";
+  if (event.eventType === "START_ONLY") return start.format("HH:mm");
+  if (event.eventType === "FROM_TO" && event.endDate) {
     const end = dayjs(event.endDate);
     return `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
   }
@@ -578,13 +568,20 @@ export default function CustomCalendar() {
   });
 
   /* selected event for detail */
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null,
+  );
 
   // const { users } = useAppSelector((state) => state.user);
-  const { session } = useAppSelector((state) => state.auth);
+  // const { session } = useAppSelector((state) => state.auth);
+
+  // const { users } = useAppSelector((state) => state.user);
+  // const { session } = useAppSelector((state) => state.auth);
 
   /* selected date for detail modal */
-  const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
+  const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(
+    null,
+  );
 
   const fetchEvents = async () => {
     const data = await getAllEvents();
@@ -596,11 +593,11 @@ export default function CustomCalendar() {
   }, []);
 
   const getEventDataForDate = (date: Dayjs) => {
-    const filteredEvents = events.filter(e => {
-        if (!session?.user?.id) return true;
-        return e.assignToId === session.user.id || e.assignById === session.user.id;
-    });
-    return filteredEvents.filter(event => dayjs(event.startDate).format("YYYY-MM-DD") === date.format("YYYY-MM-DD"));
+    return events.filter(
+      (event) =>
+        dayjs(event.startDate).format("YYYY-MM-DD") ===
+        date.format("YYYY-MM-DD"),
+    );
   };
 
   /* handlers */
@@ -613,6 +610,13 @@ export default function CustomCalendar() {
     setOptionsOpen(false);
     setAddOpen(true);
   };
+
+  // const handleAddClose = (success?: boolean) => {
+  //   setAddOpen(false);
+  //   if (success) {
+  //     fetchEvents();
+  //   }
+  // };
 
   const showAll = () => {
     setOptionsOpen(false);
@@ -637,10 +641,10 @@ export default function CustomCalendar() {
     return (
       <div className="flex flex-col gap-1 py-2 h-full text-left">
         {list.slice(0, max).map((it, i) => (
-          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
-            e.stopPropagation();
-            openDetail(it, value);
-          }}>
+          <div
+            key={i}
+            className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight"
+          >
             <div
               className="w-1 rounded-full self-stretch shrink-0"
               style={{ backgroundColor: it.color }}
@@ -668,7 +672,7 @@ export default function CustomCalendar() {
   };
 
   return (
-    <div className="mr-0 sm:mr-10 p-4 sm:p-0">
+    <div className="mr-0 sm:mr-10  p-4 sm:p-0">
       {/* ------- header ------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -770,7 +774,9 @@ export default function CustomCalendar() {
         title={null}
       >
         <div className="px-8 pt-6">
-          <p className="text-gray-500 text-sm">{selectedDate?.format("dddd")}</p>
+          <p className="text-gray-500 text-sm">
+            {selectedDate?.format("dddd")}
+          </p>
           <h2 className="text-2xl font-semibold text-gray-800 mt-0">
             {selectedDate?.format("MMMM DD")}
           </h2>
@@ -787,8 +793,12 @@ export default function CustomCalendar() {
                 style={{ backgroundColor: evt.color }}
               />
               <div className="flex flex-col leading-tight">
-                <p className="text-gray-800 font-medium text-[15px]">{evt.title}</p>
-                <p className="text-gray-500 text-[13px] mt-0.5">{formatEventTime(evt)}</p>
+                <p className="text-gray-800 font-medium text-[15px]">
+                  {evt.title}
+                </p>
+                <p className="text-gray-500 text-[13px] mt-0.5">
+                  {formatEventTime(evt)}
+                </p>
               </div>
             </div>
           ))}
@@ -842,16 +852,17 @@ export default function CustomCalendar() {
 
             {/* Title with green bar */}
             <div className="flex items-start gap-3 pr-20">
-              <div className="w-[2px] h-5 bg-emerald-500 shrink-0" style={{ marginTop: '2px' }} />
+              <div
+                className="w-[2px] h-5 bg-emerald-500 shrink-0"
+                style={{ marginTop: "2px" }}
+              />
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-gray-900 leading-tight">
                   {selectedEvent?.title}
                 </h3>
                 {/* Date and time on same line */}
                 <div className="flex items-center gap-2 mt-1 text-sm font-normal text-gray-600">
-                  <span>
-                    {selectedEventDate?.format("dddd, MMMM DD")}
-                  </span>
+                  <span>{selectedEventDate?.format("dddd, MMMM DD")}</span>
                   <span className="text-gray-400">|</span>
                   <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
                   {selectedEvent?.status === 'MET' && (
@@ -873,9 +884,7 @@ export default function CustomCalendar() {
           <div className="px-5 pb-5">
             {/* Assignee section */}
             <div className="mt-4">
-              <p className="text-xs font-normal text-gray-500 mb-1">
-                Assignee
-              </p>
+              <p className="text-xs font-normal text-gray-500 mb-1">Assignee</p>
               <p className="text-sm font-normal text-gray-900 mt-0.5">
                 {selectedEvent?.assignTo?.fullName || "Unassigned"}
               </p>
@@ -938,7 +947,9 @@ export default function CustomCalendar() {
         <div className="bg-white rounded-xl">
           {/* Header */}
           <div className="relative px-5 pt-5 pb-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Filter by Type</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Filter by Type
+            </h3>
             <button
               onClick={() => setFilterOpen(false)}
               className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition-colors w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
@@ -954,7 +965,9 @@ export default function CustomCalendar() {
               <input
                 type="checkbox"
                 checked={filters.task}
-                onChange={(e) => setFilters({ ...filters, task: e.target.checked })}
+                onChange={(e) =>
+                  setFilters({ ...filters, task: e.target.checked })
+                }
                 className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
               />
               <FiClipboard className="w-5 h-5 text-gray-700" />
@@ -966,11 +979,15 @@ export default function CustomCalendar() {
               <input
                 type="checkbox"
                 checked={filters.appointments}
-                onChange={(e) => setFilters({ ...filters, appointments: e.target.checked })}
+                onChange={(e) =>
+                  setFilters({ ...filters, appointments: e.target.checked })
+                }
                 className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
               />
               <FiCalendar className="w-5 h-5 text-gray-700" />
-              <span className="text-base font-medium text-gray-900">Appointments</span>
+              <span className="text-base font-medium text-gray-900">
+                Appointments
+              </span>
             </label>
 
             {/* Follow-up Calls */}
@@ -978,11 +995,15 @@ export default function CustomCalendar() {
               <input
                 type="checkbox"
                 checked={filters.followUpCalls}
-                onChange={(e) => setFilters({ ...filters, followUpCalls: e.target.checked })}
+                onChange={(e) =>
+                  setFilters({ ...filters, followUpCalls: e.target.checked })
+                }
                 className="filter-checkbox w-5 h-5 rounded border-gray-300 focus:ring-2 focus:ring-gray-500 cursor-pointer"
               />
               <FiPhone className="w-5 h-5 text-gray-700" />
-              <span className="text-base font-medium text-gray-900">Follow-up Calls</span>
+              <span className="text-base font-medium text-gray-900">
+                Follow-up Calls
+              </span>
             </label>
           </div>
 
@@ -990,7 +1011,11 @@ export default function CustomCalendar() {
           <div className="px-5 pb-5 flex gap-3">
             <button
               onClick={() => {
-                setFilters({ task: true, appointments: true, followUpCalls: true });
+                setFilters({
+                  task: true,
+                  appointments: true,
+                  followUpCalls: true,
+                });
               }}
               className="flex-1 py-2.5 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-base font-medium text-gray-900 transition-colors"
             >

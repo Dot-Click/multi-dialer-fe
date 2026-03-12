@@ -120,17 +120,17 @@ const LeadSheet = () => {
   };
 
   return (
-    <section className="w-full bg-white rounded-2xl">
+    <section className="w-full bg-white dark:bg-slate-800 rounded-2xl transition-colors">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <h2 className="text-[18px] font-medium text-[#0E1011]">Lead sheet:</h2>
+          <h2 className="text-[18px] font-medium text-[#0E1011] dark:text-white">Lead sheet:</h2>
         </div>
 
         <div className="flex flex-wrap gap-3">
           <div className="relative w-full md:w-[200px] lg:w-[245px]">
             {isLoading ? (
-              <div className="flex items-center gap-2 bg-[#EBEDF0] px-4 py-2 rounded-md">
+              <div className="flex items-center gap-2 bg-[#EBEDF0] dark:bg-gray-700 dark:text-white px-4 py-2 rounded-md">
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading...
               </div>
             ) : (
@@ -140,40 +140,40 @@ const LeadSheet = () => {
                   onChange={(e) => {
                     setSelectedSheetId(e.target.value);
                   }}
-                  className="appearance-none bg-[#EBEDF0] w-full text-[#18181B] font-normal rounded-md md:px-4 md:py-2 px-2 py-1 text-[14px] md:text-[16px] outline-none pr-8"
+                  className="appearance-none bg-[#EBEDF0] dark:bg-gray-700 w-full text-[#18181B] dark:text-white font-normal rounded-md md:px-4 md:py-2 px-2 py-1 text-[14px] md:text-[16px] outline-none pr-8"
                 >
                   {leadSheets && leadSheets.length > 0 ? (
                     leadSheets.map((sheet: any) => (
-                      <option key={sheet.id} value={sheet.id}>
+                      <option key={sheet.id} value={sheet.id} className="dark:bg-slate-800">
                         {sheet.title}
                       </option>
                     ))
                   ) : (
-                    <option value="">No Lead Sheets Available</option>
+                    <option value="" className="dark:bg-slate-800">No Lead Sheets Available</option>
                   )}
                 </select>
-                <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" size={18} />
+                <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 pointer-events-none" size={18} />
               </>
             )}
           </div>
           <button
             onClick={handlePrint}
             disabled={!selectedSheet}
-            className="bg-[#EBEDF0] rounded-[8px] text-[#0E1011] font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 disabled:opacity-50"
+            className="bg-[#EBEDF0] dark:bg-gray-700 rounded-[8px] text-[#0E1011] dark:text-white font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
           >
             Print
           </button>
           <button
             onClick={handleDownload}
             disabled={!selectedSheet}
-            className="bg-[#EBEDF0] rounded-[8px] text-[#0E1011] font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 disabled:opacity-50"
+            className="bg-[#EBEDF0] dark:bg-gray-700 rounded-[8px] text-[#0E1011] dark:text-white font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
           >
             Download
           </button>
           <button
             onClick={handleSendEmail}
             disabled={isSendingEmail || !selectedSheetId}
-            className="bg-[#EBEDF0] rounded-[8px] text-[#0E1011] font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50"
+            className="bg-[#EBEDF0] dark:bg-gray-700 rounded-[8px] text-[#0E1011] dark:text-white font-medium md:px-[12px] md:py-[8px] px-2 py-1 text-[14px] md:text-[16px] hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {isSendingEmail && <Loader2 className="w-4 h-4 animate-spin" />}
             Send As Email
@@ -184,8 +184,8 @@ const LeadSheet = () => {
       {/* Questions */}
       <div className="flex flex-col gap-6">
         {selectedSheet?.questions?.map((q: any) => (
-          <div key={q.id} className="flex px-4 py-4 rounded-md bg-gray-50 flex-col gap-2 border border-gray-100">
-            <label className="text-[#2B3034] font-medium text-sm md:text-[14px]">
+          <div key={q.id} className="flex px-4 py-4 rounded-md bg-gray-50 dark:bg-gray-700 flex-col gap-2 border border-gray-100 dark:border-gray-600">
+            <label className="text-[#2B3034] dark:text-white font-medium text-sm md:text-[14px]">
               {q.text} {q.required && <span className="text-red-500">*</span>}
             </label>
 
@@ -194,21 +194,21 @@ const LeadSheet = () => {
                 value={answers[q.id] || ""}
                 onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                 placeholder="Type your answer here..."
-                className="w-full mt-1 p-2 border border-gray-200 rounded-md text-[14px] text-[#495057] placeholder-gray-400 outline-none resize-y min-h-[60px] focus:border-yellow-400"
+                className="w-full mt-1 p-2 border border-gray-200 dark:border-gray-600 rounded-md text-[14px] text-[#495057] dark:text-white placeholder-gray-400 outline-none bg-white dark:bg-slate-800 resize-y min-h-[60px] focus:border-yellow-400"
               />
             )}
 
             {q.type === "RADIO" && (
               <div className="flex flex-col gap-2 mt-2">
                 {q.options?.map((opt: string, idx: number) => (
-                  <label key={idx} className="flex text-[14px] font-normal items-center gap-2 text-[#2B3034] cursor-pointer">
+                  <label key={idx} className="flex text-[14px] font-normal items-center gap-2 text-[#2B3034] dark:text-gray-300 cursor-pointer">
                     <input
                       type="radio"
                       name={`question-${q.id}`}
                       value={opt}
                       checked={answers[q.id] === opt}
                       onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      className="accent-black w-4 h-4 cursor-pointer"
+                      className="accent-[#FFCA06] w-4 h-4 cursor-pointer"
                     />
                     {opt}
                   </label>
@@ -219,13 +219,13 @@ const LeadSheet = () => {
             {q.type === "CHECKBOX" && (
               <div className="flex flex-col gap-2 mt-2">
                 {q.options?.map((opt: string, idx: number) => (
-                  <label key={idx} className="flex text-[14px] font-normal items-center gap-2 text-[#2B3034] cursor-pointer">
+                  <label key={idx} className="flex text-[14px] font-normal items-center gap-2 text-[#2B3034] dark:text-gray-300 cursor-pointer">
                     <input
                       type="checkbox"
                       value={opt}
                       checked={(answers[q.id] || []).includes(opt)}
                       onChange={(e) => handleCheckboxChange(q.id, opt, e.target.checked)}
-                      className="accent-black w-4 h-4 rounded cursor-pointer"
+                      className="accent-[#FFCA06] w-4 h-4 rounded cursor-pointer"
                     />
                     {opt}
                   </label>
@@ -237,11 +237,11 @@ const LeadSheet = () => {
               <select
                 value={answers[q.id] || ""}
                 onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                className="w-full mt-1 p-2 border border-gray-200 rounded-md text-[14px] text-[#495057] outline-none focus:border-yellow-400 bg-white"
+                className="w-full mt-1 p-2 border border-gray-200 dark:border-gray-600 rounded-md text-[14px] text-[#495057] dark:text-white outline-none focus:border-yellow-400 bg-white dark:bg-slate-800"
               >
-                <option value="">Select an option...</option>
+                <option value="" className="dark:bg-slate-800">Select an option...</option>
                 {q.options?.map((opt: string, idx: number) => (
-                  <option key={idx} value={opt}>{opt}</option>
+                  <option key={idx} value={opt} className="dark:bg-slate-800">{opt}</option>
                 ))}
               </select>
             )}
@@ -251,7 +251,7 @@ const LeadSheet = () => {
                 type="datetime-local"
                 value={answers[q.id] || ""}
                 onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                className="w-full mt-1 p-2 border border-gray-200 rounded-md text-[14px] text-[#495057] outline-none focus:border-yellow-400"
+                className="w-full mt-1 p-2 border border-gray-200 dark:border-gray-600 rounded-md text-[14px] text-[#495057] dark:text-white outline-none bg-white dark:bg-slate-800 focus:border-yellow-400"
               />
             )}
           </div>
@@ -268,7 +268,7 @@ const LeadSheet = () => {
             <button
               onClick={handleSave}
               disabled={isUpdating}
-              className="bg-[#0E1011] text-white px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-[#ffd633] transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
               Save Lead Sheet
