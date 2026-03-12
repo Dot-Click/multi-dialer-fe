@@ -145,27 +145,16 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const chartData = [
-  { time: "9:00",  Dialed: 280, Talked: 190 },
-  { time: "", Dialed: 450, Talked: 380 },
-  { time: "12:00", Dialed: 490, Talked: 395 },
-  { time: "", Dialed: 490, Talked: 350 },
-  { time: "", Dialed: 545, Talked: 425 },
-  { time: "15:00", Dialed: 650, Talked: 535 },
-  { time: "", Dialed: 560, Talked: 390 },
-  { time: "", Dialed: 670, Talked: 460 },
-  { time: "18:00", Dialed: 520, Talked: 415 },
-  { time: "", Dialed: 435, Talked: 275 },
-  { time: "21:00", Dialed: 190, Talked: 110 },
-];
+interface AgentDialedTalkesProps {
+  data?: { time: string; Dialed: number; Talked: number }[];
+}
 
-const AgentDialedTalkes = () => {
+const AgentDialedTalkes = ({ data }: AgentDialedTalkesProps) => {
   return (
     <div style={{ padding: "1px" }}>
-
       <ResponsiveContainer width="100%" height={270}>
         <BarChart
-          data={chartData}
+          data={data}
           margin={{
             top: 10,
             right: 10,
@@ -184,15 +173,14 @@ const AgentDialedTalkes = () => {
             tickLine={false}
           />
 
-<YAxis
-  tick={{ fontSize: 12, fill: "#666" }}
-  axisLine={false}
-  tickLine={false}
-  tickMargin={22}
-  ticks={[0, 100, 200, 300, 400, 500, 600, 700]}
-  domain={[0, 700]}
-/>
-
+          <YAxis
+            tick={{ fontSize: 12, fill: "#666" }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={22}
+            ticks={[0, 10, 20, 30, 40, 50, 60, 70]}
+            domain={[0, 70]}
+          />
 
           <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
 

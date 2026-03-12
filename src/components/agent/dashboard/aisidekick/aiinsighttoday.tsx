@@ -30,7 +30,7 @@ const AiInsightToday = () => {
                 {data.map((dt)=>(
                     <div key={dt.id} className="flex text-[#000000] dark:text-white flex-col">
                         <span className="text-[13px] md:text-[24px] lg:text-[40px] font-semibold">{dt.number}</span>
-                        <span className="text-[8px] dark:text-gray-400 text-[#495057] md:text-[10px] lg:text-[14px] font-500">{dt.name}</span>
+                        <span className="text-[8px] dark:text-gray-400 text-[#495057] md:text-[10px] lg:text-[14px] font-medium">{dt.name}</span>
 
                     </div>
                 ))}
