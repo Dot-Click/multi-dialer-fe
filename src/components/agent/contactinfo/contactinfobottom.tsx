@@ -44,14 +44,14 @@ const ContactInfoBottom = () => {
       </style>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 font-inter w-full flex flex-col overflow-hidden h-[450px]">
-        
+
         {/* Fixed Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-50 dark:border-slate-700 flex-shrink-0">
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <FileText size={18} strokeWidth={1.5} />
             <span className="text-sm font-medium">Live Call Transcript</span>
           </div>
-          
+
           {isCalling && (
             <div className="flex items-center gap-2 bg-[#FEE2E2] text-[#EF4444] px-3 py-1 rounded-full border border-red-100">
               <Circle size={8} fill="currentColor" className="animate-pulse" />
@@ -61,7 +61,7 @@ const ContactInfoBottom = () => {
         </div>
 
         {/* Scrollable Content Area */}
-        <div 
+        <div
           ref={scrollRef}
           className="transcript-scroll flex-grow overflow-y-auto p-6 pr-4 space-y-6"
         >
@@ -72,7 +72,7 @@ const ContactInfoBottom = () => {
                 <div className="text-gray-400 dark:text-gray-500 text-[12px] font-medium w-20 shrink-0 mt-1">
                   {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </div>
-                
+
                 {/* Message */}
                 <div className="flex-1">
                   <p className={`${item.speaker === 'Agent' ? 'text-blue-600 dark:text-blue-400' : 'text-green-500 dark:text-green-400'} font-bold text-sm mb-1`}>

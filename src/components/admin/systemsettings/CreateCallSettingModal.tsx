@@ -6,6 +6,9 @@ import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
 import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
+import { useScript, type ScriptData } from "@/hooks/useScript";
+
+
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -67,9 +70,21 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
     const [callerIds, setCallerIds] = useState<CallerId[]>([]);
     const [editId, setEditId] = useState<string | null>(null);
 
-    const { data: session } = authClient.useSession() 
+    const { getScripts } = useScript();
+    const [scripts, setScripts] = useState<ScriptData[]>([]);
+    const [selectedScript, setSelectedScript] = useState("");
+
+    const { data: session } = authClient.useSession()
 
     const role = session?.user.role
+
+
+    useEffect(() => {
+        if (isOpen) {
+            getRecordings().then(setRecordings);
+            getScripts().then(setScripts);
+        }
+    }, [isOpen]);
 
     // Initial fetch of recordings
     useEffect(() => {
@@ -99,6 +114,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
             setOnHoldRecording2(setting.onHoldRecording2Id || "");
             setIvrRecording(setting.ivrRecordingId || "");
             setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
+            setSelectedScript(setting.callScriptId || "");
         }
     }, [isOpen, existingSettings]);
 
@@ -142,6 +158,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 onHoldRecording2Id: onHoldRecording2 || undefined,
                 ivrRecordingId: ivrRecording || undefined,
                 answeringMachineRecordingId: answeringMachineRecording || undefined,
+                // callScriptId: selectedScript || undefined,
             };
 
             if (editId) {
@@ -152,17 +169,19 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 toast.success("Call Setting created successfully!");
             }
 
-            role === "ADMIN" ? navigate("/admin/contact-info",  {
-                state: { 
+            role === "ADMIN" ? navigate("/admin/contact-info", {
+                state: {
                     contacts: selectedContacts,
                     callerIds: selectedCallerIds,
-                    numberOfLines: parseInt(noOfLines)
+                    numberOfLines: parseInt(noOfLines),
+                    selectedScript: selectedScript || undefined
                 }
             }) : navigate("/contact-info", {
-                state: { 
+                state: {
                     contacts: selectedContacts,
                     callerIds: selectedCallerIds,
-                    numberOfLines: parseInt(noOfLines)
+                    numberOfLines: parseInt(noOfLines),
+                    selectedScript: selectedScript || undefined
                 }
             });
 
@@ -293,8 +312,29 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                             </SelectInput>
                         </FieldWrapper>
 
+                        {/* Divider */}
+                        <div className="flex items-center gap-3 pt-2">
+                            <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                Script
+                            </span>
+                            <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+                        </div>
+
+                        {/* Call Script */}
+                        <FieldWrapper label="Call Script">
+                            <SelectInput value={selectedScript} onChange={setSelectedScript}>
+                                <option value="" className="dark:bg-slate-900">None</option>
+                                {scripts.map((s) => (
+                                    <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                                        {s.scriptName}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </FieldWrapper>
+
                         {/* On-Hold 2 */}
-                        <FieldWrapper label="On-Hold Recording 2">
+                        {/* <FieldWrapper label="On-Hold Recording 2">
                             <SelectInput value={onHoldRecording2} onChange={setOnHoldRecording2}>
                                 <option value="" className="dark:bg-slate-900">None</option>
                                 {recordings.map((r) => (
@@ -303,10 +343,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                                     </option>
                                 ))}
                             </SelectInput>
-                        </FieldWrapper>
+                        </FieldWrapper> */}
 
                         {/* IVR */}
-                        <FieldWrapper label="IVR Recording">
+                        {/* <FieldWrapper label="IVR Recording">
                             <SelectInput value={ivrRecording} onChange={setIvrRecording}>
                                 <option value="" className="dark:bg-slate-900">None</option>
                                 {recordings.map((r) => (
@@ -315,10 +355,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                                     </option>
                                 ))}
                             </SelectInput>
-                        </FieldWrapper>
+                        </FieldWrapper> */}
 
                         {/* Answering Machine */}
-                        <FieldWrapper label="Answering Machine Recording">
+                        {/* <FieldWrapper label="Answering Machine Recording">
                             <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
                                 <option value="" className="dark:bg-slate-900">None</option>
                                 {recordings.map((r) => (
@@ -327,7 +367,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                                     </option>
                                 ))}
                             </SelectInput>
-                        </FieldWrapper>
+                        </FieldWrapper> */}
                     </div>
 
                     {/* Footer */}
@@ -341,7 +381,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                         </button>
                         <button onClick={
                             () => navigate("/contact-info", {
-                                state: { 
+                                state: {
                                     contacts: selectedContacts,
                                     callerIds: selectedCallerIds,
                                     numberOfLines: parseInt(noOfLines)

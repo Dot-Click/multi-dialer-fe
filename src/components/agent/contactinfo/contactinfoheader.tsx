@@ -19,12 +19,12 @@ interface ContactInfoHeaderProps {
   dailyLimit?: number;
 }
 
-const ContactInfoHeader = ({ 
-  contact, 
-  onNext, 
-  onPrev, 
-  currentIndex = 0, 
-  totalContacts = 0, 
+const ContactInfoHeader = ({
+  contact,
+  onNext,
+  onPrev,
+  currentIndex = 0,
+  totalContacts = 0,
   callerId,
   onPickNextCallerId,
   onCallStarted,
@@ -41,15 +41,15 @@ const ContactInfoHeader = ({
       endCall();
     } else {
       // Use rotation logic if provided
-      const fromNumber = onPickNextCallerId ? onPickNextCallerId() : (callerId || "+15203530496"); 
-      
+      const fromNumber = onPickNextCallerId ? onPickNextCallerId() : (callerId || "+15203530496");
+
       if (!fromNumber) return; // Daily limit reached or all in cooldown
 
       console.log("Starting call from:", fromNumber);
-      
+
       // Use the primary phone from the contact's phones array
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      
+
       try {
         await startCall(phone, fromNumber, contact?.id);
         if (onCallStarted) onCallStarted();
@@ -60,7 +60,7 @@ const ContactInfoHeader = ({
   };
 
   return (
-    <div className="w-full work-sans bg-white dark:bg-slate-900 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
+    <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3">
         {/* Left - Title + Status */}

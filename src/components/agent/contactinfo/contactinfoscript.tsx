@@ -1,14 +1,15 @@
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useState, useEffect, useRef } from 'react';
-import { 
-  Star, 
-  Play, 
+import {
+  Star,
+  Play,
   Pause,
-  Clock, 
-  Calendar, 
-  Mail, 
-  MessageSquare, 
-  Send} from 'lucide-react';
+  Clock,
+  Calendar,
+  Mail,
+  MessageSquare,
+  Send
+} from 'lucide-react';
 import { getHistory } from "@/store/slices/callingSlice";
 import dayjs from "dayjs";
 
@@ -123,7 +124,7 @@ const ContactInfoScript = () => {
                 <p className="text-[12px] text-gray-400 dark:text-gray-500 font-medium">{call.callSid}</p>
               </div>
               {call.recordingUrl && (
-                <button 
+                <button
                   onClick={() => togglePlay(call.recordingUrl, call.callSid || String(idx))}
                   className="flex items-center gap-1.5 text-[11px] font-bold text-[#374151] dark:text-white hover:text-blue-600 transition-colors"
                 >
@@ -137,10 +138,10 @@ const ContactInfoScript = () => {
             </div>
             <div className="flex items-center gap-4 text-gray-400 dark:text-gray-500 text-[11px] font-medium">
               <div className="flex items-center gap-1">
-                <Clock size={14}/> {Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}
+                <Clock size={14} /> {Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}
               </div>
               <div className="flex items-center gap-1">
-                <Calendar size={14}/> {dayjs(call.startTime).format('YYYY-MM-DD HH:mm')}
+                <Calendar size={14} /> {dayjs(call.startTime).format('YYYY-MM-DD HH:mm')}
               </div>
             </div>
             <span className={`inline-block px-3 py-1 rounded-lg text-[11px] font-bold ${getStatusStyles(call.status)}`}>
@@ -156,7 +157,7 @@ const ContactInfoScript = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="space-y-4">
         <h3 className="text-[15px] font-bold text-[#1f2937] dark:text-white">Touch Point Plans</h3>
-        
+
         {/* Email card */}
         <div className="border border-gray-100 dark:border-slate-700 rounded-xl p-4 flex gap-4">
           <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-gray-100 dark:border-slate-600">
@@ -230,11 +231,10 @@ const ContactInfoScript = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all duration-200 ${
-                activeTab === tab
+              className={`flex-1 py-2.5 text-[13px] font-bold rounded-lg transition-all duration-200 ${activeTab === tab
                   ? 'bg-[#FECD56] text-[#1a1a1a] shadow-sm'
                   : 'text-[#6b7280] dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -249,7 +249,8 @@ const ContactInfoScript = () => {
         {activeTab === 'Touch Points' && renderTouchPoints()}
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb {

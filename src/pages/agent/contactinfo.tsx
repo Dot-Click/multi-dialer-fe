@@ -7,8 +7,12 @@ import ContactInfoBottom from '@/components/agent/contactinfo/contactinfobottom'
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ContactInfoDisposition from '@/components/agent/contactinfo/contactinfodisposition';
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader';
-import ContactInfoScript from '@/components/agent/contactinfo/contactinfoscript';
+// import ContactInfoScript from '@/components/agent/contactinfo/contactinfoscript';
 import toast from 'react-hot-toast';
+import ContactInfoScript from '@/components/admin/contactinfo/contactinfoscript';
+import LiveContactScript from '@/components/admin/contactinfo/livecallscript';
+import ContactDisposition from '@/components/agent/contactinfo/contactdisposition';
+import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
 
 const ContactInfo = () => {
     const location = useLocation();
@@ -26,10 +30,21 @@ const ContactInfo = () => {
     const TOTAL_DAILY_LIMIT = 25;
     const COOLDOWN_MINUTES = 20;
 
+    // const [scriptId, setScriptId] = useState<string | null>(null);
+
+    const [scriptId, setScriptId] = useState<string | null>(
+        location.state?.selectedScript || null  // ← initialize directly from state
+    );
+
     // Initialize from location state
     useEffect(() => {
         const selectedContacts = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
+
+        // ✅ script handled here alongside the other state init
+        if (location.state?.selectedScript) {
+            setScriptId(location.state.selectedScript);
+        }
 
         if (selectedContacts && selectedContacts.length > 0) {
             dispatch(setQueue(selectedContacts));
@@ -40,7 +55,6 @@ const ContactInfo = () => {
             setCallerIds(incomingCallerIds);
             setCurrentCallerId(incomingCallerIds[0]);
         } else if (location.state?.callerId) {
-            // Handle single callerId fallback
             setCallerIds([location.state.callerId]);
             setCurrentCallerId(location.state.callerId);
         }
@@ -135,16 +149,24 @@ const ContactInfo = () => {
             <div className='w-full p-4  lg:flex lg:gap-4 space-y-4 lg:space-y-0'>
                 <div className='w-full lg:w-[65%] space-y-4'>
                     <CallSection />
-                    <ContactInfoDisposition />
+                    {/* <ContactInfoDisposition /> */}
+                    <ContactDisposition />
+
+                    <BottomContactDetail />
                 </div>
                 <div className='w-full lg:w-[35%]'>
-                    <ContactInfoScript />
+                    <div>
+                        <ContactInfoScript scriptId={scriptId} />
+                    </div>
+                    <div className='mt-4'>
+                        <LiveContactScript contactId={currentContact?.id} scriptId={scriptId} />
+                    </div>
                 </div>
             </div>
 
             <div className='w-full p-4  lg:flex lg:gap-4 space-y-4 lg:space-y-0'>
                 <div className='w-full lg:w-[65%]'>
-                    <ContactInfoBottom />
+                    {/* <ContactInfoBottom /> */}
                 </div>
                 <div className='w-full h-fit flex flex-col gap-2 lg:w-[35%]'>
                     <ContactInfoCallSentiment />
