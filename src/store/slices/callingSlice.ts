@@ -86,5 +86,22 @@ export const callingSlice = createSlice({
     },
 });
 
+export const fetchCallerId = createAsyncThunk(
+    'calling/fetchCallerId',
+    async (callerId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/calling/getCallerId/${callerId}`);
+            // Based on user prompt, response structure is { success: boolean, message: string, data: CallHistoryItem[] }
+            return response.data.data;
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to fetch history');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
 export const { clearHistory } = callingSlice.actions;
 export default callingSlice.reducer;
