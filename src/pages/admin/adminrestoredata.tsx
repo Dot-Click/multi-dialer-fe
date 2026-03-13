@@ -136,36 +136,36 @@ const AdminRestoreData = () => {
       },
       {
         accessorKey: "name",
-        header: () => <span className="font-semibold text-gray-800">Name</span>,
+        header: () => <span className="font-semibold text-gray-800 dark:text-white">Name</span>,
       },
       {
         accessorKey: "email",
         header: () => (
-          <span className="font-semibold text-gray-800">Email</span>
+          <span className="font-semibold text-gray-800 dark:text-white">Email</span>
         ),
       },
       {
         accessorKey: "phone",
         header: () => (
-          <span className="font-semibold text-gray-800">Phone Number</span>
+          <span className="font-semibold text-gray-800 dark:text-white">Phone Number</span>
         ),
       },
       {
         accessorKey: "listName",
         header: () => (
-          <span className="font-semibold text-gray-800">Contact List</span>
+          <span className="font-semibold text-gray-800 dark:text-white">Contact List</span>
         ),
       },
       {
         accessorKey: "deletedAt",
         header: () => (
-          <span className="font-semibold text-gray-800">Deleted At</span>
+          <span className="font-semibold text-gray-800 dark:text-white">Deleted At</span>
         ),
       },
       {
         accessorKey: "deletedBy",
         header: () => (
-          <span className="font-semibold text-gray-800">Deleted By</span>
+          <span className="font-semibold text-gray-800 dark:text-white">Deleted By</span>
         ),
       },
     ],
@@ -173,12 +173,12 @@ const AdminRestoreData = () => {
   );
 
   return (
-    <section className="min-h-screen pr-3 py-3 font-sans">
+    <section className="min-h-screen pr-3 py-3 font-sans dark:bg-slate-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* === ہیڈر === */}
         <header className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-medium text-gray-950">
+            <h1 className="text-xl sm:text-2xl font-medium text-gray-950 dark:text-white">
               Restore deleted data
             </h1>
           </div>
@@ -186,11 +186,11 @@ const AdminRestoreData = () => {
           <button
             onClick={handleRestore}
             disabled={selectedCount === 0 || isRestoring}
-            className="px-5 py-2 w-28 rounded-lg bg-yellow-400 text-black font-medium text-sm 
-                                   hover:bg-yellow-500 disabled:bg-yellow-300 disabled:cursor-not-allowed flex items-center justify-center"
+            className="px-5 py-2 w-28 rounded-lg bg-yellow-400 text-black font-medium text-sm
+                                   hover:bg-yellow-500 disabled:bg-yellow-300 dark:disabled:bg-slate-700 dark:disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center transition-all"
           >
             {isRestoring ? (
-              <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+              <span className="w-5 h-5 border-2 border-black dark:border-white border-t-transparent rounded-full animate-spin"></span>
             ) : (
               `Restore (${selectedCount})`
             )}
@@ -198,8 +198,8 @@ const AdminRestoreData = () => {
         </header>
 
         {/* === تفصیل === */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-          <p className="text-sm text-gray-600 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm p-4 transition-all">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
             Any data deleted in the last 30 days can be restored by clicking
             Restore next to the date it was deleted.
           </p>
@@ -230,12 +230,19 @@ const AdminRestoreData = () => {
                 table thead {
                     background-color: #F9FAFB !important;
                 }
+                .dark table thead {
+                    background-color: #1e293b !important;
+                }
                 table thead tr th {
                     padding: 12px 16px !important;
                     font-size: 12px !important;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     border-bottom: 1px solid #E5E7EB !important;
+                }
+                .dark table thead tr th {
+                    border-bottom: 1px solid #334155 !important;
+                    color: #94a3b8 !important;
                 }
                 table thead tr th:first-child {
                     width: 60px;
@@ -246,8 +253,14 @@ const AdminRestoreData = () => {
                     font-size: 14px !important;
                     color: #4B5563;
                 }
+                .dark table tbody tr td {
+                    color: #cbd5e1 !important;
+                }
                 table tbody tr {
                     border-bottom: 1px solid #F3F4F6 !important;
+                }
+                .dark table tbody tr {
+                    border-bottom: 1px solid #334155 !important;
                 }
                 table tbody tr:last-child {
                     border-bottom: none !important;

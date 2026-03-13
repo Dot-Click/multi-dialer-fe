@@ -13,8 +13,8 @@ const FieldRow: FC<{ field: any; onDelete: (id: string) => void }> = ({ field, o
     switch (field.type) {
       case "Dropdown":
         return (
-          <div className="relative w-full border-b border-gray-200">
-            <select className="w-full bg-transparent appearance-none py-2 focus:outline-none">
+          <div className="relative w-full border-b border-gray-200 dark:border-slate-700">
+            <select className="w-full bg-transparent appearance-none py-2 focus:outline-none dark:text-white">
               <option value="">Select...</option>
               {field.options?.map((option: string) => (
                 <option key={option} value={option.toLowerCase()}>
@@ -22,35 +22,35 @@ const FieldRow: FC<{ field: any; onDelete: (id: string) => void }> = ({ field, o
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
               <IoIosArrowDown />
             </div>
           </div>
         );
       case "Counter":
         return (
-          <div className="flex items-center gap-4 w-full border-b border-gray-200 py-1">
+          <div className="flex items-center gap-4 w-full border-b border-gray-200 dark:border-slate-700 py-1">
             <div className="flex items-center gap-2">
-              <button className="bg-gray-100 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 hover:bg-gray-200">-</button>
-              <span className="font-semibold w-4 text-center">{field.countFrom || 0}</span>
-              <button className="bg-gray-100 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 hover:bg-gray-200">+</button>
+              <button className="bg-gray-100 dark:bg-slate-700 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">-</button>
+              <span className="font-semibold w-4 text-center dark:text-white">{field.countFrom || 0}</span>
+              <button className="bg-gray-100 dark:bg-slate-700 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">+</button>
             </div>
-            <span className="text-xs text-gray-400">Range: {field.countFrom} - {field.countTo}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">Range: {field.countFrom} - {field.countTo}</span>
           </div>
         )
       case "Date":
         return (
-          <div className="grow border-b border-gray-200">
-            <input type="date" className="w-full bg-transparent py-2 focus:outline-none" />
+          <div className="grow border-b border-gray-200 dark:border-slate-700">
+            <input type="date" className="w-full bg-transparent py-2 focus:outline-none dark:text-white" />
           </div>
         )
       default:
         return (
-          <div className="grow border-b border-gray-200">
+          <div className="grow border-b border-gray-200 dark:border-slate-700">
             <input
               type="text"
               placeholder="Enter text"
-              className="w-full bg-transparent py-2 focus:outline-none"
+              className="w-full bg-transparent py-2 focus:outline-none dark:text-white dark:placeholder-gray-500"
             />
           </div>
         );
@@ -59,7 +59,7 @@ const FieldRow: FC<{ field: any; onDelete: (id: string) => void }> = ({ field, o
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between group">
-      <label className="text-base text-gray-950 font-medium mb-1 md:mb-0 md:w-2/5 md:pr-4">
+      <label className="text-base text-gray-950 dark:text-gray-300 font-medium mb-1 md:mb-0 md:w-2/5 md:pr-4">
         {field.fieldName}
       </label>
 
@@ -105,15 +105,15 @@ const MiscField: FC = () => {
   const rightColumn = fields.slice(half);
 
   return (
-    <div className="bg-white px-4 py-5 rounded-lg w-full max-w-7xl mx-auto relative">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-8">Misc Fields</h2>
+    <div className="bg-white dark:bg-slate-800 px-4 py-5 rounded-lg w-full max-w-7xl mx-auto relative border dark:border-slate-700">
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-8">Misc Fields</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16 gap-y-6">
         <div className="flex flex-col gap-y-3">
           {leftColumn.map((field: any) => (
             <FieldRow key={field.id} field={field} onDelete={handleDelete} />
           ))}
-          {leftColumn.length === 0 && <p className="text-gray-400 text-sm">No fields defined.</p>}
+          {leftColumn.length === 0 && <p className="text-gray-400 dark:text-gray-500 text-sm">No fields defined.</p>}
         </div>
         <div className="flex flex-col gap-y-3">
           {rightColumn.map((field: any) => (
@@ -126,7 +126,7 @@ const MiscField: FC = () => {
       <div className="mt-8">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-950 rounded-md hover:bg-gray-200"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-950 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
         >
           <FaPlus size={14} />
           <span className="text-base font-medium">Add Field</span>

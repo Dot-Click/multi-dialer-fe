@@ -69,20 +69,20 @@ const Misc = () => {
 
     return (
       <div key={field.id} className="flex items-center w-full gap-4">
-        <label className="text-[14px] font-medium text-[#0E1011] w-40">
+        <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-40">
           {field.fieldName}
         </label>
 
-        <div className="flex-1 border-b border-gray-300">
+        <div className="flex-1 border-b border-gray-300 dark:border-gray-700">
           {field.type === "dropdown" ? (
             <select
               value={value}
               onChange={(e) => handleChange(field.id, e.target.value)}
-              className="w-full text-sm text-gray-900 outline-none py-1 focus:border-b focus:border-gray-600 bg-transparent"
+              className="w-full text-sm text-gray-900 dark:text-white outline-none py-1 focus:border-b focus:border-gray-600 bg-transparent"
             >
-              <option value="">Select...</option>
+              <option value="" className="dark:bg-slate-800">Select...</option>
               {field.options?.map((opt: string) => (
-                <option key={opt} value={opt}>
+                <option key={opt} value={opt} className="dark:bg-slate-800">
                   {opt}
                 </option>
               ))}
@@ -92,7 +92,7 @@ const Misc = () => {
               type={field.type === "counter" ? "number" : field.type === "date" ? "date" : "text"}
               value={value}
               onChange={(e) => handleChange(field.id, e.target.value)}
-              className="w-full text-sm text-gray-900 outline-none py-1 focus:border-b focus:border-gray-600"
+              className="w-full text-sm text-gray-900 dark:text-white outline-none py-1 focus:border-b focus:border-gray-600 bg-transparent"
             />
           )}
         </div>
@@ -108,7 +108,7 @@ const Misc = () => {
           {leftFields.length > 0 ? (
             leftFields.map(renderField)
           ) : (
-            <p className="text-gray-400 text-sm">No custom fields defined.</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">No custom fields defined.</p>
           )}
         </div>
 
@@ -122,7 +122,7 @@ const Misc = () => {
         <button
           onClick={handleSave}
           disabled={isUpdating}
-          className="bg-[#0E1011] text-white px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+          className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 dark:hover:bg-[#ffd633] transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {isUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
           Save Misc Details

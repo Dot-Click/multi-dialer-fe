@@ -31,19 +31,19 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, loading }: Delete
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1200] p-3">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
         <div className="mx-auto flex items-center justify-center w-fit">
           <IoWarningOutline className="text-3xl text-red-600" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mt-5">Delete Prompt?</h3>
-        <p className="text-sm text-gray-500 mt-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-5">Delete Prompt?</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           Once deleted, this action cannot be undone. Are you sure?
         </p>
         <div className="mt-8 flex justify-center space-x-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-2.5 w-full bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+            className="px-6 py-2.5 w-full bg-gray-200 dark:bg-slate-700 dark:text-white text-gray-700 font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -89,47 +89,47 @@ const RecordingModal = ({ isOpen, onClose, onSave, recordingData, loading }: Rec
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="flex justify-between items-center p-5 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-slate-700">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             {recordingData ? "Edit Callback Prompt" : "Add Callback Prompt"}
           </h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <HiX className="h-6 w-6 text-gray-500" />
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+            <HiX className="h-6 w-6 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="bg-gray-100 p-3 flex flex-col gap-1 rounded-lg focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="text-xs font-medium text-gray-600">Template Name</label>
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-gray-100 dark:bg-slate-900 p-3 flex flex-col gap-1 rounded-lg focus-within:ring-2 focus-within:ring-yellow-400 border border-transparent dark:border-slate-700">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Template Name</label>
             <input
               type="text"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm"
+              className="w-full bg-transparent outline-none text-sm dark:text-white"
               placeholder="e.g. Standard Voice Mail"
             />
           </div>
 
-          <div className="bg-gray-100 p-3 flex flex-col gap-1 rounded-lg focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="text-xs font-medium text-gray-600">Type of Recording</label>
+          <div className="bg-gray-100 dark:bg-slate-900 p-3 flex flex-col gap-1 rounded-lg focus-within:ring-2 focus-within:ring-yellow-400 border border-transparent dark:border-slate-700">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Type of Recording</label>
             <select
               value={recordingType}
               onChange={(e) => setRecordingType(e.target.value as RecordingType)}
-              className="w-full bg-transparent outline-none text-sm cursor-pointer"
+              className="w-full bg-transparent outline-none text-sm cursor-pointer dark:text-white"
             >
-              <option value="VOICE_MAIL">Voice Mail</option>
-              <option value="ON_HOLD">On Hold</option>
-              <option value="EMAIL_VIDEO">Email Video</option>
+              <option value="VOICE_MAIL" className="dark:bg-slate-900">Voice Mail</option>
+              <option value="ON_HOLD" className="dark:bg-slate-900">On Hold</option>
+              <option value="EMAIL_VIDEO" className="dark:bg-slate-900">Email Video</option>
             </select>
           </div>
         </div>
 
-        <div className="flex justify-center items-center p-5 border-t border-gray-200 space-x-3">
+        <div className="flex justify-center items-center p-5 border-t border-gray-200 dark:border-slate-700 space-x-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-2.5 w-full bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+            className="px-6 py-2.5 w-full bg-gray-200 dark:bg-slate-700 dark:text-white text-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -213,7 +213,7 @@ const CallBackPromts = () => {
   );
 
   return (
-    <div className="bg-[#F7F7F7] min-h-[60vh] p-6 rounded-2xl">
+    <div className="bg-[#F7F7F7] dark:bg-slate-900 min-h-[60vh] p-6 rounded-2xl transition-colors">
       {/* Search + Add Button */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
         <div className="relative w-full sm:w-[40%]">
@@ -222,7 +222,7 @@ const CallBackPromts = () => {
             placeholder="Search by prompt name"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full bg-white placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-slate-700 dark:text-white rounded-full bg-white dark:bg-slate-800 placeholder:text-sm text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all font-sans"
           />
           <HiOutlineSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
@@ -245,46 +245,46 @@ const CallBackPromts = () => {
         {filteredPrompts.map((p) => (
           <div
             key={p.id}
-            className="bg-white rounded-lg shadow-sm p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-md transition border border-gray-100"
+            className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-md transition border border-gray-100 dark:border-slate-700"
           >
-            <div className="font-medium text-gray-900 w-full sm:w-1/4 truncate">{p.templateName}</div>
-            <div className="w-full sm:w-3/4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+            <div className="font-medium text-gray-900 dark:text-white w-full sm:w-1/4 truncate">{p.templateName}</div>
+            <div className="w-full sm:w-3/4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 dark:text-gray-300">
               <div>
-                <span className="text-gray-500 text-xs block truncate uppercase tracking-wider font-semibold">Type of recording</span>
-                <span className="font-medium text-gray-900">{p.recordingType.replace(/_/g, " ")}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs block truncate uppercase tracking-wider font-semibold">Type of recording</span>
+                <span className="font-medium text-gray-900 dark:text-white">{p.recordingType.replace(/_/g, " ")}</span>
               </div>
               <div>
-                <span className="text-gray-500 text-xs block truncate uppercase tracking-wider font-semibold">Created by</span>
-                <span className="font-medium text-gray-900 truncate">{p.library?.user?.fullName || p.createdBy}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs block truncate uppercase tracking-wider font-semibold">Created by</span>
+                <span className="font-medium text-gray-900 dark:text-white truncate">{p.library?.user?.fullName || p.createdBy}</span>
               </div>
 
               <div className="flex items-center justify-between sm:justify-end space-x-4">
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-xs block truncate uppercase tracking-wider font-semibold">Created on</span>
-                  <span className="font-medium text-gray-900 whitespace-nowrap">{new Date(p.createdAt).toLocaleDateString()}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs block truncate uppercase tracking-wider font-semibold">Created on</span>
+                  <span className="font-medium text-gray-900 dark:text-white whitespace-nowrap">{new Date(p.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="relative flex-shrink-0">
                   <button
                     onClick={() => setOpenMenuId(openMenuId === p.id ? null : p.id)}
-                    className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
                   >
                     <BsThreeDots className="h-5 w-5" />
                   </button>
                   {openMenuId === p.id && (
-                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border z-20 overflow-hidden">
+                    <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-slate-800 rounded-lg shadow-lg border dark:border-slate-700 z-20 overflow-hidden">
                       <button
                         onClick={() => {
                           setPromptToEdit(p);
                           setIsModalOpen(true);
                           setOpenMenuId(null);
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => openDeleteModal(p.id)}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                       >
                         Delete
                       </button>

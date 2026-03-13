@@ -121,7 +121,7 @@ const Login: React.FC = () => {
                 type="email"
                 id="email"
                 placeholder="Enter Your Email"
-                className="bg-transparent p-0 text-xs placeholder:text-xs tracking-wide border-none outline-none focus-visible:ring-0"
+                className="bg-transparent dark:text-black p-0 text-xs placeholder:text-xs tracking-wide border-none outline-none focus-visible:ring-0"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -140,7 +140,7 @@ const Login: React.FC = () => {
                   type={showCurrent ? "text" : "password"}
                   id="password"
                   placeholder="Enter your password"
-                  className="bg-transparent p-0 text-xs placeholder:text-xs tracking-wide border-none outline-none w-full"
+                  className="bg-transparent p-0   dark:text-black text-xs placeholder:text-xs tracking-wide border-none outline-none w-full"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

@@ -220,11 +220,11 @@ const Script = () => {
           <input
             type="text"
             placeholder="Search by script name"
-            className="w-full text-[#495057] dark:text-white font-normal text-[16px] placeholder:text-sm text-sm focus:outline-none"
+            className="w-full text-[#495057] dark:text-white font-normal text-[16px] placeholder:text-sm text-sm focus:outline-none bg-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <HiOutlineSearch className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#495057]" />
+          <HiOutlineSearch className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#495057] dark:text-gray-400" />
         </div>
         <button onClick={handleAddClick} className="bg-[#FFCA06] text-[16px] hover:bg-yellow-500 text-[#000000] font-medium py-[8px] pr-[24px] pl-[20px] rounded-[12px] flex items-center transition-all">
           <HiPlus className="h-5 w-5 mr-2" />
@@ -317,22 +317,22 @@ const Script = () => {
                   onClick={() =>
                     setOpenMenuId(openMenuId === script.id ? null : script.id)
                   }
-                  className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <BsThreeDots className="h-5 w-5" />
                 </button>
 
                 {openMenuId === script.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl z-10 border">
+                  <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-slate-800 rounded-lg shadow-xl z-10 border dark:border-slate-700 overflow-hidden py-1">
                     <button
                       onClick={() => handleEditClick(script)}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => openDeleteModal(script.id)}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                     >
                       Delete
                     </button>
