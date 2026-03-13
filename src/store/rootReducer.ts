@@ -10,6 +10,7 @@ import subscriptionReducer from "./slices/subscriptionSlice";
 import themeReducer from "./slices/themeSlice";
 import appearanceReducer from "./slices/appearanceSlice";
 import userReducer from "./slices/userSlice";
+import reportsReducer from "./slices/reportsSlice";
 
 const rootReducer = combineReducers({
   example: exampleReducer,
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   subscriptions: subscriptionReducer,
   appearance: appearanceReducer,
   user: userReducer,
+  reports: reportsReducer,
 });
 
 export default rootReducer;
