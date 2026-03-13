@@ -7,6 +7,7 @@ import { useTwilio } from "@/providers/twilio.provider";
 import AddEventForm from "@/components/modal/addeventmodal";
 
 interface ContactInfoHeaderProps {
+  settingsInfo?: any;
   contact?: any;
   onNext?: () => void;
   onPrev?: () => void;
