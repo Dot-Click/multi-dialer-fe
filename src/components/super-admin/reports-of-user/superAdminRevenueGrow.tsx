@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   BarChart,
   Bar,
@@ -9,36 +11,40 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-
-// Dummy Data image ke hisaab se
-const barData = [
-  { name: 'Jul', revenue: 80000 },
-  { name: 'Aug', revenue: 60000 },
-  { name: 'Sep', revenue: 55000 },
-  { name: 'Oct', revenue: 50000 },
-  { name: 'Now', revenue: 38000 },
-  { name: 'Dec', revenue: 38000 },
-];
-
-const lineData = [
-  { name: 'Jul', val: 5 },
-  { name: '', val: 32 },
-  { name: '', val: 43 },
-  { name: 'Aug', val: 51 },
-  { name: '', val: 47 },
-  { name: 'Sep', val: 52 },
-  { name: '', val: 58 },
-  { name: 'Oct', val: 65 },
-  { name: '', val: 61 },
-  { name: 'Now', val: 55 },
-  { name: '', val: 52 },
-  { name: 'Dec', val: 32 },
-  { name: '', val: 35 },
-];
+import { getRevenueGrowth } from '@/store/slices/reportsSlice';
+import type { RootState, AppDispatch } from '@/store/store';
+import Loader from '@/components/common/Loader';
 
 const SuperAdminRevenueGrow = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { revenueGrowth, revenueLoading } = useSelector(
+    (state: RootState) => state.reports
+  );
+
+  useEffect(() => {
+    dispatch(getRevenueGrowth());
+  }, [dispatch]);
+
+  // Transform data for BarChart
+  const barData = revenueGrowth?.labels.map((label, index) => ({
+    name: label,
+    revenue: revenueGrowth.revenue[index] || 0,
+  })) || [];
+
+  // Transform data for LineChart
+  const lineData = revenueGrowth?.labels.map((label, index) => ({
+    name: label,
+    val: revenueGrowth.growth[index] || 0,
+  })) || [];
+
   return (
-    <div className="w-full outfit p-4 md:p-[24.9px] bg-white dark:bg-slate-800 rounded-[33.21px] shadow-sm ">
+    <div className="relative w-full outfit p-4 md:p-[24.9px] bg-white dark:bg-slate-800 rounded-[33.21px] shadow-sm min-h-[350px]">
+      {revenueLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 rounded-[33.21px]">
+          <Loader fullPage={false} />
+        </div>
+      )}
+
       <h2 className="text-[20.75px] font-[500] mb-8 text-[#000000] dark:text-white">Revenue Grow</h2>
 
       {/* Grid container: Mobile par 1 column, badi screens par 2 columns */}
@@ -60,8 +66,7 @@ const SuperAdminRevenueGrow = () => {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: '#9ca3af', fontSize: 12 }}
-                domain={[0, 80000]}
-                ticks={[0, 20000, 40000, 60000, 80000]}
+                domain={[0, 'auto']}
               />
               <Tooltip cursor={{fill: 'transparent'}} />
               <Bar 
@@ -90,8 +95,7 @@ const SuperAdminRevenueGrow = () => {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: '#9ca3af', fontSize: 12 }}
-                domain={[0, 80]}
-                ticks={[0, 20, 40, 60, 80]}
+                domain={[0, 'auto']}
               />
               <Tooltip />
               <Line 
