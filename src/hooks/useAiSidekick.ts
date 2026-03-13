@@ -5,6 +5,7 @@ export interface SidekickInsights {
     callsAnalyzed: number;
     successPrediction: string;
     urgentFollowUps: number;
+    newLeadsIdentified: number;
 }
 
 export interface BestTimeToCallData {

@@ -5,6 +5,7 @@ import AddRecordingModal from "@/components/modal/addrecordingmodal";
 import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
 import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
 import { useNavigate } from "react-router-dom";
+import { authClient } from "@/lib/auth-client";
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -65,6 +66,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
     const [recordings, setRecordings] = useState<RecordingItem[]>([]);
     const [callerIds, setCallerIds] = useState<CallerId[]>([]);
     const [editId, setEditId] = useState<string | null>(null);
+
+    const { data: session } = authClient.useSession() 
+
+    const role = session?.user.role
 
     // Initial fetch of recordings
     useEffect(() => {
@@ -147,8 +152,13 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 toast.success("Call Setting created successfully!");
             }
 
-
-            navigate("/admin/contact-info", {
+            role === "ADMIN" ? navigate("/admin/contact-info",  {
+                state: { 
+                    contacts: selectedContacts,
+                    callerIds: selectedCallerIds,
+                    numberOfLines: parseInt(noOfLines)
+                }
+            }) : navigate("/contact-info", {
                 state: { 
                     contacts: selectedContacts,
                     callerIds: selectedCallerIds,
