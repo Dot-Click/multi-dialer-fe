@@ -40,10 +40,10 @@ export interface CallSettings {
   onHoldRecording2Id?: string;
   ivrRecordingId?: string;
   answeringMachineRecordingId?: string;
-  onHoldRecording1?: string;
-  onHoldRecording2?: string;
-  ivrRecording?: string;
-  answeringMachineRecording?: string;
+  onHoldRecording1?: any;
+  onHoldRecording2?: any;
+  ivrRecording?: any;
+  answeringMachineRecording?: any;
   enableAutoPause: boolean;
   enableRecording: boolean;
   sendOutlookAppointment: boolean;
@@ -684,4 +684,62 @@ export const useAuditLogs = () => {
       return response.data.data || response.data;
     },
   });
+};
+export interface Integration {
+  id: string;
+  provider: "TWILIO" | "GOOGLE_MAPS" | "REALTOR_DOT_COM" | "BOMB_BOMB" | "GMAIL" | "STANPP_DOT_COM" | "MY_PLUS_LEADS" | "ZAPIER" | "ZOHO";
+  status: "CONNECTED" | "FAILED" | "PROCESSING" | "NEED_SETUP";
+  credentials: any;
+  errorMessage?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const useIntegrations = () => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["integrations"],
+    queryFn: async (): Promise<Integration[]> => {
+      const response = await api.get("/system-settings/integration/my");
+      return response.data.data || response.data;
+    },
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: async (payload: { provider: string; credentials: any }) => {
+      const response = await api.post("/system-settings/integration/create", payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, credentials }: { id: string; credentials: any }) => {
+      const response = await api.put(`/system-settings/integration/${id}`, { credentials });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete(`/system-settings/integration/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+    },
+  });
+
+  return {
+    ...query,
+    upsertIntegration: upsertMutation,
+    updateIntegration: updateMutation,
+    deleteIntegration: deleteMutation,
+  };
 };

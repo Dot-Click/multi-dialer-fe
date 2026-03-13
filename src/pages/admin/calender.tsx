@@ -575,6 +575,9 @@ export default function CustomCalendar() {
   // const { users } = useAppSelector((state) => state.user);
   // const { session } = useAppSelector((state) => state.auth);
 
+  // const { users } = useAppSelector((state) => state.user);
+  // const { session } = useAppSelector((state) => state.auth);
+
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(
     null,
