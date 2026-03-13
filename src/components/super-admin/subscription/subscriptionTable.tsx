@@ -219,117 +219,53 @@
 
 // export default SubscriptionTable;
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import { FaRegEye } from "react-icons/fa";
-
-type PaymentStatus = "Paid" | "Pending" | "Overdue";
-
-const billingData = [
-  {
-    username: "Amanda Davis",
-    plan: "Basic",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Paid" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Premium",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Pending" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Standard",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Overdue" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Standard",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Paid" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Basic",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Paid" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Premium",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Pending" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-  {
-    username: "Amanda Davis",
-    plan: "Premium",
-    invoiceId: "INV-2024-001",
-    agents: 150,
-    paymentStatus: "Paid" as PaymentStatus,
-    paymentMethod: "Credit Card",
-    issueDate: "2024-12-01",
-    dueDate: "2024-12-15",
-  },
-];
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { allSubs } from "@/store/slices/subscriptionSlice";
 
 const SubscriptionTable = () => {
+  const dispatch = useAppDispatch();
+  const { subscriptions, loading, error } = useAppSelector((state) => state.subscriptions);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("All Plans");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
 
-  const getPaymentStatusStyles = (status: PaymentStatus) => {
-    switch (status) {
-      case "Paid":
+  useEffect(() => {
+    dispatch(allSubs());
+  }, [dispatch]);
+
+  const getPaymentStatusStyles = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case "ACTIVE":
+      case "PAID":
         return "bg-[#D0FAE5] text-[#428E43]";
-      case "Pending":
+      case "PENDING":
         return "bg-[#FFF3C4] text-[#9A7B00]";
-      case "Overdue":
+      case "EXPIRED":
+      case "OVERDUE":
         return "bg-[#FFE2E2] text-[#FB0000]";
       default:
         return "bg-gray-100 text-gray-600";
     }
   };
 
-  const filteredData = billingData.filter((item) => {
+  const filteredData = subscriptions?.filter((item) => {
     const matchesSearch =
-      item.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.invoiceId.toLowerCase().includes(searchTerm.toLowerCase());
+      item.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.id?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesPlan =
-      selectedPlan === "All Plans" || item.plan === selectedPlan;
+      selectedPlan === "All Plans" || item.plan?.toUpperCase() === selectedPlan?.toUpperCase();
 
     const matchesStatus =
-      selectedStatus === "All Status" || item.paymentStatus === selectedStatus;
+      selectedStatus === "All Status" || item.status?.toUpperCase() === selectedStatus?.toUpperCase();
 
     return matchesSearch && matchesPlan && matchesStatus;
-  });
+  }) || [];
 
   return (
     // <div className="w-full bg-white rounded-[16.54px] outfit p-5 flex flex-col gap-3 shadow-sm">
@@ -448,10 +384,12 @@ const SubscriptionTable = () => {
               onChange={(e) => setSelectedPlan(e.target.value)}
               className="appearance-none bg-[#F2F2F2] dark:bg-slate-700 h-[40px] px-4 rounded-[11.56px] text-[13.53px] text-[#2C2C2C] dark:text-white w-[150px]"
             >
-              <option>All Plans</option>
-              <option>Basic</option>
-              <option>Standard</option>
-              <option>Premium</option>
+              <option value="All Plans">All Plans</option>
+              {/* <option value="BASIC">Basic</option> */}
+              <option value="STARTER">Starter</option>
+              <option value="PROFESSIONAL">Professional</option>
+              {/* <option value="PREMIUM">Premium</option> */}
+              <option value="ENTERPRISE">Enterprise</option>
             </select>
             <img
               src={downarrow}
@@ -465,10 +403,12 @@ const SubscriptionTable = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="appearance-none bg-[#F2F2F2] dark:bg-slate-700 h-[40px] px-4 rounded-[11.56px] text-[13.53px] text-[#2C2C2C] dark:text-white w-[150px]"
             >
-              <option>All Status</option>
-              <option>Paid</option>
-              <option>Pending</option>
-              <option>Overdue</option>
+              <option value="All Status">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="PAID">Paid</option>
+              <option value="PENDING">Pending</option>
+              <option value="OVERDUE">Overdue</option>
             </select>
             <img
               src={downarrow}
@@ -506,55 +446,67 @@ const SubscriptionTable = () => {
             </thead>
 
             <tbody>
-              {filteredData.map((row, i) => (
-                <tr
-                  key={i}
-                  className="bg-[#FAFAFA] dark:bg-slate-700 font-[400] rounded-[9.02px]"
-                >
-                  <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-medium text-[#2C2C2C] dark:text-white">
-                    {row.username}
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.plan}
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.invoiceId}
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.agents}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`px-3 py-1 text-[13.53px] rounded-[75.17px] ${getPaymentStatusStyles(
-                        row.paymentStatus,
-                      )}`}
-                    >
-                      {row.paymentStatus}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.paymentMethod}
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.issueDate}
-                  </td>
-                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.dueDate}
-                  </td>
-                  <td className="px-5 py-4 text-[#2563EB]">
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <FaRegEye /> View Details
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-10 text-gray-500">
+                    Loading...
                   </td>
                 </tr>
-              ))}
-
-              {filteredData.length === 0 && (
+              ) : error ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-10 text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-10 text-gray-500">
                     No data found
                   </td>
                 </tr>
+              ) : (
+                filteredData.map((row, i) => (
+                  <tr
+                    key={i}
+                    className="bg-[#FAFAFA] dark:bg-slate-700 font-[400] rounded-[9.02px]"
+                  >
+                    <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-medium text-[#2C2C2C] dark:text-white">
+                      {row.user?.fullName}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.plan || "-"}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.id}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.usersCount || "-"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`px-3 py-1 text-[13.53px] rounded-[75.17px] ${getPaymentStatusStyles(
+                          row.status as string,
+                        )}`}
+                      >
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.billingCycle || "-"}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.startDate ? new Date(row.startDate).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {row.endDate ? new Date(row.endDate).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-5 py-4 text-[#2563EB]">
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <FaRegEye /> View Details
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

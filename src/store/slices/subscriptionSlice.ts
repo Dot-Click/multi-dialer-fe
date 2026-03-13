@@ -4,6 +4,9 @@ import api from '../../lib/axios';
 export interface Subscription {
     id: string;
     userId: string;
+    user?: {
+        fullName: string;
+    };
     plan: string;
     status: string;
     startDate: string;
@@ -105,6 +108,26 @@ export const fetchSubscriptions = createAsyncThunk(
     }
 );
 
+export const allSubs = createAsyncThunk(
+    'subscriptions/allSubs',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/subscriptions');
+            if (response.data.success) {
+                return response.data.data;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch subscriptions');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to fetch subscriptions');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+)
+
 export const fetchToken = createAsyncThunk(
     'subscriptions/fetchToken',
     async (_, { rejectWithValue }) => {
@@ -203,6 +226,18 @@ export const subscriptionSlice = createSlice({
                 state.loading = false;
             })
             .addCase(createSubscription.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(allSubs.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(allSubs.fulfilled, (state, action) => {
+                state.loading = false;
+                state.subscriptions = action.payload;
+            })
+            .addCase(allSubs.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
