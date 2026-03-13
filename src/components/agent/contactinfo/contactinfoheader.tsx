@@ -12,28 +12,55 @@ interface ContactInfoHeaderProps {
   onPrev?: () => void;
   currentIndex?: number;
   totalContacts?: number;
+  callerId?: string | null;
+  onPickNextCallerId?: () => string | null;
+  onCallStarted?: () => void;
+  dailyCount?: number;
+  dailyLimit?: number;
 }
-const fromNumbers = ["+15203530496", "+15512311702", "+13142712606", "+13502169070", "+12294412493"] // just for testing 
-const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
+
+const ContactInfoHeader = ({ 
+  contact, 
+  onNext, 
+  onPrev, 
+  currentIndex = 0, 
+  totalContacts = 0, 
+  callerId,
+  onPickNextCallerId,
+  onCallStarted,
+  dailyCount = 0,
+  dailyLimit = 25
+}: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [eventDefaults, _] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
 
-  const handleCallToggle = () => {
+  const handleCallToggle = async () => {
     if (isCalling) {
       endCall();
     } else {
-      const fromNumber = fromNumbers[Math.floor(Math.random() * fromNumbers.length)]; // just for testing
-      console.log(fromNumber);
+      // Use rotation logic if provided
+      const fromNumber = onPickNextCallerId ? onPickNextCallerId() : (callerId || "+15203530496"); 
+      
+      if (!fromNumber) return; // Daily limit reached or all in cooldown
+
+      console.log("Starting call from:", fromNumber);
+      
       // Use the primary phone from the contact's phones array
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      startCall(phone, fromNumber, contact?.id);
+      
+      try {
+        await startCall(phone, fromNumber, contact?.id);
+        if (onCallStarted) onCallStarted();
+      } catch (err) {
+        // Error already handled by toast in startCall
+      }
     }
   };
 
   return (
-    <div className="w-full work-sans bg-white border-t border-[#EBEDF0] shadow-sm">
+    <div className="w-full work-sans bg-white dark:bg-slate-900 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3">
         {/* Left - Title + Status */}
@@ -41,8 +68,8 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           <h1 className="text-[#0E1011] dark:text-white text-xl sm:text-[22px] font-semibold">
             Live Dialing Screen
           </h1>
-          <span className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${isCalling ? 'bg-red-500' : 'bg-[#07D95B]'}`}>
-            {isCalling ? 'Active Call' : appStatus}
+          <span className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${dailyCount >= dailyLimit ? 'bg-orange-500' : isCalling ? 'bg-red-500' : 'bg-[#07D95B]'}`}>
+            {dailyCount >= dailyLimit ? 'Daily Limit Reached' : isCalling ? 'Active Call' : appStatus}
           </span>
           {totalContacts > 0 && (
             <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">

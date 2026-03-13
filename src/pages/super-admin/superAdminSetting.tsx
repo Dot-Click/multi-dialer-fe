@@ -28,7 +28,7 @@ const SuperAdminSetting = () => {
       <GeneralSetting />
       <NotificationSetting />
       <SecurityAccess />
-      <SystemPreference/>
+      <SystemPreference />
 
 
 

@@ -18,7 +18,7 @@ const AgentHome = () => {
       {/* Header */}
       <div className="flex justify-between items-center pr-3 lg:pr-6">
         <div>
-          <h1 className="text-[#0E1011] text-[20px] md:text-[26px] dark:text-white lg:text-[28px] font-[500]">Dashboard</h1>
+          <h1 className="text-[#0E1011] text-[20px] md:text-[26px] dark:text-white lg:text-[28px] font-medium">Dashboard</h1>
         </div>
 
         {/* Tabs */}

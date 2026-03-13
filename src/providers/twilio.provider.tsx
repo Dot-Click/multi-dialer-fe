@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { Device, Call } from '@twilio/voice-sdk';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
+import { useCallSettings } from '@/hooks/useSystemSettings';
 
 interface TwilioContextType {
   device: Device | null;
@@ -13,8 +14,10 @@ interface TwilioContextType {
   endCall: () => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
+  isHold: boolean;
   toggleMute: () => void;
   toggleSpeaker: () => void;
+  toggleHold: () => void;
   transcriptionLogs: any[];
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
   duration: number;
@@ -33,8 +36,33 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [identity, setIdentity] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [isHold, setIsHold] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
   const [duration, setDuration] = useState(0);
+
+  const { data: callSettings } = useCallSettings();
+  const [holdAudio] = useState(() => new Audio());
+
+  useEffect(() => {
+    // If we have an active call setting with a hold recording, set the src
+    const activeSetting = callSettings?.[0]; // Assuming the first one or default one
+    const holdFileUrl: string | undefined = activeSetting?.onHoldRecording1?.fileUrl;
+
+    if (holdFileUrl && holdAudio.src !== holdFileUrl) {
+      holdAudio.src = holdFileUrl;
+      holdAudio.loop = true;
+    }
+  }, [callSettings, holdAudio]);
+
+  useEffect(() => {
+    // Play or pause the hold music locally based on isHold
+    if (isHold && activeCall) {
+      holdAudio.play().catch(err => console.error("Error playing hold audio:", err));
+    } else {
+      holdAudio.pause();
+      holdAudio.currentTime = 0;
+    }
+  }, [isHold, activeCall, holdAudio]);
 
   const setupDevice = useCallback(async () => {
     try {
@@ -117,7 +145,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActiveCall(null);
     setActiveCallSid(null);
     setIsMuted(false);
+    setIsHold(false);
     setDuration(0);
+    holdAudio.pause();
+    holdAudio.currentTime = 0;
     // Removed setCallStatus('idle') to allow 'disconnected' to persist for the UI
     // Note: Speaker status usually persists across calls on the device level
   }, []);
@@ -248,6 +279,34 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toast.success(speakerOn ? 'Speaker ON' : 'Speaker OFF (Muted)');
   }, [isSpeakerOn]);
 
+  const toggleHold = useCallback(async () => {
+    const newHoldStatus = !isHold;
+    
+    // SDK level mute for agent
+    if (activeCall) {
+      activeCall.mute(newHoldStatus || isMuted);
+    }
+    
+    // Mute incoming Twilio audio (which is in the DOM) so Agent doesn't hear customer's hold music
+    const audioElements = document.querySelectorAll('audio');
+    audioElements.forEach(el => {
+      // If we go ON hold, mute the Twilio speaker. If we go OFF hold, restore based on isSpeakerOn state.
+      el.muted = newHoldStatus ? true : !isSpeakerOn;
+      el.volume = (newHoldStatus ? false : isSpeakerOn) ? 1.0 : 0.0;
+    });
+
+    if (activeCallSid) {
+      try {
+        await api.post('/calling/toggle-hold', { callSid: activeCallSid, hold: newHoldStatus });
+      } catch (err) {
+        console.error('Toggle Hold Error:', err);
+      }
+    }
+
+    setIsHold(newHoldStatus);
+    toast.success(newHoldStatus ? 'Call on Hold (Recording Paused)' : 'Call Resumed (Recording Resumed)');
+  }, [activeCall, activeCallSid, isHold, isMuted]);
+
   const resetCallStatus = useCallback(() => {
     setCallStatus('idle');
   }, []);
@@ -312,8 +371,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       endCall,
       toggleMute,
       toggleSpeaker,
+      toggleHold,
       isMuted,
       isSpeakerOn,
+      isHold,
       transcriptionLogs,
       callStatus,
       duration,
