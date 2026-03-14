@@ -34,7 +34,8 @@ const ContactInfoHeader = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [eventDefaults, _] = useState({ title: '', color: '#FFCA06' });
-  const { isCalling, appStatus, startCall, endCall } = useTwilio();
+  const { isCalling, appStatus, startCall, endCall, toggleHold, isHold } = useTwilio();
+
 
   const handleCallToggle = async () => {
     if (isCalling) {
@@ -98,9 +99,17 @@ const ContactInfoHeader = ({
             <span className="text-sm font-medium">{isCalling ? 'End Connection' : 'Start'}</span>
           </button>
 
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors">
-            <FiPause className="text-xl dark:text-white" />
-            <span className="text-[#0E1011] dark:text-white text-sm font-medium">Pause</span>
+          <button
+            onClick={toggleHold}
+            disabled={!isCalling && !isHold}
+            className={`rounded-[12px] flex items-center gap-1.5 py-3 px-4 transition-all disabled:opacity-40 disabled:cursor-not-allowed
+    ${isHold
+                ? 'bg-yellow-400 text-gray-900'
+                : 'bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white hover:bg-[#e0e2e6] dark:hover:bg-slate-600'
+              }`}
+          >
+            <FiPause className="text-xl" />
+            <span className="text-sm font-medium">{isHold ? 'Resume' : 'Hold'}</span>
           </button>
 
           <div className="flex items-center gap-2">

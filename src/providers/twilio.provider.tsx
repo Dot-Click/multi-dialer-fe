@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { Device, Call } from '@twilio/voice-sdk';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
@@ -39,36 +39,51 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isHold, setIsHold] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
   const [duration, setDuration] = useState(0);
+  const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
 
-  const { data: callSettings } = useCallSettings();
-  const [holdAudio] = useState(() => new Audio());
+  const isHoldRef = useRef(false);
 
+  // Keep it in sync with isHold state:
   useEffect(() => {
-    // If we have an active call setting with a hold recording, set the src
-    const activeSetting = callSettings?.[0]; // Assuming the first one or default one
-    const holdFileUrl: string | undefined = activeSetting?.onHoldRecording1?.fileUrl;
+    isHoldRef.current = isHold;
+  }, [isHold]);
 
-    if (holdFileUrl && holdAudio.src !== holdFileUrl) {
-      holdAudio.src = holdFileUrl;
-      holdAudio.loop = true;
-    }
-  }, [callSettings, holdAudio]);
+  // const { data: callSettings } = useCallSettings();
+  // const [holdAudio] = useState(() => new Audio());
 
-  useEffect(() => {
-    // Play or pause the hold music locally based on isHold
-    if (isHold && activeCall) {
-      holdAudio.play().catch(err => console.error("Error playing hold audio:", err));
-    } else {
-      holdAudio.pause();
-      holdAudio.currentTime = 0;
-    }
-  }, [isHold, activeCall, holdAudio]);
+  const [holdAudio] = useState(() => {
+    const audio = new Audio('https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3');
+    audio.loop = true;
+    return audio;
+  });
+
+
+  // useEffect(() => {
+  //   // If we have an active call setting with a hold recording, set the src
+  //   const activeSetting = callSettings?.[0]; // Assuming the first one or default one
+  //   const holdFileUrl: string | undefined = activeSetting?.onHoldRecording1?.fileUrl;
+
+  //   if (holdFileUrl && holdAudio.src !== holdFileUrl) {
+  //     holdAudio.src = holdFileUrl;
+  //     holdAudio.loop = true;
+  //   }
+  // }, [callSettings, holdAudio]);
+
+  // useEffect(() => {
+  //   // Play or pause the hold music locally based on isHold
+  //   if (isHold && activeCall) {
+  //     holdAudio.play().catch(err => console.error("Error playing hold audio:", err));
+  //   } else {
+  //     holdAudio.pause();
+  //     holdAudio.currentTime = 0;
+  //   }
+  // }, [isHold, activeCall, holdAudio]);
 
   const setupDevice = useCallback(async () => {
     try {
       setAppStatus('Fetching Token...');
       const { data } = await api.get('/calling/token');
-      
+
       if (!data.success || !data.data.token) {
         throw new Error(data.message || 'Failed to fetch token');
       }
@@ -93,11 +108,11 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       newDevice.on('incoming', (call: Call) => {
         console.log('Incoming bridge connection');
         setActiveCall(call);
-        
+
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
         console.log('Incoming call SID:', sid);
-        
+
         call.on('ringing', () => {
           console.log('Call is ringing');
           setCallStatus('ringing');
@@ -155,7 +170,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
-    
+
     setIsCalling(true);
     setAppStatus('Dialing...');
     setCallStatus('ringing');
@@ -163,14 +178,14 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       const call = await device!.connect({
-        params: { 
-          To: phone, 
+        params: {
+          To: phone,
           From: from,
           agentId: identity || 'tester_agent',
           contactId: contactId
         }
       });
-      
+
       if (call) {
         setActiveCall(call);
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
@@ -186,20 +201,26 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           console.log('Outgoing call bridged/accepted by TwiML');
           const finalSid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
           setActiveCallSid(finalSid);
-          // We don't set 'connected' here yet because the TwiML might be playing a greeting
-          // The polling effect will move it to 'connected' once the real answer is detected
         });
 
+
+
         call.on('disconnect', () => {
-          console.log('Outgoing call disconnected');
-          setCallStatus('disconnected');
-          handleStopCalling();
+          console.log('Incoming call disconnected, isHoldRef:', isHoldRef.current);
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          } else {
+            console.log('Disconnect ignored — call is on hold');
+          }
         });
 
         call.on('cancel', () => {
           console.log('Outgoing call cancelled');
-          setCallStatus('disconnected');
-          handleStopCalling();
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          }
         });
 
         call.on('error', (error) => {
@@ -212,7 +233,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     } catch (err: any) {
       console.error('Start Call Error:', err);
-      handleStopCalling();  
+      handleStopCalling();
       console.log()
       toast.error(`Failed to start call: ${err.message}`);
     }
@@ -222,7 +243,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (activeCall) {
       activeCall.disconnect();
     }
-    
+
     if (activeCallSid) {
       try {
         await api.post('/calling/end-call', { callSid: activeCallSid });
@@ -236,7 +257,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const toggleMute = useCallback(() => {
     const muted = !isMuted;
-    
+
     // 1. SDK level mute (if call is active)
     if (activeCall) {
       console.log(`Setting call mute to: ${muted}`);
@@ -254,9 +275,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // 3. Fallback: Search for any active media tracks in the browser and mute them
     // (This is a safety net in case Twilio is using a different internal stream)
     navigator.mediaDevices.enumerateDevices().then(() => {
-        // We don't want to request new tracks, just find existing ones if possible
-        // Actually, tracks are usually scoped to the stream they belong to.
-        // We'll trust the device.audio.inputStream for now but add more logs.
+      // We don't want to request new tracks, just find existing ones if possible
+      // Actually, tracks are usually scoped to the stream they belong to.
+      // We'll trust the device.audio.inputStream for now but add more logs.
     });
 
     setIsMuted(muted);
@@ -265,7 +286,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const toggleSpeaker = useCallback(() => {
     const speakerOn = !isSpeakerOn;
-    
+
     // 1. SDK level speaker management
     // Twilio SDK v2+ uses speakerDevices for output selection. 
     // Here we manage the local audio elements as a fallback for the "Dialer" muting.
@@ -281,31 +302,44 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const toggleHold = useCallback(async () => {
     const newHoldStatus = !isHold;
-    
-    // SDK level mute for agent
+
+    // ← SET REF FIRST before anything async
+    isHoldRef.current = newHoldStatus;
+
     if (activeCall) {
       activeCall.mute(newHoldStatus || isMuted);
     }
-    
-    // Mute incoming Twilio audio (which is in the DOM) so Agent doesn't hear customer's hold music
-    const audioElements = document.querySelectorAll('audio');
-    audioElements.forEach(el => {
-      // If we go ON hold, mute the Twilio speaker. If we go OFF hold, restore based on isSpeakerOn state.
-      el.muted = newHoldStatus ? true : !isSpeakerOn;
-      el.volume = (newHoldStatus ? false : isSpeakerOn) ? 1.0 : 0.0;
-    });
+
+    if (newHoldStatus) {
+      holdAudio.play().catch(console.error);
+    } else {
+      holdAudio.pause();
+      holdAudio.currentTime = 0;
+    }
 
     if (activeCallSid) {
       try {
-        await api.post('/calling/toggle-hold', { callSid: activeCallSid, hold: newHoldStatus });
+        const response =await api.post('/calling/toggle-hold', {
+          callSid: activeCallSid,
+          hold: newHoldStatus,
+          agentIdentity: identity
+        });
+        if (response.data?.data?.customerLegSid) {
+          setCustomerCallSid(response.data.data.customerLegSid);
+        }
       } catch (err) {
-        console.error('Toggle Hold Error:', err);
+        isHoldRef.current = !newHoldStatus; // revert ref on failure
+        if (activeCall) activeCall.mute(isMuted);
+        holdAudio.pause();
+        holdAudio.currentTime = 0;
+        toast.error('Failed to toggle hold');
+        return;
       }
     }
 
     setIsHold(newHoldStatus);
-    toast.success(newHoldStatus ? 'Call on Hold (Recording Paused)' : 'Call Resumed (Recording Resumed)');
-  }, [activeCall, activeCallSid, isHold, isMuted]);
+    toast.success(newHoldStatus ? 'Call on Hold' : 'Call Resumed');
+  }, [activeCall, activeCallSid, holdAudio, identity, isHold, isMuted]);
 
   const resetCallStatus = useCallback(() => {
     setCallStatus('idle');
@@ -349,8 +383,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         try {
           const { data } = await api.get(`/calling/status/${activeCallSid}`);
           if (data.success && (data.data.status === 'in-progress' || data.data.status === 'answered')) {
-             console.log('Customer has officially answered!');
-             setCallStatus('connected');
+            console.log('Customer has officially answered!');
+            setCallStatus('connected');
           }
         } catch (err) {
           // console.error('Status poll error:', err);
@@ -361,13 +395,13 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [isCalling, callStatus, activeCallSid]);
 
   return (
-    <TwilioContext.Provider value={{ 
-      device, 
-      activeCall, 
-      isCalling, 
-      appStatus, 
-      activeCallSid, 
-      startCall, 
+    <TwilioContext.Provider value={{
+      device,
+      activeCall,
+      isCalling,
+      appStatus,
+      activeCallSid,
+      startCall,
       endCall,
       toggleMute,
       toggleSpeaker,
