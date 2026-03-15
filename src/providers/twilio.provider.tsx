@@ -16,7 +16,7 @@ interface TwilioContextType {
   isHold: boolean;
   toggleMute: () => void;
   toggleSpeaker: () => void;
-  toggleHold: () => void;
+  toggleHold: (customHoldUrl?: string) => Promise<void>;
   transcriptionLogs: any[];
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
   duration: number;
@@ -29,7 +29,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [device, setDevice] = useState<Device | null>(null);
   const [activeCall, setActiveCall] = useState<Call | null>(null);
   const [isCalling, setIsCalling] = useState(false);
-  const[appStatus, setAppStatus] = useState('Initializing Agent...');
+  const [appStatus, setAppStatus] = useState('Initializing Agent...');
   const [activeCallSid, setActiveCallSid] = useState<string | null>(null);
   const [transcriptionLogs, setTranscriptionLogs] = useState<any[]>([]);
   const [identity, setIdentity] = useState<string | null>(null);
@@ -38,18 +38,18 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isHold, setIsHold] = useState(false);
   const[callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
   const [duration, setDuration] = useState(0);
-  const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
+  const[customerCallSid, setCustomerCallSid] = useState<string | null>(null);
 
+  // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
-  
-  // 🚨 NEW: Stores the EXACT Twilio Call Objects we intentionally drop for Hold
   const ignoredCallsRef = useRef<Set<Call>>(new Set());
+  const isHoldProcessing = useRef(false);
 
   useEffect(() => {
     isHoldRef.current = isHold;
   }, [isHold]);
 
-  const [holdAudio] = useState(() => {
+  const[holdAudio] = useState(() => {
     const audio = new Audio('https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3');
     audio.loop = true;
     return audio;
@@ -60,13 +60,13 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAppStatus('Agent Ready');
     setActiveCall(null);
     setActiveCallSid(null);
-    setCustomerCallSid(null); 
+    setCustomerCallSid(null);
     setIsMuted(false);
     setIsHold(false);
     setDuration(0);
     holdAudio.pause();
     holdAudio.currentTime = 0;
-    ignoredCallsRef.current.clear(); // Wipe the slate clean when the call genuinely ends
+    ignoredCallsRef.current.clear(); 
   }, [holdAudio]);
 
   const setupDevice = useCallback(async () => {
@@ -80,7 +80,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const agentIdentity = data.data.identity || 'tester_agent';
       setIdentity(agentIdentity);
-      console.log('Registered with identity:', agentIdentity);
 
       const newDevice = new Device(data.data.token, {
         codecPreferences:[Call.Codec.Opus, Call.Codec.PCMU],
@@ -91,34 +90,25 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('error', (error) => {
-        console.error('Twilio Device Error:', error);
         setAppStatus(`Error: ${error.message}`);
       });
 
       newDevice.on('incoming', (call: Call) => {
-        console.log('Incoming bridge connection');
         setActiveCall(call);
-
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
-        console.log('Incoming call SID:', sid);
 
         call.on('ringing', () => setCallStatus('ringing'));
         call.on('accept', () => setCallStatus('connected'));
 
         call.on('disconnect', () => {
-          // 🚨 Uses EXACT object reference equality - bulletproof against race conditions
-          if (ignoredCallsRef.current.has(call)) {
-            console.log('Disconnect safely ignored — this incoming leg was dropped to hold the customer.');
-            return;
-          }
+          if (ignoredCallsRef.current.has(call)) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
             handleStopCalling();
           }
         });
 
-        // Add defensive cancel/error handlers for incoming calls too!
         call.on('cancel', () => {
           if (ignoredCallsRef.current.has(call)) return;
           if (!isHoldRef.current) {
@@ -140,7 +130,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await newDevice.register();
       setDevice(newDevice);
     } catch (err: any) {
-      console.error('Twilio Setup Error:', err);
       setAppStatus(`Setup Failed: ${err.message}`);
     }
   },[handleStopCalling, isMuted]);
@@ -186,10 +175,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
 
         call.on('disconnect', () => {
-          if (ignoredCallsRef.current.has(call)) {
-            console.log('Disconnect safely ignored — this outgoing leg was dropped to hold the customer.');
-            return;
-          }
+          if (ignoredCallsRef.current.has(call)) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
             handleStopCalling();
@@ -223,9 +209,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (activeCallSid) {
       try {
         await api.post('/calling/end-call', { callSid: activeCallSid });
-      } catch (err) {
-        console.error('End Call Server Error:', err);
-      }
+      } catch (err) {}
     }
     handleStopCalling();
   };
@@ -239,10 +223,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         track.enabled = !muted;
       });
     }
-
     setIsMuted(muted);
     toast.success(muted ? 'Microphone Muted' : 'Microphone Unmuted');
-  }, [activeCall, device, isMuted]);
+  },[activeCall, device, isMuted]);
 
   const toggleSpeaker = useCallback(() => {
     const speakerOn = !isSpeakerOn;
@@ -251,58 +234,105 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       el.muted = !speakerOn;
       el.volume = speakerOn ? 1.0 : 0.0;
     });
-
     setIsSpeakerOn(speakerOn);
     toast.success(speakerOn ? 'Speaker ON' : 'Speaker OFF (Muted)');
   }, [isSpeakerOn]);
 
-  const toggleHold = useCallback(async () => {
+  const toggleHold = useCallback(async (customHoldUrl?: string) => {
+    if (isHoldProcessing.current) {
+      console.log("Hold request currently processing, please wait...");
+      return;
+    }
+
+    isHoldProcessing.current = true;
     const newHoldStatus = !isHold;
     isHoldRef.current = newHoldStatus;
 
-    // 🚨 We store the exact object reference to ignore it when Twilio kills it
     if (newHoldStatus && activeCall) {
       ignoredCallsRef.current.add(activeCall);
     }
 
-    if (activeCall) activeCall.mute(newHoldStatus || isMuted);
+    // SAFE MUTE
+    if (activeCall) {
+      try {
+        if (activeCall.status() !== 'closed') {
+          activeCall.mute(newHoldStatus || isMuted);
+        }
+      } catch (e) {
+        console.warn("Mute ignored: Call not active");
+      }
+    }
 
-    if (newHoldStatus) holdAudio.play().catch(console.error);
-    else {
+    // LOCAL HOLD AUDIO
+    if (newHoldStatus) {
+      const defaultAudio = 'https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3';
+      const targetAudioSrc = customHoldUrl || defaultAudio;
+
+      if (holdAudio.src !== targetAudioSrc) {
+        holdAudio.src = targetAudioSrc;
+      }
+      holdAudio.play().catch(console.error);
+    } else {
       holdAudio.pause();
       holdAudio.currentTime = 0;
     }
 
+    // BACKEND API CALL 
     if (activeCallSid) {
       try {
         const response = await api.post('/calling/toggle-hold', {
           callSid: activeCallSid,
           customerCallSid: customerCallSid,
           hold: newHoldStatus,
-          agentIdentity: identity
+          agentIdentity: identity,
+          holdUrl: customHoldUrl
         });
 
         if (response.data?.data?.customerLegSid) {
           setCustomerCallSid(response.data.data.customerLegSid);
         }
-      } catch (err) {
-        isHoldRef.current = !newHoldStatus; 
-        
-        // Remove from ignore list since it failed to hold
+
+        // 🚨 FORCE LOCAL DISCONNECT ON HOLD **AFTER** API SUCCEEDS
+        // This ensures the backend has time to read the active call structure before we kill it!
         if (newHoldStatus && activeCall) {
-           ignoredCallsRef.current.delete(activeCall);
+          try {
+            if (activeCall.status() !== 'closed') {
+              activeCall.disconnect();
+            }
+          } catch (e) {
+            console.warn("Local disconnect failed safely", e);
+          }
         }
 
-        if (activeCall) activeCall.mute(isMuted);
+      } catch (err) {
+        isHoldRef.current = !newHoldStatus;
+
+        if (newHoldStatus && activeCall) {
+          ignoredCallsRef.current.delete(activeCall);
+        }
+
+        if (activeCall) {
+          try {
+            if (activeCall.status() !== 'closed') activeCall.mute(isMuted);
+          } catch (e) { }
+        }
+
         holdAudio.pause();
         holdAudio.currentTime = 0;
         toast.error('Failed to toggle hold');
+
+        isHoldProcessing.current = false;
         return;
       }
     }
 
     setIsHold(newHoldStatus);
     toast.success(newHoldStatus ? 'Call on Hold' : 'Call Resumed');
+
+    setTimeout(() => {
+      isHoldProcessing.current = false;
+    }, 1200);
+
   },[activeCall, activeCallSid, customerCallSid, holdAudio, identity, isHold, isMuted]);
 
   const resetCallStatus = useCallback(() => setCallStatus('idle'),[]);
@@ -328,7 +358,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setDuration(0);
     }
     return () => clearInterval(timerInterval);
-  }, [callStatus]);
+  },[callStatus]);
 
   useEffect(() => {
     let statusInterval: any;

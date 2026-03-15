@@ -78,6 +78,11 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
 
     const role = session?.user.role
 
+    const getSelectedRecordingUrl = () => {
+        if (!onHoldRecording1) return undefined;
+        const selectedRecording = recordings.find(r => r.id === onHoldRecording1);
+        return selectedRecording ? ((selectedRecording as any).fileUrl || (selectedRecording as any).url) : undefined;
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -174,14 +179,16 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                     contacts: selectedContacts,
                     callerIds: selectedCallerIds,
                     numberOfLines: parseInt(noOfLines),
-                    selectedScript: selectedScript || undefined
+                    selectedScript: selectedScript || undefined,
+                    holdRecordingUrl: getSelectedRecordingUrl()
                 }
             }) : navigate("/contact-info", {
                 state: {
                     contacts: selectedContacts,
                     callerIds: selectedCallerIds,
                     numberOfLines: parseInt(noOfLines),
-                    selectedScript: selectedScript || undefined
+                    selectedScript: selectedScript || undefined,
+                    holdRecordingUrl: getSelectedRecordingUrl(),
                 }
             });
 

@@ -30,8 +30,6 @@ const ContactInfo = () => {
     const TOTAL_DAILY_LIMIT = 25;
     const COOLDOWN_MINUTES = 20;
 
-    // const [scriptId, setScriptId] = useState<string | null>(null);
-
     const [scriptId, setScriptId] = useState<string | null>(
         location.state?.selectedScript || null  // ← initialize directly from state
     );
@@ -144,6 +142,7 @@ const ContactInfo = () => {
                 onCallStarted={onCallStarted}
                 dailyCount={dailyCallsCount}
                 dailyLimit={TOTAL_DAILY_LIMIT}
+                
             />
 
             <div className='w-full p-4  lg:flex lg:gap-4 space-y-4 lg:space-y-0'>
