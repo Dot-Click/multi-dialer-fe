@@ -9,7 +9,7 @@ const SuperAdminSetting = () => {
 
       <div className="flex justify-between items-center mb-2">
         <div className="flex flex-col leading-none gap-0">
-          <h1 className="text-[#2C2C2C] dark:text-white text-[20px] md:text-[26px]  lg:text-[32px] font-[500]">General Settings</h1>
+          <h1 className="text-[#2C2C2C] dark:text-white text-[20px] md:text-[26px]  lg:text-[32px] font-medium">General Settings</h1>
 
 
         </div>

@@ -58,6 +58,7 @@ import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser
 import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
 import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
+import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
 
 
 
@@ -150,6 +151,7 @@ const Router: React.FC = () => {
             <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
             <Route path="reporting" element={<SuperAdminReporting />} />
             <Route path="setting" element={<SuperAdminSetting />} />
+            <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
           </Route>
         </Route>
 

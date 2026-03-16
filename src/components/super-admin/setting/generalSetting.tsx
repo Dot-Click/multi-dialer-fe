@@ -4,14 +4,14 @@ import zohoIcon from "@/assets/zohoIcon.png"
 const GeneralSetting = () => {
   return (
     <section className="bg-white dark:bg-slate-800 p-4 work-sans md:p-8 rounded-[22px] shadow-sm w-full max-w-full mx-auto font-sans">
-      
+
       {/* Top 4 Fields Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4 mb-6">
         <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px]">
           <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">Platform / Company Name</label>
           <input placeholder='Multi Dialer Pro' className="text-[#848C94] dark:text-white text-[16px] font-[400] outline-none" />
         </div>
-        
+
         <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px]">
           <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">Default Time zone</label>
           <input placeholder='UTC (GMT+0:00)' className="text-[#848C94] dark:text-white text-[16px] font-[400] outline-none" />
@@ -26,25 +26,25 @@ const GeneralSetting = () => {
           <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">Date & Time Format</label>
           <input placeholder='MM/DD/YYYY - 12:00 AM' className="text-[#848C94] dark:text-white text-[16px] font-[400] outline-none" />
         </div>
-      </div>
+      </div> */}
 
       {/* Billing & Integrations Section */}
       <div className=" flex flex-col gap-3">
         <h2 className="text-[18px] font-[500] inter text-[#34363B] dark:text-white">Billing & Integrations</h2>
-        
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
 
           {/* Zoho Card */}
           <div className="flex items-center gap-4 bg-[#F7F7F7] dark:bg-black  border-[1.03px] dark:border-slate-600 border-[#EBEDF0] p-[12px] rounded-[8.28px] w-fit">
             <div>
-                <img src={zohoIcon} alt="zohoIcon" className="h-[20px] dark:invert object-contain" />
+              <img src={zohoIcon} alt="zohoIcon" className="h-[20px] dark:invert object-contain" />
             </div>
 
             <div className='flex flex-col gap-1 leading-none'>
-                <h1 className='text-[16.56px] text-[#0E1011] dark:text-white font-[500] work-sans'>Zoho Subscriptions</h1>
-                <h1 className="text-[#91969A] dark:text-white work-sans text-[12.42px] font-[400]">Subscription management integration</h1>
+              <h1 className='text-[16.56px] text-[#0E1011] dark:text-white font-[500] work-sans'>Zoho Subscriptions</h1>
+              <h1 className="text-[#91969A] dark:text-white work-sans text-[12.42px] font-[400]">Subscription management integration</h1>
             </div>
-        
+
           </div>
 
           {/* Connected Badge */}
@@ -55,14 +55,14 @@ const GeneralSetting = () => {
         </div>
 
         {/* API Field */}
-         <div className="bg-[#F3F4F7] dark:bg-slate-700 work-sans py-[8px] px-[12px] rounded-[12px]">
+        <div className="bg-[#F3F4F7] dark:bg-slate-700 work-sans py-[8px] px-[12px] rounded-[12px]">
           <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">API</label>
           <input placeholder='MM/DD/YYYY - 12:00 AM' type='password' className="text-[#666060] bg-transparent dark:text-white text-[16px] font-[400] outline-none" />
         </div>
 
         {/* Organization ID Field */}
         <div className="bg-[#F3F4F7] dark:bg-slate-700 work-sans py-[8px] px-[12px] rounded-[12px] w-full md:w-1/2">
-         <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">Organization ID</label>
+          <label className="text-xs md:text-[12px] font-[500] text-[#495057] dark:text-white block mb-1">Organization ID</label>
           <input placeholder='org_2nQX8kKJN8jP9' type='text' className="text-[#666060]  text-[16px] font-[400] outline-none" />
         </div>
       </div>

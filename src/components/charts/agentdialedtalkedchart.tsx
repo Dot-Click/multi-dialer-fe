@@ -120,8 +120,8 @@
 //         <YAxis />
 
 //         <Tooltip />
-        
-        
+
+
 //         <Bar dataKey="Dialed" fill="#28a745" /> {/* Green color */}
 //         <Bar dataKey="Talked" fill="#fd7e14" /> {/* Orange color */}
 //       </BarChart>

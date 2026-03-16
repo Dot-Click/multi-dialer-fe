@@ -18,19 +18,20 @@ interface ContactInfoHeaderProps {
   onCallStarted?: () => void;
   dailyCount?: number;
   dailyLimit?: number;
+  onholdUrl?: string;
 }
 
-const ContactInfoHeader = ({ 
-  contact, 
-  onNext, 
-  onPrev, 
-  currentIndex = 0, 
-  totalContacts = 0, 
+const ContactInfoHeader = ({
+  contact,
+  onNext,
+  onPrev,
+  currentIndex = 0,
+  totalContacts = 0,
   callerId,
   onPickNextCallerId,
   onCallStarted,
   dailyCount = 0,
-  dailyLimit = 25
+  dailyLimit = 25,
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
@@ -42,15 +43,15 @@ const ContactInfoHeader = ({
       endCall();
     } else {
       // Use rotation logic if provided
-      const fromNumber = onPickNextCallerId ? onPickNextCallerId() : (callerId || "+15203530496"); 
-      
+      const fromNumber = onPickNextCallerId ? onPickNextCallerId() : (callerId || "+15203530496");
+
       if (!fromNumber) return; // Daily limit reached or all in cooldown
 
       console.log("Starting call from:", fromNumber);
-      
+
       // Use the primary phone from the contact's phones array
       const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      
+
       try {
         await startCall(phone, fromNumber, contact?.id);
         if (onCallStarted) onCallStarted();
@@ -61,7 +62,7 @@ const ContactInfoHeader = ({
   };
 
   return (
-    <div className="w-full work-sans bg-white dark:bg-slate-900 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
+    <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3">
         {/* Left - Title + Status */}
@@ -99,10 +100,18 @@ const ContactInfoHeader = ({
             <span className="text-sm font-medium">{isCalling ? 'End Connection' : 'Start'}</span>
           </button>
 
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors">
-            <FiPause className="text-xl dark:text-white" />
-            <span className="text-[#0E1011] dark:text-white text-sm font-medium">Pause</span>
-          </button>
+          {/* <button
+            onClick={() => toggleHold(onholdUrl)}
+            disabled={!isCalling && !isHold}
+            className={`rounded-[12px] flex items-center gap-1.5 py-3 px-4 transition-all disabled:opacity-40 disabled:cursor-not-allowed
+            ${isHold
+                ? 'bg-yellow-400 text-gray-900'
+                : 'bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white hover:bg-[#e0e2e6] dark:hover:bg-slate-600'
+              }`}
+          >
+            <FiPause className="text-xl" />
+            <span className="text-sm font-medium">{isHold ? 'Resume' : 'Hold'}</span>
+          </button> */}
 
           <div className="flex items-center gap-2">
             <button

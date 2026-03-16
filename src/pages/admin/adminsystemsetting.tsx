@@ -9,6 +9,7 @@ import Notifications from "@/components/admin/systemsettings/notifications"
 import Integrations from "@/components/admin/systemsettings/integrations"
 import MiscField from "@/components/admin/systemsettings/miscfield"
 import DataManagement from "@/components/admin/systemsettings/datamanagement"
+import DispositionSettings from "@/components/admin/systemsettings/dispositions"
 
 // Dummy components for each button
 
@@ -26,9 +27,10 @@ const AdminSystemSetting = () => {
     ]
 
     const secondRowButtons = [
-        { id: 8, name: "Appearance", component: <Appearance /> },
-        { id: 9, name: "Notifications", component: <Notifications /> },
-        { id: 10, name: "Integrations", component: <Integrations /> },
+        { id: 8, name: "Dispositions", component: <DispositionSettings /> },
+        { id: 9, name: "Appearance", component: <Appearance /> },
+        { id: 10, name: "Notifications", component: <Notifications /> },
+        { id: 11, name: "Integrations", component: <Integrations /> },
     ]
 
     const allButtons = [...firstRowButtons, ...secondRowButtons]

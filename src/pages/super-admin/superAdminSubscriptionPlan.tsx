@@ -21,11 +21,11 @@ const SuperAdminSubscriptionPlan = () => {
       </div>
 
       <SubscriptionCard />
-
+{/* 
       <div className="flex gap-4 flex-col md:flex-row justify-between items-center">
         <FailedPayment />
         <UpcomingRenewals />
-      </div>
+      </div> */}
 
       <SubscriptionTable />
     </section>

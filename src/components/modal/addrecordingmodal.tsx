@@ -59,7 +59,7 @@ const AddRecordingModal: React.FC<AddRecordingModalProps> = ({ onClose, onSucces
   };
 
   return (
-    <div className="fixed inset-0 z-1100 flex justify-center items-center bg-black/50 p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-9999 flex justify-center items-center bg-black/50 p-4 sm:p-6 overflow-y-auto">
       <div className="bg-white w-full max-w-md sm:rounded-2xl rounded-xl shadow-2xl p-5 sm:p-6 relative animate-fadeIn">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800">

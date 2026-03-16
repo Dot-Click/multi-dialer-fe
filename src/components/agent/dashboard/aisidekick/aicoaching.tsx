@@ -198,4 +198,4 @@ const AiCoaching = () => {
   );
 };
 
-export default AiCoaching;
+export default AiCoaching;

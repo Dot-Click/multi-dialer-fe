@@ -28,7 +28,7 @@ const AdminContactInfo = () => {
 
                 {/* Right Column (takes 35% width on large screens) */}
                 <div className='w-full lg:w-[35%]'>
-                    <ContactInfoScript />
+                    <ContactInfoScript scriptId={null} />
                 </div>
             </div>
 
@@ -38,7 +38,7 @@ const AdminContactInfo = () => {
                 </div>
                 <div className='w-full h-fit flex flex-col gap-2 lg:w-[35%]'>
 
-                    <LiveContactScript />
+                    <LiveContactScript scriptId={null} />
                     <ContactInfoCallSentiment />
                 </div>
             </div>
