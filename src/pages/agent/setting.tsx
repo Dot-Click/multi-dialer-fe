@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { FiChevronUp, FiInfo } from 'react-icons/fi';
-import { IoChevronDown } from 'react-icons/io5';
-import { useCallerIds } from '../../hooks/useSystemSettings';
+import { useCallerIds, useLeadSheets, useActionPlans } from '../../hooks/useSystemSettings';
 import { authClient } from '../../lib/auth-client';
 import api from '../../lib/axios';
 import toast from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
 const Setting = () => {
   const [activeTab, setActiveTab] = useState('personal');
@@ -17,6 +17,8 @@ const Setting = () => {
   const defaultCallerId = (sessionData?.user as any)?.defaultCallerId;
 
   const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
+  const { data: leadSheets = [], isLoading: isLoadingLeadSheets } = useLeadSheets();
+  const { data: actionPlans = [], isLoading: isLoadingActionPlans } = useActionPlans();
 
   // Filter caller IDs assigned to the current agent
   const agentCallerIds = currentAgentId
@@ -54,8 +56,8 @@ const Setting = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-lg text-base font-medium transition-colors ${activeTab === tab.id
-                  ? "bg-yellow-400 text-gray-900"
-                  : "bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-white hover:bg-gray-300"
+                ? "bg-yellow-400 text-gray-900"
+                : "bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-white hover:bg-gray-300"
                 }`}
             >
               {tab.label}
@@ -469,16 +471,16 @@ const Setting = () => {
                                 }
                               }}
                               className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${defaultCallerId === callerId.id
-                                  ? 'bg-yellow-400 text-black shadow-sm'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-yellow-400 text-black shadow-sm'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                             >
                               {defaultCallerId === callerId.id ? 'Default' : 'Set as Default'}
                             </button>
                             <button
                               className={`px-4 py-2 text-white text-sm font-medium rounded-lg whitespace-nowrap ${callerId.status === 'active' || callerId.status === 'ACTIVE'
-                                  ? 'bg-black'
-                                  : 'bg-gray-300 text-gray-700'
+                                ? 'bg-black'
+                                : 'bg-gray-300 text-gray-700'
                                 }`}
                             >
                               {callerId.status === 'active' || callerId.status === 'ACTIVE' ? 'Active' : 'Inactive'}
@@ -556,7 +558,7 @@ const Setting = () => {
                 </div>
 
                 {/* Time Zone */}
-                <div>
+                {/* <div>
                   <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                     Time Zone
                   </h3>
@@ -587,7 +589,7 @@ const Setting = () => {
                     </select>
                     <IoChevronDown className="absolute text-[#47474C] dark:text-gray-400 right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[18px] group-hover:text-yellow-400 transition-colors" />
                   </div>
-                </div>
+                </div> */}
 
                 {/* Live Answer Beep */}
                 <div className="flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all">
@@ -602,8 +604,8 @@ const Setting = () => {
                   <button
                     onClick={() => setLiveAnswerBeep(!liveAnswerBeep)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${liveAnswerBeep
-                        ? "bg-yellow-400"
-                        : "bg-gray-300 dark:bg-slate-700"
+                      ? "bg-yellow-400"
+                      : "bg-gray-300 dark:bg-slate-700"
                       }`}
                   >
                     <span
@@ -623,57 +625,40 @@ const Setting = () => {
                 <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
                   Touch Point
                 </h2>
-                <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
+                {/* <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
                   Create Touch Point
-                </button>
+                </button> */}
               </div>
 
               {/* Touch Point Cards */}
               <div className="space-y-4">
-                {/* Touch Point Card 1 */}
-                <div className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Welcome Email
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      Email • Schedule: Day 1
-                    </p>
+                {isLoadingActionPlans ? (
+                  <div className="flex justify-center py-10">
+                    <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Edit
-                  </button>
-                </div>
-
-                {/* Touch Point Card 2 */}
-                <div className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Welcome Email
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      Email • Schedule: Day 2
-                    </p>
+                ) : actionPlans.length > 0 ? (
+                  actionPlans.map((plan) => (
+                    <div key={plan.id} className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
+                      <div className="flex-1">
+                        <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
+                          {plan.name}
+                        </h3>
+                        <p className="text-[14px] text-[#495057] dark:text-gray-400">
+                          {plan.steps?.length || 0} Steps • Trigger: {plan.triggerType.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12px] px-2 py-1 bg-gray-100 dark:bg-slate-600 rounded text-gray-600 dark:text-gray-300">
+                          {plan.schedulingType.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
+                    <p className="text-gray-500">No touch points available.</p>
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Edit
-                  </button>
-                </div>
-
-                {/* Touch Point Card 3 */}
-                <div className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Welcome Email
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      Email • Schedule: Day 3
-                    </p>
-                  </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Edit
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -685,57 +670,35 @@ const Setting = () => {
                 <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
                   Lead Sheet Templates
                 </h2>
-                <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
+                {/* <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
                   Manage Templates
-                </button>
+                </button> */}
               </div>
 
               {/* Lead Sheet Template Cards */}
               <div className="space-y-4">
-                {/* Template Card 1 */}
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Standard Lead Sheet
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      12 fields • Last updated Dec 15, 2025
-                    </p>
+                {isLoadingLeadSheets ? (
+                  <div className="flex justify-center py-10">
+                    <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Select
-                  </button>
-                </div>
-
-                {/* Template Card 2 */}
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Detailed Prospect Form
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      24 fields • Last updated Jan 2, 2026
-                    </p>
+                ) : leadSheets.length > 0 ? (
+                  leadSheets.map((sheet) => (
+                    <div key={sheet.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
+                      <div className="flex-1">
+                        <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
+                          {sheet.title}
+                        </h3>
+                        <p className="text-[14px] text-[#495057] dark:text-gray-400">
+                          {sheet.questions?.length || 0} fields • Created {sheet.createdAt ? new Date(sheet.createdAt).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
+                    <p className="text-gray-500">No lead sheets available.</p>
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Select
-                  </button>
-                </div>
-
-                {/* Template Card 3 */}
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                  <div className="flex-1">
-                    <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                      Quick Capture
-                    </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      6 fields • Last updated Nov 30, 2025
-                    </p>
-                  </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-white text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
-                    Select
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           )}
