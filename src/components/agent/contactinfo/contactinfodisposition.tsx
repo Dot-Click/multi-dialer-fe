@@ -63,8 +63,8 @@ const CurrentCallDetails = () => {
             onClick={toggleMute}
             disabled={!isCalling}
             className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl border transition-colors shadow-sm ${!isCalling ? 'bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600 cursor-not-allowed opacity-50' :
-              isMuted ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-600' :
-                'bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600'
+                isMuted ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-600' :
+                  'bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600'
               }`}
           >
             <Mic size={20} />

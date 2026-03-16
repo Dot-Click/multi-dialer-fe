@@ -7,6 +7,7 @@ import { useTwilio } from "@/providers/twilio.provider";
 import AddEventForm from "@/components/modal/addeventmodal";
 
 interface ContactInfoHeaderProps {
+  settingsInfo?: any;
   contact?: any;
   onNext?: () => void;
   onPrev?: () => void;
@@ -36,7 +37,6 @@ const ContactInfoHeader = ({
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [eventDefaults, _] = useState({ title: '', color: '#FFCA06' });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
-
 
   const handleCallToggle = async () => {
     if (isCalling) {

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { Device, Call } from '@twilio/voice-sdk';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
+import { useCallSettings } from '@/hooks/useSystemSettings';
 
 interface TwilioContextType {
   device: Device | null;
@@ -13,6 +14,7 @@ interface TwilioContextType {
   endCall: () => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
+  isHold: boolean;
   isHold: boolean;
   toggleMute: () => void;
   toggleSpeaker: () => void;

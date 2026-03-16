@@ -16,6 +16,7 @@ import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactd
 
 const ContactInfo = () => {
     const location = useLocation();
+    const settingsInfo = location.state?.settingsInfo;
     const dispatch = useAppDispatch();
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -132,6 +133,7 @@ const ContactInfo = () => {
     return (
         <div className="bg-gray-100 dark:bg-slate-900 min-h-screen">
             <ContactInfoHeader
+                settingsInfo={settingsInfo}
                 contact={currentContact}
                 onNext={handleNextContact}
                 onPrev={handlePreviousContact}
