@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import axios from "@/lib/axios";
+//   import { useState, useEffect } from "react";
+// import axios from "@/lib/axios";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
 import { useEfficiency } from "@/hooks/useAiSidekick";
@@ -47,7 +47,7 @@ const AdminEfficiency = () => {
           </div>
 
           {/* Automation Stats */}
-          <div className="flex-grow flex flex-col sm:flex-row gap-5 mt-4">
+          <div className="grow flex flex-col sm:flex-row gap-5 mt-4">
 
             {/* Tasks Automated */}
             <div className="w-full sm:w-1/2 flex flex-col">
