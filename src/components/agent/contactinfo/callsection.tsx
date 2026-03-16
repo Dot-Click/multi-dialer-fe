@@ -1,7 +1,8 @@
 import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Mic, MicOff, Pause, Play } from 'lucide-react';
 import { useTwilio } from "@/providers/twilio.provider";
+import { useLocation } from "react-router-dom";
 
 // Define the statuses to match the design (mapped from contact data if possible)
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected";
@@ -24,7 +25,19 @@ const getStatusBadgeStyle = (status: CallStatus) => {
 
 const CallSection = () => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
-  const { callStatus, resetCallStatus } = useTwilio();
+  const location = useLocation();
+  
+  // Extract custom hold recording URL passed from the settings modal
+  const holdRecordingUrl = location.state?.holdRecordingUrl;
+
+  const { 
+    callStatus, 
+    resetCallStatus, 
+    toggleHold, 
+    isHold, 
+    toggleMute, 
+    isMuted 
+  } = useTwilio();
 
   // Reset status when contact changes
   useEffect(() => {
@@ -35,6 +48,9 @@ const CallSection = () => {
   const getUiStatus = (isActive: boolean): CallStatus => {
     if (!isActive) return "Queued";
     
+    // Explicitly check isHold state first
+    if (isHold) return "On Hold";
+
     switch (callStatus) {
       case 'idle': return "Queued";
       case 'ringing': return "Ringing";
@@ -57,33 +73,68 @@ const CallSection = () => {
         {queue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
           const status = getUiStatus(isActive);
+          const showControls = isActive && (status === "Connected" || status === "On Hold");
 
           return (
              <div
                key={call.id || index}
-               className={`min-w-[240px] md:min-w-[260px] h-[190px] 
+               className={`min-w-60 md:min-w-[260px] min-h-[190px] 
                           bg-white dark:bg-slate-800 rounded-2xl border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-[#F1F3F9] dark:border-slate-700 shadow-sm'}
                           flex flex-col items-center justify-between p-6
                           transition-all duration-200`}
              >
               {/* Top Section: Name and Info */}
-              <div className="text-center space-y-2">
-                <h3 className="text-[19px] font-semibold text-[#374151] dark:text-white">
+              <div className="text-center space-y-2 w-full">
+                <h3 className="text-[19px] font-semibold text-[#374151] dark:text-white truncate">
                   {call.fullName || call.name}
                 </h3>
                 
                 <div className="flex items-center justify-center gap-2 text-[#6B7280] dark:text-gray-400">
-                  <Briefcase size={18} strokeWidth={1.5} className="text-gray-500 dark:text-gray-400" />
-                  <span className="text-[17px] font-medium tracking-tight">
+                  <Briefcase size={18} strokeWidth={1.5} className="text-gray-500 dark:text-gray-400 shrink-0" />
+                  <span className="text-[17px] font-medium tracking-tight truncate">
                     {call.phones?.[0]?.number || call.phone || "No phone"}
                   </span>
                 </div>
               </div>
 
-              {/* Bottom Section: Status Badge */}
-              <div className={`w-full py-2 rounded-full text-center text-[14px] font-semibold tracking-wide ${getStatusBadgeStyle(status)}`}>
-                {status}
+              {/* Bottom Section: Controls & Status */}
+              <div className="w-full space-y-3 mt-4">
+                
+                {/* Active Call Controls (Only shows when connected/on-hold) */}
+                {showControls && (
+                  <div className="flex items-center gap-2 w-full">
+                    <button
+                      onClick={toggleMute}
+                      title={isMuted ? "Unmute" : "Mute"}
+                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${
+                        isMuted 
+                          ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
+                      }`}
+                    >
+                      {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                    </button>
+                    
+                    <button
+                      onClick={() => toggleHold(holdRecordingUrl)}
+                      title={isHold ? "Resume Call" : "Put on Hold"}
+                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${
+                        isHold 
+                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-500' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
+                      }`}
+                    >
+                      {isHold ? <Play size={18} /> : <Pause size={18} />}
+                    </button>
+                  </div>
+                )}
+
+                {/* Status Badge */}
+                <div className={`w-full py-2 rounded-full text-center text-[14px] font-semibold tracking-wide ${getStatusBadgeStyle(status)}`}>
+                  {status}
+                </div>
               </div>
+
             </div>
           );
         })}
