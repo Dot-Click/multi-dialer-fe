@@ -7,7 +7,6 @@ import reporticon from "@/assets/reporticon.png";
 import libraryicon from "@/assets/libraryicon.png";
 import calendericon from "@/assets/calendericon.png";
 import dataicon from "@/assets/dataicon.png";
-import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "@/assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -140,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
                   ${isActive
-                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    ? "bg-[#FFCA06] font-semibold text-gray-900"
                     : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                   }`
                 }
