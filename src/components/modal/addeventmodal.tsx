@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input, Radio, DatePicker } from 'antd';
 import { IoClose } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
-import { useCalendar, type CalendarEvent, type EventType, type EventStatus } from '@/hooks/useCalendar';
+import { useCalendar, type CalendarEvent, type EventType, type EventStatus, type EventCategory } from '@/hooks/useCalendar';
 import { useUser, type User } from '@/hooks/useUser';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -33,6 +33,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
     title: '',
     description: '',
     eventType: 'START_ONLY' as EventType,
+    category: 'TASK' as EventCategory,
     startDate: null as dayjs.Dayjs | null,
     endDate: null as dayjs.Dayjs | null,
     assignToId: 'None',
@@ -53,6 +54,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
           title: event.title,
           description: event.description || '',
           eventType: event.eventType,
+          category: event.category || 'TASK',
           startDate: event.startDate ? dayjs(event.startDate) : null,
           endDate: event.endDate ? dayjs(event.endDate) : null,
           assignToId: event.assignToId || 'None',
@@ -64,6 +66,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
           title: defaultTitle || '',
           description: '',
           eventType: 'START_ONLY',
+          category: 'TASK',
           startDate: null,
           endDate: null,
           assignToId: 'None',
@@ -94,6 +97,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
         description: formData.description,
         color: formData.color,
         eventType: formData.eventType,
+        category: formData.category,
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate?.toISOString(),
         assignToId: formData.assignToId === 'None' ? undefined : formData.assignToId,
@@ -116,6 +120,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
         title: '',
         description: '',
         eventType: 'START_ONLY',
+        category: 'TASK',
         startDate: null,
         endDate: null,
         assignToId: 'None',
@@ -160,6 +165,20 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             />
+          </div>
+
+          {/* Category */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Category</label>
+            <Radio.Group
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              value={formData.category}
+              className="w-full flex gap-4"
+            >
+              <Radio value="TASK" className="dark:text-white">Task</Radio>
+              <Radio value="APPOINTMENT" className="dark:text-white">Appointment</Radio>
+              <Radio value="FOLLOW_UP" className="dark:text-white">Follow-Up</Radio>
+            </Radio.Group>
           </div>
 
           {/* Description */}

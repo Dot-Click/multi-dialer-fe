@@ -75,25 +75,25 @@ const EditModal = ({ onClose }: EditModalProps) => {
     name: string;
     placeholder?: string;
   }) => (
-    <div className="bg-[#F3F4F7] flex flex-col gap-1 px-3 py-2 rounded-lg">
-      <label className="text-[#495057] font-medium text-[12px]">{label}</label>
+    <div className="bg-[#F3F4F7] dark:bg-gray-700 flex flex-col gap-1 px-3 py-2 rounded-lg">
+      <label className="text-[#495057] dark:text-white font-medium text-[12px]">{label}</label>
       <input
         type="text"
         name={name}
         value={(formData as any)[name]}
         onChange={handleChange}
         placeholder={placeholder ?? `Enter ${label}`}
-        className="w-full placeholder:text-sm text-sm outline-none bg-transparent"
+        className="w-full placeholder:text-sm text-sm outline-none bg-transparent dark:text-white"
       />
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-3xl sm:max-w-2xl md:max-w-3xl p-5 sm:p-6 shadow-2xl relative animate-fadeIn my-auto max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-3xl sm:max-w-2xl md:max-w-3xl p-5 sm:p-6 shadow-2xl relative animate-fadeIn my-auto max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center border-b pb-3 sticky top-0 bg-white z-10">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+        <div className="flex justify-between items-center border-b pb-3 sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
             Edit Contact
           </h2>
           <button onClick={onClose} type="button">
@@ -108,7 +108,7 @@ const EditModal = ({ onClose }: EditModalProps) => {
 
           {/* Property Address */}
           <div>
-            <h3 className="text-gray-800 font-semibold mb-3 text-sm sm:text-base">
+            <h3 className="text-gray-800 dark:text-white font-semibold mb-3 text-sm sm:text-base">
               Property Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -121,7 +121,7 @@ const EditModal = ({ onClose }: EditModalProps) => {
 
           {/* Mailing Address */}
           <div>
-            <h3 className="text-gray-800 font-semibold mb-3 text-sm sm:text-base">
+            <h3 className="text-gray-800 dark:text-white font-semibold mb-3 text-sm sm:text-base">
               Mailing Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -138,7 +138,7 @@ const EditModal = ({ onClose }: EditModalProps) => {
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="bg-gray-100 w-full sm:w-1/2 hover:bg-gray-200 px-5 py-2 rounded-lg font-medium transition disabled:opacity-50"
+              className="bg-gray-100 w-full dark:bg-gray-700 dark:text-white sm:w-1/2 hover:bg-gray-200 px-5 py-2 rounded-lg font-medium transition disabled:opacity-50"
             >
               Cancel
             </button>

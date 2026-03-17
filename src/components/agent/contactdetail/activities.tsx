@@ -14,6 +14,7 @@ interface CalendarEvent {
   description: string;
   color: string;
   eventType: 'START_ONLY' | 'FROM_TO' | 'ALL_DAY';
+  category?: string;
   startDate: string;
   endDate?: string;
   contactId?: string;
@@ -25,6 +26,10 @@ interface CalendarEvent {
 
 
 const getEventCategory = (event: CalendarEvent): 'appointment' | 'task' | 'callback' => {
+  if (event.category === 'APPOINTMENT') return 'appointment';
+  if (event.category === 'FOLLOW_UP') return 'callback';
+  if (event.category === 'TASK') return 'task';
+
   const title = (event.title || '').toLowerCase();
   if (title.includes('appointment')) return 'appointment';
   if (title.includes('task')) return 'task';

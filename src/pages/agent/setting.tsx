@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FiChevronUp, FiInfo } from 'react-icons/fi';
-import { useCallerIds, useLeadSheets, useActionPlans } from '../../hooks/useSystemSettings';
+import { useCallerIds, useLeadSheets, useActionPlans, useNotificationSettings, type CallerId, type ActionPlan, type LeadSheet } from '../../hooks/useSystemSettings';
 import { authClient } from '../../lib/auth-client';
 import api from '../../lib/axios';
 import toast from 'react-hot-toast';
@@ -19,10 +19,11 @@ const Setting = () => {
   const { data: allCallerIds = [], isLoading: isLoadingCallerIds } = useCallerIds();
   const { data: leadSheets = [], isLoading: isLoadingLeadSheets } = useLeadSheets();
   const { data: actionPlans = [], isLoading: isLoadingActionPlans } = useActionPlans();
+  const { data: notificationSettings, updateNotificationSettings } = useNotificationSettings();
 
   // Filter caller IDs assigned to the current agent
   const agentCallerIds = currentAgentId
-    ? allCallerIds.filter(callerId =>
+    ? (allCallerIds as CallerId[]).filter((callerId: CallerId) =>
       callerId.agents?.some((a: any) => a.id === currentAgentId) ||
       (callerId as any).agentIds?.includes(currentAgentId)
     )
@@ -156,9 +157,12 @@ const Setting = () => {
                   className="flex items-center justify-between w-full pt-[24px] py-[32px] px-[24px] text-left"
                   onClick={() => setNotificationsOpen(!isNotificationsOpen)}
                 >
-                  <h2 className="text-[24px] -translate-x-2 inter font-medium text-[#17181B] dark:text-white">
-                    Notification Preferences
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[24px] -translate-x-2 inter font-medium text-[#17181B] dark:text-white">
+                      Notification Preferences
+                    </h2>
+                    {updateNotificationSettings.isPending && <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />}
+                  </div>
                   <FiChevronUp
                     className={`text-gray-500 transform transition-transform duration-300 ${isNotificationsOpen ? "rotate-0" : "rotate-180"}`}
                     size={20}
@@ -182,7 +186,8 @@ const Setting = () => {
                             <input
                               type="checkbox"
                               id="channel-email"
-                              defaultChecked
+                              checked={notificationSettings?.emailChannel ?? true}
+                              onChange={(e) => updateNotificationSettings.mutate({ emailChannel: e.target.checked })}
                               className="peer relative h-5 w-5 cursor-pointer appearance-none border border-black dark:border-gray-500 bg-white dark:bg-slate-700 transition-all checked:border-black checked:bg-black dark:checked:bg-yellow-400 dark:checked:border-yellow-400"
                             />
                             <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-white dark:text-black opacity-0 transition-opacity peer-checked:opacity-100">
@@ -219,7 +224,8 @@ const Setting = () => {
                             <input
                               type="checkbox"
                               id="channel-inapp"
-                              defaultChecked
+                              checked={notificationSettings?.inAppChannel ?? true}
+                              onChange={(e) => updateNotificationSettings.mutate({ inAppChannel: e.target.checked })}
                               className="peer relative h-5 w-5 cursor-pointer appearance-none border border-black dark:border-gray-500 bg-white dark:bg-slate-700 transition-all checked:border-black checked:bg-black dark:checked:bg-yellow-400 dark:checked:border-yellow-400"
                             />
                             <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-white dark:text-black opacity-0 transition-opacity peer-checked:opacity-100">
@@ -253,77 +259,30 @@ const Setting = () => {
                         <h3 className="font-medium -translate-x-2 inter text-[18px] text-[#34363B] dark:text-gray-200">
                           Reminders:
                         </h3>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            id="rem-none"
-                            name="reminders"
-                            defaultChecked
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
-                          />
-                          <label
-                            htmlFor="rem-none"
-                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
-                          >
-                            None
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            id="rem-5min"
-                            name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
-                          />
-                          <label
-                            htmlFor="rem-5min"
-                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
-                          >
-                            5 min
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            id="rem-10min"
-                            name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
-                          />
-                          <label
-                            htmlFor="rem-10min"
-                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
-                          >
-                            10 min
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            id="rem-15min"
-                            name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
-                          />
-                          <label
-                            htmlFor="rem-15min"
-                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
-                          >
-                            15 min
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            id="rem-30min"
-                            name="reminders"
-                            className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
-                          />
-                          <label
-                            htmlFor="rem-30min"
-                            className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
-                          >
-                            30 min
-                          </label>
-                        </div>
+                        {[
+                          { val: 0, label: "None" },
+                          { val: 5, label: "5 min" },
+                          { val: 10, label: "10 min" },
+                          { val: 15, label: "15 min" },
+                          { val: 30, label: "30 min" },
+                        ].map((option) => (
+                          <div key={option.val} className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              id={`rem-${option.val}`}
+                              name="reminders"
+                              checked={(notificationSettings?.reminderMinutes ?? 0) === option.val}
+                              onChange={() => updateNotificationSettings.mutate({ reminderMinutes: option.val })}
+                              className="appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                            />
+                            <label
+                              htmlFor={`rem-${option.val}`}
+                              className="cursor-pointer font-normal text-[16px] inter text-[#495057] dark:text-gray-300"
+                            >
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
                       </div>
 
                       {/* Campaign Events - Checkbox */}
@@ -341,7 +300,8 @@ const Setting = () => {
                             <input
                               type="checkbox"
                               id="event-incoming"
-                              defaultChecked
+                              checked={notificationSettings?.followUpCallEvent ?? true}
+                              onChange={(e) => updateNotificationSettings.mutate({ followUpCallEvent: e.target.checked })}
                               className="peer relative h-5 w-5 cursor-pointer appearance-none border border-black dark:border-gray-500 bg-white dark:bg-slate-700 transition-all checked:border-black checked:bg-black dark:checked:bg-yellow-400 dark:checked:border-yellow-400"
                             />
                             <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-white dark:text-black opacity-0 transition-opacity peer-checked:opacity-100">
@@ -378,7 +338,8 @@ const Setting = () => {
                             <input
                               type="checkbox"
                               id="event-scheduled"
-                              defaultChecked
+                              checked={notificationSettings?.scheduledMeetingEvent ?? true}
+                              onChange={(e) => updateNotificationSettings.mutate({ scheduledMeetingEvent: e.target.checked })}
                               className="peer relative h-5 w-5 cursor-pointer appearance-none border border-black dark:border-gray-500 bg-white dark:bg-slate-700 transition-all checked:border-black checked:bg-black dark:checked:bg-yellow-400 dark:checked:border-yellow-400"
                             />
                             <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-white dark:text-black opacity-0 transition-opacity peer-checked:opacity-100">
@@ -424,7 +385,7 @@ const Setting = () => {
                   <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
                     <input
                       type="text"
-                      value={agentCallerIds.find(c => c.id === defaultCallerId)?.twillioNumber || agentCallerIds.find(c => c.id === defaultCallerId)?.label || (agentCallerIds.length > 0 ? (defaultCallerId ? 'Default ID Mismatch' : 'Not Set') : 'No Caller ID Assigned')}
+                      value={agentCallerIds.find((c: CallerId) => c.id === defaultCallerId)?.twillioNumber || agentCallerIds.find((c: CallerId) => c.id === defaultCallerId)?.label || (agentCallerIds.length > 0 ? (defaultCallerId ? 'Default ID Mismatch' : 'Not Set') : 'No Caller ID Assigned')}
                       readOnly
                       className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-normal focus:outline-none"
                     />
@@ -445,7 +406,7 @@ const Setting = () => {
                       <p>Loading caller IDs...</p>
                     </div>
                   ) : agentCallerIds.length > 0 ? (
-                    agentCallerIds.map((callerId) => (
+                    agentCallerIds.map((callerId: CallerId) => (
                       <div key={callerId.id} className="flex items-center py-4 pl-2 rounded-lg">
                         <div className="flex items-center gap-4 w-full">
                           {/* Card */}
@@ -637,7 +598,7 @@ const Setting = () => {
                     <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
                   </div>
                 ) : actionPlans.length > 0 ? (
-                  actionPlans.map((plan) => (
+                  actionPlans.map((plan: ActionPlan) => (
                     <div key={plan.id} className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
                       <div className="flex-1">
                         <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
@@ -682,7 +643,7 @@ const Setting = () => {
                     <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
                   </div>
                 ) : leadSheets.length > 0 ? (
-                  leadSheets.map((sheet) => (
+                  leadSheets.map((sheet: LeadSheet) => (
                     <div key={sheet.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
                       <div className="flex-1">
                         <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
