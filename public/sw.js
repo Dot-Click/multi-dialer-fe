@@ -3,8 +3,8 @@ self.addEventListener('push', function (event) {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: '/bellIcon.png', // Fallback to a bell icon
-            badge: '/logo.png',
+            icon: '/images/logo.png', // Using the available logo
+            badge: '/images/favicon.svg',
             data: {
                 url: data.url || '/'
             },

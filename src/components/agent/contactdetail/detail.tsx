@@ -14,13 +14,14 @@ import { IoAddOutline } from "react-icons/io5";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
-import editcontactdetail from "../../../assets/editcontactdetail.png"
 import propertyicon from "../../../assets/propertyicon.png"
 import kiticon from "../../../assets/kiticon.png"
 import callsicon from "../../../assets/callsicon.png"
 import mobileicon from "../../../assets/mobileicon.png"
 import doticon from "../../../assets/doticon.png"
 import toast from 'react-hot-toast'
+import { TbEdit } from "react-icons/tb";
+
 
 const Detail = () => {
     const dispatch = useAppDispatch();
@@ -145,11 +146,9 @@ const Detail = () => {
                                 {currentContact.fullName || "Unnamed Contact"}
                             </h1>
                             <span className="bg-[#F7F7F7] dark:bg-gray-700 p-2 rounded-[12px]">
-                                <img
-                                    src={editcontactdetail}
+                                <TbEdit
                                     onClick={() => setShowModal(true)}
                                     className="w-[18px] object-contain cursor-pointer"
-                                    alt="edit"
                                 />
                             </span>
                         </div>

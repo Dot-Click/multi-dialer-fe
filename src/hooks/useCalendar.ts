@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../lib/axios';
 
 export type EventType = 'START_ONLY' | 'FROM_TO' | 'ALL_DAY';
+export type EventCategory = 'TASK' | 'APPOINTMENT' | 'FOLLOW_UP';
 export type EventStatus = 'SET' | 'MET' | 'CANCELLED';
 
 export interface CalendarEvent {
@@ -10,6 +11,7 @@ export interface CalendarEvent {
     description?: string;
     color: string;
     eventType: EventType;
+    category: EventCategory;
     startDate: string;
     endDate?: string;
     status: EventStatus;
@@ -36,6 +38,7 @@ export interface CreateCalendarEventPayload {
     description?: string;
     color: string;
     eventType: EventType;
+    category?: EventCategory;
     startDate: string;
     endDate?: string;
     status?: EventStatus;
