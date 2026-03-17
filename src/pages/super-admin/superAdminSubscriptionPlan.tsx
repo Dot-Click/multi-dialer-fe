@@ -1,8 +1,8 @@
 import settingicon from "@/assets/settingicon.png";
-import FailedPayment from "@/components/super-admin/subscription/failedPayment";
+// import FailedPayment from "@/components/super-admin/subscription/failedPayment";
 import SubscriptionCard from "@/components/super-admin/subscription/subscriptionCard";
 import SubscriptionTable from "@/components/super-admin/subscription/subscriptionTable";
-import UpcomingRenewals from "@/components/super-admin/subscription/upcominRenewals";
+// import UpcomingRenewals from "@/components/super-admin/subscription/upcominRenewals";
 
 const SuperAdminSubscriptionPlan = () => {
   return (
@@ -21,11 +21,11 @@ const SuperAdminSubscriptionPlan = () => {
       </div>
 
       <SubscriptionCard />
-
+{/* 
       <div className="flex gap-4 flex-col md:flex-row justify-between items-center">
         <FailedPayment />
         <UpcomingRenewals />
-      </div>
+      </div> */}
 
       <SubscriptionTable />
     </section>

@@ -10,6 +10,9 @@ import {
 } from '@/utils/push-notification';
 import api from '@/lib/axios';
 import { toast } from 'react-hot-toast';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createCompanySetting } from '@/store/slices/companySettingSlice';
+import Loader from '@/components/common/Loader';
 
 /* ---------- Types ---------- */
 
@@ -19,10 +22,7 @@ type ToggleKey =
   | 'criticalErrors';
 
 type EmailKey =
-  | 'dailySummary'
-  | 'weeklyReport'
   | 'newUser'
-  | 'subscriptionChanges'
   | 'securityAlerts';
 
 type ToggleProps = {
@@ -48,18 +48,20 @@ const NotificationSetting = () => {
 
   // State for Checkboxes
   const [emails, setEmails] = useState<Record<EmailKey, boolean>>({
-    dailySummary: true,
-    weeklyReport: true,
     newUser: false,
-    subscriptionChanges: true,
     securityAlerts: true,
   });
+
+  const [recipientEmail, setRecipientEmail] = useState('');
 
   const [isUpdating, setIsUpdating] = useState<Record<ToggleKey, boolean>>({
     failedPayment: false,
     renewalReminders: false,
     criticalErrors: false,
   });
+
+  const dispatch = useAppDispatch();
+  const { loading: isCompanyLoading } = useAppSelector((state) => state.companySetting);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -98,7 +100,6 @@ const NotificationSetting = () => {
           }
         } else {
           // Attempting to turn OFF
-          // Note: Unsubscribing usually turns off all push from this origin
           const success = await unsubscribeFromPush(api);
           if (success) {
             setToggles(prev => ({ ...prev, criticalErrors: false }));
@@ -120,6 +121,33 @@ const NotificationSetting = () => {
 
   const handleCheckbox = (key: EmailKey) => {
     setEmails((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = () => {
+    handleSaveEmailPreferences(); // Reuse the same logic since it sends all relevant fields
+  };
+
+  const handleSaveEmailPreferences = () => {
+    const data = {
+      email: recipientEmail,
+      newUserSignup: emails.newUser,
+      loginAlerts: emails.securityAlerts,
+      notifyFailedPayment: toggles.failedPayment,
+      notifyUpcomingRenewal: toggles.renewalReminders,
+      notifyCriticalError: toggles.criticalErrors,
+      companyName: "My Business", // Required as per example
+    };
+
+    console.log("Saving Email Preferences:", data);
+    
+    dispatch(createCompanySetting(data))
+      .unwrap()
+      .then((res) => {
+        toast.success(res.message || "Settings updated successfully");
+      })
+      .catch((err) => {
+        toast.error(err || "Failed to update settings");
+      });
   };
 
   // Custom Toggle Component
@@ -162,11 +190,22 @@ const NotificationSetting = () => {
     </div>
   );
 
+  const isEmailInputEnabled = emails.newUser || emails.securityAlerts;
+
   return (
-    <div className="bg-white dark:bg-slate-800 p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
-      <h2 className="text-[18px] font-[500] inter text-[#343434] dark:text-white mb-8">
-        Notifications Settings
-      </h2>
+    <div className="relative bg-white dark:bg-slate-800 p-4 work-sans md:px-8 md:py-[23px] rounded-[22px] shadow-sm w-full max-w-full mx-auto">
+      {isCompanyLoading && <Loader />}
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-[18px] font-[500] inter text-[#343434] dark:text-white">
+          Notifications Settings
+        </h2>
+        <button 
+          onClick={handleSave}
+          className="bg-[#2B3034] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[#1a1e21] transition-colors"
+        >
+          Save
+        </button>
+      </div>
 
       {/* --- System Alerts Section --- */}
       <div className="mb-8">
@@ -257,30 +296,49 @@ const NotificationSetting = () => {
 
         <div className="space-y-3.5 ml-3">
           <CustomCheckbox
-            label="Daily activity summary"
-            active={emails.dailySummary}
-            onClick={() => handleCheckbox('dailySummary')}
-          />
-          <CustomCheckbox
-            label="Weekly performance report"
-            active={emails.weeklyReport}
-            onClick={() => handleCheckbox('weeklyReport')}
-          />
-          <CustomCheckbox
             label="New user signups"
             active={emails.newUser}
             onClick={() => handleCheckbox('newUser')}
-          />
-          <CustomCheckbox
-            label="Subscription changes and cancellations"
-            active={emails.subscriptionChanges}
-            onClick={() => handleCheckbox('subscriptionChanges')}
           />
           <CustomCheckbox
             label="Security and login alerts"
             active={emails.securityAlerts}
             onClick={() => handleCheckbox('securityAlerts')}
           />
+        </div>
+
+        {/* Send To Input Section */}
+        <div className={`flex mt-6 items-center gap-4 transition-opacity duration-200 ${isEmailInputEnabled ? 'opacity-100' : 'opacity-50'}`}>
+          <div className="flex flex-col gap-1">
+            <label className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
+              Send To
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="email"
+                placeholder="Enter email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                disabled={!isEmailInputEnabled}
+                className={`w-48 px-0 py-1 border-b text-[13px] transition-all outline-none ${
+                  isEmailInputEnabled 
+                    ? 'border-b-gray-300 focus:border-[#2B3034] bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white' 
+                    : 'border-b-gray-200 bg-gray-50 cursor-not-allowed dark:bg-slate-800 dark:border-slate-700'
+                }`}
+              />
+              <button
+                onClick={handleSaveEmailPreferences}
+                disabled={!isEmailInputEnabled}
+                className={`px-3 py-1 rounded text-[12px] font-medium transition-colors ${
+                  isEmailInputEnabled
+                    ? 'bg-[#FFCA06] text-black hover:bg-[#e6b605]'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

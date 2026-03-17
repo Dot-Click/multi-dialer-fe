@@ -31,8 +31,6 @@ const Notifications: React.FC = () => {
     const [appointmentReminderEmail, setAppointmentReminderEmail] = useState('');
 
     const [callActivityReportEnabled, setCallActivityReportEnabled] = useState(false);
-    const [sessionSummaryReportEnabled, setSessionSummaryReportEnabled] = useState(false);
-    const [includeAgentsNoActivityEnabled, setIncludeAgentsNoActivityEnabled] = useState(false);
     const [dailyReportEmail, setDailyReportEmail] = useState('');
 
     const [appointmentNotificationsEnabled, setAppointmentNotificationsEnabled] = useState(false);
@@ -43,8 +41,6 @@ const Notifications: React.FC = () => {
             setAppointmentReminderEnabled(remoteSettings.enableAppointmentReminders);
             setAppointmentReminderEmail(remoteSettings.appointmentReminderEmail || '');
             setCallActivityReportEnabled(remoteSettings.enableCallActivityReport);
-            setSessionSummaryReportEnabled(remoteSettings.enableSessionSummaryReport);
-            setIncludeAgentsNoActivityEnabled(remoteSettings.includeAgentsWithNoActivity);
             setDailyReportEmail(remoteSettings.dailyCallReportEmail || '');
             setAppointmentNotificationsEnabled(remoteSettings.enableAppointmentNotifications);
             setComplianceAlertsEnabled(remoteSettings.enableComplianceAlerts);
@@ -56,8 +52,6 @@ const Notifications: React.FC = () => {
             enableAppointmentReminders: appointmentReminderEnabled,
             appointmentReminderEmail,
             enableCallActivityReport: callActivityReportEnabled,
-            enableSessionSummaryReport: sessionSummaryReportEnabled,
-            includeAgentsWithNoActivity: includeAgentsNoActivityEnabled,
             dailyCallReportEmail: dailyReportEmail,
             enableAppointmentNotifications: appointmentNotificationsEnabled,
             enableComplianceAlerts: complianceAlertsEnabled
@@ -113,18 +107,16 @@ const Notifications: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Daily Call Reports */}
+                {/* Call Analysis */}
                 <div className="mb-10 pt-4">
-                    <h3 className="text-[15px] font-bold mb-1 dark:text-gray-200">Daily Call Reports</h3>
+                    <h3 className="text-[15px] font-bold mb-1 dark:text-gray-200">Call Analysis</h3>
                     <p className="text-[13px] text-[#848C94] dark:text-gray-400 leading-relaxed max-w-2xl mb-4">
-                        Receive a daily summary of your team's calling activity by email. Choose which reports to include,
-                        where to send them, and whether to show agents with no activity. Emails are delivered the following day at 8:00 AM.
+                        Receive a summary of your call analysis by email,
+                        where to send them.
                     </p>
 
                     <div className="space-y-1">
-                        <ToggleSwitch label="Enable Call Activity Report" enabled={callActivityReportEnabled} onChange={setCallActivityReportEnabled} />
-                        <ToggleSwitch label="Enable Session Summary Report" enabled={sessionSummaryReportEnabled} onChange={setSessionSummaryReportEnabled} />
-                        <ToggleSwitch label="Enable Include Agents with No Activity" enabled={includeAgentsNoActivityEnabled} onChange={setIncludeAgentsNoActivityEnabled} />
+                        <ToggleSwitch label="Enable Call Analysis" enabled={callActivityReportEnabled} onChange={setCallActivityReportEnabled} />
                     </div>
 
                     <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
