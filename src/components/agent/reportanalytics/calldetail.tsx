@@ -1,7 +1,6 @@
 import React from "react";
 import { Box } from "@/components/ui/box";
 import { TableProvider } from "@/providers/table.provider";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaChevronDown } from "react-icons/fa";
 import callsicon from "../../../assets/callsicon.png";
 import { TableComponent } from "@/components/common/tablecomponent";
@@ -114,27 +113,33 @@ const columns = [
 
 interface CallDetailProps {
   userId?: string;
+  selectedResult?: string;
 }
 
 // ----------------------
 // Main Component
 // ----------------------
-const CallDetail: React.FC<CallDetailProps> = ({ userId }) => {
+const CallDetail: React.FC<CallDetailProps> = ({ userId, selectedResult }) => {
   const { data, loading, getCallDetails, pagination } = useCallDetailsReport();
 
   useEffect(() => {
     getCallDetails({ userId });
   }, [userId, getCallDetails]);
 
-  const tableData: CallRow[] = data.map((item) => ({
-    id: item.id,
-    name: item.name,
-    address: item.address,
-    list: item.list,
-    group: item.group,
-    phone: item.phoneNumber,
-    result: item.result,
-  }));
+  const tableData: CallRow[] = data
+    .filter((item) => {
+      if (!selectedResult || selectedResult === "All Result") return true;
+      return item.result.toLowerCase() === selectedResult.toLowerCase();
+    })
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      address: item.address,
+      list: item.list,
+      group: item.group,
+      phone: item.phoneNumber,
+      result: item.result,
+    }));
   return (
     <Box className="mt-3 flex flex-col gap-2 w-full h-full">
       <style>
@@ -196,7 +201,7 @@ const CallDetail: React.FC<CallDetailProps> = ({ userId }) => {
   `}
       </style>
 
-      {/* Filters */}
+      {/* Filters
       <div className="flex items-center gap-3 mb-2 w-full filters-wrapper">
         <div className="border border-[#D8DCE1] dark:border-slate-700 dark:bg-slate-800 rounded-[12px] px-[16px] h-[40px] flex justify-between w-[210px] items-center gap-2 cursor-pointer">
           <span className="text-[16px] dark:text-gray-200">Caller ID: All</span>
@@ -221,7 +226,7 @@ const CallDetail: React.FC<CallDetailProps> = ({ userId }) => {
           </span>
           <FaChevronDown className="text-[13px] text-[#71717A] dark:text-gray-400" />
         </div>
-      </div>
+      </div> */}
 
       {/* Table */}
       <div className="responsive-table-wrapper">

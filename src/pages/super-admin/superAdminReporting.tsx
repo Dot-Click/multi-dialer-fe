@@ -4,18 +4,20 @@ import downarrow from "@/assets/downarrow.png";
 import { PiDownloadSimpleBold } from "react-icons/pi";
 import BussinessOverviews from "@/components/super-admin/reporting/bussinessOverviews";
 import RevenueByPlan from "@/components/super-admin/reporting/revenueByPlan";
-import SubscriptionDistribution from "@/components/super-admin/reporting/subscrptionDistribution";
-import MonthlyRecurring from "@/components/super-admin/reporting/monthlyRecurring";
-import SubscriptionGrowth from "@/components/super-admin/reporting/subscriptionGrowth";
-import Data from "@/components/super-admin/reporting/data";
-import SubscritpionSecond from "@/components/super-admin/reporting/subscritpionSecond";
+import SubscriptionDistribution from "@/components/super-admin/home/subscriptionDistribution";
+// import MonthlyRecurring from "@/components/super-admin/reporting/monthlyRecurring";
+// import SubscriptionGrowth from "@/components/super-admin/reporting/subscriptionGrowth";
+// import Data from "@/components/super-admin/reporting/data";
+// import SubscritpionSecond from "@/components/super-admin/reporting/subscritpionSecond";
 import UserUsageOverview from "@/components/super-admin/reporting/userUsageOverview";
-import GeneratingReports from "@/components/super-admin/reporting/generatingReports";
+import { useAppSelector } from "@/store/hooks";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const SuperAdminReporting = () => {
   // States for Dates
-  const [fromDate, setFromDate] = useState("01/01/2025");
-  const [toDate, setToDate] = useState("12/31/2025");
+  const [fromDate, setFromDate] = useState("Select Date");
+  const [toDate, setToDate] = useState("Select Date");
 
   // Refs for hidden date inputs
   const fromInputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +26,7 @@ const SuperAdminReporting = () => {
   // States for Dropdowns
   const [selectedPlan, setSelectedPlan] = useState("All Plans");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [searchTerm, setSearchTerm] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
 
@@ -48,6 +51,85 @@ const SuperAdminReporting = () => {
     if (!dateStr) return "";
     const [year, month, day] = dateStr.split("-");
     return `${month}/${day}/${year}`;
+  };
+
+  const { subscriptions } = useAppSelector((state) => state.subscriptions);
+
+  const filteredData = subscriptions.filter((item) => {
+    const fullName = item.user?.fullName || "";
+    const email = item.user?.email || "";
+    const matchesSearch =
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.plan.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesPlan =
+      !selectedPlan ||
+      selectedPlan === "All Plans" ||
+      item.plan.toUpperCase() === selectedPlan.toUpperCase();
+
+    const matchesStatus =
+      !selectedStatus ||
+      selectedStatus === "All Status" ||
+      item.status.toUpperCase() === selectedStatus.toUpperCase();
+
+    let matchesDate = true;
+    if (fromDate && toDate && fromDate !== "Select Date" && toDate !== "Select Date") {
+      const createdDate = new Date(item.createdAt);
+      const start = new Date(fromDate);
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999);
+      matchesDate = createdDate >= start && createdDate <= end;
+    }
+
+    return matchesSearch && matchesPlan && matchesStatus && matchesDate;
+  });
+
+  const handleExportCSV = () => {
+    const headers = ["User Name", "Plan", "Agent Count", "MRRR", "Status", "Date"];
+    const csvRows = [
+      headers.join(","),
+      ...filteredData.map((row) => [
+        `"${row.user?.fullName || "N/A"}"`,
+        `"${row.plan}"`,
+        row.usersCount,
+        row.amount || 0,
+        `"${row.status}"`,
+        `"${new Date(row.createdAt).toLocaleDateString()}"`,
+      ].join(",")),
+    ];
+
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `reporting_${new Date().toLocaleDateString()}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("User Usage Overview Report", 14, 15);
+    
+    const tableData = filteredData.map((row) => [
+      row.user?.fullName || "N/A",
+      row.plan,
+      row.usersCount,
+      `$${row.amount || 0}`,
+      row.status,
+      new Date(row.createdAt).toLocaleDateString(),
+    ]);
+
+    autoTable(doc, {
+      head: [["User Name", "Plan", "Agent Count", "MRRR", "Status", "Date"]],
+      body: tableData,
+      startY: 20,
+    });
+
+    doc.save(`reporting_${new Date().toLocaleDateString()}.pdf`);
   };
 
   return (
@@ -184,12 +266,18 @@ const SuperAdminReporting = () => {
 
             {/* Export Buttons */}
             <div className="flex items-center gap-3 lg:ml-7 work-sans">
-              <button className="bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white px-[24px] py-2 rounded-[12px] flex gap-2 items-center justify-center">
+              <button 
+                onClick={handleExportCSV}
+                className="bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white px-[24px] py-2 rounded-[12px] flex gap-2 items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+              >
                 <span className="text-[13px] md:text-[13.5px] lg:text-[14px] xl:text-[16px] font-[500] whitespace-nowrap">
                   Export CSV
                 </span>
               </button>
-              <button className="bg-[#FFCA06] whitespace-nowrap text-[#000000] px-[24px] py-2 rounded-[12px] flex gap-2 items-center justify-center">
+              <button 
+                onClick={handleExportPDF}
+                className="bg-[#FFCA06] whitespace-nowrap text-[#000000] px-[24px] py-2 rounded-[12px] flex gap-2 items-center justify-center cursor-pointer hover:bg-yellow-500 transition-colors"
+              >
                 <span className="text-[13px] md:text-[13.5px] lg:text-[14px] xl:text-[16px] font-[500]">
                   <PiDownloadSimpleBold />
                 </span>
@@ -208,16 +296,23 @@ const SuperAdminReporting = () => {
         <RevenueByPlan />
         <SubscriptionDistribution />
       </div>
-      <div className="flex gap-3 flex-col md:flex-row justify-start items-center">
+      {/* <div className="flex gap-3 flex-col md:flex-row justify-start items-center">
         <MonthlyRecurring />
         <SubscriptionGrowth />
       </div>
       <div className="flex gap-3 flex-col md:flex-row justify-start items-center">
         <Data />
         <SubscritpionSecond />
-      </div>
-      <UserUsageOverview />
-      <GeneratingReports />
+      </div> */}
+      <UserUsageOverview
+        fromDate={fromDate}
+        toDate={toDate}
+        selectedPlan={selectedPlan}
+        selectedStatus={selectedStatus}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+      {/* <GeneratingReports />  */}
     </section>
   );
 };

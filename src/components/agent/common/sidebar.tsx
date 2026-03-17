@@ -10,7 +10,8 @@ import dataicon from "@/assets/dataicon.png";
 import exiticon from "@/assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
+import { signout } from "@/store/slices/authSlice";
+import Loader from "@/components/common/Loader";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { mode } = useAppSelector((state) => state.theme);
+  const { loading } = useAppSelector((state) => state.auth);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -45,8 +48,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signout());
     navigate("/agent/login");
   };
 
@@ -70,6 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
+      {loading && <Loader />}
       {/* MOBILE TOGGLE ICON */}
       {isMobile && !isOpen && (
         <button

@@ -10,14 +10,26 @@ interface SessionProps {
 
 const Session: React.FC<SessionProps> = ({ userId }) => {
   const [openRow, setOpenRow] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+
   const { loading, error, data, pagination, getSessionReport } =
     useSessionReport();
   const [page, setPage] = useState(1);
   const limit = 20;
 
   useEffect(() => {
-    getSessionReport({ userId, page, limit });
-  }, [getSessionReport, userId, page, limit]);
+    getSessionReport({
+      userId,
+      page,
+      limit,
+      startDate: selectedDate
+        ? dayjs(selectedDate).startOf("day").toISOString()
+        : undefined,
+      endDate: selectedDate
+        ? dayjs(selectedDate).endOf("day").toISOString()
+        : undefined,
+    });
+  }, [getSessionReport, userId, page, limit, selectedDate]);
 
   const handleRowClick = (id: string) => {
     setOpenRow(openRow === id ? null : id);
@@ -49,10 +61,45 @@ const Session: React.FC<SessionProps> = ({ userId }) => {
     <div className="min-h-screen py-2 flex flex-col gap-2">
       {/* Date Filter & Pagination */}
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center w-fit gap-[16px] border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] px-[16px] h-[40px] cursor-pointer">
-          <IoIosArrowBack className="text-[13px] text-[#71717A] dark:text-gray-400" />
-          <span className="text-[16px] dark:text-gray-200">All Dates</span>
-          <IoIosArrowForward className="text-[13px] text-[#71717A] dark:text-gray-400" />
+        <div className="flex items-center w-fit gap-[12px] border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] px-[16px] h-[40px] bg-white dark:bg-slate-800">
+          <IoIosArrowBack
+            className="text-[13px] text-[#71717A] dark:text-gray-400 cursor-pointer"
+            onClick={() => {
+              if (selectedDate) {
+                const prevDate = dayjs(selectedDate)
+                  .subtract(1, "day")
+                  .format("YYYY-MM-DD");
+                setSelectedDate(prevDate);
+              }
+            }}
+          />
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="bg-transparent border-none outline-none text-[16px] dark:text-gray-200 cursor-pointer w-[130px] custom-date-input"
+          />
+          <IoIosArrowForward
+            className="text-[13px] text-[#71717A] dark:text-gray-400 cursor-pointer"
+            onClick={() => {
+              if (selectedDate) {
+                const nextDate = dayjs(selectedDate)
+                  .add(1, "day")
+                  .format("YYYY-MM-DD");
+                setSelectedDate(nextDate);
+              } else {
+                setSelectedDate(dayjs().format("YYYY-MM-DD"));
+              }
+            }}
+          />
+          {selectedDate && (
+            <button
+              onClick={() => setSelectedDate("")}
+              className="text-xs text-red-500 hover:text-red-600 transition"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
