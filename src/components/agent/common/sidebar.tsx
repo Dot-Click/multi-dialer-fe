@@ -65,9 +65,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 6, name: "Settings", link: "/settings", icon: settingicon },
   ];
 
-  const bottomLinks = [
-    { id: 1, name: "Training", link: "/training", icon: trainingicon },
-  ];
+  // const bottomLinks = [
+  //   { id: 1, name: "Training", link: "/training", icon: trainingicon },
+  // ];
 
   return (
     <>
@@ -159,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* 🔹 BOTTOM LINKS — STICK TO BOTTOM */}
         <div className="flex flex-col border-t border-gray-200 dark:border-slate-800 px-3 py-4 gap-1">
-          {bottomLinks.map((blink) => (
+          {/* {bottomLinks.map((blink) => (
             <NavLink
               key={blink.id}
               to={blink.link}
@@ -180,9 +180,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-[12px] font-medium">{blink.name}</span>
               )}
             </NavLink>
-          ))}
+          ))} */}
 
-          {/* EXIT BUTTON */}
+       
           <button
             onClick={handleLogout}
             className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 dark:text-slate-300 hover:text-white transition-all

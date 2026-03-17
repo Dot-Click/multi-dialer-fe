@@ -606,9 +606,19 @@ export default function CustomCalendar() {
   }, []);
 
   const myEvents = useMemo(() => {
-    if (!session?.user?.id) return events;
-    return events.filter(e => e.assignToId === session.user.id || e.assignById === session.user.id);
-  }, [events, session?.user?.id]);
+    let filtered = events;
+    if (session?.user?.id) {
+      filtered = events.filter(e => e.assignToId === session.user.id || e.assignById === session.user.id);
+    }
+
+    return filtered.filter(e => {
+      const category = e.category || 'TASK';
+      if (category === 'TASK' && !filters.task) return false;
+      if (category === 'APPOINTMENT' && !filters.appointments) return false;
+      if (category === 'FOLLOW_UP' && !filters.followUpCalls) return false;
+      return true;
+    });
+  }, [events, session?.user?.id, filters]);
 
   const groupedEvents = useMemo(() => groupEventsByDate(myEvents), [myEvents]);
 
@@ -660,7 +670,12 @@ export default function CustomCalendar() {
               style={{ backgroundColor: it.color }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-gray-700 truncate">{it.title}</p>
+              <div className="flex items-center gap-1.5">
+               <p className="font-medium text-gray-700 truncate">{it.title}</p>
+               <span className="text-[9px] px-1 bg-gray-100 text-gray-500 rounded border border-gray-200 uppercase font-bold">
+                  {it.category?.replace('_', ' ')}
+                </span>
+              </div>
               <p className="text-gray-500 truncate">{formatEventTime(it)}</p>
             </div>
           </div>
@@ -717,7 +732,7 @@ export default function CustomCalendar() {
 
       {/* ------- calendar ------- */}
       <ConfigProvider locale={enGB}>
-        <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm border border-gray-200 overflow-x-auto relative">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-2 sm:p-4 shadow-sm border border-gray-200 overflow-x-auto relative">
           {loading && <Loader />}
           <Calendar
             value={currentDate}
@@ -869,6 +884,10 @@ export default function CustomCalendar() {
                   </span>
                   <span className="text-gray-400">|</span>
                   <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
+                  <span className="text-gray-400">|</span>
+                  <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded border border-blue-100 uppercase">
+                    {selectedEvent?.category?.replace('_', ' ')}
+                  </span>
                   {selectedEvent?.status === 'MET' && (
                     <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">
                       Completed

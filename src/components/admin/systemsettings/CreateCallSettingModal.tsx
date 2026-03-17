@@ -163,7 +163,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 onHoldRecording2Id: onHoldRecording2 || undefined,
                 ivrRecordingId: ivrRecording || undefined,
                 answeringMachineRecordingId: answeringMachineRecording || undefined,
-                // callScriptId: selectedScript || undefined,
+                callScriptId: selectedScript || undefined,
             };
 
             if (editId) {
@@ -387,11 +387,12 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                             Cancel
                         </button>
                         <button onClick={
-                            () => navigate("/contact-info", {
+                        () => navigate(role === "ADMIN" ? "/admin/contact-info" : "/contact-info", {
                                 state: {
                                     contacts: selectedContacts,
                                     callerIds: selectedCallerIds,
-                                    numberOfLines: parseInt(noOfLines)
+                                    numberOfLines: parseInt(noOfLines),
+                                    selectedScript: selectedScript || undefined,
                                 }
                             })
                         } className="bg-[#FECD56] hover:bg-[#F0D500] px-4 text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all ">

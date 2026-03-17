@@ -302,7 +302,7 @@ const ContactDetailHeader = () => {
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-1.5 sm:gap-2">
 
-          <button className="border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <button onClick={() => navigate(-1)} className="border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
             <IoCloseOutline className="text-gray-700 dark:text-white text-lg" />
           </button>
         </div>

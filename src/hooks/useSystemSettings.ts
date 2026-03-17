@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/axios";
+import toast from "react-hot-toast";
 
 // --- Types ---
 
@@ -138,7 +139,58 @@ export interface NotificationSettings {
   dailyCallReportEmail?: string;
   enableAppointmentNotifications: boolean;
   enableComplianceAlerts: boolean;
+  emailChannel: boolean;
+  inAppChannel: boolean;
+  reminderMinutes: number;
+  followUpCallEvent: boolean;
+  scheduledMeetingEvent: boolean;
 }
+
+export interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const useNotifications = () => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async (): Promise<Notification[]> => {
+      const response = await api.get("/notification");
+      return response.data.data || [];
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.put(`/notification/mark-read/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      await api.put("/notification/mark-all-read");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  return {
+    ...query,
+    markRead: markReadMutation,
+    markAllRead: markAllReadMutation,
+  };
+};
 
 export interface AppearanceSettings {
   id: string;
@@ -393,7 +445,7 @@ export const useLeadSheets = () => {
       id,
       data,
     }: {
-      id: string;  
+      id: string;
       data: Partial<LeadSheet>;
     }) => {
       const response = await api.put(`/system-settings/lead-sheet/${id}`, data);
@@ -429,19 +481,28 @@ export const useNotificationSettings = () => {
   const query = useQuery({
     queryKey: ["notification-settings"],
     queryFn: async (): Promise<NotificationSettings | null> => {
-      const response = await api.get("/system-settings/notification/all");
-      return response.data.data || response.data;
+      try {
+        const response = await api.get("/system-settings/notification");
+        return response.data.data || response.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) return null;
+        throw error;
+      }
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<NotificationSettings>) => {
-      const response = await api.put("/system-settings/notification", data);
+      const response = await api.post("/system-settings/notification", data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-settings"] });
+      toast.success("Notification settings updated");
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update notification settings");
+    }
   });
 
   return {
