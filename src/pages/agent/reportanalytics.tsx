@@ -39,7 +39,7 @@ const ReportAnalytics = () => {
     <div className=" min-h-screen pb-7  mr-10">
       <div className="flex flex-col gap-4">
         {/* Page Header */}
-        <h1 className="text-[28px] font-medium text-[#0E1011] ">
+        <h1 className="text-[28px] dark:text-white font-medium text-[#0E1011] ">
           Reports
         </h1>
 

@@ -1,14 +1,47 @@
+import { useEffect } from "react";
 import vector from "@/assets/Vector.png";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getBusinessOverview } from "@/store/slices/reportsSlice";
+import Loader from "@/components/common/Loader";
 
 const BussinessOverviews = () => {
+  const dispatch = useAppDispatch();
+  const { businessOverview, loading } = useAppSelector((state) => state.reports);
+
+  useEffect(() => {
+    dispatch(getBusinessOverview());
+  }, [dispatch]);
+
   const data = [
-    { id: 1, name: "Total Revenue (MRR)", number: "$284,590" },
-    { id: 2, name: "Active Subscriptions", number: "1,247" },
-    { id: 3, name: "Active Users", number: "342" },
-    { id: 4, name: "Total Agents Across Platform", number: "8,456" },
-    { id: 5, name: "Failed Payments", number: "23" },
-    { id: 6, name: "Renewals Due (30 days)", number: "156" },
+    {
+      id: 1,
+      name: "Total Revenue (MRR)",
+      number: `$${businessOverview?.totalRevenue?.toLocaleString() || 0}`,
+    },
+    {
+      id: 2,
+      name: "Active Subscriptions",
+      number: businessOverview?.activeSubscriptions?.toLocaleString() || 0,
+    },
+    {
+      id: 3,
+      name: "Active Users",
+      number: businessOverview?.activeUsers?.toLocaleString() || 0,
+    },
+    {
+      id: 4,
+      name: "Total Agents Across Platform",
+      number: businessOverview?.totalAgents?.toLocaleString() || 0,
+    },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[120px]">
+        <Loader fullPage={false} />
+      </div>
+    );
+  }
 
   return (
     <section className="bg-white dark:bg-slate-800 outfit rounded-[13.48px] shadow-sm px-[12px] py-[14px] lg:px-[28px] w-full lg:py-[24px]">
@@ -24,7 +57,7 @@ const BussinessOverviews = () => {
           </span>
         </div>
 
-        <div className="flex items-center  justify-around gap-3 md:gap-5 lg:gap-7">
+        <div className="flex items-center justify-around gap-3 md:gap-5 lg:gap-7">
           {data.map((dt, index) => (
             <div
               key={dt.id}

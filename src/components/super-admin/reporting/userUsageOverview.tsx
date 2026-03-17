@@ -1,89 +1,91 @@
+import {  useEffect } from "react";
 import searchIcon from "@/assets/searchIcon.png";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getAllSubscriptions } from "@/store/slices/subscriptionSlice";
+import Loader from "@/components/common/Loader";
 
-const billingData = [
-  {
-    name: "Sarah Johnson",
-    plan: "Enterprise",
-    agentCount: 18,
-    mrrr: "$540",
-    status: "Suspended",
-    renewal: "Jan 10, 2025",
-  },
-  {
-    name: "Sarah Johnson",
-    plan: "Professional",
-    agentCount: 24,
-    mrrr: "$960",
-    status: "Active",
-    renewal: "Dec 20, 2024",
-  },
-  {
-    name: "Michael Chen",
-    plan: "Starter",
-    agentCount: 32,
-    mrrr: "$2,240",
-    status: "Active",
-    renewal: "Feb 5, 2025",
-  },
-  {
-    name: "Emily Davis",
-    plan: "Enterprise",
-    agentCount: 67,
-    mrrr: "$2,680",
-    status: "Active",
-    renewal: "Jan 18, 2025",
-  },
-  {
-    name: "Robert Wilson",
-    plan: "Professional",
-    agentCount: 78,
-    mrrr: "$3,120",
-    status: "Active",
-    renewal: "Feb 28, 2025",
-  },
-  {
-    name: "Jessica Martinez",
-    plan: "Starter",
-    agentCount: 89,
-    mrrr: "$3,560",
-    status: "Active",
-    renewal: "Jan 28, 2025",
-  },
-  {
-    name: "David Brown",
-    plan: "Enterprise",
-    agentCount: 123,
-    mrrr: "$5,600",
-    status: "Active",
-    renewal: "Feb 12, 2025",
-  },
-  {
-    name: "Lisa Anderson",
-    plan: "Professional",
-    agentCount: 132,
-    mrrr: "$9,450",
-    status: "Active",
-    renewal: "Mar 10, 2025",
-  },
-];
+interface UserUsageOverviewProps {
+  fromDate?: string;
+  toDate?: string;
+  selectedPlan?: string;
+  selectedStatus?: string;
+  searchTerm?: string;
+  setSearchTerm?: (val: string) => void;
+}
 
-const UserUsageOverview = () => {
-  // Status color helper (extended for Suspended)
+const UserUsageOverview = ({
+  fromDate,
+  toDate,
+  selectedPlan,
+  selectedStatus,
+  searchTerm = "",
+  setSearchTerm,
+}: UserUsageOverviewProps) => {
+  const dispatch = useAppDispatch();
+  const { subscriptions, loading } = useAppSelector((state) => state.subscriptions);
+
+  useEffect(() => {
+    dispatch(getAllSubscriptions());
+  }, [dispatch]);
+
+  // Status color helper
   const getStatusStyles = (status: string) => {
-    switch (status) {
-      case "Active":
+    switch (status?.toUpperCase()) {
+      case "ACTIVE":
         return "bg-[#1D2C45] text-[#fff]";
-      case "Suspended":
-        return "bg-[#D4183D] text-[#fff]"; // red like overdue - matches most designs
+      case "EXPIRED":
+      case "SUSPENDED":
+        return "bg-[#D4183D] text-[#fff]";
       default:
         return "bg-gray-100 text-gray-600";
     }
   };
 
+  const filteredData = subscriptions.filter((item) => {
+    const fullName = item.user?.fullName || "";
+    const email = item.user?.email || "";
+    const matchesSearch =
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.plan.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesPlan =
+      !selectedPlan ||
+      selectedPlan === "All Plans" ||
+      item.plan.toUpperCase() === selectedPlan.toUpperCase();
+
+    const matchesStatus =
+      !selectedStatus ||
+      selectedStatus === "All Status" ||
+      item.status.toUpperCase() === selectedStatus.toUpperCase();
+
+    // Date filtering
+    let matchesDate = true;
+    if (fromDate && toDate && fromDate !== "Select Date" && toDate !== "Select Date") {
+      const createdDate = new Date(item.createdAt);
+      const start = new Date(fromDate);
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999); // Set to end of day
+      matchesDate = createdDate >= start && createdDate <= end;
+    }
+
+    return matchesSearch && matchesPlan && matchesStatus && matchesDate;
+  });
+
+  const totalMRRR = filteredData.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+
+  if (loading && subscriptions.length === 0) {
+    return (
+      <div className="w-full bg-white dark:bg-slate-800 rounded-[16.54px] p-10 flex justify-center items-center h-[300px]">
+        <Loader fullPage={false} />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white dark:bg-slate-800 rounded-[16.54px] outfit p-6 shadow-sm">
       {/* Header Section */}
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-[20.75px] font-[500] text-[#000000] dark:text-white work-sans">
             User Usage Overview
@@ -98,13 +100,15 @@ const UserUsageOverview = () => {
             <img
               src={searchIcon}
               alt="searchIcon"
-              className="h-[17.343202590942383] object-contain"
+              className="h-[17.34px] object-contain"
             />
           </span>
           <input
             type="text"
-            className="w-full text-[#6C6D72] dark:text-white dark:bg-transparent text-[13.73px] font-[400]"
-            placeholder="Search by users"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm?.(e.target.value)}
+            className="w-full text-[#6C6D72] outline-none dark:text-white dark:bg-transparent text-[13.73px] font-[400]"
+            placeholder="Search by users or plans"
           />
         </div>
       </div>
@@ -130,48 +134,57 @@ const UserUsageOverview = () => {
                 Status
               </th>
               <th className="py-4 px-4 text-[#1D2C45] dark:text-white text-[15.03px] font-[500]">
-                Renewal Date
+                Created Date
               </th>
             </tr>
           </thead>
           <tbody>
-            {billingData.map((row, index) => (
+            {filteredData.map((row) => (
               <tr
-                key={index}
+                key={row.id}
                 className="bg-[#FAFAFA] dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors rounded-[9.02px]"
               >
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                  {row.name}
+                  {row.user?.fullName || "N/A"}
                 </td>
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {row.plan}
                 </td>
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                  {row.agentCount}
+                  {row.usersCount}
                 </td>
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                  {row.mrrr}
+                  ${row.amount || 0}
                 </td>
                 <td className="py-1 px-2 text-center">
                   <span
-                    className={`px-2 py-1 rounded-[5px] oufit text-[13.53px] font-[500] ${getStatusStyles(row.status)}`}
+                    className={`px-3 py-1 rounded-[5px] outfit text-[13.53px] font-[500] ${getStatusStyles(row.status)}`}
                   >
                     {row.status}
                   </span>
                 </td>
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                  {row.renewal}
+                  {new Date(row.createdAt).toLocaleDateString()}
                 </td>
               </tr>
             ))}
+            {filteredData.length === 0 && !loading && (
+              <tr>
+                <td colSpan={6} className="py-10 text-center text-gray-500">
+                  No data found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Footer summary - optional but matches screenshot style */}
+      {/* Footer summary */}
       <div className="mt-4 flex justify-between text-[14px] text-[#86898C] dark:text-gray-500 font-[400]">
-        <div>Showing 12 of 12 companies</div>
-        <div className="font-medium">Total MRRR: $49,900</div>
+        <div>Showing {filteredData.length} of {subscriptions.length} records</div>
+        <div className="font-medium text-[#1D2C45] dark:text-white">
+          Total MRRR: ${totalMRRR.toLocaleString()}
+        </div>
       </div>
     </div>
   );

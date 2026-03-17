@@ -3,76 +3,74 @@ import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
 import { FaPlay, FaPause } from "react-icons/fa";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { useState, useEffect, useRef } from "react";
-import { useCallRecordingsReport } from "@/hooks/useCallRecordingsReport";
-
-// === DATA STRUCTURE ===
-interface CallRecord {
-  id: number;
-  agent: string;
-  name: string;
-  duration: string;
-  callResult: string;
-}
+import { useCallRecordingsReport, type CallRecordingRow } from "@/hooks/useCallRecordingsReport";
 
 // === SAMPLE DATA ===
-const callRecordingData: CallRecord[] = [
+const callRecordingData: CallRecordingRow[] = [
   {
-    id: 1,
+    id: "1",
     agent: "Bertha Wiza",
     name: "Kathryn Murphy",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 2,
+    id: "2",
     agent: "Bertha Wiza",
     name: "Robert Fox",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 3,
+    id: "3",
     agent: "Bertha Wiza",
     name: "Annette Black",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 4,
+    id: "4",
     agent: "Bertha Wiza",
     name: "Marvin McKinney",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 5,
+    id: "5",
     agent: "Bertha Wiza",
     name: "Ralph Edwards",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 6,
+    id: "6",
     agent: "Bertha Wiza",
     name: "Dianne Russell",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 7,
+    id: "7",
     agent: "Bertha Wiza",
     name: "Annette Black",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
   {
-    id: 8,
+    id: "8",
     agent: "Bertha Wiza",
     name: "Marvin McKinney",
     duration: "00:00:00",
     callResult: "Positive",
+    recordingUrl: "",
   },
 ];
 
@@ -142,6 +140,7 @@ const columns = [
 
 interface CallRecordingProps {
   userId?: string;
+  selectedResult?: string;
 }
 
 const AudioPlayer = ({ url }: { url: string | null }) => {
@@ -226,24 +225,22 @@ const AudioPlayer = ({ url }: { url: string | null }) => {
   );
 };
 
-const CallRecording: React.FC<CallRecordingProps> = ({ userId }) => {
-  const [showAllDatesButton, setShowAllDatesButton] = useState(false);
+const CallRecording: React.FC<CallRecordingProps> = ({
+  userId,
+  selectedResult,
+}) => {
   const { data, loading, getCallRecordings } = useCallRecordingsReport();
 
+  const filteredData = (data || []).filter((item) => {
+    if (!selectedResult || selectedResult === "All Result") return true;
+    return item.callResult.toLowerCase() === selectedResult.toLowerCase();
+  });
   useEffect(() => {
     getCallRecordings({ userId });
   }, [userId, getCallRecordings]);
 
-  useEffect(() => {
-    if (
-      window.location.pathname === "/admin/reports-analytics" ||
-      window.location.pathname === "/reports-analytics"
-    ) {
-      setShowAllDatesButton(true);
-    } else {
-      setShowAllDatesButton(false);
-    }
-  }, []);
+
+
 
   return (
     <Box className="mt-2 w-full h-full">
@@ -291,16 +288,19 @@ const CallRecording: React.FC<CallRecordingProps> = ({ userId }) => {
       </style>
 
       {/* Show All Dates Button */}
-      {showAllDatesButton && (
-        <div className="flex items-center mb-4 w-fit gap-[16px] border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] px-[16px] h-[40px] cursor-pointer">
-          <IoIosArrowBack className="text-[13px] text-[#71717A] dark:text-gray-400" />
-          <span className="text-[16px] dark:text-gray-200">All Dates</span>
-          <IoIosArrowForward className="text-[13px] text-[#71717A] dark:text-gray-400" />
-        </div>
-      )}
+    
 
       <main>
-        <TableProvider data={data || callRecordingData} columns={columns}>
+        <TableProvider
+          data={
+            filteredData.length > 0
+              ? filteredData
+              : data?.length === 0
+                ? []
+                : callRecordingData
+          }
+          columns={columns}
+        >
           {() => <TableComponent />}
         </TableProvider>
         {loading && (

@@ -134,18 +134,18 @@ const AgentTimeSheet: React.FC<AgentTimeSheetProps> = ({ userId }) => {
                 <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
                   Agent
                 </th>
-                <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
+                {/* <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
                   Device
-                </th>
+                </th> */}
                 <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
-                  Log In Time
+                  Last Login
                 </th>
-                <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
+                {/* <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
                   Log Out Time
                 </th>
                 <th className="px-3 py-2 text-[14px] font-[500] border-b border-[#EBEDF0] dark:border-slate-700">
                   Time Logged
-                </th>
+                </th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
@@ -160,18 +160,18 @@ const AgentTimeSheet: React.FC<AgentTimeSheetProps> = ({ userId }) => {
                   <td className="px-3 py-4 text-[14px] font-[500] text-[#0E1011] dark:text-white whitespace-nowrap">
                     {row.agent}
                   </td>
-                  <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
+                  {/* <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
                     {row.device}
-                  </td>
+                  </td> */}
                   <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
                     {row.logIn}
                   </td>
-                  <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
+                  {/* <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
                     {row.logOut}
                   </td>
                   <td className="px-3 py-4 text-[14px] font-[400] text-[#495057] dark:text-gray-300 whitespace-nowrap">
                     {row.timeLogged}
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

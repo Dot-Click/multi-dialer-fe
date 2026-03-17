@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -8,14 +9,40 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getRevenueByPlan } from "@/store/slices/reportsSlice";
+import Loader from "@/components/common/Loader";
 
-const data = [
-  { name: "Basic", value: 45800, color: "#FFD100" }, // Bright Yellow
-  { name: "Standard", value: 128400, color: "#6094FF" }, // Bright Blue
-  { name: "Premium", value: 110390, color: "#9F67FF" }, // Bright Purple
-];
+const PLAN_COLORS: Record<string, string> = {
+  Starter: "#FFD100",
+  Professional: "#6094FF",
+  Enterprise: "#9F67FF",
+};
 
 const RevenueByPlan = () => {
+  const dispatch = useAppDispatch();
+  const { revenuePlans, revenueLoading } = useAppSelector(
+    (state) => state.reports,
+  );
+
+  useEffect(() => {
+    dispatch(getRevenueByPlan());
+  }, [dispatch]);
+
+  const chartData = (revenuePlans || []).map((item) => ({
+    name: item.plan,
+    value: item.amount,
+    color: PLAN_COLORS[item.plan] || "#666",
+  }));
+
+  if (revenueLoading) {
+    return (
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm px-8 py-7 w-full lg:w-[65%] border border-gray-100 dark:border-slate-700 flex justify-center items-center h-[380px]">
+        <Loader fullPage={false} />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm px-8 py-7 w-full lg:w-[65%] border border-gray-100 dark:border-slate-700">
       {/* Header & Custom Legend */}
@@ -26,7 +53,7 @@ const RevenueByPlan = () => {
 
         {/* Legend matching the image layout */}
         <div className="flex items-center gap-6">
-          {data.map((item) => (
+          {chartData.map((item) => (
             <div key={item.name} className="flex items-start gap-2">
               <span
                 className="h-[12px] w-[12px] rounded-full mt-1"
@@ -49,11 +76,10 @@ const RevenueByPlan = () => {
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             barSize={120}
             margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
           >
-            {/* Dotted grid lines both horizontal and vertical */}
             <CartesianGrid
               strokeDasharray="2 2"
               vertical={true}
@@ -67,8 +93,6 @@ const RevenueByPlan = () => {
               dy={10}
             />
             <YAxis
-              domain={[0, 140000]}
-              ticks={[0, 35000, 70000, 105000, 140000]}
               tickFormatter={(v) => `$${v / 1000}k`}
               tick={{ fill: "#666", fontSize: 14 }}
               axisLine={false}
@@ -86,7 +110,7 @@ const RevenueByPlan = () => {
               dataKey="value"
               radius={[15, 15, 0, 0]} // Smooth rounded corners
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Bar>

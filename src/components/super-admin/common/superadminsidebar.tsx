@@ -11,7 +11,8 @@ import userIcon from "@/assets/userIcon.png";
 import dashIcon from "@/assets/dashIcon.png";
 
 import { FiMenu } from "react-icons/fi";
-import { logout } from "@/store/slices/authSlice";
+import Loader from "@/components/common/Loader";
+import { signout } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 interface SuperAdminSidebarProps {
@@ -30,6 +31,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { mode } = useAppSelector((state) => state.theme);
+  const { loading, session } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const handleResize = () => {
@@ -46,8 +48,8 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signout());
     navigate("/admin/login");
   };
 
@@ -87,6 +89,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
   return (
     <>
+      {loading && <Loader />}
       {/* Mobile Menu Button */}
       {isMobile && !isOpen && (
         <button
@@ -135,13 +138,14 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           {isOpen && (
             <div className="flex bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-md flex-col">
               <h1 className="font-semibold text-gray-950 dark:text-slate-100 text-sm">
-                John Lee
+                {session?.user?.fullName || "Admin User"}
               </h1>
               <p className="text-gray-600 dark:text-slate-400 text-xs">
-                j.lee@example.com
+                {session?.user?.email || "admin@example.com"}
               </p>
             </div>
           )}
+
 
           <div className="border-t border-gray-200 dark:border-slate-800"></div>
 

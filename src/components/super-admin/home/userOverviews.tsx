@@ -39,8 +39,8 @@ const UserOverviews = () => {
         },
         { 
             id: 4, 
-            name: "Monthly Revenue (MRR)", 
-            number: formatCurrency(userOverview?.currentMonthRevenue || 0) 
+            name: "Total Revenue", 
+            number: formatCurrency(userOverview?.totalRevenue || 0) 
         },
     ];
 

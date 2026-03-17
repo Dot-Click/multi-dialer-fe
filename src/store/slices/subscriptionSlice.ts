@@ -15,6 +15,13 @@ export interface Subscription {
     updatedAt: string;
     billingId: string | null;
     amount?: string;
+    user?: {
+        id: string;
+        fullName: string;
+        email: string;
+        role: string;
+        status: string;
+    };
 }
 
 export interface ZohoPlan {
@@ -98,6 +105,26 @@ export const fetchSubscriptions = createAsyncThunk(
         } catch (error: any) {
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data.message || 'Failed to fetch subscriptions');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const getAllSubscriptions = createAsyncThunk(
+    'subscriptions/fetchAll',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/subscriptions/all');
+            if (response.data.success) {
+                return response.data.data;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch all subscriptions');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to fetch all subscriptions');
             } else {
                 return rejectWithValue(error.message);
             }
@@ -203,6 +230,18 @@ export const subscriptionSlice = createSlice({
                 state.loading = false;
             })
             .addCase(createSubscription.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(getAllSubscriptions.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getAllSubscriptions.fulfilled, (state, action) => {
+                state.loading = false;
+                state.subscriptions = action.payload;
+            })
+            .addCase(getAllSubscriptions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
