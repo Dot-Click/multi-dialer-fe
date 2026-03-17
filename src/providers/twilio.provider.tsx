@@ -22,6 +22,10 @@ interface TwilioContextType {
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
   duration: number;
   resetCallStatus: () => void;
+  answeringMachineUrl: string | null;
+  setAnsweringMachineUrl: (url: string | null) => void;
+  dropVoicemail: () => Promise<void>;
+  isDroppingingVoicemail: boolean;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -34,12 +38,15 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [activeCallSid, setActiveCallSid] = useState<string | null>(null);
   const [transcriptionLogs, setTranscriptionLogs] = useState<any[]>([]);
   const [identity, setIdentity] = useState<string | null>(null);
-  const[isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isHold, setIsHold] = useState(false);
-  const[callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
+  const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
   const [duration, setDuration] = useState(0);
-  const[customerCallSid, setCustomerCallSid] = useState<string | null>(null);
+  const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
+  const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
+  const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
+
 
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
@@ -50,7 +57,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     isHoldRef.current = isHold;
   }, [isHold]);
 
-  const[holdAudio] = useState(() => {
+  const [holdAudio] = useState(() => {
     const audio = new Audio('https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3');
     audio.loop = true;
     return audio;
@@ -67,7 +74,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setDuration(0);
     holdAudio.pause();
     holdAudio.currentTime = 0;
-    ignoredCallsRef.current.clear(); 
+    ignoredCallsRef.current.clear();
   }, [holdAudio]);
 
   const setupDevice = useCallback(async () => {
@@ -83,7 +90,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIdentity(agentIdentity);
 
       const newDevice = new Device(data.data.token, {
-        codecPreferences:[Call.Codec.Opus, Call.Codec.PCMU],
+        codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
       });
 
       newDevice.on('registered', () => {
@@ -133,7 +140,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch (err: any) {
       setAppStatus(`Setup Failed: ${err.message}`);
     }
-  },[handleStopCalling, isMuted]);
+  }, [handleStopCalling, isMuted]);
 
   useEffect(() => {
     setupDevice();
@@ -143,7 +150,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         device.destroy();
       }
     };
-  },[]);
+  }, []);
 
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
@@ -153,13 +160,15 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCallStatus('ringing');
     setTranscriptionLogs([]);
 
+
     try {
       const call = await device!.connect({
         params: {
           To: phone,
           From: from,
           agentId: identity || 'tester_agent',
-          contactId: contactId
+          contactId: contactId,
+          answeringMachineUrl: answeringMachineUrl || '',
         }
       });
 
@@ -205,12 +214,35 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const dropVoicemail = async () => {
+    if (!activeCallSid || !answeringMachineUrl) {
+      toast.error('No voicemail recording configured');
+      return;
+    }
+    setIsDroppingVoicemail(true);
+    try {
+      await api.post('/calling/drop-voicemail', {
+        callSid: activeCallSid,
+        voicemailUrl: answeringMachineUrl,
+      });
+      toast.success('Voicemail dropped successfully');
+      // End the call after dropping voicemail
+      handleStopCalling();
+    } catch (err: any) {
+      toast.error('Failed to drop voicemail');
+    } finally {
+      setIsDroppingVoicemail(false);
+    }
+  };
+
+
   const endCall = async () => {
     if (activeCall) activeCall.disconnect();
-    if (activeCallSid) {
+    const sidToDrop = activeCallSid || customerCallSid;
+    if (sidToDrop) {
       try {
-        await api.post('/calling/end-call', { callSid: activeCallSid });
-      } catch (err) {}
+        await api.post('/calling/end-call', { callSid: sidToDrop });
+      } catch (err) { }
     }
     handleStopCalling();
   };
@@ -226,7 +258,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     setIsMuted(muted);
     toast.success(muted ? 'Microphone Muted' : 'Microphone Unmuted');
-  },[activeCall, device, isMuted]);
+  }, [activeCall, device, isMuted]);
 
   const toggleSpeaker = useCallback(() => {
     const speakerOn = !isSpeakerOn;
@@ -247,38 +279,28 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     isHoldProcessing.current = true;
     const newHoldStatus = !isHold;
-    isHoldRef.current = newHoldStatus;
+    // Prevent race conditions: if we're going ON hold, set the ref immediately.
+    // If we're RESUMING, keep the ref as 'true' to continue ignoring disconnects 
+    // from the old leg until the transition is complete.
+    if (newHoldStatus) {
+      isHoldRef.current = true;
+    }
 
     if (newHoldStatus && activeCall) {
       ignoredCallsRef.current.add(activeCall);
     }
 
-    // SAFE MUTE
-    if (activeCall) {
+    // SAFE MUTE (only when putting on hold)
+    if (newHoldStatus && activeCall) {
       try {
         if (activeCall.status() !== 'closed') {
-          activeCall.mute(newHoldStatus || isMuted);
+          activeCall.mute(true);
         }
       } catch (e) {
         console.warn("Mute ignored: Call not active");
       }
     }
 
-    // LOCAL HOLD AUDIO
-    if (newHoldStatus) {
-      const defaultAudio = 'https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3';
-      const targetAudioSrc = customHoldUrl || defaultAudio;
-
-      if (holdAudio.src !== targetAudioSrc) {
-        holdAudio.src = targetAudioSrc;
-      }
-      holdAudio.play().catch(console.error);
-    } else {
-      holdAudio.pause();
-      holdAudio.currentTime = 0;
-    }
-
-    // BACKEND API CALL 
     if (activeCallSid) {
       try {
         const response = await api.post('/calling/toggle-hold', {
@@ -293,21 +315,42 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setCustomerCallSid(response.data.data.customerLegSid);
         }
 
-        // 🚨 FORCE LOCAL DISCONNECT ON HOLD **AFTER** API SUCCEEDS
-        // This ensures the backend has time to read the active call structure before we kill it!
-        if (newHoldStatus && activeCall) {
-          try {
-            if (activeCall.status() !== 'closed') {
-              activeCall.disconnect();
+        if (newHoldStatus) {
+          if (activeCall) {
+            try {
+              if (activeCall.status() !== 'closed') {
+                activeCall.disconnect();
+              }
+            } catch (e) {
+              console.warn("Local disconnect failed safely", e);
             }
-          } catch (e) {
-            console.warn("Local disconnect failed safely", e);
           }
+
+          const defaultAudio = 'https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3';
+          const targetAudioSrc = customHoldUrl || defaultAudio;
+          if (holdAudio.src !== targetAudioSrc) {
+            holdAudio.src = targetAudioSrc;
+          }
+          holdAudio.play().catch(console.error);
+
+          setIsHold(true);
+          toast.success('Call on Hold');
+
+        } else {
+          holdAudio.pause();
+          holdAudio.currentTime = 0;
+
+          // Now that we've successfully called the backend to resume, 
+          // we can allow future disconnects to be handled normally.
+          isHoldRef.current = false;
+          setIsHold(false);
+          setCallStatus('connected');
+          toast.success('Call Resumed');
         }
 
       } catch (err) {
-        isHoldRef.current = !newHoldStatus;
-
+        // Rollback on failure
+        isHoldRef.current = isHold;
         if (newHoldStatus && activeCall) {
           ignoredCallsRef.current.delete(activeCall);
         }
@@ -327,16 +370,13 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     }
 
-    setIsHold(newHoldStatus);
-    toast.success(newHoldStatus ? 'Call on Hold' : 'Call Resumed');
-
     setTimeout(() => {
       isHoldProcessing.current = false;
     }, 1200);
 
-  },[activeCall, activeCallSid, customerCallSid, holdAudio, identity, isHold, isMuted]);
+  }, [activeCall, activeCallSid, customerCallSid, holdAudio, identity, isHold, isMuted]);
 
-  const resetCallStatus = useCallback(() => setCallStatus('idle'),[]);
+  const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
 
   useEffect(() => {
     let pollInterval: any;
@@ -359,7 +399,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setDuration(0);
     }
     return () => clearInterval(timerInterval);
-  },[callStatus]);
+  }, [callStatus]);
 
   useEffect(() => {
     let statusInterval: any;
@@ -381,7 +421,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       device, activeCall, isCalling, appStatus, activeCallSid,
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
-      duration, resetCallStatus
+      duration, resetCallStatus, answeringMachineUrl,
+      setAnsweringMachineUrl,
+      dropVoicemail,
+      isDroppingingVoicemail,
     }}>
       {children}
     </TwilioContext.Provider>

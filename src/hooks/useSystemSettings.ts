@@ -24,13 +24,8 @@ export interface CallerId {
 
 export interface DialerSettings {
   id: string;
-  useTimeShield: boolean;
-  timeShieldStartTime?: string;
-  timeShieldEndTime?: string;
   useAnswerNotificationTone: boolean;
-  deleteDisconnectedNumbers: boolean;
-  deleteFaxNumbers: boolean;
-  useCallSessionTimer: boolean;
+  voicemailMode: string;
   systemSettingId: string;
 }
 
@@ -131,14 +126,14 @@ export interface AuditLog {
 
 export interface NotificationSettings {
   id: string;
-  enableAppointmentReminders: boolean;
+  appointmentReminder: boolean;
   appointmentReminderEmail?: string;
-  enableCallActivityReport: boolean;
-  enableSessionSummaryReport: boolean;
+  callActivityReport: boolean;
+  sessionSummaryReport: boolean;
   includeAgentsWithNoActivity: boolean;
   dailyCallReportEmail?: string;
-  enableAppointmentNotifications: boolean;
-  enableComplianceAlerts: boolean;
+  appointmentNotification: boolean;
+  complianceAlert: boolean;
   emailChannel: boolean;
   inAppChannel: boolean;
   reminderMinutes: number;
