@@ -7,7 +7,6 @@ import reporticon from "@/assets/reporticon.png";
 import libraryicon from "@/assets/libraryicon.png";
 import calendericon from "@/assets/calendericon.png";
 import dataicon from "@/assets/dataicon.png";
-import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "@/assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
