@@ -22,6 +22,10 @@ interface TwilioContextType {
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
   duration: number;
   resetCallStatus: () => void;
+  answeringMachineUrl: string | null;
+  setAnsweringMachineUrl: (url: string | null) => void;
+  dropVoicemail: () => Promise<void>;
+  isDroppingingVoicemail: boolean;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -40,6 +44,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
   const [duration, setDuration] = useState(0);
   const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
+  const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
+  const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
+
 
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
@@ -153,13 +160,15 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCallStatus('ringing');
     setTranscriptionLogs([]);
 
+
     try {
       const call = await device!.connect({
         params: {
           To: phone,
           From: from,
           agentId: identity || 'tester_agent',
-          contactId: contactId
+          contactId: contactId,
+          answeringMachineUrl: answeringMachineUrl || '',
         }
       });
 
@@ -204,6 +213,28 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       toast.error(`Failed to start call: ${err.message}`);
     }
   };
+
+  const dropVoicemail = async () => {
+    if (!activeCallSid || !answeringMachineUrl) {
+      toast.error('No voicemail recording configured');
+      return;
+    }
+    setIsDroppingVoicemail(true);
+    try {
+      await api.post('/calling/drop-voicemail', {
+        callSid: activeCallSid,
+        voicemailUrl: answeringMachineUrl,
+      });
+      toast.success('Voicemail dropped successfully');
+      // End the call after dropping voicemail
+      handleStopCalling();
+    } catch (err: any) {
+      toast.error('Failed to drop voicemail');
+    } finally {
+      setIsDroppingVoicemail(false);
+    }
+  };
+
 
   const endCall = async () => {
     if (activeCall) activeCall.disconnect();
@@ -319,7 +350,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       } catch (err) {
         // Rollback on failure
-        isHoldRef.current = isHold; 
+        isHoldRef.current = isHold;
         if (newHoldStatus && activeCall) {
           ignoredCallsRef.current.delete(activeCall);
         }
@@ -390,7 +421,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       device, activeCall, isCalling, appStatus, activeCallSid,
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
-      duration, resetCallStatus
+      duration, resetCallStatus, answeringMachineUrl,
+      setAnsweringMachineUrl,
+      dropVoicemail,
+      isDroppingingVoicemail,
     }}>
       {children}
     </TwilioContext.Provider>
