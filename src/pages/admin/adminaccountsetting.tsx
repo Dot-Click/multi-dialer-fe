@@ -1,288 +1,281 @@
-import { useState } from "react";
-import { FiChevronUp } from "react-icons/fi";
-import { IoMdCamera } from "react-icons/io";
-import PhoneInput from "react-phone-number-input";
+import { useState, useEffect, useRef } from "react";
+import { FiChevronUp, FiChevronDown, FiUser, FiMail, FiHash } from "react-icons/fi";
+import { Loader2, Check, X, Camera } from "lucide-react";
 import "react-phone-number-input/style.css";
-
-// // === TYPES ===
-// interface InfoFieldProps {
-//     label: string;
-//     value: string;
-// }
-
-interface CheckboxOptionProps {
-  id: string;
-  label: string;
-  defaultChecked?: boolean;
-}
-
-interface RadioOptionProps {
-  id: string;
-  name: string;
-  label: string;
-  defaultChecked?: boolean;
-}
-
-// === REUSABLE INPUT FIELD ===
-// const InfoField = ({ label, value }: InfoFieldProps) => (
-//     <div className="bg-[#F9FAFB] flex flex-col gap-1 px-2 py-1.5 rounded-lg w-full sm:max-w-md">
-//         <label className="text-xs text-gray-500 block">{label}</label>
-//         <input
-//             type="text"
-//             value={value}
-//             readOnly
-//             className="w-full text-sm bg-transparent text-gray-900 font-medium focus:outline-none"
-//         />
-//     </div>
-// );
-
-// === CHECKBOX ===
-const CheckboxOption = ({
-  id,
-  label,
-  defaultChecked = false,
-}: CheckboxOptionProps) => (
-  <div className="flex items-center gap-3">
-    <input
-      type="checkbox"
-      id={id}
-      defaultChecked={defaultChecked}
-      className="h-4 w-4 rounded accent-black dark:accent-yellow-400 border-gray-400 text-black focus:ring-0 cursor-pointer"
-    />
-    <label
-      htmlFor={id}
-      className="text-[16px] text-[#495057] dark:text-gray-300 font-[400] cursor-pointer"
-    >
-      {label}
-    </label>
-  </div>
-);
-
-// === RADIO OPTION ===
-const RadioOption = ({
-  id,
-  name,
-  label,
-  defaultChecked = false,
-}: RadioOptionProps) => (
-  <div className="flex items-center gap-3">
-    <input
-      type="radio"
-      id={id}
-      name={name}
-      defaultChecked={defaultChecked}
-      className="h-4 accent-black dark:accent-yellow-400 w-4 border-gray-400 text-black focus:ring-0 cursor-pointer"
-    />
-    <label
-      htmlFor={id}
-      className="text-sm text-gray-800 dark:text-gray-300 cursor-pointer"
-    >
-      {label}
-    </label>
-  </div>
-);
+import { authClient } from "../../lib/auth-client";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 
 const AdminAccountSetting = () => {
+  const { data: sessionData, refetch } = authClient.useSession();
   const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
-  const [isNotificationsOpen, setNotificationsOpen] = useState(true);
-  const [phoneNumber, setPhoneNumber] = useState<string>("+10000000000");
+  
+  const [fullName, setFullName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
+  
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePhoneChange = (value?: string) => {
-    setPhoneNumber(value || "");
+  useEffect(() => {
+    if (sessionData?.user) {
+      setFullName(sessionData.user.name || "");
+      // Assuming phone might be in custom properties or not yet supported
+      // setPhoneNumber((sessionData.user as any).phone || "");
+    }
+  }, [sessionData]);
+
+  
+  const handleNameUpdate = async () => {
+    if (!fullName.trim() || fullName === sessionData?.user?.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsUpdatingName(true);
+    try {
+      await authClient.updateUser({
+        name: fullName
+      });
+      await refetch();
+      toast.success("Name updated successfully");
+      setIsEditingName(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update name");
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (e.g., 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size too large (max 5MB)");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setIsUploadingImage(true);
+    try {
+      // 1. Upload to our backend
+      const { data } = await api.post("/user/profile-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      if (data.success && data.data.url) {
+        // 2. Update user profile in BetterAuth
+        await authClient.updateUser({
+          image: data.data.url
+        });
+        await refetch();
+        toast.success("Profile image updated");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to upload image");
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   return (
-    <section className="w-full pr-3 lg:pr-6 min-h-screen font-sans ">
+    <section className="w-full pr-3 lg:pr-6 min-h-screen font-sans">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <header className="flex items-baseline gap-4 mb-6">
-          <h1 className="text-gray-900 dark:text-white text-xl md:text-3xl font-bold">
-            Account Settings
-          </h1>
-          <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
-            Changes saved 18:09
-          </p>
+        <header className="flex items-center justify-between mb-8">
+            <div>
+                <h1 className="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold">
+                    Account Settings
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your personal information and preferences</p>
+            </div>
+            {sessionData?.user && (
+                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium border border-green-100 dark:border-green-900/30">
+                    <Check size={16} />
+                    <span>Verified Account</span>
+                </div>
+            )}
         </header>
 
         <main className="space-y-6">
-          {/* Personal Info */}
-          <div className="bg-white dark:bg-slate-800 rounded-[24px]">
-            {/* Header */}
+          {/* Personal Info Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+            {/* Collapsible Header */}
             <button
-              className="flex items-center mb-4 justify-between w-full p-5 text-left"
+              className="flex items-center justify-between w-full p-6 text-left hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors"
               onClick={() => setPersonalInfoOpen(!isPersonalInfoOpen)}
             >
-              <h2 className="text-[24px] font-[500] inter text-[#17181B] dark:text-white">
-                Personal Info
-              </h2>
-              <FiChevronUp
-                className={`text-gray-500 transition-transform duration-300 ${
-                  isPersonalInfoOpen ? "rotate-0" : "rotate-180"
-                }`}
-                size={20}
-              />
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-400/10 rounded-lg">
+                    <FiUser className="text-yellow-600 dark:text-yellow-400 w-5 h-5" />
+                </div>
+                <h2 className="text-[20px] font-bold text-[#17181B] dark:text-white">
+                    Personal Information
+                </h2>
+              </div>
+              <div className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                {isPersonalInfoOpen ? <FiChevronUp size={20} className="text-gray-400" /> : <FiChevronDown size={20} className="text-gray-400" />}
+              </div>
             </button>
 
             {isPersonalInfoOpen && (
-              <div className="px-5 pb-6">
-                {/* Upload Photo */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div
-                    className="w-28 h-28 bg-[#F3F4F7] dark:bg-slate-700 rounded-full border-2 
-                                    border-dashed border-gray-300 dark:border-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-400"
-                  >
-                    <IoMdCamera size={50} />
-                  </div>
+              <div className="px-6 pb-8 space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                {/* Profile Photo Section */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-gray-50/50 dark:bg-slate-900/20 border border-gray-100 dark:border-slate-700/50">
+                   <div className="relative group">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-md bg-white dark:bg-slate-700 flex items-center justify-center">
+                            {sessionData?.user?.image ? (
+                                <img 
+                                    src={sessionData.user.image} 
+                                    alt="Profile" 
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <FiUser size={40} className="text-gray-300" />
+                            )}
+                        </div>
+                        <button 
+                            onClick={handleImageClick}
+                            className="absolute bottom-0 right-0 p-2 bg-yellow-400 hover:bg-yellow-500 text-black rounded-full shadow-lg transition-transform active:scale-90"
+                        >
+                            {isUploadingImage ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                        </button>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleImageChange} 
+                            className="hidden" 
+                            accept="image/*"
+                        />
+                   </div>
 
-                  <div className="w-full lg:w-[35%] ">
-                    <button
-                      className="bg-[#FFCA06] hover:bg-yellow-500 dark:text-black 
-                                        text-[#0E1011] text-[18px] font-[500] px-4 py-2 rounded-[10px]"
-                    >
-                      Upload Photo
-                    </button>
-                    <p className="text-[16px] w-full font-[400] text-[#848C94] dark:text-gray-400 mt-1">
-                      At least 800 × 800 px recommended. JPG or PNG is allowed
-                    </p>
-                  </div>
+                   <div className="text-center sm:text-left">
+                        <h3 className="text-[18px] font-bold text-gray-900 dark:text-white">Profile Picture</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
+                          Update your profile picture. JPG or PNG allowed, max 5MB.
+                        </p>
+                        <div className="mt-3 flex gap-2">
+                             <button 
+                                onClick={handleImageClick}
+                                disabled={isUploadingImage}
+                                className="text-sm font-semibold text-yellow-600 hover:text-yellow-700 dark:text-yellow-400"
+                             >
+                                Change Photo
+                             </button>
+                        </div>
+                   </div>
                 </div>
 
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+                {/* Form Fields Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Full Name */}
-                  <div className="bg-[#F3F4F7] dark:bg-slate-700 w-full lg:w-[45%] px-3 py-1.5 rounded-[12px]">
-                    <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-300 block mb-1">
-                      Full Name
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <FiUser size={14} className="text-gray-400" />
+                        Full Name
                     </label>
-                    <input
-                      type="text"
-                      value="John Lee"
-                      readOnly
-                      className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none"
-                    />
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => {
+                                setFullName(e.target.value);
+                                setIsEditingName(true);
+                            }}
+                            className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border ${isEditingName ? 'border-yellow-400 ring-2 ring-yellow-400/10' : 'border-gray-200 dark:border-slate-700'} rounded-xl text-[15px] font-medium text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400`}
+                            placeholder="Your full name"
+                        />
+                        {isEditingName && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                <button 
+                                    onClick={handleNameUpdate}
+                                    disabled={isUpdatingName}
+                                    className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all shadow-sm"
+                                >
+                                    {isUpdatingName ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setFullName(sessionData?.user?.name || "");
+                                        setIsEditingName(false);
+                                    }}
+                                    className="p-1.5 bg-gray-100 dark:bg-slate-800 text-gray-500 rounded-lg hover:bg-gray-200 transition-all"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                   </div>
 
-                  {/* Email */}
-                  <div className="bg-[#F3F4F7] dark:bg-slate-700 w-full lg:w-[45%] px-3 py-1.5 rounded-[12px]">
-                    <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-300 block mb-1">
-                      Email
+                  {/* Email (Read Only) */}
+                  <div className="space-y-2 opacity-80">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <FiMail size={14} className="text-gray-400" />
+                        Email Address
                     </label>
-                    <input
-                      type="email"
-                      value="user@example.com"
-                      readOnly
-                      className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none"
-                    />
+                    <div className="relative">
+                        <input
+                            type="email"
+                            value={sessionData?.user?.email || ""}
+                            readOnly
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700/50 rounded-xl text-[15px] font-medium text-gray-500 cursor-not-allowed outline-none"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">
+                             <FiHash size={16} />
+                        </div>
+                    </div>
                   </div>
 
                   {/* Contact Number */}
-                  <div className="bg-[#F3F4F7] dark:bg-slate-700 w-full lg:w-[45%] px-3 py-1.5 rounded-[12px] phone-input-container">
-                    <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-300 block mb-1">
-                      Contact number
+                  {/* <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <FiPhone size={14} className="text-gray-400" />
+                        Contact Number
                     </label>
-                    <PhoneInput
-                      international
-                      defaultCountry="US"
-                      value={phoneNumber}
-                      onChange={handlePhoneChange}
-                      className="w-full text-sm"
-                    />
-                  </div>
+                    <div className="phone-input-container">
+                        <PhoneInput
+                            international
+                            defaultCountry="US"
+                            value={phoneNumber}
+                            onChange={handlePhoneChange}
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-[15px] font-medium outline-none transition-all"
+                        />
+                    </div>
+                  </div> */}
 
-                  {/* CallScout ID */}
-                  <div className="bg-[#F3F4F7] dark:bg-slate-700 w-full lg:w-[45%] px-3 py-1.5 rounded-[12px]">
-                    <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-300 block mb-1">
-                      CallScout Number ID
+                  {/* User Role */}
+                  <div className="space-y-2 opacity-80">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <FiHash size={14} className="text-gray-400" />
+                        Account Role
                     </label>
                     <input
-                      type="text"
-                      value="9182737465"
-                      readOnly
-                      className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none"
+                        type="text"
+                        value={sessionData?.user?.role || "ADMIN"}
+                        readOnly
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700/50 rounded-xl text-[15px] font-medium text-gray-500 cursor-not-allowed outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="border-[0.2px] w-full mt-8 border-[#0B0A0E1A] dark:border-slate-600"></div>
-
-                {/* Change Password */}
-                <button
-                  className="mt-6 bg-[#EBEDF0] dark:bg-slate-700 dark:hover:bg-slate-600 hover:bg-gray-200
-                                 text-[16px] font-[500] text-[#0E1011] dark:text-white px-5 py-2 rounded-[12px]"
-                >
-                  Change Password
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Notifications */}
-          <div className="bg-white dark:bg-slate-800 rounded-[24px]">
-            <button
-              className="flex items-center justify-between w-full p-5 text-left"
-              onClick={() => setNotificationsOpen(!isNotificationsOpen)}
-            >
-              <h2 className="text-[24px] font-[500] inter text-[#17181B] dark:text-white">
-                Notification Preferences
-              </h2>
-              <FiChevronUp
-                className={`text-gray-500 transform transition-transform duration-300 ${isNotificationsOpen ? "rotate-0" : "rotate-180"}`}
-                size={20}
-              />
-            </button>
-
-            {isNotificationsOpen && (
-              <div className="px-5 pb-6 space-y-6">
-                {/* Channels */}
-                <div className="space-y-3 inter">
-                  <h3 className="font-[500] inter text-[#34363B] dark:text-gray-200">
-                    Channels:
-                  </h3>
-                  <CheckboxOption
-                    id="channel-email"
-                    label="Email"
-                    defaultChecked
-                  />
-                  <CheckboxOption
-                    id="channel-inapp"
-                    label="In-App"
-                    defaultChecked
-                  />
-                  <CheckboxOption id="channel-sms" label="SMS" defaultChecked />
-                </div>
-
-                {/* Reminders */}
-                <div className="space-y-3 inter">
-                  <h3 className="font-[500]  inter text-[#34363B] dark:text-gray-200">
-                    Reminders:
-                  </h3>
-                  <RadioOption
-                    id="rem-none"
-                    name="reminders"
-                    label="None"
-                    defaultChecked
-                  />
-                  <RadioOption id="rem-5min" name="reminders" label="5 min" />
-                  <RadioOption id="rem-10min" name="reminders" label="10 min" />
-                  <RadioOption id="rem-15min" name="reminders" label="15 min" />
-                  <RadioOption id="rem-30min" name="reminders" label="30 min" />
-                </div>
-
-                {/* Campaign Events */}
-                <div className="space-y-3 inter">
-                  <h3 className="font-[500] inter text-[#34363B] dark:text-gray-200">
-                    Notification for Campaign Events:
-                  </h3>
-                  <CheckboxOption
-                    id="event-incoming"
-                    label="Incoming follow-up calls"
-                    defaultChecked
-                  />
-                  <CheckboxOption
-                    id="event-scheduled"
-                    label="Scheduled meetings from campaigns"
-                    defaultChecked
-                  />
+                <div className="pt-4 border-t border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <p className="text-sm text-gray-500 italic">
+                        * Email and Role are managed by the system administrator.
+                    </p>
+                    <button
+                        className="w-full sm:w-auto px-6 py-2.5 bg-gray-900 dark:bg-slate-800 hover:bg-black dark:hover:bg-slate-700 text-white rounded-xl font-semibold transition-all shadow-sm active:scale-95"
+                    >
+                        Change Password
+                    </button>
                 </div>
               </div>
             )}
@@ -290,26 +283,27 @@ const AdminAccountSetting = () => {
         </main>
       </div>
 
-      {/* Phone Input Styles */}
       <style>
         {`
-                    .phone-input-container .PhoneInputInput {
-                        border: none;
-                        background-color: transparent;
-                        font-weight: 500;
-                        color: #111827;
-                        outline: none;
-                    }
-                    .phone-input-container .PhoneInputCountry {
-                        margin-right: 8px;
-                    }
-                    .dark .phone-input-container .PhoneInputInput {
-                        color: white !important;
-                    }
-                    .dark .PhoneInputCountryIcon {
-                        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
-                    }
-                `}
+            .phone-input-container .PhoneInputInput {
+                border: none;
+                background-color: transparent;
+                font-weight: 500;
+                color: #111827;
+                outline: none;
+                font-family: inherit;
+            }
+            .dark .phone-input-container .PhoneInputInput {
+                color: white !important;
+            }
+            .PhoneInputCountryIcon {
+                box-shadow: none !important;
+                border: 0.5px solid #E5E7EB;
+            }
+            .dark .PhoneInputCountryIcon {
+                border-color: #334155;
+            }
+        `}
       </style>
     </section>
   );

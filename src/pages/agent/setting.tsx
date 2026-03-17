@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiChevronUp, FiInfo } from 'react-icons/fi';
-import { useCallerIds, useLeadSheets, useActionPlans, useNotificationSettings, type CallerId, type ActionPlan, type LeadSheet } from '../../hooks/useSystemSettings';
+import { useCallerIds, useLeadSheets, useActionPlans, useNotificationSettings, useDialerSettings, type CallerId, type ActionPlan, type LeadSheet } from '../../hooks/useSystemSettings';
 import { authClient } from '../../lib/auth-client';
 import api from '../../lib/axios';
 import toast from 'react-hot-toast';
@@ -12,6 +12,12 @@ const Setting = () => {
   const [isNotificationsOpen, setNotificationsOpen] = useState(true);
   const [voicemailOption, setVoicemailOption] = useState('auto');
   const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
+
+  // Email Change States
+  // const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [_newEmail, setNewEmail] = useState('');
+  // const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+
   const { data: sessionData, refetch } = authClient.useSession();
   const currentAgentId = sessionData?.user?.id;
   const defaultCallerId = (sessionData?.user as any)?.defaultCallerId;
@@ -20,6 +26,63 @@ const Setting = () => {
   const { data: leadSheets = [], isLoading: isLoadingLeadSheets } = useLeadSheets();
   const { data: actionPlans = [], isLoading: isLoadingActionPlans } = useActionPlans();
   const { data: notificationSettings, updateNotificationSettings } = useNotificationSettings();
+  const { data: dialerSettings, updateDialerSettings, isLoading: isLoadingDialer } = useDialerSettings();
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
+
+  const handleChangeName = async () => {
+    if (!newName || newName === sessionData?.user?.name) {
+      setIsEditingName(false);
+      return;
+    }
+    setIsUpdatingName(true);
+    try {
+      await authClient.updateUser({ name: newName });
+      await refetch();
+      toast.success('Name updated successfully!');
+      setIsEditingName(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update name');
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+  
+  // Initialize local state for Dialer Settings
+  useEffect(() => {
+    if (dialerSettings) {
+      setVoicemailOption(dialerSettings.voicemailMode || 'auto');
+      setLiveAnswerBeep(dialerSettings.useAnswerNotificationTone || false);
+    }
+  }, [dialerSettings]);
+
+  // const handleChangeEmail = async () => {
+  //   if (!newEmail || newEmail === sessionData?.user?.email) {
+  //     setIsEditingEmail(false);
+  //     return;
+  //   }
+
+  //   setIsUpdatingEmail(true);
+  //   try {
+  //     const { error } = await authClient.changeEmail({
+  //       newEmail: newEmail,
+  //       // callbackURL: window.location.origin + '/agent/login', 
+  //     });
+
+  //     if (error) {
+  //       toast.error(error.message || 'Failed to change email');
+  //     } else {
+  //       toast.success('Verification email sent to your new address!');
+  //       setIsEditingEmail(false);
+  //     }
+  //   } catch (err: any) {
+  //     toast.error(err.message || 'An unexpected error occurred');
+  //   } finally {
+  //     setIsUpdatingEmail(false);
+  //   }
+  // };
 
   // Filter caller IDs assigned to the current agent
   const agentCallerIds = currentAgentId
@@ -88,20 +151,46 @@ const Setting = () => {
                   <div className="px-6 pb-6">
                     <div className="space-y-5">
                       {/* Full Name */}
-                      <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
-                        <label
-                          htmlFor="fullName"
-                          className="text-[12px] font-medium dark:text-gray-400  text-[#495057] block"
-                        >
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          id="fullName"
-                          defaultValue={sessionData?.user?.name || ''}
-                          readOnly
-                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none"
-                        />
+                      {/* Full Name */}
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm">
+                          <label htmlFor="fullName" className="text-[12px] font-medium dark:text-gray-400 text-[#495057] block">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            id="fullName"
+                            value={isEditingName ? newName : (sessionData?.user?.name || '')}
+                            onChange={(e) => setNewName(e.target.value)}
+                            readOnly={!isEditingName}
+                            className={`w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none ${isEditingName ? 'border-b border-yellow-400/50' : ''}`}
+                          />
+                        </div>
+                        {isEditingName ? (
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <button
+                              onClick={handleChangeName}
+                              disabled={isUpdatingName || !newName || newName === sessionData?.user?.name}
+                              className="bg-yellow-400 text-black text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-yellow-500 transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[80px] justify-center"
+                            >
+                              {isUpdatingName ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => { setIsEditingName(false); setNewName(''); }}
+                              disabled={isUpdatingName}
+                              className="bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setIsEditingName(true); setNewName(sessionData?.user?.name || ''); }}
+                            className="bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors w-full sm:w-auto"
+                          >
+                            Edit Name
+                          </button>
+                        )}
                       </div>
 
                       {/* Email */}
@@ -116,36 +205,47 @@ const Setting = () => {
                           <input
                             type="email"
                             id="email"
-                            defaultValue={sessionData?.user?.email || ''}
+                            value={sessionData?.user?.email || ''}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            // readOnly={!isEditingEmail}
                             readOnly
-                            className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none"
+                            disabled
+                            className={`w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none }`}
+                            placeholder="Enter new email"
                           />
                         </div>
-                        <button className=" bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors w-full sm:w-auto">
-                          Change Email
-                        </button>
+                        {/* {isEditingEmail ? (
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <button
+                              onClick={handleChangeEmail}
+                              disabled={isUpdatingEmail || !newEmail || newEmail === sessionData?.user?.email}
+                              className="bg-yellow-400 text-black text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-yellow-500 transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[80px] justify-center"
+                            >
+                              {isUpdatingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsEditingEmail(false);
+                                setNewEmail('');
+                              }}
+                              disabled={isUpdatingEmail}
+                              className="bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => {
+                              setIsEditingEmail(true);
+                              setNewEmail(sessionData?.user?.email || '');
+                            }}
+                            className="bg-gray-200 dark:bg-slate-700 text-[#0E1011] dark:text-white text-[16px] py-[8px] px-[12px] font-medium rounded-[8px] hover:bg-gray-300 transition-colors w-full sm:w-auto"
+                          >
+                            Change Email
+                          </button>
+                        )} */}
                       </div>
-
-                      {/* Time Zone */}
-                      {/* <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm relative">
-                        <label
-                          htmlFor="timezone"
-                          className="text-[12px] font-medium dark:text-gray-400  text-[#495057] block"
-                        >
-                          Time zone
-                        </label>
-
-                        <select
-                          id="timezone"
-                          className="w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none appearance-none pr-8"
-                        >
-                          <option>GMT+3</option>
-                          <option>GMT+5</option>
-                          <option>GMT-8</option>
-                        </select>
-
-                        <IoChevronDown className="absolute text-[#47474C] right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[18px]" />
-                      </div> */}
                     </div>
                   </div>
                 )}
@@ -463,13 +563,16 @@ const Setting = () => {
 
           {activeTab === "dialer" && (
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
-              <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white mb-6">
-                Dialer Settings
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
+                  Dialer Settings
+                </h2>
+                {isLoadingDialer && <Loader2 className="w-5 h-5 animate-spin text-yellow-400" />}
+              </div>
 
               <div className="space-y-8">
                 {/* Voicemail Handling */}
-                <div>
+                <div className="p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10">
                   <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                     Voicemail Handling
                   </h3>
@@ -484,7 +587,11 @@ const Setting = () => {
                         name="voicemail"
                         value="manual"
                         checked={voicemailOption === "manual"}
-                        onChange={(e) => setVoicemailOption(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setVoicemailOption(val);
+                          updateDialerSettings.mutate({ voicemailMode: val });
+                        }}
                         className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
                       />
                       <div className="flex-1">
@@ -503,7 +610,11 @@ const Setting = () => {
                         name="voicemail"
                         value="auto"
                         checked={voicemailOption === "auto"}
-                        onChange={(e) => setVoicemailOption(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setVoicemailOption(val);
+                          updateDialerSettings.mutate({ voicemailMode: val });
+                        }}
                         className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
                       />
                       <div className="flex-1">
@@ -518,42 +629,8 @@ const Setting = () => {
                   </div>
                 </div>
 
-                {/* Time Zone */}
-                {/* <div>
-                  <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
-                    Time Zone
-                  </h3>
-                  <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-4">
-                    Select your time zone
-                  </p>
-
-                  <div className="bg-[#F3F4F7] dark:bg-slate-700 py-[8px] px-[12px] rounded-[12px] w-full sm:max-w-sm relative group">
-                    <select className="w-full bg-transparent text-[16px] text-[#0E1011] dark:text-white font-normal focus:outline-none appearance-none pr-8 cursor-pointer">
-                      <option className="dark:bg-slate-800">
-                        Eastern Time (ET)
-                      </option>
-                      <option className="dark:bg-slate-800">
-                        Central Time (CT)
-                      </option>
-                      <option className="dark:bg-slate-800">
-                        Mountain Time (MT)
-                      </option>
-                      <option className="dark:bg-slate-800">
-                        Pacific Time (PT)
-                      </option>
-                      <option className="dark:bg-slate-800">
-                        Alaska Time (AKT)
-                      </option>
-                      <option className="dark:bg-slate-800">
-                        Hawaii Time (HST)
-                      </option>
-                    </select>
-                    <IoChevronDown className="absolute text-[#47474C] dark:text-gray-400 right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[18px] group-hover:text-yellow-400 transition-colors" />
-                  </div>
-                </div> */}
-
                 {/* Live Answer Beep */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all">
+                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10 hover:border-yellow-400/30 transition-all">
                   <div className="flex-1">
                     <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
                       Live Answer Beep
@@ -563,7 +640,11 @@ const Setting = () => {
                     </p>
                   </div>
                   <button
-                    onClick={() => setLiveAnswerBeep(!liveAnswerBeep)}
+                    onClick={() => {
+                      const newVal = !liveAnswerBeep;
+                      setLiveAnswerBeep(newVal);
+                      updateDialerSettings.mutate({ useAnswerNotificationTone: newVal });
+                    }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${liveAnswerBeep
                       ? "bg-yellow-400"
                       : "bg-gray-300 dark:bg-slate-700"

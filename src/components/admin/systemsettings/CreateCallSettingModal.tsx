@@ -141,6 +141,12 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
         onClose();
     };
 
+    const getAnsweringMachineUrl = () => {
+        if (!answeringMachineRecording) return undefined;
+        const rec = recordings.find(r => r.id === answeringMachineRecording);
+        return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
+    };
+
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -164,6 +170,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                 ivrRecordingId: ivrRecording || undefined,
                 answeringMachineRecordingId: answeringMachineRecording || undefined,
                 callScriptId: selectedScript || undefined,
+
             };
 
             if (editId) {
@@ -180,7 +187,8 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                     callerIds: selectedCallerIds,
                     numberOfLines: parseInt(noOfLines),
                     selectedScript: selectedScript || undefined,
-                    holdRecordingUrl: getSelectedRecordingUrl()
+                    holdRecordingUrl: getSelectedRecordingUrl(),
+                    answeringMachineRecordingUrl: getAnsweringMachineUrl(),
                 }
             }) : navigate("/contact-info", {
                 state: {
@@ -189,6 +197,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                     numberOfLines: parseInt(noOfLines),
                     selectedScript: selectedScript || undefined,
                     holdRecordingUrl: getSelectedRecordingUrl(),
+                    answeringMachineRecordingUrl: getAnsweringMachineUrl(),
                 }
             });
 
@@ -365,7 +374,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                         </FieldWrapper> */}
 
                         {/* Answering Machine */}
-                        {/* <FieldWrapper label="Answering Machine Recording">
+                        <FieldWrapper label="Answering Machine Recording">
                             <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
                                 <option value="" className="dark:bg-slate-900">None</option>
                                 {recordings.map((r) => (
@@ -374,7 +383,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                                     </option>
                                 ))}
                             </SelectInput>
-                        </FieldWrapper> */}
+                        </FieldWrapper>
                     </div>
 
                     {/* Footer */}
@@ -387,7 +396,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({ isOpen,
                             Cancel
                         </button>
                         <button onClick={
-                        () => navigate(role === "ADMIN" ? "/admin/contact-info" : "/contact-info", {
+                            () => navigate(role === "ADMIN" ? "/admin/contact-info" : "/contact-info", {
                                 state: {
                                     contacts: selectedContacts,
                                     callerIds: selectedCallerIds,

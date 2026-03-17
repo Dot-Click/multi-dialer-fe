@@ -5,19 +5,22 @@ import { FiCheck, FiMoreVertical, FiClock, FiCheckSquare } from "react-icons/fi"
 import { useNotifications } from "@/hooks/useSystemSettings";
 import { usePush } from "@/hooks/usePush";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const AdminNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-  
+
   const { data: notifications = [], markRead, markAllRead } = useNotifications();
   const { subscribe, loading: pushLoading } = usePush();
   const [hasPushPermission, setHasPushPermission] = useState(Notification.permission === 'granted');
 
+  const navigate = useNavigate();
+
   const handleAccountSetting = () => {
-    window.location.href = "/admin/account-setting";
+    navigate("/admin/account-setting");
     setDropdownOpen(false);
   };
 
@@ -56,7 +59,7 @@ const AdminNavbar = () => {
 
       {/* Notification Bell & Dropdown */}
       <div className="relative" ref={notifRef}>
-        <div 
+        <div
           onClick={() => setIsNotifOpen(!isNotifOpen)}
           className="border border-gray-400 dark:border-slate-600 dark:hover:bg-slate-700 cursor-pointer rounded-full p-2 relative hover:bg-gray-100 transition-all active:scale-95"
         >
@@ -70,12 +73,12 @@ const AdminNavbar = () => {
 
         {/* Notification Dropdown Menu */}
         {isNotifOpen && (
-          <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-[1001]">
+          <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-1001">
             <div className="p-4 border-b border-gray-100 dark:border-slate-700 flex flex-col gap-2 bg-gray-50/50 dark:bg-slate-700/50">
               <div className="flex justify-between items-center">
                 <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                 {unreadCount > 0 && (
-                  <button 
+                  <button
                     onClick={() => markAllRead.mutate()}
                     className="text-xs text-yellow-500 hover:text-yellow-600 font-medium flex items-center gap-1"
                   >
@@ -84,7 +87,7 @@ const AdminNavbar = () => {
                   </button>
                 )}
               </div>
-              
+
               {!hasPushPermission && (
                 <button
                   onClick={async () => {
@@ -98,21 +101,20 @@ const AdminNavbar = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="max-h-[400px] overflow-y-auto">
               {notifications.length > 0 ? (
                 notifications.map((n) => (
-                  <div 
-                    key={n.id} 
+                  <div
+                    key={n.id}
                     onClick={() => !n.isRead && markRead.mutate(n.id)}
                     className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-gray-50 dark:border-slate-700/30 group ${!n.isRead ? 'bg-yellow-50/30 dark:bg-yellow-400/5' : ''}`}
                   >
                     <div className="flex gap-3">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-                        n.isRead ? 'bg-gray-100 text-gray-400 dark:bg-slate-700 dark:text-slate-500' :
-                        n.type === 'event' || n.type === 'reminder' ? 'bg-blue-100 text-blue-600' : 
-                        n.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-                      }`}>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${n.isRead ? 'bg-gray-100 text-gray-400 dark:bg-slate-700 dark:text-slate-500' :
+                          n.type === 'event' || n.type === 'reminder' ? 'bg-blue-100 text-blue-600' :
+                            n.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                        }`}>
                         {n.type === 'event' || n.type === 'reminder' ? <FiClock size={14} /> : n.type === 'error' ? <FiMoreVertical size={14} /> : <FiCheck size={14} />}
                       </div>
                       <div className="flex-1">
@@ -132,14 +134,14 @@ const AdminNavbar = () => {
                 ))
               ) : (
                 <div className="p-8 text-center">
-                   <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                     <BsBell className="text-gray-400" size={20} />
-                   </div>
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <BsBell className="text-gray-400" size={20} />
+                  </div>
                   <p className="text-gray-400 text-sm font-medium">No notifications yet</p>
                 </div>
               )}
             </div>
-            
+
             <div className="p-3 text-center border-t border-gray-100 dark:border-slate-700">
               <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 View all notifications

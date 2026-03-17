@@ -24,13 +24,8 @@ export interface CallerId {
 
 export interface DialerSettings {
   id: string;
-  useTimeShield: boolean;
-  timeShieldStartTime?: string;
-  timeShieldEndTime?: string;
   useAnswerNotificationTone: boolean;
-  deleteDisconnectedNumbers: boolean;
-  deleteFaxNumbers: boolean;
-  useCallSessionTimer: boolean;
+  voicemailMode: string;
   systemSettingId: string;
 }
 

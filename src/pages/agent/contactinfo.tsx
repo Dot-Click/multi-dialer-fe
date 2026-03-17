@@ -13,6 +13,7 @@ import ContactInfoScript from '@/components/admin/contactinfo/contactinfoscript'
 import LiveContactScript from '@/components/admin/contactinfo/livecallscript';
 import ContactDisposition from '@/components/agent/contactinfo/contactdisposition';
 import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
+import { useTwilio } from '@/providers/twilio.provider';
 
 const ContactInfo = () => {
     const location = useLocation();
@@ -20,6 +21,8 @@ const ContactInfo = () => {
     const dispatch = useAppDispatch();
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    const { setAnsweringMachineUrl } = useTwilio();
 
     // --- Rotation & Limit State ---
     const [callerIds, setCallerIds] = useState<string[]>([]);
@@ -35,10 +38,24 @@ const ContactInfo = () => {
         location.state?.selectedScript || null  // ← initialize directly from state
     );
 
+    useEffect(() => {
+        console.log('[DEBUG] answeringMachineRecordingUrl:', location.state?.answeringMachineRecordingUrl);
+        const amUrl = location.state?.answeringMachineRecordingUrl;
+        if (amUrl) {
+            setAnsweringMachineUrl(amUrl);
+        }
+    }, [location.state, dispatch]);
+
     // Initialize from location state
     useEffect(() => {
         const selectedContacts = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
+
+        const amUrl = location.state?.answeringMachineRecordingUrl;
+
+        if (amUrl) {
+            setAnsweringMachineUrl(amUrl); // ← pass to Twilio context
+        }
 
         // ✅ script handled here alongside the other state init
         if (location.state?.selectedScript) {
@@ -144,7 +161,7 @@ const ContactInfo = () => {
                 onCallStarted={onCallStarted}
                 dailyCount={dailyCallsCount}
                 dailyLimit={TOTAL_DAILY_LIMIT}
-                
+
             />
 
             <div className='w-full p-4  lg:flex lg:gap-4 space-y-4 lg:space-y-0'>
