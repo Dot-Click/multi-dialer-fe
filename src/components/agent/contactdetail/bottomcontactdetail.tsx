@@ -54,9 +54,15 @@ import Activities from "@/components/agent/contactdetail/activities";
 import History from "@/components/agent/contactdetail/history";
 import LeadSheet from "@/components/agent/contactdetail/leadsheet";
 import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
+import { useLocation } from "react-router-dom";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Notes");
+    // const navigate = useNavigate();
+
+    const location = useLocation();
+
+    const isContactInfo = location.pathname.includes("contact-info");
 
     const stages = [
         { id: 1, name: "Notes" },
@@ -68,7 +74,7 @@ const BottomContactDetail = () => {
         { id: 7, name: "Touch Point" },
         { id: 8, name: "Lead Sheet" },
         { id: 9, name: "Attachments" },
-        { id: 10, name: "AI Sidekick" },
+        ...(!isContactInfo ? [{ id: 10, name: "AI Sidekick" }] : []),
     ];
 
     return (

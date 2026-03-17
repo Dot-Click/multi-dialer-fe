@@ -38,29 +38,43 @@ const Notifications: React.FC = () => {
 
     useEffect(() => {
         if (remoteSettings) {
-            setAppointmentReminderEnabled(remoteSettings.enableAppointmentReminders);
+            console.log('[Notifications] Loading Remote Settings:', remoteSettings);
+            setAppointmentReminderEnabled(!!remoteSettings.appointmentReminder);
             setAppointmentReminderEmail(remoteSettings.appointmentReminderEmail || '');
-            setCallActivityReportEnabled(remoteSettings.enableCallActivityReport);
+            setCallActivityReportEnabled(!!remoteSettings.callActivityReport);
             setDailyReportEmail(remoteSettings.dailyCallReportEmail || '');
-            setAppointmentNotificationsEnabled(remoteSettings.enableAppointmentNotifications);
-            setComplianceAlertsEnabled(remoteSettings.enableComplianceAlerts);
+            setAppointmentNotificationsEnabled(!!remoteSettings.appointmentNotification);
+            setComplianceAlertsEnabled(!!remoteSettings.complianceAlert);
         }
     }, [remoteSettings]);
 
     const handleSave = () => {
-        updateNotificationSettings.mutate({
-            enableAppointmentReminders: appointmentReminderEnabled,
+        const payload = {
+            appointmentReminder: appointmentReminderEnabled,
             appointmentReminderEmail,
-            enableCallActivityReport: callActivityReportEnabled,
+            callActivityReport: callActivityReportEnabled,
             dailyCallReportEmail: dailyReportEmail,
-            enableAppointmentNotifications: appointmentNotificationsEnabled,
-            enableComplianceAlerts: complianceAlertsEnabled
-        }, {
-            onSuccess: () => {
+            appointmentNotification: appointmentNotificationsEnabled,
+            complianceAlert: complianceAlertsEnabled,
+            // Preserve existing internal/agent fields if they exist
+            emailChannel: remoteSettings?.emailChannel ?? true,
+            inAppChannel: remoteSettings?.inAppChannel ?? true,
+            reminderMinutes: remoteSettings?.reminderMinutes ?? 0,
+            followUpCallEvent: remoteSettings?.followUpCallEvent ?? true,
+            scheduledMeetingEvent: remoteSettings?.scheduledMeetingEvent ?? true,
+        };
+
+        console.log('[Notifications] Saving Payload:', payload);
+
+        updateNotificationSettings.mutate(payload, {
+            onSuccess: (data) => {
+                console.log('[Notifications] Save Success:', data);
                 toast.success('Notification settings saved');
             },
             onError: (err: any) => {
-                toast.error(err.response?.data?.message || 'Failed to save settings');
+                console.error('[Notifications] Save Error:', err);
+                const msg = err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Failed to save settings';
+                toast.error(msg);
             }
         });
     };

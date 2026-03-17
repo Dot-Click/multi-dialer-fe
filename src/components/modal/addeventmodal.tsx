@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Input, Radio, DatePicker } from 'antd';
 import { IoClose } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
@@ -7,6 +7,7 @@ import { useUser, type User } from '@/hooks/useUser';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import Loader from '@/components/common/Loader';
+import { authClient } from '@/lib/auth-client';
 
 const { TextArea } = Input;
 
@@ -20,9 +21,10 @@ interface AddEventFormProps {
   leadId?: string;
   defaultTitle?: string;
   defaultColor?: string;
+  defaultCategory?: EventCategory;
 }
 
-const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, contactId, leadId, defaultTitle, defaultColor }) => {
+const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, contactId, leadId, defaultTitle, defaultColor, defaultCategory }) => {
   const { createEvent, updateEvent, loading: calendarLoading } = useCalendar();
   const { getUsers, loading: usersLoading } = useUser();
 
@@ -41,12 +43,23 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
     status: 'SET' as EventStatus
   });
 
+  const { data: sessionData } = authClient.useSession();
+
+  const fetchUsers = useCallback(async () => {
+    const currentUser = sessionData?.user;
+    // If Admin, only fetch users they created. Otherwise fetch all.
+    const params = currentUser?.role === 'ADMIN' ? { createdBy: currentUser.id } : {};
+    const data = await getUsers(params);
+
+    // Filter out OWNERS as requested
+    const filtered = data.filter(u => u.role !== 'OWNER');
+    setUsers(filtered);
+  }, [])
+
   useEffect(() => {
     if (open) {
-      const fetchUsers = async () => {
-        const data = await getUsers();
-        setUsers(data);
-      };
+
+
       fetchUsers();
 
       if (event) {
@@ -66,7 +79,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
           title: defaultTitle || '',
           description: '',
           eventType: 'START_ONLY',
-          category: 'TASK',
+          category: defaultCategory || 'TASK',
           startDate: null,
           endDate: null,
           assignToId: 'None',
@@ -75,7 +88,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
         });
       }
     }
-  }, [open, event, defaultTitle, defaultColor]);
+  }, [open, event, defaultTitle, defaultColor, defaultCategory, sessionData]);
 
   const handleSave = async () => {
     if (!formData.title) {
@@ -113,7 +126,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
         await createEvent(payload);
         toast.success('Event created successfully');
       }
-      
+
       onClose(true);
       // Reset form
       setFormData({

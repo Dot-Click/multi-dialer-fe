@@ -35,7 +35,11 @@ const ContactInfoHeader = ({
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
-  const [eventDefaults, _] = useState({ title: '', color: '#FFCA06' });
+  const [eventDefaults, setEventDefaults] = useState<{ title: string; color: string; category: "TASK" | "FOLLOW_UP" | "APPOINTMENT" }>({ 
+    title: '', 
+    color: '#FFCA06', 
+    category: 'TASK' 
+  });
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
 
   const handleCallToggle = async () => {
@@ -61,6 +65,15 @@ const ContactInfoHeader = ({
     }
   };
 
+  const handleOpenEventModal = (type: "TASK" | "FOLLOW_UP") => {
+    setEventDefaults({
+      title: `${type === 'FOLLOW_UP' ? 'Follow up with' : 'Task for'} ${contact?.fullName || 'Contact'}`,
+      color: type === 'FOLLOW_UP' ? '#3B82F6' : '#FFCA06', // Blue for follow up, Yellow for task
+      category: type
+    });
+    setEventModalOpen(true);
+  };
+
   return (
     <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
@@ -82,12 +95,18 @@ const ContactInfoHeader = ({
 
         {/* Desktop Buttons - hidden on mobile */}
         <div className="hidden md:flex items-center gap-3">
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors">
+          <button 
+            onClick={() => handleOpenEventModal('TASK')}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors"
+          >
             <HiPlus className="text-lg dark:text-white" />
             <span className="text-[#0E1011] dark:text-white text-sm font-medium">Task</span>
           </button>
 
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors">
+          <button 
+            onClick={() => handleOpenEventModal('FOLLOW_UP')}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors"
+          >
             <HiPlus className="text-lg dark:text-white" />
             <span className="text-[#0E1011] dark:text-white text-sm font-medium">Follow Up</span>
           </button>
@@ -146,12 +165,18 @@ const ContactInfoHeader = ({
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-[#EBEDF0] dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-5 flex flex-col gap-3">
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] dark:active:bg-slate-600">
+          <button 
+            onClick={() => handleOpenEventModal('TASK')}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] dark:active:bg-slate-600"
+          >
             <HiPlus className="text-xl dark:text-white" />
             <span className="text-[#0E1011] dark:text-white font-medium">Task</span>
           </button>
 
-          <button className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] dark:active:bg-slate-600">
+          <button 
+            onClick={() => handleOpenEventModal('FOLLOW_UP')}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] dark:active:bg-slate-600"
+          >
             <HiPlus className="text-xl dark:text-white" />
             <span className="text-[#0E1011] dark:text-white font-medium">Follow Up</span>
           </button>
@@ -196,6 +221,7 @@ const ContactInfoHeader = ({
         contactId={contact?.id}
         defaultTitle={eventDefaults.title}
         defaultColor={eventDefaults.color}
+        defaultCategory={eventDefaults.category}
       />
     </div>
   );

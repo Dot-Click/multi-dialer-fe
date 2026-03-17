@@ -139,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
                   ${isActive
-                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    ? "bg-[#FFCA06] font-semibold text-gray-900"
                     : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                   }`
                 }
