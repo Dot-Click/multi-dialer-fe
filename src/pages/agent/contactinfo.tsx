@@ -72,7 +72,7 @@ const ContactInfo = () => {
     // ─── Init from navigation state ───────────────────────────────────────────
 
     useEffect(() => {
-        const selectedContacts = location.state?.contacts;
+        const selectedContacts  = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
         const amUrl = location.state?.answeringMachineRecordingUrl;
 
