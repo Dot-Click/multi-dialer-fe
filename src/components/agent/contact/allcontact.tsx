@@ -9,7 +9,6 @@ import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactsByList, type Contact } from "@/store/slices/contactSlice";
-import Loader from "@/components/common/Loader";
 
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
@@ -17,6 +16,62 @@ interface AllContactProps {
   visibleColumns?: string[];
 }
 
+// ─── Skeleton Loader ───────────────────────────────────────────────────────────
+const ContactTableSkeleton = () => {
+  const rows = Array.from({ length: 8 });
+  const cols = Array.from({ length: 6 });
+
+  return (
+    <div className="w-full animate-pulse">
+      {/* Header row */}
+      <div className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+        <div className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-700 shrink-0" />
+        {cols.map((_, i) => (
+          <div
+            key={i}
+            className="h-3 rounded bg-gray-200 dark:bg-slate-700"
+            style={{ width: `${[14, 18, 14, 16, 20, 12][i]}%` }}
+          />
+        ))}
+      </div>
+
+      {/* Data rows */}
+      {rows.map((_, rowIdx) => (
+        <div
+          key={rowIdx}
+          className={`flex items-center gap-4 px-4 py-3.5 border-b border-gray-50 dark:border-slate-800 ${rowIdx % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-gray-50/40 dark:bg-slate-800/40"
+            }`}
+        >
+          {/* Checkbox */}
+          <div className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-700 shrink-0" />
+
+          {/* Name — slightly wider + blue tint to hint it's a link */}
+          <div className="h-3 rounded bg-blue-100 dark:bg-blue-900/30" style={{ width: "14%" }} />
+
+          {/* Last Dialed */}
+          <div className="h-3 rounded bg-gray-200 dark:bg-slate-700" style={{ width: "18%" }} />
+
+          {/* Phone — icon + text */}
+          <div className="flex items-center gap-2" style={{ width: "14%" }}>
+            <div className="h-4 w-4 rounded-full bg-gray-200 dark:bg-slate-700 shrink-0" />
+            <div className="h-3 rounded bg-gray-200 dark:bg-slate-700 flex-1" />
+          </div>
+
+          {/* Email */}
+          <div className="h-3 rounded bg-gray-200 dark:bg-slate-700" style={{ width: "20%" }} />
+
+          {/* List */}
+          <div className="h-3 rounded bg-gray-200 dark:bg-slate-700" style={{ width: "12%" }} />
+
+          {/* Tags — pill shape */}
+          <div className="h-5 w-16 rounded-full bg-gray-200 dark:bg-slate-700" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
@@ -51,7 +106,10 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
       header: "Name",
       enableSorting: false,
       cell: (info: any) => (
-        <Link to={`${linkPath}/${info.row.original.id}`} className="text-[#1D85F0] cursor-pointer">
+        <Link
+          to={`${linkPath}/${info.row.original.id}`}
+          className="text-[#1D85F0] dark:text-blue-400 cursor-pointer hover:underline"
+        >
           {info.getValue()}
         </Link>
       ),
@@ -70,9 +128,9 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
           <img
             src={callsicon}
             alt="call"
-            style={{ width: "16px", height: "16px", objectFit: "contain" }}
+            className="w-4 h-4 object-contain dark:invert dark:opacity-60"
           />
-          <span style={{ color: "#495057" }}>{info.getValue()}</span>
+          <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
         </div>
       ),
     },
@@ -80,11 +138,17 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
       accessorKey: "email",
       header: "Email",
       enableSorting: false,
+      cell: (info: any) => (
+        <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
+      ),
     },
     {
       accessorKey: "list",
       header: "List",
       enableSorting: false,
+      cell: (info: any) => (
+        <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
+      ),
     },
     {
       accessorKey: "tags",
@@ -98,12 +162,12 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
               tag.trim() !== "-" ? (
                 <Badge
                   key={index}
-                  className="bg-[#EBEDF0] text-[#0E1011] py-[4px] px-[8px] rounded-[100px] w-fit text-xs font-medium"
+                  className="bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-slate-200 py-1 px-2 rounded-full w-fit text-xs font-medium"
                 >
                   {tag.trim()}
                 </Badge>
               ) : (
-                <span key={index}>-</span>
+                <span key={index} className="text-gray-400 dark:text-slate-500">-</span>
               )
             )}
           </div>
@@ -115,11 +179,9 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
   const columns = useMemo(() => {
     if (!visibleColumns || visibleColumns.length === 0) return allColumns;
 
-    // Always include select column
-    const filtered = allColumns.filter(col => {
+    return allColumns.filter((col) => {
       if (col.id === "select") return true;
-
-      return visibleColumns.some(vc => {
+      return visibleColumns.some((vc) => {
         if (vc === "Name" && col.accessorKey === "name") return true;
         if (vc === "Email" && col.accessorKey === "email") return true;
         if (vc === "Phone" && col.accessorKey === "phone") return true;
@@ -129,11 +191,8 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
         return false;
       });
     });
-
-    return filtered;
   }, [visibleColumns, linkPath]);
 
-  // Component to handle selection changes
   const SelectionHandler = ({ selectedRows }: { selectedRows: Contact[] | undefined }) => {
     useEffect(() => {
       if (onSelectionChange) {
@@ -143,16 +202,14 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
     return null;
   };
 
-  // if (isLoading && contacts.length === 0) return <Loader/>
-
   return (
     <Box className="mt-3 m-2 w-full h-full">
       <main>
         {isLoading ? (
-          <Loader />
+          <ContactTableSkeleton />
         ) : error ? (
-          <div className="flex items-center justify-center h-full min-h-[400px]">
-            <span className="text-red-500">{error}</span>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <span className="text-red-500 dark:text-red-400 text-sm">{error}</span>
           </div>
         ) : (
           <TableProvider data={contacts} columns={columns}>
