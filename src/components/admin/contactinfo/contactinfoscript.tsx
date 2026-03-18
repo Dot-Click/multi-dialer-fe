@@ -26,7 +26,7 @@ const ContactInfoScript = ({ scriptId }: Props) => {
 
 
   return (
-    <div className="bg-white dark:bg-slate-800  rounded-2xl shadow-sm p-3 w-full h-full flex flex-col">
+    <div className="bg-white dark:bg-slate-800  rounded-2xl shadow-sm p-3 w-full  flex flex-col">
       <div className="flex items-center gap-3 mb-4 shrink-0">
         <img src={scripticon} alt="scripticon" className="w-3 object-contain" />
         <h3 className="text-base font-medium text-gray-700 dark:text-white">Script</h3>
