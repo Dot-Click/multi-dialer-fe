@@ -6,6 +6,7 @@ export interface UserOverviewData {
   totalAgents: number;
   activeSubscriptions: number;
   currentMonthRevenue: number;
+  totalRevenue: number;
 }
 
 export interface ChartData {
@@ -16,6 +17,18 @@ export interface ChartData {
 export interface DashboardAlertsData {
   expiringSubscriptions: number;
   newCustomers: number;
+}
+
+export interface BusinessOverviewData {
+  totalRevenue: number;
+  activeSubscriptions: number;
+  activeUsers: number;
+  totalAgents: number;
+}
+
+export interface RevenuePlan {
+  plan: string;
+  amount: number;
 }
 
 export interface SubscriptionStatusData {
@@ -62,6 +75,7 @@ export interface DashboardSummaryStats {
 
 interface ReportsState {
   userOverview: UserOverviewData | null;
+  businessOverview: BusinessOverviewData | null;
   thisMonthChart: ChartData | null;
   lastMonthChart: ChartData | null;
   alerts: DashboardAlertsData | null;
@@ -69,6 +83,7 @@ interface ReportsState {
   userSubscriptions: UserSubscriptionData[];
   billingReportDetail: BillingReportDetail[];
   revenueGrowth: RevenueGrowthData | null;
+  revenuePlans: RevenuePlan[];
   dashboardSummaryStats: DashboardSummaryStats | null;
   loading: boolean;
   chartLoading: boolean;
@@ -83,6 +98,7 @@ interface ReportsState {
 
 const initialState: ReportsState = {
   userOverview: null,
+  businessOverview: null,
   thisMonthChart: null,
   lastMonthChart: null,
   alerts: null,
@@ -90,6 +106,7 @@ const initialState: ReportsState = {
   userSubscriptions: [],
   billingReportDetail: [],
   revenueGrowth: null,
+  revenuePlans: [],
   dashboardSummaryStats: null,
   loading: false,
   chartLoading: false,
@@ -112,6 +129,24 @@ export const getUserOverview = createAsyncThunk(
       if (error.response && error.response.data) {
         return rejectWithValue(
           error.response.data.message || "Failed to fetch user overview",
+        );
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  },
+);
+
+export const getBusinessOverview = createAsyncThunk(
+  "reports/getBusinessOverview",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/bussiness-overview");
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(
+          error.response.data.message || "Failed to fetch business overview",
         );
       } else {
         return rejectWithValue(error.message);
@@ -228,6 +263,24 @@ export const getRevenueGrowth = createAsyncThunk(
   },
 );
 
+export const getRevenueByPlan = createAsyncThunk(
+  "reports/getRevenueByPlan",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/revenue-plans");
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(
+          error.response.data.message || "Failed to fetch revenue plans",
+        );
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  },
+);
+
 export const getDashboardSummaryStats = createAsyncThunk(
   "reports/getDashboardSummaryStats",
   async (_, { rejectWithValue }) => {
@@ -260,6 +313,19 @@ export const reportsSlice = createSlice({
       state.userOverview = action.payload?.data || null;
     });
     builder.addCase(getUserOverview.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(getBusinessOverview.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(getBusinessOverview.fulfilled, (state, action) => {
+      state.loading = false;
+      state.businessOverview = action.payload?.data || null;
+    });
+    builder.addCase(getBusinessOverview.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
     });
@@ -346,6 +412,19 @@ export const reportsSlice = createSlice({
       state.revenueGrowth = action.payload?.data?.data || null;
     });
     builder.addCase(getRevenueGrowth.rejected, (state, action) => {
+      state.revenueLoading = false;
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(getRevenueByPlan.pending, (state) => {
+      state.revenueLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getRevenueByPlan.fulfilled, (state, action) => {
+      state.revenueLoading = false;
+      state.revenuePlans = action.payload?.data?.plans || [];
+    });
+    builder.addCase(getRevenueByPlan.rejected, (state, action) => {
       state.revenueLoading = false;
       state.error = action.payload as string;
     });

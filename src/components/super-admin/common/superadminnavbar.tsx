@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import ThemeToggle from "@/components/common/ThemeToggle";
+import { useNavigate } from "react-router-dom";
 
 const SuperAdminNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
+const navigate = useNavigate(); 
   const handleAccountSetting = () => {
-    window.location.href = "/admin/account-setting";
+    navigate("/super-admin/setting") ;
     setDropdownOpen(false);
   };
 

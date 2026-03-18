@@ -1,4 +1,3 @@
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import AnalyticCard from "./analyticcard";
 import dialingicon from "../../../assets/dialingicon.png";
 import callsicon from "../../../assets/callsicon.png";
@@ -15,7 +14,25 @@ import callappointmenticon from "../../../assets/callappointmenticon.png";
 import contactappointment from "../../../assets/contactappointment.png";
 import exportarrowicon from "../../../assets/exportarrowicon.png";
 
-import type { AgentReport } from "@/hooks/useReports";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+interface AgentReport {
+  dialingTime?: string;
+  callsMade?: number;
+  contacts?: number;
+  totalLeads?: number;
+  appointmentsSet?: number;
+  appointmentsMet?: number;
+  callsPerHour?: string | number;
+  contactsPerHour?: string | number;
+  callsPerLead?: string | number;
+  contactsPerLead?: string | number;
+  timePerAppointment?: string;
+  callsPerAppointment?: string | number;
+  contactsPerAppointment?: string | number;
+  [key: string]: any;
+}
 
 interface AnalyticsDashboardProps {
   data: AgentReport | null;
@@ -30,101 +47,110 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     {
       icon: dialingicon,
       label: "Dialing Time",
-      value: data?.dialingTime || "0s",
+      value: data?.dialingTime ?? "0s",
     },
     {
       icon: callsicon,
       label: "Calls Made",
-      value: data?.callsMade.toString() || "0",
+      value: String(data?.callsMade ?? 0),
     },
     {
       icon: contacticon,
       label: "Contacts Made",
-      value: data?.contacts.toString() || "0",
+      value: String(data?.contacts ?? 0),
     },
     {
       icon: leadsicon,
       label: "Leads",
-      value: data?.totalLeads.toString() || "0",
+      value: String(data?.totalLeads ?? 0),
     },
     {
       icon: appointmenticon,
       label: "Appointments Set",
-      value: data?.appointmentsSet?.toString() || "0",
+      value: String(data?.appointmentsSet ?? 0),
     },
     {
       icon: appointmentsecondicon,
       label: "Appointments Met",
-      value: data?.appointmentsMet?.toString() || "0",
+      value: String(data?.appointmentsMet ?? 0),
     },
     {
       icon: callhricon,
       label: "Calls/Hr",
-      value: data?.callsPerHour || "0.00",
+      value: String(data?.callsPerHour ?? "0.00"),
     },
     {
       icon: contacthricon,
       label: "Contacts/Hr",
-      value: data?.contactsPerHour || "0.00",
+      value: String(data?.contactsPerHour ?? "0.00"),
     },
     {
       icon: callleadicon,
       label: "Calls/Lead",
-      value: data?.callsPerLead || "0.00",
+      value: String(data?.callsPerLead ?? "0.00"),
     },
     {
       icon: contactleadicon,
       label: "Contacts/Lead",
-      value: data?.contactsPerLead || "0.00",
+      value: String(data?.contactsPerLead ?? "0.00"),
     },
     {
       icon: timeicon,
       label: "Time/Appointment",
-      value: data?.timePerAppointment || "0s",
+      value: data?.timePerAppointment ?? "0s",
     },
     {
       icon: callappointmenticon,
       label: "Calls/Appointment",
-      value: data?.callsPerAppointment || "0.00",
+      value: String(data?.callsPerAppointment ?? "0.00"),
     },
     {
       icon: contactappointment,
       label: "Contacts/Appointment",
-      value: data?.contactsPerAppointment || "0.00",
+      value: String(data?.contactsPerAppointment ?? "0.00"),
     },
   ];
 
+  const handleExport = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Analytics Report", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Exported: ${new Date().toLocaleString()}`, 14, 22);
+
+    autoTable(doc, {
+      head: [["Metric", "Value"]],
+      body: stats.map((stat) => [stat.label, stat.value]),
+      startY: 28,
+      headStyles: { fillColor: [255, 202, 6], textColor: [0, 0, 0] },
+      styles: { fontSize: 10, cellPadding: 4 },
+    });
+
+    doc.save(`analytics_report_${new Date().toLocaleDateString()}.pdf`);
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-[24px] p-[24px] shadow-md w-full">
-      {/* Header & Filters Responsive */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-6">
-          <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
-            Analytics
-          </h2>
+        <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
+          Analytics
+        </h2>
 
-          <div className="flex items-center gap-[16px] text-sm  border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] p-[4px] cursor-pointer">
-            <IoIosArrowBack className="text-[13px] text-[#71717A] dark:text-gray-400" />
-            <span className="font-medium text-[16px] text-[#47474C] dark:text-gray-300">
-              All Dates
-            </span>
-            <IoIosArrowForward className="text-[13px] text-[#71717A] dark:text-gray-400" />
-          </div>
-        </div>
-
-        <button className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition">
-          <img
-            src={exportarrowicon}
-            alt="exportarrowicon"
-            className="dark:invert"
-          />
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 text-[16px] font-[500] text-[#495057] dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition"
+        >
+          <img src={exportarrowicon} alt="exportarrowicon" className="dark:invert" />
           <span>Export</span>
         </button>
       </div>
 
-      {/* Stats Cards Grid (Fully Responsive) */}
+      {/* Stats Cards Grid */}
       <div
-        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-opacity duration-200 ${loading ? "opacity-50" : "opacity-100"}`}
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 transition-opacity duration-200 ${
+          loading ? "opacity-50" : "opacity-100"
+        }`}
       >
         {stats.map((stat, index) => (
           <AnalyticCard

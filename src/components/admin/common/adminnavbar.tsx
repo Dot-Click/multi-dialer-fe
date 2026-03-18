@@ -1,14 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import { BsBell } from "react-icons/bs";
 import { FiCheck, FiMoreVertical, FiClock, FiCheckSquare } from "react-icons/fi";
 import { useNotifications } from "@/hooks/useSystemSettings";
 import { usePush } from "@/hooks/usePush";
 import { formatDistanceToNow } from "date-fns";
-import { useNavigate } from "react-router-dom";
 
 const AdminNavbar = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [_, setDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -17,12 +18,10 @@ const AdminNavbar = () => {
   const { subscribe, loading: pushLoading } = usePush();
   const [hasPushPermission, setHasPushPermission] = useState(Notification.permission === 'granted');
 
-  const navigate = useNavigate();
 
-  const handleAccountSetting = () => {
-    navigate("/admin/account-setting");
-    setDropdownOpen(false);
-  };
+  const fullName = useSelector((state: RootState) => state.auth.session?.user?.name ?? "");
+  const firstLetter = fullName.charAt(0).toUpperCase();
+
 
   // Close dropdowns if clicked outside
   useEffect(() => {
@@ -150,27 +149,13 @@ const AdminNavbar = () => {
           </div>
         )}
       </div>
-
-      {/* Avatar with Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <div
           className="bg-gray-600 text-lg flex justify-center items-center text-gray-200 cursor-pointer rounded-full px-3.5 py-1.5"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+          title={fullName}
         >
-          <h1>C</h1>
+          <h1>{firstLetter}</h1>
         </div>
-
-        {/* Dropdown Menu */}
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded shadow-md z-10">
-            <button
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700"
-              onClick={handleAccountSetting}
-            >
-              Account Setting
-            </button>
-          </div>
-        )}
       </div>
     </nav>
   );

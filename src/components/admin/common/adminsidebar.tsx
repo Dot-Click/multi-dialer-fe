@@ -14,7 +14,8 @@ import usericon from "../../../assets/admin/usericon.png";
 import exiticon from "../../../assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
+import { signout } from "@/store/slices/authSlice";
+import Loader from "@/components/common/Loader";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { mode } = useAppSelector((state) => state.theme);
+  const { loading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,8 +52,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signout());
     navigate("/admin/login");
   };
 
@@ -99,6 +101,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <>
+      {loading && <Loader />}
       {/* Mobile Menu Button */}
       {isMobile && !isOpen && (
         <button
