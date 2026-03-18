@@ -14,6 +14,7 @@ type OutletContextType = {
 };
 
 const AllContact = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
@@ -77,13 +78,15 @@ const AllContact = () => {
               type="search"
               placeholder="Search by name, email, phone number..."
               className="w-full bg-transparent placeholder:text-base font-normal text-[#495057] dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 text-base outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <IoIosSearch className="text-2xl text-gray-500 dark:text-slate-400 shrink-0" />
           </div>
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="bg-[#2B3034] dark:bg-slate-700 hover:bg-[#3a4045] dark:hover:bg-slate-600 text-xl text-white p-2 rounded-full shrink-0 transition-colors"
+            className="bg-[#2B3034] dark:bg-slate-700 hover:bg-[#3a4045]  dark:hover:bg-slate-600 text-xl text-white p-2 rounded-full shrink-0 transition-colors"
           >
             <IoFilter />
           </button>
@@ -98,9 +101,9 @@ const AllContact = () => {
           }}
           disabled={selectedContacts.length === 0}
           className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-6 pl-5 py-2 text-sm sm:text-base font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${
-            selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+            selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""    
           }`}
-        >
+        >              
           <img
             src={callIcon}
             className="w-[15px] h-[20px] object-contain"
@@ -118,6 +121,7 @@ const AllContact = () => {
           onSelectionChange={setSelectedContacts}
           listId={activeItem.type === "list" ? activeItem.id : undefined}
           visibleColumns={visibleColumns}
+          searchTerm={searchTerm}
         />
       </div>
 
