@@ -223,38 +223,6 @@ const NotificationSetting = () => {
         </div>
 
         <div className="space-y-4">
-          {/* <div className="flex items-center justify-between gap-4">
-            <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
-                Failed Payment Alerts
-              </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
-                Notify when customer payments fail
-              </p>
-            </div>
-            <Toggle
-              active={toggles.failedPayment}
-              onClick={() => handleToggle('failedPayment')}
-            />
-          </div> */}
-
-          {/* <div className="flex items-center justify-between gap-4">
-            <div>
-              <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
-                Upcoming Renewal Reminders
-              </h4>
-              <p className="text-xs md:text-[16px] font-[400] text-[#828291] dark:text-white">
-                Notify about scheduled maintenance
-              </p>
-            </div>
-            <Toggle
-              active={toggles.renewalReminders}
-              onClick={() => handleToggle('renewalReminders')}
-            />
-          </div> */}
-
-
-
           <div className="flex items-center justify-between gap-4">
             <div>
               <h4 className="text-[14px] font-[500] text-[#34363B] dark:text-gray-400">
