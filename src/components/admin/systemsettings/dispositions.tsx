@@ -1,57 +1,33 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import type { AppDispatch, RootState } from "@/store/store"
+import {
+    fetchDispositions,
+    createDisposition,
+    updateDisposition,
+    deleteDisposition,
+} from "@/store/slices/dispositionSlice"
+import type { Disposition, DispositionColor } from "@/store/slices/dispositionSlice"
 import {
     Plus,
     Pencil,
     Trash2,
     GripVertical,
-    
     Tag,
     Save,
     X,
 } from "lucide-react"
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-type DispositionColor =
-    | "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray" | "pink"
-
-interface Disposition {
-    id: string
-    label: string
-    value: string          // maps to LeadCallStatus enum or custom slug
-    color: DispositionColor
-    icon: string
-    isSystem: boolean      // system ones can't be deleted
-    isActive: boolean
-    order: number
-}
-
-
-
 const COLOR_MAP: Record<DispositionColor, { bg: string; text: string; border: string; dot: string }> = {
-    red:    { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200",    dot: "bg-red-500" },
-    orange: { bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-200", dot: "bg-orange-500" },
-    yellow: { bg: "bg-yellow-50",  text: "text-yellow-700",  border: "border-yellow-200", dot: "bg-yellow-500" },
-    green:  { bg: "bg-green-50",   text: "text-green-700",   border: "border-green-200",  dot: "bg-green-500" },
-    blue:   { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",   dot: "bg-blue-500" },
-    purple: { bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-200", dot: "bg-purple-500" },
-    gray:   { bg: "bg-gray-50",    text: "text-gray-700",    border: "border-gray-200",   dot: "bg-gray-500" },
-    pink:   { bg: "bg-pink-50",    text: "text-pink-700",    border: "border-pink-200",   dot: "bg-pink-500" },
+    red: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", dot: "bg-red-500" },
+    orange: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", dot: "bg-orange-500" },
+    yellow: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", dot: "bg-yellow-500" },
+    green: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", dot: "bg-green-500" },
+    blue: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
+    purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", dot: "bg-purple-500" },
+    gray: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", dot: "bg-gray-500" },
+    pink: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", dot: "bg-pink-500" },
 }
-
-const DEFAULT_DISPOSITIONS: Disposition[] = [
-    { id: "1",  label: "Pending",         value: "PENDING",        color: "gray",   icon: "Clock",         isSystem: true,  isActive: true, order: 1 },
-    { id: "2",  label: "Called",          value: "CALLED",         color: "green",  icon: "CheckCircle2",  isSystem: true,  isActive: true, order: 2 },
-    { id: "3",  label: "Failed",          value: "FAILED",         color: "red",    icon: "XCircle",       isSystem: true,  isActive: true, order: 3 },
-    { id: "4",  label: "Busy",            value: "BUSY",           color: "orange", icon: "PhoneOff",      isSystem: true,  isActive: true, order: 4 },
-    { id: "5",  label: "No Answer",       value: "NO_ANSWER",      color: "purple", icon: "PhoneMissed",   isSystem: true,  isActive: true, order: 5 },
-    { id: "6",  label: "Hot",             value: "HOT",            color: "red",    icon: "Flame",         isSystem: true,  isActive: true, order: 6 },
-    { id: "7",  label: "Warm",            value: "WARM",           color: "orange", icon: "Thermometer",   isSystem: true,  isActive: true, order: 7 },
-    { id: "8",  label: "Cold",            value: "COLD",           color: "blue",   icon: "Snowflake",     isSystem: true,  isActive: true, order: 8 },
-    { id: "9",  label: "Call Back",       value: "CALL_BACK",      color: "yellow", icon: "PhoneIncoming", isSystem: true,  isActive: true, order: 9 },
-    { id: "10", label: "Do Not Call",     value: "DO_NOT_CALL",    color: "red",    icon: "Ban",           isSystem: true,  isActive: true, order: 10 },
-    { id: "11", label: "Not Interested",  value: "NOT_INTERESTED", color: "gray",   icon: "ThumbsDown",    isSystem: true,  isActive: true, order: 11 },
-]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -133,11 +109,10 @@ function DispositionForm({
                             <button
                                 key={col}
                                 onClick={() => setForm(f => ({ ...f, color: col }))}
-                                className={`w-6 h-6 rounded-full ${COLOR_MAP[col].dot} transition-all ${
-                                    form.color === col
+                                className={`w-6 h-6 rounded-full ${COLOR_MAP[col].dot} transition-all ${form.color === col
                                         ? "ring-2 ring-offset-2 ring-[#FFCA06] scale-110"
                                         : "hover:scale-110"
-                                }`}
+                                    }`}
                                 title={col}
                             />
                         ))}
@@ -197,13 +172,18 @@ function DispositionForm({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DispositionSettings() {
-    const [dispositions, setDispositions] = useState<Disposition[]>(DEFAULT_DISPOSITIONS)
+    const dispatch = useDispatch<AppDispatch>()
+    const { dispositions } = useSelector((state: RootState) => state.dispositions)
+    
     const [showAddForm, setShowAddForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
 
+    useEffect(() => {
+        dispatch(fetchDispositions())
+    }, [dispatch])
+
     function handleAdd(data: FormState) {
-        const newDisp: Disposition = {
-            id: Date.now().toString(),
+        dispatch(createDisposition({
             label: data.label,
             value: slugify(data.label),
             color: data.color,
@@ -211,32 +191,30 @@ export default function DispositionSettings() {
             isSystem: false,
             isActive: true,
             order: dispositions.length + 1,
-        }
-        setDispositions(d => [...d, newDisp])
+        }))
         setShowAddForm(false)
     }
 
     function handleEdit(id: string, data: FormState) {
-        setDispositions(d =>
-            d.map(disp =>
-                disp.id === id
-                    ? { ...disp, label: data.label, color: data.color, icon: data.icon }
-                    : disp
-            )
-        )
+        dispatch(updateDisposition({
+            id,
+            data: { label: data.label, color: data.color, icon: data.icon }
+        }))
         setEditingId(null)
     }
 
     function handleDelete(id: string) {
-        setDispositions(d => d.filter(disp => disp.id !== id))
+        dispatch(deleteDisposition(id))
     }
 
     function handleToggleActive(id: string) {
-        setDispositions(d =>
-            d.map(disp =>
-                disp.id === id ? { ...disp, isActive: !disp.isActive } : disp
-            )
-        )
+        const disp = dispositions.find(d => d.id === id)
+        if (disp) {
+            dispatch(updateDisposition({
+                id,
+                data: { isActive: !disp.isActive }
+            }))
+        }
     }
 
     const systemDispositions = dispositions.filter(d => d.isSystem)
@@ -390,14 +368,12 @@ function DispositionRow({
                 {/* Active toggle */}
                 <button
                     onClick={onToggle}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${
-                        disposition.isActive ? "bg-[#FFCA06]" : "bg-[#DEE2E6] dark:bg-slate-600"
-                    }`}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${disposition.isActive ? "bg-[#FFCA06]" : "bg-[#DEE2E6] dark:bg-slate-600"
+                        }`}
                 >
                     <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            disposition.isActive ? "translate-x-4" : "translate-x-0.5"
-                        }`}
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${disposition.isActive ? "translate-x-4" : "translate-x-0.5"
+                            }`}
                     />
                 </button>
 

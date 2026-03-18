@@ -3,49 +3,49 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateContact, fetchContactGroups, assignContactToGroups } from "@/store/slices/contactSlice";
-// import { fetchDispositions } from "@/store/slices/dispositionSlice";
+import { fetchDispositions } from "@/store/slices/dispositionSlice";
 import toast from "react-hot-toast";
-import { Phone, Check, Loader2, Users } from "lucide-react";
+import { Phone, Check, Loader2, Users, Tag } from "lucide-react";
 
 // ─── Icon + color maps (same as DispositionSettings) ─────────────────────────
 
-// import {
-//   CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming,
-//   Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown,
-// } from "lucide-react";
+import {
+  CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming,
+  Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown,
+} from "lucide-react";
 
-// const ICON_MAP: Record<string, React.ElementType> = {
-//   CheckCircle2, XCircle, Phone, PhoneOff, PhoneMissed,
-//   PhoneIncoming, Flame, Thermometer, Snowflake, Clock,
-//   Ban, ThumbsDown, Tag,
-// };
+const ICON_MAP: Record<string, React.ElementType> = {
+  CheckCircle2, XCircle, Phone, PhoneOff, PhoneMissed,
+  PhoneIncoming, Flame, Thermometer, Snowflake, Clock,
+  Ban, ThumbsDown, Tag,
+};
 
-// const COLOR_IDLE: Record<string, string> = {
-//   green:  "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950",
-//   red:    "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950",
-//   orange: "border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950",
-//   yellow: "border-yellow-300 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-700 dark:text-yellow-400 dark:hover:bg-yellow-950",
-//   blue:   "border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950",
-//   purple: "border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950",
-//   gray:   "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-400 dark:hover:bg-slate-700",
-//   rose:   "border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950",
-//   pink:   "border-pink-200 text-pink-700 hover:bg-pink-50 dark:border-pink-900 dark:text-pink-400 dark:hover:bg-pink-950",
-// };
+const COLOR_IDLE: Record<string, string> = {
+  green: "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950",
+  red: "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950",
+  orange: "border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950",
+  yellow: "border-yellow-300 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-700 dark:text-yellow-400 dark:hover:bg-yellow-950",
+  blue: "border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950",
+  purple: "border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-400 dark:hover:bg-violet-950",
+  gray: "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-400 dark:hover:bg-slate-700",
+  rose: "border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950",
+  pink: "border-pink-200 text-pink-700 hover:bg-pink-50 dark:border-pink-900 dark:text-pink-400 dark:hover:bg-pink-950",
+};
 
-// const COLOR_ACTIVE: Record<string, string> = {
-//   green:  "bg-emerald-500 border-emerald-500 text-white",
-//   red:    "bg-red-500 border-red-500 text-white",
-//   orange: "bg-orange-500 border-orange-500 text-white",
-//   yellow: "bg-yellow-400 border-yellow-400 text-gray-900",
-//   blue:   "bg-blue-500 border-blue-500 text-white",
-//   purple: "bg-violet-500 border-violet-500 text-white",
-//   gray:   "bg-gray-600 border-gray-600 text-white dark:bg-slate-500 dark:border-slate-500",
-//   rose:   "bg-rose-500 border-rose-500 text-white",
-//   pink:   "bg-pink-500 border-pink-500 text-white",
-// };
+const COLOR_ACTIVE: Record<string, string> = {
+  green: "bg-emerald-500 border-emerald-500 text-white",
+  red: "bg-red-500 border-red-500 text-white",
+  orange: "bg-orange-500 border-orange-500 text-white",
+  yellow: "bg-yellow-400 border-yellow-400 text-gray-900",
+  blue: "bg-blue-500 border-blue-500 text-white",
+  purple: "bg-violet-500 border-violet-500 text-white",
+  gray: "bg-gray-600 border-gray-600 text-white dark:bg-slate-500 dark:border-slate-500",
+  rose: "bg-rose-500 border-rose-500 text-white",
+  pink: "bg-pink-500 border-pink-500 text-white",
+};
 
 // Group pills have a simpler fixed style — they're not color-coded
-const GROUP_IDLE   = "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-slate-700";
+const GROUP_IDLE = "border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-slate-700";
 const GROUP_ACTIVE = "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900";
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -53,26 +53,26 @@ const GROUP_ACTIVE = "bg-gray-900 border-gray-900 text-white dark:bg-white dark:
 const ContactDisposition = () => {
   const dispatch = useAppDispatch();
 
-  const { currentContact,  groups } = useAppSelector(s => s.contacts);
-  // const { dispositions } = useAppSelector(s => s.dispositions);
+  const { currentContact, groups } = useAppSelector(s => s.contacts);
+  const { dispositions } = useAppSelector(s => s.dispositions);
 
   // ── Disposition state ──
   const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
-  const [savedDisp,    setSavedDisp]    = useState<string | null>(null);
-  const [savingDisp,   setSavingDisp]   = useState(false);
+  const [savedDisp, setSavedDisp] = useState<string | null>(null);
+  const [savingDisp, setSavingDisp] = useState(false);
 
   // ── Group state ──
   // contactIds array tells us which groups this contact belongs to.
   // We store a Set of group IDs the contact is currently in (from DB),
   // and a local pending Set the user is toggling before saving.
-  const [savedGroupIds,   setSavedGroupIds]   = useState<Set<string>>(new Set());
+  const [savedGroupIds, setSavedGroupIds] = useState<Set<string>>(new Set());
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
-  const [savingGroups,     setSavingGroups]     = useState(false);
+  const [savingGroups, setSavingGroups] = useState(false);
 
   // Load dispositions + groups if not already loaded
   useEffect(() => {
-    // if (dispositions.length === 0) dispatch(fetchDispositions());
-    if (groups.length === 0)       dispatch(fetchContactGroups());
+    if (dispositions.length === 0) dispatch(fetchDispositions());
+    if (groups.length === 0) dispatch(fetchContactGroups());
   }, []);
 
   // Sync when contact changes (next/prev navigation)
@@ -99,11 +99,11 @@ const ContactDisposition = () => {
 
   // ── Helpers ──
 
-  // const activeDispositions = dispositions.filter(d => d.isActive);
+  const activeDispositions = dispositions.filter(d => d.isActive);
 
-  // function getDispLabel(value: string) {
-  //   return dispositions.find(d => d.value === value)?.label ?? value;
-  // }
+  function getDispLabel(value: string) {
+    return dispositions.find(d => d.value === value)?.label ?? value;
+  }
 
   function toggleGroup(groupId: string) {
     setSelectedGroupIds(prev => {
@@ -117,7 +117,7 @@ const ContactDisposition = () => {
 
   async function handleSaveDisposition() {
     if (!currentContact?.id) { toast.error("No contact loaded"); return; }
-    if (!selectedDisp)        { toast.error("Pick a disposition first"); return; }
+    if (!selectedDisp) { toast.error("Pick a disposition first"); return; }
     if (selectedDisp === savedDisp) { toast("Already saved"); return; }
 
     setSavingDisp(true);
@@ -126,7 +126,7 @@ const ContactDisposition = () => {
     );
     if (updateContact.fulfilled.match(result)) {
       setSavedDisp(selectedDisp);
-      // toast.success(`Disposition set to "${getDispLabel(selectedDisp)}"`);
+      toast.success(`Disposition set to "${getDispLabel(selectedDisp)}"`);
     } else {
       toast.error((result.payload as string) ?? "Failed to save disposition");
     }
@@ -160,7 +160,7 @@ const ContactDisposition = () => {
     setSavingGroups(false);
   }
 
-  const isDispDirty   = selectedDisp !== savedDisp;
+  const isDispDirty = selectedDisp !== savedDisp;
   const isGroupsDirty = !(
     selectedGroupIds.size === savedGroupIds.size &&
     [...selectedGroupIds].every(id => savedGroupIds.has(id))
@@ -181,12 +181,12 @@ const ContactDisposition = () => {
           {savedDisp && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
               <Check className="w-3 h-3 text-emerald-500" />
-              {/* {getDispLabel(savedDisp)} */}
+              {getDispLabel(savedDisp)}
             </span>
           )}
         </div>
 
-        {/* {activeDispositions.length === 0 ? (
+        {activeDispositions.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500 flex items-center gap-2">
             <Tag className="w-4 h-4" /> No active dispositions configured
           </p>
@@ -205,30 +205,29 @@ const ContactDisposition = () => {
                       : (COLOR_IDLE[d.color]   ?? COLOR_IDLE.gray)
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   {d.label}
                 </button>
               );
             })}
           </div>
-        )} */}
+        )}
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
-          {/* <p className="text-xs text-gray-400 dark:text-gray-500">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             {isDispDirty && selectedDisp
               ? `Selected: ${getDispLabel(selectedDisp)}`
               : !selectedDisp
               ? "No disposition selected"
               : "Up to date"}
-          </p> */}
+          </p>
           <button
             onClick={handleSaveDisposition}
             disabled={savingDisp || !selectedDisp || !isDispDirty}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
-              savingDisp || !selectedDisp || !isDispDirty
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${savingDisp || !selectedDisp || !isDispDirty
                 ? "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                 : "bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm hover:shadow active:scale-95"
-            }`}
+              }`}
           >
             {savingDisp
               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</>
@@ -266,9 +265,8 @@ const ContactDisposition = () => {
                 <button
                   key={g.id}
                   onClick={() => toggleGroup(g.id)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full border font-medium transition-all duration-150 active:scale-95 ${
-                    isActive ? GROUP_ACTIVE : GROUP_IDLE
-                  }`}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full border font-medium transition-all duration-150 active:scale-95 ${isActive ? GROUP_ACTIVE : GROUP_IDLE
+                    }`}
                 >
                   {isActive && <Check className="w-3 h-3 shrink-0" />}
                   {g.name}
@@ -283,17 +281,16 @@ const ContactDisposition = () => {
             {isGroupsDirty
               ? `${selectedGroupIds.size} group${selectedGroupIds.size !== 1 ? "s" : ""} selected`
               : savedGroupIds.size > 0
-              ? "Up to date"
-              : "No groups selected"}
+                ? "Up to date"
+                : "No groups selected"}
           </p>
           <button
             onClick={handleSaveGroups}
             disabled={savingGroups || !isGroupsDirty}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
-              savingGroups || !isGroupsDirty
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${savingGroups || !isGroupsDirty
                 ? "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                 : "bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm hover:shadow active:scale-95"
-            }`}
+              }`}
           >
             {savingGroups
               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</>

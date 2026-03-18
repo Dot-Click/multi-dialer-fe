@@ -25,23 +25,23 @@ interface CallerIdStatus {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOTAL_DAILY_LIMIT = 25;
-const POLL_INTERVAL_MS  = 30_000;
+const POLL_INTERVAL_MS = 30_000;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ContactInfo = () => {
-    const location     = useLocation();
-    const dispatch     = useAppDispatch();
+    const location = useLocation();
+    const dispatch = useAppDispatch();
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
     const settingsInfo = location.state?.settingsInfo;
 
     const { setAnsweringMachineUrl } = useTwilio();
 
-    const [currentIndex, setCurrentIndex]       = useState(0);
-    const [callerIds, setCallerIds]             = useState<string[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [callerIds, setCallerIds] = useState<string[]>([]);
     const [currentCallerId, setCurrentCallerId] = useState<string | null>(null);
     const [dailyCallsCount, setDailyCallsCount] = useState(0);
-    const [scriptId, setScriptId]               = useState<string | null>(location.state?.selectedScript || null);
+    const [scriptId, setScriptId] = useState<string | null>(location.state?.selectedScript || null);
     const maxCallsPerId = location.state?.numberOfLines || 5;
 
     // Cooldown state from backend
@@ -72,9 +72,9 @@ const ContactInfo = () => {
     // ─── Init from navigation state ───────────────────────────────────────────
 
     useEffect(() => {
-        const selectedContacts  = location.state?.contacts;
+        const selectedContacts = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
-        const amUrl             = location.state?.answeringMachineRecordingUrl;
+        const amUrl = location.state?.answeringMachineRecordingUrl;
 
         if (amUrl) setAnsweringMachineUrl(amUrl);
         if (location.state?.selectedScript) setScriptId(location.state.selectedScript);
@@ -97,7 +97,7 @@ const ContactInfo = () => {
     // Pick initial callerId once status loads
     useEffect(() => {
         if (callerIds.length === 0 || currentCallerId) return;
-        const now   = Date.now();
+        const now = Date.now();
         const first = callerIds.find((cid) => {
             const s = callerIdStatus[cid];
             if (!s) return true;
@@ -112,7 +112,7 @@ const ContactInfo = () => {
         if (queue.length > 0 && queue[currentIndex]) dispatch(fetchContactById(queue[currentIndex].id));
     }, [currentIndex, queue, dispatch]);
 
-    const handleNextContact     = () => { if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); };
+    const handleNextContact = () => { if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); };
     const handlePreviousContact = () => { if (currentIndex > 0) setCurrentIndex((p) => p - 1); };
 
     // ─── Rotation ─────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ const ContactInfo = () => {
         for (let i = 0; i < callerIds.length; i++) {
             const idx = (startIdx + i) % callerIds.length;
             const cid = callerIds[idx];
-            const s   = callerIdStatus[cid];
+            const s = callerIdStatus[cid];
             const available = !s?.isFrozen || (s.unfreezeAt && now >= s.unfreezeAt);
             if (available) {
                 setCurrentCallerId(cid);
@@ -192,9 +192,9 @@ const ContactInfo = () => {
                 setCallerIdStatus((prev) => ({
                     ...prev,
                     [fromNumber]: {
-                        callCount:        result.callCount,
-                        isFrozen:         result.isFrozen,
-                        unfreezeAt:       result.unfreezeAt,
+                        callCount: result.callCount,
+                        isFrozen: result.isFrozen,
+                        unfreezeAt: result.unfreezeAt,
                         secondsRemaining: result.secondsRemaining,
                     },
                 }));
@@ -214,7 +214,7 @@ const ContactInfo = () => {
 
     // ─── Debug stats ──────────────────────────────────────────────────────────
 
-    const currentStatus    = currentCallerId ? (callerIdStatus[currentCallerId] ?? null) : null;
+    const currentStatus = currentCallerId ? (callerIdStatus[currentCallerId] ?? null) : null;
     const callsMadeCurrent = currentStatus?.callCount ?? 0;
 
     // ─── Render ───────────────────────────────────────────────────────────────
@@ -235,9 +235,9 @@ const ContactInfo = () => {
                 dailyLimit={TOTAL_DAILY_LIMIT}
             />
 
+            <CallSection />
             <div className="w-full p-4 lg:flex lg:gap-4 space-y-4 lg:space-y-0">
                 <div className="w-full lg:w-[65%] space-y-4">
-                    <CallSection />
                     <ContactDisposition />
                     <BottomContactDetail />
                 </div>
