@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   getAppearance,
@@ -95,16 +94,16 @@ const Appearance: React.FC = () => {
     saveAppearance({ ...updated, timeZone });
   };
 
-  const handleTimeZoneChange = (value: string) => {
-    setTimeZone(value);
-    // Save toggles + new timeZone
-    saveAppearance({ ...toggles, timeZone: value });
-  };
+  
 
   const saveAppearance = async (payload: typeof toggles & { timeZone: string }) => {
     try {
       setIsSaving(true);
-      await dispatch(createAppearance(payload)).unwrap();
+      
+      // Do not send lockGroups and timeZone in API
+      const { lockGroups, timeZone, ...apiPayload } = payload;
+      
+      await dispatch(createAppearance(apiPayload as any)).unwrap();
       toast.success("Appearance settings saved successfully");
     } catch (error) {
       console.error("Save failed", error);
@@ -136,12 +135,7 @@ const Appearance: React.FC = () => {
     { key: "pipelineAccelerationIndex", label: "Pipeline Acceleration Index" },
   ] as const;
 
-  const timeZones = [
-    "Central Standard Time (CST)",
-    "Eastern Standard Time (EST)",
-    "Pacific Standard Time (PST)",
-    "Mountain Standard Time (MST)",
-  ];
+  
 
   return (
     <div className="flex flex-col gap-5 pb-6">
@@ -188,6 +182,7 @@ const Appearance: React.FC = () => {
           />
         ))}
 
+        {/*
         <div className="mb-6 flex flex-col mt-6 gap-1">
           <h1 className="text-[18px] text-[#000] dark:text-gray-300 font-[500] work-sans">
             Lock Groups
@@ -256,6 +251,7 @@ const Appearance: React.FC = () => {
             </div>
           </div>
         </div>
+        */}
       </div>
 
       {/* <div className="bg-white dark:bg-slate-800 rounded-md shadow px-7 py-4 mt-6">

@@ -30,7 +30,8 @@ const AdminAllContact = () => {
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(""); // used for agents modal
+    const [contactSearchTerm, setContactSearchTerm] = useState(""); // used for table
 
     const [realUsers, setRealUsers] = useState<any[]>([]);
     const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
@@ -192,6 +193,8 @@ const AdminAllContact = () => {
                             type="search"
                             placeholder="Search by name, email, phone number..."
                             className="w-full placeholder:text-sm text-sm outline-none bg-transparent text-gray-800 dark:text-white dark:placeholder-slate-500"
+                            value={contactSearchTerm}
+                            onChange={(e) => setContactSearchTerm(e.target.value)}
                         />
                         <IoIosSearch className="text-2xl text-gray-500 dark:text-slate-400 shrink-0" />
                     </div>
@@ -228,6 +231,7 @@ const AdminAllContact = () => {
                 <AllContactComponent
                     onSelectionChange={setSelectedContacts}
                     listId={activeItem.type === "list" ? activeItem.id : undefined}
+                    searchTerm={contactSearchTerm}
                 />
             </div>
 

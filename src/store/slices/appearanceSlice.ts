@@ -284,7 +284,10 @@ export const getAppearance = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/system-settings/appearance");
-      if (response.data.success) return response.data.data;
+      console.log(response)
+      if (response.data.success){
+         return response.data.data
+      };
       return rejectWithValue(response.data.message || "Failed to fetch appearance settings");
     } catch (error: any) {
       if (error.response?.data) return rejectWithValue(error.response.data.message);

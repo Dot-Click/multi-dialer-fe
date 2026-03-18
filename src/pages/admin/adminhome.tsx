@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AiIcon from "@/assets/Ai_icon.png";
 import WorkspaceIcon from "@/assets/workspace_icon.png";
 import AdminWorkspace from "@/pages/admin/adminworkspace";
 import AdminAisidekick from "@/pages/admin/adminaisidekick";
+import { useAppDispatch } from "@/store/hooks";
+import { getAppearance } from "@/store/slices/appearanceSlice";
 
 const AdminHome = () => {
   const [active, setActive] = useState("Workspace");
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(getAppearance());
+  }, [dispatch]);
 
   const components = [
     { id: 1, name: "Workspace", icon: WorkspaceIcon },
