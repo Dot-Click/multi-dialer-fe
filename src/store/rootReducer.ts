@@ -12,6 +12,7 @@ import appearanceReducer from "./slices/appearanceSlice";
 import userReducer from "./slices/userSlice";
 import reportsReducer from "./slices/reportsSlice";
 import companySettingReducer from "./slices/companySettingSlice";
+import dispositionReducer from "./slices/dispositionSlice";
 
 const rootReducer = combineReducers({
   example: exampleReducer,
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   reports: reportsReducer,
   companySetting: companySettingReducer,
+  dispositions: dispositionReducer,
 });
 
 export default rootReducer;
