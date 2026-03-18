@@ -14,6 +14,7 @@ interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
   listId?: string;
   visibleColumns?: string[];
+  searchTerm?: string;
 }
 
 // ─── Skeleton Loader ───────────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ const ContactTableSkeleton = () => {
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactProps) => {
+const AllContact = ({ onSelectionChange, listId, visibleColumns, searchTerm }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
@@ -87,6 +88,20 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
       dispatch(fetchContacts());
     }
   }, [dispatch, listId]);
+
+  const filteredContacts = useMemo(() => {
+    if (!searchTerm) return contacts;
+    const lowerSearch = searchTerm.toLowerCase();
+    return contacts.filter((contact) => {
+      const matchName = String(contact.name || "").toLowerCase().includes(lowerSearch);
+      const matchEmail = String(contact.email || "").toLowerCase().includes(lowerSearch);
+      const matchPhone = String(contact.phone || "").toLowerCase().includes(lowerSearch);
+      const matchTags = String(contact.tags || "").toLowerCase().includes(lowerSearch);
+      const matchList = String(contact.list || "").toLowerCase().includes(lowerSearch);
+
+      return matchName || matchEmail || matchPhone || matchTags || matchList;
+    });
+  }, [contacts, searchTerm]);
 
   const allColumns = [
     {
@@ -212,7 +227,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns }: AllContactPro
             <span className="text-red-500 dark:text-red-400 text-sm">{error}</span>
           </div>
         ) : (
-          <TableProvider data={contacts} columns={columns}>
+          <TableProvider data={filteredContacts} columns={columns}>
             {({ selectedRows }) => (
               <>
                 <SelectionHandler selectedRows={selectedRows} />
