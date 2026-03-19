@@ -91,9 +91,9 @@ const Router: React.FC = () => {
 
             <Route path="/data-dialer" element={<ContactLayout />}>
               <Route index element={<AllContact />} />
+              <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
-            <Route path="/contact-detail/:id" element={<ContactDetail />} />
             <Route path="/contact-info" element={<ContactInfo />} />
           </Route>
         </Route>

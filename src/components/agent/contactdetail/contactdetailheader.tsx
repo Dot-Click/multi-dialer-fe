@@ -180,7 +180,7 @@ const ContactDetailHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="bg-white dark:bg-slate-800 flex items-center justify-between md:px-6 w-full h-16">
+      <header className="bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between md:px-6 w-full h-16">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}

@@ -79,7 +79,7 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns, searchTerm }: A
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
 
   const isAdmin = location.pathname.startsWith("/admin");
-  const linkPath = isAdmin ? "/admin/contact-detail" : "/contact-detail";
+  const linkPath = isAdmin ? "/admin/contact-detail" : "contact-detail";
 
   useEffect(() => {
     if (listId) {
