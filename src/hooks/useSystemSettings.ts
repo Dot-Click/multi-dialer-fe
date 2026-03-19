@@ -696,13 +696,34 @@ export const useTwilioNumbers = (filters?: {
   };
 };
 export const useDncList = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["dnc-list"],
     queryFn: async () => {
       const response = await api.get("/contact/dnc-list");
       return response.data.data as any[];
     },
   });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/contact/${id}/remove-from-dnc`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dnc-list"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+      toast.success("Contact removed from DNC list");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to remove contact from DNC");
+    },
+  });
+
+  return {
+    ...query,
+    removeFromDnc: removeMutation,
+  };
 };
 
 export const useRegulatorySettings = () => {

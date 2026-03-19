@@ -36,7 +36,7 @@ import { useEffect, useState } from 'react'
 
 const Compliance = () => {
   const { data: callerIds } = useCallerIds();
-  const { data: realDncList } = useDncList();
+  const { data: realDncList, removeFromDnc } = useDncList();
   const { data: regulatory, updateRegulatorySettings } = useRegulatorySettings();
   const { data: realAuditLogs } = useAuditLogs();
   const navigate = useNavigate()
@@ -79,7 +79,7 @@ const Compliance = () => {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     source: item.source,
-
+    id: item.id
   })) || [];
 
   const handleExportDNC = () => {
@@ -139,8 +139,6 @@ const Compliance = () => {
     role: item.user?.role === 'AGENT' ? 'Agent' : 'Admin',
     action: item.action + (item.details ? ` (${item.details})` : '')
   })) || [];
-
-  console.log("tcpaFrom:", regulatory, "tcpaTo:", regulatory?.tcpaTo)
 
   return (
     <Box className="min-h-screen pr-3 lg:pr-6 bg-white dark:bg-slate-900 transition-colors">
@@ -246,6 +244,7 @@ const Compliance = () => {
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Email</TableHead>
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">List</TableHead>
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Tags</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -282,6 +281,40 @@ const Compliance = () => {
                           </Badge>
                         ))}
                       </div>
+                    </TableCell>
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          toast((t) => (
+                            <div className="flex flex-col gap-2">
+                              <p className="text-sm font-medium">Remove <span className="font-semibold">{contact.name}</span> from DNC?</p>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    removeFromDnc.mutate(contact.id);
+                                    toast.dismiss(t.id);
+                                  }}
+                                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-md"
+                                >
+                                  Yes, Remove
+                                </button>
+                                <button
+                                  onClick={() => toast.dismiss(t.id)}
+                                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ), { duration: Infinity });
+                        }}
+                        className="rounded-full text-xs cursor-pointer"
+                        disabled={removeFromDnc.isPending}
+                      >
+                        Remove
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
