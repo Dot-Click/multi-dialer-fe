@@ -38,6 +38,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
   const navigate = useNavigate();
 
+
   const { getContactLists, getContactFolders, getContactGroups, loading } =
     useContact();
   const dispatch = useAppDispatch();
