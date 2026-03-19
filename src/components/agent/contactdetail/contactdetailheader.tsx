@@ -127,14 +127,15 @@ const ContactDetailHeader = () => {
     toast.success("Email client opened");
   };
 
-  const onConfirmDnc = async (phoneIds: string[]) => {
+  const onConfirmDnc = async () => {
     if (!currentContact) return;
     try {
-      const response = await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds });
+      const response = await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: [] });
       if (response.data.success) {
-        toast.success("Successfully moved selected numbers to DNC");
+        toast.success("Successfully moved contact to DNC");
         setDncModalOpen(false);
-        // Refresh contact data if needed
+        // Navigate away or refresh if needed, since contact will be hidden
+        navigate("/agent/allcontact");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to move to DNC");
@@ -143,18 +144,7 @@ const ContactDetailHeader = () => {
 
   const handleDncClick = () => {
     if (!currentContact) return;
-    if (!currentContact.phones || currentContact.phones.length === 0) {
-      toast.error("Contact has no phone numbers");
-      return;
-    }
-
-    if (currentContact.phones.length === 1) {
-      if (window.confirm(`Are you sure you want to move ${currentContact.phones[0].number} to DNC?`)) {
-        onConfirmDnc([currentContact.phones[0].id]);
-      }
-    } else {
-      setDncModalOpen(true);
-    }
+    setDncModalOpen(true);
     setShowActionMenu(false);
   };
 
@@ -330,7 +320,6 @@ const ContactDetailHeader = () => {
         isOpen={isDncModalOpen}
         onClose={() => setDncModalOpen(false)}
         onConfirm={onConfirmDnc}
-        phones={currentContact?.phones || []}
         contactName={currentContact?.fullName || ""}
       />
     </>

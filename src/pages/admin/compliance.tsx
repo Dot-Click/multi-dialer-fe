@@ -55,18 +55,25 @@ const Compliance = () => {
   })) || []
 
 
+  console.log("realDncList", realDncList)
+
+
   // DNC List Data from API
   const dncList = realDncList?.map((item) => ({
-    name: item.name || 'Unknown',
+    name: item.fullName || 'Unknown',
     lastCalled: new Date(item.createdAt).toLocaleDateString('en-US', {
       month: '2-digit',
       day: '2-digit',
       year: 'numeric'
     }),
-    phone: item.number,
-    email: item.email || '-',
+    phone: item.phones || [],
+    email: item.emails || [],
     list: item.source || '-',
-    tags: [] // Tags not stored in DNC table currently
+    tags: [], // Tags not stored in DNC table currently
+    createdAt: item.createdAt,  
+    updatedAt: item.updatedAt,
+    source: item.source,
+
   })) || [];
 
   const handleExportDNC = () => {
@@ -235,35 +242,43 @@ const Compliance = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dncList.map((item, index) => (
-                <TableRow key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <Checkbox className="dark:border-gray-500" />
-                  </TableCell>
-                  <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium">{item.name}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.lastCalled}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <Phone className="size-4 text-gray-500 dark:text-gray-400 shrink-0" />
-                      <span className="text-sm sm:text-base whitespace-nowrap">{item.phone}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{item.email}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.list}</TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {item.tags.map((tag, tagIndex) => (
-                        <Badge
-                          key={tagIndex}
-                          className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full px-2 py-1 text-xs font-medium"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {dncList.map((contact, index) => {
+                const primaryEmail = contact.email.find((e: any) => e.isPrimary)?.email || contact.email[0]?.email || "N/A";
+                const primaryPhone = contact.phone[0]?.number || "N/A";
+
+                return (
+                  <TableRow key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <Checkbox className="dark:border-gray-500" />
+                    </TableCell>
+                    <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium">{contact.name}</TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
+                      {/* Last called date could be derived from callRecords if available */}
+                      {contact.updatedAt ? new Date(contact.updatedAt).toLocaleDateString() : "N/A"}
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <Phone className="size-4 text-gray-500 dark:text-gray-400 shrink-0" />
+                        <span className="text-sm sm:text-base whitespace-nowrap">{primaryPhone}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{primaryEmail}</TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">{contact.source || "N/A"}</TableCell>
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {contact.tags?.map((tag: any, tagIndex: number) => (
+                          <Badge
+                            key={tagIndex}
+                            className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full px-2 py-1 text-xs font-medium"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
