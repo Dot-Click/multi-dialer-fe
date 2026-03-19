@@ -182,11 +182,10 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
                       setSelectedResult(option);
                       setIsResultDropdownOpen(false);
                     }}
-                    className={`px-[16px] py-[10px] text-[16px] cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${
-                      selectedResult === option
+                    className={`px-[16px] py-[10px] text-[16px] cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${selectedResult === option
                         ? "bg-gray-50 dark:bg-slate-700 font-medium text-[#17181B] dark:text-white"
                         : "text-[#495057] dark:text-gray-300"
-                    } ${option === dispositionOptions[0] ? "border-b border-gray-200 dark:border-slate-700" : ""}`}
+                      } ${option === dispositionOptions[0] ? "border-b border-gray-200 dark:border-slate-700" : ""}`}
                   >
                     {option}
                   </div>
@@ -216,11 +215,10 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
           <button
             key={rdata.id}
             onClick={() => setOpenData(rdata.label)}
-            className={`px-[16px] py-[8px] text-[16px] font-medium rounded-[12px] transition whitespace-nowrap ${
-              openData === rdata.label
+            className={`px-[16px] py-[8px] text-[16px] font-medium rounded-[12px] transition whitespace-nowrap ${openData === rdata.label
                 ? "bg-[#FFCA06] dark:text-black text-[#0E1011]"
                 : "bg-[#F3F4F7] dark:bg-slate-700 text-[#495057] dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600"
-            }`}
+              }`}
           >
             {rdata.label}
           </button>
