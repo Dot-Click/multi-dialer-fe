@@ -32,6 +32,7 @@ import { useCallerIds, useDncList, useRegulatorySettings, useAuditLogs } from '@
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { downloadCSV } from '@/utils/csvDownload'
+import { useEffect, useState } from 'react'
 
 const Compliance = () => {
   const { data: callerIds } = useCallerIds();
@@ -39,6 +40,15 @@ const Compliance = () => {
   const { data: regulatory, updateRegulatorySettings } = useRegulatorySettings();
   const { data: realAuditLogs } = useAuditLogs();
   const navigate = useNavigate()
+
+  const [tcpaFrom, setTcpaFrom] = useState(regulatory?.tcpaFrom || "08:00");
+  const [tcpaTo, setTcpaTo] = useState(regulatory?.tcpaTo || "18:00");
+
+  // Sync with API data when it loads:
+  useEffect(() => {
+    if (regulatory?.tcpaFrom) setTcpaFrom(regulatory.tcpaFrom);
+    if (regulatory?.tcpaTo) setTcpaTo(regulatory.tcpaTo);
+  }, [regulatory?.tcpaFrom, regulatory?.tcpaTo]);
 
   // Purchased Numbers Data from API
   const purchasedNumbers = callerIds?.map((item) => ({
@@ -54,10 +64,6 @@ const Compliance = () => {
     label: item.label || 'Unnamed Number'
   })) || []
 
-
-  console.log("realDncList", realDncList)
-
-
   // DNC List Data from API
   const dncList = realDncList?.map((item) => ({
     name: item.fullName || 'Unknown',
@@ -70,7 +76,7 @@ const Compliance = () => {
     email: item.emails || [],
     list: item.source || '-',
     tags: [], // Tags not stored in DNC table currently
-    createdAt: item.createdAt,  
+    createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     source: item.source,
 
@@ -122,7 +128,6 @@ const Compliance = () => {
     toast.success("Audit logs exported successfully");
   };
 
-
   // Audit Logs Data from API
   const auditLogs = realAuditLogs?.map((item) => ({
     date: new Date(item.createdAt).toLocaleDateString('en-US', {
@@ -134,6 +139,8 @@ const Compliance = () => {
     role: item.user?.role === 'AGENT' ? 'Agent' : 'Admin',
     action: item.action + (item.details ? ` (${item.details})` : '')
   })) || [];
+
+  console.log("tcpaFrom:", regulatory, "tcpaTo:", regulatory?.tcpaTo)
 
   return (
     <Box className="min-h-screen pr-3 lg:pr-6 bg-white dark:bg-slate-900 transition-colors">
@@ -301,16 +308,24 @@ const Compliance = () => {
             <div>
               <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">From</Label>
               <Select
-                value={regulatory?.tcpaFrom || "08:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaFrom: val })}
+                value={tcpaFrom}
+                onValueChange={(val) => {
+                  setTcpaFrom(val);  // ← updates UI instantly
+                  updateRegulatorySettings.mutate({ tcpaFrom: val });
+                }}
               >
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-600 focus:ring-offset-0 transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="08:00" className="dark:text-white hover:dark:bg-slate-700">8:00</SelectItem>
-                  <SelectItem value="09:00" className="dark:text-white hover:dark:bg-slate-700">9:00</SelectItem>
-                  <SelectItem value="10:00" className="dark:text-white hover:dark:bg-slate-700">10:00</SelectItem>
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const hour = i.toString().padStart(2, '0') + ":00";
+                    return (
+                      <SelectItem key={hour} value={hour} className="dark:text-white hover:dark:bg-slate-700">
+                        {hour}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -319,17 +334,24 @@ const Compliance = () => {
             <div>
               <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">To</Label>
               <Select
-                value={regulatory?.tcpaTo || "18:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaTo: val })}
+                value={tcpaTo}
+                onValueChange={(val) => {
+                  setTcpaTo(val);  // ← updates UI instantly
+                  updateRegulatorySettings.mutate({ tcpaTo: val });
+                }}
               >
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-600 focus:ring-offset-0 transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="18:00" className="dark:text-white hover:dark:bg-slate-700">18:00</SelectItem>
-                  <SelectItem value="19:00" className="dark:text-white hover:dark:bg-slate-700">19:00</SelectItem>
-                  <SelectItem value="20:00" className="dark:text-white hover:dark:bg-slate-700">20:00</SelectItem>
-                  <SelectItem value="21:00" className="dark:text-white hover:dark:bg-slate-700">21:00</SelectItem>
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const hour = i.toString().padStart(2, '0') + ":00";
+                    return (
+                      <SelectItem key={hour} value={hour} className="dark:text-white hover:dark:bg-slate-700">
+                        {hour}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

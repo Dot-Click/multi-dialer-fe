@@ -9,6 +9,8 @@ import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useTwilio } from "@/providers/twilio.provider";
 import AddEventForm from "@/components/modal/addeventmodal";
+import { useRegulatorySettings } from "@/hooks/useSystemSettings";
+import toast from "react-hot-toast";
 
 interface ContactInfoHeaderProps {
   settingsInfo?: any;
@@ -37,7 +39,7 @@ const ContactInfoHeader = ({
   dailyCount = 0,
   dailyLimit = 25,
 }: ContactInfoHeaderProps) => {
-  const [isMenuOpen, setIsMenuOpen]     = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
@@ -46,11 +48,29 @@ const ContactInfoHeader = ({
   }>({ title: "", color: "#FFCA06", category: "TASK" });
 
   const { isCalling, appStatus, startCall, endCall } = useTwilio();
+  const { data: regulatory } = useRegulatorySettings();
+
+  console.log("regulatory", regulatory)
+
+  const now = new Date();
+  const currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  console.log("currentStr", currentStr)
 
   const handleCallToggle = async () => {
     if (isCalling) {
       endCall();
       return;
+    }
+
+    // --- TCPA CHECK ---
+    // console.log("tcpaFrom", tcpaFrom)
+    // console.log("tcpaTo", tcpaTo
+    const { tcpaFrom, tcpaTo } = regulatory || {};
+    if (tcpaFrom && tcpaTo) {
+      if (currentStr < tcpaFrom || currentStr > tcpaTo) {
+        toast.error(`Compliance Alert: Calling is restricted outside ${tcpaFrom} - ${tcpaTo} (TCPA Hours).`);
+        return;
+      }
     }
 
     // Pick the callerId to use for this call
@@ -93,19 +113,18 @@ const ContactInfoHeader = ({
             Live Dialing Screen
           </h1>
           <span
-            className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${
-              dailyCount >= dailyLimit
-                ? "bg-orange-500"
-                : isCalling
+            className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${dailyCount >= dailyLimit
+              ? "bg-orange-500"
+              : isCalling
                 ? "bg-red-500"
                 : "bg-[#07D95B]"
-            }`}
+              }`}
           >
             {dailyCount >= dailyLimit
               ? "Daily Limit Reached"
               : isCalling
-              ? "Active Call"
-              : appStatus}
+                ? "Active Call"
+                : appStatus}
           </span>
           {totalContacts > 0 && (
             <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
@@ -134,11 +153,10 @@ const ContactInfoHeader = ({
 
           <button
             onClick={handleCallToggle}
-            className={`${
-              isCalling
-                ? "bg-red-500 text-white"
-                : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
-            } rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:opacity-80 transition-all`}
+            className={`${isCalling
+              ? "bg-red-500 text-white"
+              : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
+              } rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:opacity-80 transition-all`}
           >
             {isCalling ? <FiPause className="text-xl" /> : <IoPlayOutline className="text-xl" />}
             <span className="text-sm font-medium">
@@ -150,9 +168,8 @@ const ContactInfoHeader = ({
             <button
               onClick={onPrev}
               disabled={currentIndex === 0}
-              className={`bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#D8DCE1] dark:hover:bg-slate-600 transition-all ${
-                currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#D8DCE1] dark:hover:bg-slate-600 transition-all ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <span className="text-sm font-medium">Prev</span>
             </button>
@@ -160,9 +177,8 @@ const ContactInfoHeader = ({
             <button
               onClick={onNext}
               disabled={currentIndex >= totalContacts - 1}
-              className={`bg-[#0E1011] text-white rounded-[12px] flex items-center gap-1.5 py-3 px-5 hover:bg-[#1a1c1e] transition-colors ${
-                currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`bg-[#0E1011] text-white rounded-[12px] flex items-center gap-1.5 py-3 px-5 hover:bg-[#1a1c1e] transition-colors ${currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <HiPlus className="text-xl" />
               <span className="text-sm font-medium">Dial Next Number</span>
@@ -200,11 +216,10 @@ const ContactInfoHeader = ({
 
           <button
             onClick={handleCallToggle}
-            className={`rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 transition-colors ${
-              isCalling
-                ? "bg-red-500 text-white"
-                : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
-            }`}
+            className={`rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 transition-colors ${isCalling
+              ? "bg-red-500 text-white"
+              : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
+              }`}
           >
             {isCalling ? <FiPause className="text-2xl" /> : <IoPlayOutline className="text-2xl" />}
             <span className="font-medium">{isCalling ? "End Connection" : "Start"}</span>
@@ -214,9 +229,8 @@ const ContactInfoHeader = ({
             <button
               onClick={onPrev}
               disabled={currentIndex === 0}
-              className={`flex-1 bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${
-                currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`flex-1 bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <span className="font-medium">Previous</span>
             </button>
@@ -224,9 +238,8 @@ const ContactInfoHeader = ({
             <button
               onClick={onNext}
               disabled={currentIndex >= totalContacts - 1}
-              className={`flex-1 bg-[#0E1011] dark:bg-slate-900 text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${
-                currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`flex-1 bg-[#0E1011] dark:bg-slate-900 text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <HiPlus className="text-2xl" />
               <span className="font-medium">Next</span>
