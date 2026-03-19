@@ -12,7 +12,7 @@ import {
 } from "@/hooks/useContact";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchContacts } from "@/store/slices/contactSlice";
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -34,7 +34,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     new Set(),
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const location = useLocation();
+  // const location = useLocation();
 
   const navigate = useNavigate();
 
@@ -70,12 +70,12 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   };
 
   // ✅ Back button logic
-  let backTo = "/";
-  if (location.pathname === "/admin/data-dialer") {
-    backTo = "/admin";
-  } else if (location.pathname === "/data-dialer") {
-    backTo = "/";
-  }
+  // let backTo = "/";
+  // if (location.pathname === "/admin/data-dialer") {
+  //   backTo = "/admin";
+  // } else if (location.pathname === "/data-dialer") {
+  //   backTo = "/";
+  // }
 
   useEffect(() => {
     onSelectItem({ type: "allContacts", name: "All Contacts" });

@@ -116,15 +116,15 @@ const ContactDetailHeader = () => {
     setShowActionMenu(false);
   };
 
-  const handleEmail = () => {
-    if (!currentContact) return;
-    const email = currentContact.emails?.[0]?.email || prompt("Enter recipient email address:");
-    if (!email) return;
+  // const handleEmail = () => {
+  //   if (!currentContact) return;
+  //   const email = currentContact.emails?.[0]?.email || prompt("Enter recipient email address:");
+  //   if (!email) return;
 
-    window.location.href = `mailto:${email}?subject=Contact Form: ${currentContact.fullName}&body=Name: ${currentContact.fullName}%0AEmail: ${email}`;
-    setShowActionMenu(false);
-    toast.success("Email client opened");
-  };
+  //   window.location.href = `mailto:${email}?subject=Contact Form: ${currentContact.fullName}&body=Name: ${currentContact.fullName}%0AEmail: ${email}`;
+  //   setShowActionMenu(false);
+  //   toast.success("Email client opened");
+  // };
 
   const onConfirmDnc = async () => {
     if (!currentContact) return;

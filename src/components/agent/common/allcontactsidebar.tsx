@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import usericon from "../../../assets/admin/usericons.png";
 import { VscFolderOpened } from "react-icons/vsc";
@@ -19,19 +19,19 @@ interface AllContactSidebarProps {
 const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const location = useLocation();
+  // const location = useLocation();
   const dispatch = useAppDispatch();
   const { folders, lists, groups } = useAppSelector((state) => state.contactStructure);
 
   const navigate = useNavigate();
 
   // ✅ Back button logic
-  let backTo = "/";
-  if (location.pathname === "/admin/data-dialer") {
-    backTo = "/admin";
-  } else if (location.pathname === "/data-dialer") {
-    backTo = "/";
-  }
+  // let backTo = "/";
+  // if (location.pathname === "/admin/data-dialer") {
+  //   backTo = "/admin";
+  // } else if (location.pathname === "/data-dialer") {
+  //   backTo = "/";
+  // }
 
   useEffect(() => {
     dispatch(fetchFolders());
