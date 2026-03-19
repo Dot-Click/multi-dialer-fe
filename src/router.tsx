@@ -51,7 +51,6 @@ import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
-
 import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
@@ -60,8 +59,6 @@ import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
 
-
-// HELOOO
 const Router: React.FC = () => {
   return (
     <div className="min-h-screen w-full work-sans">
