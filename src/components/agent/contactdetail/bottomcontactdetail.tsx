@@ -55,6 +55,7 @@ import History from "@/components/agent/contactdetail/history";
 import LeadSheet from "@/components/agent/contactdetail/leadsheet";
 import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
 import { useLocation } from "react-router-dom";
+import Email from "./email";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Notes");
@@ -66,10 +67,10 @@ const BottomContactDetail = () => {
 
     const stages = [
         { id: 1, name: "Notes" },
-        { id: 2, name: "Misc" },
+        { id: 2, name: "Profile" },
         { id: 3, name: "Activities" },
         { id: 4, name: "History" },
-        // { id: 5, name: "Emails" },
+        { id: 5, name: "Emails" },
         { id: 6, name: "SMS" },
         { id: 7, name: "Touch Point" },
         { id: 8, name: "Lead Sheet" },
@@ -78,7 +79,7 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col gap-8 mb-6 px-6 py-5 w-[96%] mx-auto rounded-[24px] shadow-sm">
+        <section className="bg-white dark:bg-slate-800 flex flex-col gap-8 mb-22 px-6 py-5 w-full mx-auto rounded-[24px] shadow-sm">
             {/* Tabs */}
             <div className="flex bg-[#F3F4F7] dark:bg-gray-700 gap-5 md:gap-0 max-w-screen overflow-x-auto whitespace-nowrap rounded-[16px] p-[4px] justify-between items-center transition-colors">
                 {stages.map((stg) => (
@@ -95,10 +96,10 @@ const BottomContactDetail = () => {
             {/* Content Section */}
             <div className="w-full">
                 {openStatus === "Notes" && (<Notes />)}
-                {openStatus === "Misc" && (<Misc />)}
+                {openStatus === "Profile" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}
                 {openStatus === "History" && (<History />)}
-                {/* {openStatus === "Emails" && (<Email />)} */}
+                {openStatus === "Emails" && (<Email />)}
                 {openStatus === "SMS" && (<SMS />)}
                 {openStatus === "Touch Point" && (<TouchPoint />)}
                 {openStatus === "Lead Sheet" && (<LeadSheet />)}

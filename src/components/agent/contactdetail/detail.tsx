@@ -137,7 +137,7 @@ const Detail = () => {
     };
 
     return (
-        <section className='bg-white dark:bg-slate-800 flex flex-col gap-8 px-6 py-5 w-[96%] mx-auto rounded-[24px] transition-colors'>
+        <section className='bg-white dark:bg-slate-800 flex flex-col gap-8 px-6 py-5 w-full mx-auto rounded-[24px] transition-colors'>
             <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
                 <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col'>

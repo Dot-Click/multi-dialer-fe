@@ -31,7 +31,7 @@ const ContactDetail = () => {
   }
 
   return (
-    <section className='flex flex-col bg-[#f7f7f7] dark:bg-slate-900 overflow-auto gap-6'>
+    <section className='flex flex-col bg-[#f7f7f7] dark:bg-slate-900 w-[96%] gap-y-6'>
       <ContactDetailHeader />
       <Detail />
       <BottomContactDetail />
