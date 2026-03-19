@@ -91,9 +91,9 @@ const Router: React.FC = () => {
 
             <Route path="/data-dialer" element={<ContactLayout />}>
               <Route index element={<AllContact />} />
+              <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
-            <Route path="/contact-detail/:id" element={<ContactDetail />} />
             <Route path="/contact-info" element={<ContactInfo />} />
           </Route>
         </Route>
@@ -106,6 +106,7 @@ const Router: React.FC = () => {
             <Route path="/admin" element={<AdminContact />}>
               <Route path="data-dialer" element={<AdminAllContact />} />
               <Route path="find-duplicate" element={<AdminFindDuplicate />} />
+              <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
             {/* ✅ Admin Dashboard Section */}
@@ -134,7 +135,6 @@ const Router: React.FC = () => {
               <Route path="change-password" element={<AdminChangePassword />} />
             </Route>
 
-            <Route path="/admin/contact-detail/:id" element={<ContactDetail />} />
             <Route path="/admin/password-change" element={<AdminChangePassword />} />
             <Route path="/admin/contact-info" element={<ContactInfo />} />
           </Route>

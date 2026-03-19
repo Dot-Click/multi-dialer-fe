@@ -32,13 +32,23 @@ import { useCallerIds, useDncList, useRegulatorySettings, useAuditLogs } from '@
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { downloadCSV } from '@/utils/csvDownload'
+import { useEffect, useState } from 'react'
 
 const Compliance = () => {
   const { data: callerIds } = useCallerIds();
-  const { data: realDncList } = useDncList();
+  const { data: realDncList, removeFromDnc } = useDncList();
   const { data: regulatory, updateRegulatorySettings } = useRegulatorySettings();
   const { data: realAuditLogs } = useAuditLogs();
   const navigate = useNavigate()
+
+  const [tcpaFrom, setTcpaFrom] = useState(regulatory?.tcpaFrom || "08:00");
+  const [tcpaTo, setTcpaTo] = useState(regulatory?.tcpaTo || "18:00");
+
+  // Sync with API data when it loads:
+  useEffect(() => {
+    if (regulatory?.tcpaFrom) setTcpaFrom(regulatory.tcpaFrom);
+    if (regulatory?.tcpaTo) setTcpaTo(regulatory.tcpaTo);
+  }, [regulatory?.tcpaFrom, regulatory?.tcpaTo]);
 
   // Purchased Numbers Data from API
   const purchasedNumbers = callerIds?.map((item) => ({
@@ -54,19 +64,22 @@ const Compliance = () => {
     label: item.label || 'Unnamed Number'
   })) || []
 
-
   // DNC List Data from API
   const dncList = realDncList?.map((item) => ({
-    name: item.name || 'Unknown',
+    name: item.fullName || 'Unknown',
     lastCalled: new Date(item.createdAt).toLocaleDateString('en-US', {
       month: '2-digit',
       day: '2-digit',
       year: 'numeric'
     }),
-    phone: item.number,
-    email: item.email || '-',
+    phone: item.phones || [],
+    email: item.emails || [],
     list: item.source || '-',
-    tags: [] // Tags not stored in DNC table currently
+    tags: [], // Tags not stored in DNC table currently
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    source: item.source,
+    id: item.id
   })) || [];
 
   const handleExportDNC = () => {
@@ -114,7 +127,6 @@ const Compliance = () => {
     );
     toast.success("Audit logs exported successfully");
   };
-
 
   // Audit Logs Data from API
   const auditLogs = realAuditLogs?.map((item) => ({
@@ -232,38 +244,81 @@ const Compliance = () => {
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Email</TableHead>
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">List</TableHead>
                 <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Tags</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-200 font-medium px-2 sm:px-4 py-3 whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dncList.map((item, index) => (
-                <TableRow key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <Checkbox className="dark:border-gray-500" />
-                  </TableCell>
-                  <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium">{item.name}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.lastCalled}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <Phone className="size-4 text-gray-500 dark:text-gray-400 shrink-0" />
-                      <span className="text-sm sm:text-base whitespace-nowrap">{item.phone}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{item.email}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.list}</TableCell>
-                  <TableCell className="px-2 sm:px-4 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {item.tags.map((tag, tagIndex) => (
-                        <Badge
-                          key={tagIndex}
-                          className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full px-2 py-1 text-xs font-medium"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {dncList.map((contact, index) => {
+                const primaryEmail = contact.email.find((e: any) => e.isPrimary)?.email || contact.email[0]?.email || "N/A";
+                const primaryPhone = contact.phone[0]?.number || "N/A";
+
+                return (
+                  <TableRow key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <Checkbox className="dark:border-gray-500" />
+                    </TableCell>
+                    <TableCell className="text-blue-700 dark:text-blue-400 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium">{contact.name}</TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
+                      {/* Last called date could be derived from callRecords if available */}
+                      {contact.updatedAt ? new Date(contact.updatedAt).toLocaleDateString() : "N/A"}
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <Phone className="size-4 text-gray-500 dark:text-gray-400 shrink-0" />
+                        <span className="text-sm sm:text-base whitespace-nowrap">{primaryPhone}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base break-all">{primaryEmail}</TableCell>
+                    <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">{contact.source || "N/A"}</TableCell>
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {contact.tags?.map((tag: any, tagIndex: number) => (
+                          <Badge
+                            key={tagIndex}
+                            className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full px-2 py-1 text-xs font-medium"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-2 sm:px-4 py-4">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          toast((t) => (
+                            <div className="flex flex-col gap-2">
+                              <p className="text-sm font-medium">Remove <span className="font-semibold">{contact.name}</span> from DNC?</p>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    removeFromDnc.mutate(contact.id);
+                                    toast.dismiss(t.id);
+                                  }}
+                                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-md"
+                                >
+                                  Yes, Remove
+                                </button>
+                                <button
+                                  onClick={() => toast.dismiss(t.id)}
+                                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ), { duration: Infinity });
+                        }}
+                        className="rounded-full text-xs cursor-pointer"
+                        disabled={removeFromDnc.isPending}
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -286,16 +341,24 @@ const Compliance = () => {
             <div>
               <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">From</Label>
               <Select
-                value={regulatory?.tcpaFrom || "08:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaFrom: val })}
+                value={tcpaFrom}
+                onValueChange={(val) => {
+                  setTcpaFrom(val);  // ← updates UI instantly
+                  updateRegulatorySettings.mutate({ tcpaFrom: val });
+                }}
               >
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-600 focus:ring-offset-0 transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="08:00" className="dark:text-white hover:dark:bg-slate-700">8:00</SelectItem>
-                  <SelectItem value="09:00" className="dark:text-white hover:dark:bg-slate-700">9:00</SelectItem>
-                  <SelectItem value="10:00" className="dark:text-white hover:dark:bg-slate-700">10:00</SelectItem>
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const hour = i.toString().padStart(2, '0') + ":00";
+                    return (
+                      <SelectItem key={hour} value={hour} className="dark:text-white hover:dark:bg-slate-700">
+                        {hour}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -304,17 +367,24 @@ const Compliance = () => {
             <div>
               <Label className="text-sm text-gray-700 dark:text-gray-300 block mb-2">To</Label>
               <Select
-                value={regulatory?.tcpaTo || "18:00"}
-                onValueChange={(val) => updateRegulatorySettings.mutate({ tcpaTo: val })}
+                value={tcpaTo}
+                onValueChange={(val) => {
+                  setTcpaTo(val);  // ← updates UI instantly
+                  updateRegulatorySettings.mutate({ tcpaTo: val });
+                }}
               >
                 <SelectTrigger className="w-full h-10 rounded-lg border-0 bg-gray-200 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-gray-400 dark:focus:ring-slate-600 focus:ring-offset-0 transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
-                  <SelectItem value="18:00" className="dark:text-white hover:dark:bg-slate-700">18:00</SelectItem>
-                  <SelectItem value="19:00" className="dark:text-white hover:dark:bg-slate-700">19:00</SelectItem>
-                  <SelectItem value="20:00" className="dark:text-white hover:dark:bg-slate-700">20:00</SelectItem>
-                  <SelectItem value="21:00" className="dark:text-white hover:dark:bg-slate-700">21:00</SelectItem>
+                  {Array.from({ length: 24 }).map((_, i) => {
+                    const hour = i.toString().padStart(2, '0') + ":00";
+                    return (
+                      <SelectItem key={hour} value={hour} className="dark:text-white hover:dark:bg-slate-700">
+                        {hour}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

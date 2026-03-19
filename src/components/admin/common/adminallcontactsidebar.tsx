@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
@@ -13,6 +12,7 @@ import {
 } from "@/hooks/useContact";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchContacts } from "@/store/slices/contactSlice";
+import { useLocation, useNavigate } from "react-router-dom"
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -35,6 +35,8 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const location = useLocation();
+
+  const navigate = useNavigate();
 
   const { getContactLists, getContactFolders, getContactGroups, loading } =
     useContact();
@@ -111,15 +113,15 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   return (
     <aside className="bg-white dark:bg-slate-800 flex flex-col px-5 py-4 w-64 h-screen shadow-sm">
       {/* Back Button */}
-      <Link
-        to={backTo}
+      <button
+        onClick={() => navigate(-1)}
         className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] dark:text-white transition"
       >
         <IoIosArrowBack className="text-2xl" />
         <span className="text-[16px] text-[#495057] dark:text-white font-medium">
-          Back To Home
+          Back
         </span>
-      </Link>
+      </button>
 
       <div className="border-b border-gray-100 h-1 my-3"></div>
 

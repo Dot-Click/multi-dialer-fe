@@ -7,10 +7,16 @@ import { usePush } from "@/hooks/usePush";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
+import { Phone } from "lucide-react";
+import QuickCallModal from "@/components/agent/common/quickcallmodal";
+import { useAppDispatch } from "@/store/hooks";
+import { signout } from "@/store/slices/authSlice";
 
 const AdminNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [open, setOpen] = useState(false)
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +31,12 @@ const AdminNavbar = () => {
   const user = data?.user
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const handleLogout = async () => {
+    await dispatch(signout());
+    navigate("/admin/login");
+  };
 
   const handleAccountSetting = () => {
     navigate("/admin/account-setting");
@@ -60,9 +72,18 @@ const AdminNavbar = () => {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+
+
   return (
     <nav className="border-b border-[#EBEDF0] dark:border-slate-700 w-full h-16 bg-white dark:bg-slate-800 flex justify-end items-center gap-5 px-9 relative">
-      <ThemeToggle />
+
+      < button onClick={() => setOpen(true)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md border text-gray-600 text-sm font-medium transition-colors" >
+        <Phone className="size-4" />
+        Quick Call
+      </button >
+      <QuickCallModal open={open} onOpenChange={setOpen} />
+
 
       {/* Notification Bell & Dropdown */}
       <div className="relative" ref={notifRef}>
@@ -119,23 +140,21 @@ const AdminNavbar = () => {
                   <div
                     key={n.id}
                     onClick={() => !n.isRead && markRead.mutate(n.id)}
-                    className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-gray-50 dark:border-slate-700/30 group ${
-                      !n.isRead
-                        ? "bg-yellow-50/30 dark:bg-yellow-400/5"
-                        : ""
-                    }`}
+                    className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-gray-50 dark:border-slate-700/30 group ${!n.isRead
+                      ? "bg-yellow-50/30 dark:bg-yellow-400/5"
+                      : ""
+                      }`}
                   >
                     <div className="flex gap-3">
                       <div
-                        className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-                          n.isRead
-                            ? "bg-gray-100 text-gray-400 dark:bg-slate-700 dark:text-slate-500"
-                            : n.type === "event" || n.type === "reminder"
+                        className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${n.isRead
+                          ? "bg-gray-100 text-gray-400 dark:bg-slate-700 dark:text-slate-500"
+                          : n.type === "event" || n.type === "reminder"
                             ? "bg-blue-100 text-blue-600"
                             : n.type === "error"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-green-100 text-green-600"
-                        }`}
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
+                          }`}
                       >
                         {n.type === "event" || n.type === "reminder" ? (
                           <FiClock size={14} />
@@ -148,11 +167,10 @@ const AdminNavbar = () => {
                       <div className="flex-1">
                         <div className="flex justify-between items-start gap-2">
                           <p
-                            className={`text-sm leading-tight ${
-                              !n.isRead
-                                ? "font-bold text-gray-900 dark:text-white"
-                                : "font-medium text-gray-600 dark:text-gray-400"
-                            }`}
+                            className={`text-sm leading-tight ${!n.isRead
+                              ? "font-bold text-gray-900 dark:text-white"
+                              : "font-medium text-gray-600 dark:text-gray-400"
+                              }`}
                           >
                             {n.title}
                           </p>
@@ -194,6 +212,7 @@ const AdminNavbar = () => {
         )}
       </div>{/* ← closes ref={notifRef} */}
 
+
       {/* Avatar with Dropdown */}
       <div className="relative" ref={dropdownRef}>
         <div
@@ -211,6 +230,16 @@ const AdminNavbar = () => {
             >
               Account Setting
             </button>
+
+            <ThemeToggle />
+
+            <button
+              className="block w-full cursor-pointer hover:bg-red-500 text-left px-4 py-2 hover:text-white dark:hover:bg-slate-700"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+
           </div>
         )}
       </div>

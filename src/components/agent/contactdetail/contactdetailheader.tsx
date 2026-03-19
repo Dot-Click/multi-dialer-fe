@@ -4,8 +4,7 @@ import {
   MdMoreVert,
 } from "react-icons/md";
 import {
-  IoAddOutline,
-  IoCloseOutline,
+  IoAddOutline
 } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useEffect, useRef } from "react";
@@ -127,14 +126,15 @@ const ContactDetailHeader = () => {
     toast.success("Email client opened");
   };
 
-  const onConfirmDnc = async (phoneIds: string[]) => {
+  const onConfirmDnc = async () => {
     if (!currentContact) return;
     try {
-      const response = await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds });
+      const response = await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: [] });
       if (response.data.success) {
-        toast.success("Successfully moved selected numbers to DNC");
+        toast.success("Successfully moved contact to DNC");
         setDncModalOpen(false);
-        // Refresh contact data if needed
+        // Navigate away or refresh if needed, since contact will be hidden
+        navigate("/agent/allcontact");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to move to DNC");
@@ -143,18 +143,7 @@ const ContactDetailHeader = () => {
 
   const handleDncClick = () => {
     if (!currentContact) return;
-    if (!currentContact.phones || currentContact.phones.length === 0) {
-      toast.error("Contact has no phone numbers");
-      return;
-    }
-
-    if (currentContact.phones.length === 1) {
-      if (window.confirm(`Are you sure you want to move ${currentContact.phones[0].number} to DNC?`)) {
-        onConfirmDnc([currentContact.phones[0].id]);
-      }
-    } else {
-      setDncModalOpen(true);
-    }
+    setDncModalOpen(true);
     setShowActionMenu(false);
   };
 
@@ -191,7 +180,7 @@ const ContactDetailHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="shadow-sm bg-white dark:bg-slate-800 flex items-center justify-between px-3 sm:px-5 md:px-6 w-full h-16">
+      <header className="bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between md:px-6 w-full h-16">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}
@@ -200,7 +189,7 @@ const ContactDetailHeader = () => {
               onClick={() => setShowActionMenu(!showActionMenu)}
               className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-[16px] font-medium text-[#0E1011] dark:text-white"
             >
-              Action
+              MENU
               <MdKeyboardArrowDown className="text-lg" />
             </button>
 
@@ -213,28 +202,22 @@ const ContactDetailHeader = () => {
                   Export
                 </button>
                 <button
-                  onClick={handleDncClick}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
-                >
-                  Move to DNC
-                </button>
-                <button
                   onClick={handleDelete}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-red-600"
                 >
                   Delete Contact
                 </button>
                 <button
+                  onClick={handleDncClick}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
+                >
+                  Move to DNC
+                </button>
+                <button
                   onClick={handlePrint}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
                 >
-                  Print contact form
-                </button>
-                <button
-                  onClick={handleEmail}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-[#0E1011] dark:text-white"
-                >
-                  Email contact form
+                  Print contact
                 </button>
               </div>
             )}
@@ -300,12 +283,12 @@ const ContactDetailHeader = () => {
         </div>
 
         {/* RIGHT SECTION */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* <div className="flex items-center gap-1.5 sm:gap-2">
 
           <button onClick={() => navigate(-1)} className="border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 rounded-md p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700">
             <IoCloseOutline className="text-gray-700 dark:text-white text-lg" />
           </button>
-        </div>
+        </div> */}
       </header>
 
       {/* MODALS */}
@@ -330,7 +313,6 @@ const ContactDetailHeader = () => {
         isOpen={isDncModalOpen}
         onClose={() => setDncModalOpen(false)}
         onConfirm={onConfirmDnc}
-        phones={currentContact?.phones || []}
         contactName={currentContact?.fullName || ""}
       />
     </>

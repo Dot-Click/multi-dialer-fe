@@ -185,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </NavLink>
           ))} */}
 
-       
+
           <button
             onClick={handleLogout}
             className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 dark:text-slate-300 hover:text-white transition-all
