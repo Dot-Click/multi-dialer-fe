@@ -41,8 +41,8 @@ const AdminHome = () => {
               <img src={comp.icon} className="h-4 w-4 dark:invert" alt={comp.name} />
               <span
                 className={`text-[10px] cursor-pointer md:text-[13px] lg:text-[14px] font-semibold ${active === comp.name
-                    ? "text-[#0E1011] dark:text-white"
-                    : "text-[#495057] dark:text-gray-400"
+                  ? "text-[#0E1011] dark:text-white"
+                  : "text-[#495057] dark:text-gray-400"
                   }`}
               >
                 {comp.name}

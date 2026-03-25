@@ -18,13 +18,13 @@ const AdminWorkspace = () => {
     return settings[key] ?? defaultVal;
   };
 
-  return ( 
+  return (
     <div className='flex flex-col gap-3'>
       <div className={`flex gap-3 md:flex-row flex-col justify-between items-start ${(!show('calendar') || !show('hotlist')) ? '[&>*]:!w-full' : ''}`}>
         {show('calendar') && <AdminGoToCalender />}
         {show('hotlist') && <AdminHotList />}
       </div>
-      
+
       <div className='flex flex-col md:flex-row gap-2'>
         {(show('callingGroupsWorkspace') || show('dialerHealth')) && (
           <div className={`flex flex-col w-full ${!show('callStatistics') ? 'md:!w-full' : 'md:w-[45%]'} gap-5`}>

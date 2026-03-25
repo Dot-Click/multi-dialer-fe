@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useCalendarEvents } from "@/hooks/useWorkspace";
 import { Loader2 } from "lucide-react";
 import moment from "moment";
+import { useAppSelector } from "@/store/hooks";
 
 const AdminGoToCalender = () => {
   const navigate = useNavigate();
   const { data: events, isLoading } = useCalendarEvents();
+  const { role } = useAppSelector((state) => state.auth);
 
   if (isLoading) {
     return (
@@ -28,7 +30,7 @@ const AdminGoToCalender = () => {
           </h1>
         </div>
         <div
-          onClick={() => navigate("/calendar")}
+          onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar")}
           className="flex gap-1  cursor-pointer text-[#2B3034] dark:text-gray-300 dark:hover:text-white items-center "
         >
           <span className="text-[16px] font-medium">Go To Calender</span>
