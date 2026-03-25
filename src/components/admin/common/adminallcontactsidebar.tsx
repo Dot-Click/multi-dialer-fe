@@ -12,7 +12,7 @@ import {
 } from "@/hooks/useContact";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchContacts } from "@/store/slices/contactSlice";
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -34,7 +34,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     new Set(),
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  // const location = useLocation();
+  const location = useLocation();
 
   const navigate = useNavigate();
 
@@ -92,6 +92,11 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     const itemKey = id ? `${type}-${id}` : type;
     setActiveItem(itemKey);
     onSelectItem({ type, id, name });
+
+    // Navigate back to data-dialer if we're on find-duplicates or other admin contact subpages
+    if (location.pathname !== "/admin/data-dialer") {
+      navigate("/admin/data-dialer");
+    }
   };
 
   const toggleFolder = (id: string) => {

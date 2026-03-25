@@ -241,16 +241,26 @@ const ContactLayout = () => {
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-[1rem] bg-[#F7F7F7] dark:bg-slate-900 w-full transition-all duration-300
-          ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
+        className={`absolute top-16 pt-[1rem]  transition-all duration-300
+          ${isMobile 
+            ? "left-0 pl-4 w-full" 
+            : isOpen 
+              ? "left-72 w-[calc(100%-18rem)]" 
+              : "left-20 w-[calc(100%-5rem)]"
+          }`}
       >
         <Outlet context={{ activeItem, selectedContacts, setSelectedContacts }} />
       </div>
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex w-full gap-7 bottom-0 fixed bg-white dark:bg-slate-800 shadow-2xl py-4 items-center
-          ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"}`}
+        className={`flex gap-7 bottom-0 fixed bg-white dark:bg-slate-800 shadow-2xl py-4 items-center transition-all duration-300
+          ${isMobile 
+            ? "left-0 pl-4 w-full" 
+            : isOpen 
+              ? "left-72 w-[calc(100%-18rem)]" 
+              : "left-20 w-[calc(100%-5rem)]"
+          }`}
       >
         <button
           className="flex items-center gap-2"

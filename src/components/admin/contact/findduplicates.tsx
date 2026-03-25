@@ -108,10 +108,10 @@ const columns = [
                 style={{ width: '16px', height: '16px' }}
               />
             )}
-            {phone.type === 'mobile' && <FiSmartphone size={15} color="#495057" strokeWidth={2.5} />}
-            {phone.type === 'dialpad' && <BsFillGrid3X3GapFill size={16} color="#495057" />}
+            {phone.type === 'mobile' && <FiSmartphone size={15} className="text-[#495057] dark:text-gray-300" strokeWidth={2.5} />}
+            {phone.type === 'dialpad' && <BsFillGrid3X3GapFill size={16} className="text-[#495057] dark:text-gray-300" />}
             
-            <span style={{ color: "#495057" }}>{phone.number}</span>
+            <span className="text-[#495057] dark:text-gray-300">{phone.number}</span>
           </div>
         ))}
       </div>
@@ -123,7 +123,7 @@ const columns = [
     cell: ({ getValue }: any) => (
       <div className="flex flex-col gap-1">
         {getValue().map((email: string, index: number) => (
-          <div key={index} style={{ color: "#495057" }}>
+          <div key={index} className="text-[#495057] dark:text-gray-300">
             {email}
           </div>
         ))}
@@ -185,6 +185,10 @@ const FindDuplicates = () => {
             color:#0E1011;
             font-weight: 500;
           }
+          .dark table thead tr th {
+            color: #FFFFFF !important;
+            border-bottom: 1px solid #2D3748 !important;
+          }
           /* Reduce padding & tighten rows */
           table tbody tr td {
             padding-top: 16px !important;
@@ -193,11 +197,19 @@ const FindDuplicates = () => {
             padding-right: 12px !important;
             font-size: 13px; /* Text size reduced */
             vertical-align: top;
+            color: #495057;
+          }
+          .dark table tbody tr td {
+            color: #CBD5E0 !important;
           }
 
           /* Add darker border to rows */
           table tbody tr {
             border-bottom: 1px solid #EBEDF0 !important;
+            transition: border-color 0.2s ease-in-out;
+          }
+          .dark table tbody tr {
+            border-bottom: 1px solid #2D3748 !important;
           }
 
           table tbody tr:last-child {
