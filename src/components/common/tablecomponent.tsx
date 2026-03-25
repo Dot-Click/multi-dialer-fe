@@ -232,7 +232,7 @@ export const SortedHeader: FC<{ header: Header<any, any>; label: string }> = ({
 }) => {
   return (
     <Flex
-      className="cursor-pointer items-center text-slate-600 font-semibold capitalize w-fit"
+      className="cursor-pointer items-center text-slate-600 dark:text-slate-300 font-semibold capitalize w-fit"
       onClick={() => header.column.toggleSorting()}
     >
       {label}

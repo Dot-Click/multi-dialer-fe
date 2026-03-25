@@ -22,7 +22,7 @@ const AdminFindDuplicate = () => {
             <div className="flex flex-col">
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <h1 className="text-[24px] sm:text-[28px] font-[500]">
+                    <h1 className="text-[24px] sm:text-[28px] font-[500] dark:text-white">
                         Duplicates Found: 3
                     </h1>
 
@@ -32,8 +32,8 @@ const AdminFindDuplicate = () => {
                             className="flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-3 py-2 items-center justify-centerbg-transparent"
                             onClick={() => setShowColumnsModal(true)}
                         >
-                            <GrSplits className="text-base text-[#495057]" />
-                            <span className="text-sm font-[500] text-[#495057]">
+                            <GrSplits className="text-base text-[#495057] dark:text-gray-300" />
+                            <span className="text-sm font-[500] text-[#495057] dark:text-gray-300">
                                 Manage Columns
                             </span>
                         </div>
