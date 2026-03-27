@@ -137,6 +137,7 @@ import { TbInfoTriangle } from "react-icons/tb";
 import { deleteContact } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
+import MoveToModal from "@/components/modal/movetomodal";
 
 const ContactLayout = () => {
   const dispatch = useAppDispatch();
@@ -153,6 +154,7 @@ const ContactLayout = () => {
   });
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showMoveToModal, setShowMoveToModal] = useState(false);
   const [loading, setLoading] = useState(false);
   // ✅ Handle responsive behavior
   useEffect(() => {
@@ -205,7 +207,7 @@ const ContactLayout = () => {
       {/* 🔹 Sidebar (hidden on mobile unless open) */}
       {(!isMobile || isOpen) && (
         <div
-          className={`fixed top-0 left-0 h-full z-[1000] transition-transform duration-300 ease-in-out
+          className={`fixed top-0 left-0 h-full z-1000 transition-transform duration-300 ease-in-out
             ${isMobile
               ? isOpen
                 ? "translate-x-0"
@@ -222,7 +224,7 @@ const ContactLayout = () => {
       {isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed top-4 z-[1100] p-1 rounded-md shadow-sm transition 
+          className={`fixed top-4 z-1100 p-1 rounded-md shadow-sm transition 
             bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 
             ${isOpen ? "left-52" : "left-4"}`}
         >
@@ -235,13 +237,13 @@ const ContactLayout = () => {
       )}
 
       {/* 🔹 Navbar */}
-      <div className="fixed z-[999] top-0 w-full">
+      <div className="fixed z-999 top-0 w-full">
         <Navbar />
       </div>
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-[1rem]  transition-all duration-300
+        className={`absolute top-16 pt-4  transition-all duration-300
           ${isMobile 
             ? "left-0 pl-4 w-full" 
             : isOpen 
@@ -263,11 +265,18 @@ const ContactLayout = () => {
           }`}
       >
         <button
-          className="flex items-center gap-2"
-          onClick={() => setShowExportModal(true)}
+          className={`flex items-center gap-2 ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed text-gray-400" : ""}`}
+          onClick={() => {
+            if (selectedContacts.length > 0) {
+              setShowMoveToModal(true);
+            } else {
+              toast.error("Please select a contact to move");
+            }
+          }}
+          disabled={selectedContacts.length === 0}
         >
           <img src={movetoicon} className="w-4" alt="movetoicon" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">Move To</span>
+          <span className="text-[14px] text-[#495057] dark:text-white font-medium">Move To</span>
           <span className="text-sm text-gray-700 dark:text-gray-300">
             <FaChevronUp />
           </span>
@@ -278,12 +287,12 @@ const ContactLayout = () => {
           onClick={() => setShowExportModal(true)}
         >
           <TfiDownload className="text-[17px] text-[#495057] dark:text-white" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">Export</span>
+          <span className="text-[14px] text-[#495057] dark:text-white font-medium">Export</span>
         </button>
 
         <Link className="flex items-center gap-2" to="/admin/find-duplicate">
           <img src={duplicatesicon} className="w-4" alt="duplicatesicon" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-[500]">
+          <span className="text-[14px] text-[#495057] dark:text-white font-medium">
             Find Duplicates
           </span>
           <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -296,7 +305,7 @@ const ContactLayout = () => {
           className="flex items-center gap-2"
           onClick={() => setShowDeleteModal(true)}
         >
-          <span className="text-[14px] text-[#D43435] font-[500]">Delete</span>
+          <span className="text-[14px] text-[#D43435] font-medium">Delete</span>
         </button>
       </div>
 
@@ -310,7 +319,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000]">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-2000">
           <div className="bg-white dark:bg-slate-800 w-[380px] rounded-xl shadow-lg p-6 text-center relative">
             {/* Warning Icon */}
             <div className="text-red-500 flex justify-center text-4xl mb-3">
@@ -340,6 +349,13 @@ const ContactLayout = () => {
           </div>
         </div>
       )}
+
+      {/* 🔹 Move To Modal */}
+      <MoveToModal
+        isOpen={showMoveToModal}
+        onClose={() => setShowMoveToModal(false)}
+        selectedContacts={selectedContacts}
+      />
     </div>
   );
 };

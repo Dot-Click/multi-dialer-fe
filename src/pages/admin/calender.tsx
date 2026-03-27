@@ -6,6 +6,7 @@ import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
+import { Link } from "react-router-dom";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import { toast } from "react-hot-toast";
@@ -27,30 +28,30 @@ const formatEventTime = (event: CalendarEvent) => {
  * -------------------------------------------------- */
 export default function CustomCalendar() {
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
-  const[selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  
+
   // Track Dark Mode to sync Ant Design with Tailwind
-  const[isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const { getAllEvents, updateEvent } = useCalendar();
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const[showAllOpen, setShowAllOpen] = useState(false);
+  const [showAllOpen, setShowAllOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   /* filter options */
-  const[filters, setFilters] = useState({
+  const [filters, setFilters] = useState({
     task: true,
     appointments: true,
     followUpCalls: true,
   });
 
   /* selected event for detail */
-  const[selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
 
   const fetchEvents = async () => {
@@ -73,7 +74,7 @@ export default function CustomCalendar() {
       });
       return () => observer.disconnect();
     }
-  },[]);
+  }, []);
 
   const getEventDataForDate = (date: Dayjs) => {
     return events.filter((event) => {
@@ -382,6 +383,20 @@ export default function CustomCalendar() {
                   {selectedEvent?.assignTo?.fullName || "Unassigned"}
                 </p>
               </div>
+
+              {selectedEvent?.contact && (
+                <div className="mt-4">
+                  <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">Contact</p>
+                  <Link
+                    to={`/admin/contact-detail/${selectedEvent.contactId || selectedEvent.contact.id}`}
+                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                    onClick={() => setDetailOpen(false)}
+                  >
+                    {selectedEvent.contact.fullName}
+                    <IoIosArrowForward className="w-3 h-3" />
+                  </Link>
+                </div>
+              )}
 
               <div className="mt-4">
                 <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">Description</p>

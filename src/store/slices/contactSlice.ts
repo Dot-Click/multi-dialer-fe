@@ -451,6 +451,48 @@ export const getAllExportContacts = createAsyncThunk(
   },
 );
 
+export const bulkAssignContactsToList = createAsyncThunk(
+  "contacts/bulkAssignContactsToList",
+  async (
+    { contactIds, listId }: { contactIds: string[]; listId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.post(`/contact/bulk-assign-list`, {
+        contactIds,
+        listId,
+      });
+      if (response.data.success) {
+        return { contactIds, listId };
+      }
+      return rejectWithValue("Failed to assign contacts to list");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error assigning contacts to list",
+      );
+    }
+  },
+);
+
+export const bulkMoveToDnc = createAsyncThunk(
+  "contacts/bulkMoveToDnc",
+  async (contactIds: string[], { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/contact/bulk-move-to-dnc`, {
+        contactIds,
+      });
+      if (response.data.success) {
+        return contactIds;
+      }
+      return rejectWithValue("Failed to move contacts to DNC");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error moving contacts to DNC",
+      );
+    }
+  },
+);
+
 export const uploadAttachment = createAsyncThunk(
   "contacts/uploadAttachment",
   async (
@@ -757,6 +799,22 @@ export const contactSlice = createSlice({
       .addCase(getAllBackupContacts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      .addCase(bulkAssignContactsToList.fulfilled, (state, action) => {
+        const { contactIds, listId } = action.payload;
+        const list = state.lists.find((l) => l.id === listId);
+        const listName = list?.name || "-";
+        
+        state.contacts = state.contacts.map((c) => {
+          if (contactIds.includes(c.id)) {
+            return { ...c, list: listName };
+          }
+          return c;
+        });
+      })
+      .addCase(bulkMoveToDnc.fulfilled, (state, action) => {
+        const contactIds = action.payload;
+        state.contacts = state.contacts.filter((c) => !contactIds.includes(c.id));
       });
   },
 });
