@@ -82,6 +82,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const { getScripts } = useScript();
   const [scripts, setScripts] = useState<ScriptData[]>([]);
   const [selectedScript, setSelectedScript] = useState("");
+  const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
 
   const { data: session } = authClient.useSession();
   const role = session?.user.role;
@@ -140,6 +141,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setIvrRecording(setting.ivrRecordingId || "");
       setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
       setSelectedScript(setting.callScriptId || "");
+      setDialerMode((setting as any).dialerMode || "manual");
     }
   }, [isOpen, existingSettings]);
 
@@ -155,6 +157,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setOnHoldRecording2("");
       setIvrRecording("");
       setAnsweringMachineRecording("");
+      setDialerMode("manual");
     }
   };
 
@@ -185,6 +188,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         ivrRecordingId: ivrRecording || undefined,
         answeringMachineRecordingId: answeringMachineRecording || undefined,
         callScriptId: selectedScript || undefined,
+        dialerMode,
       };
 
       if (editId) {
@@ -204,6 +208,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           selectedScript: selectedScript || undefined,
           holdRecordingUrl: getSelectedRecordingUrl(),
           answeringMachineRecordingUrl: getAnsweringMachineUrl(),
+          dialerMode,
         },
       });
 
@@ -374,6 +379,38 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                 ))}
               </SelectInput>
             </FieldWrapper>
+
+            {/* Dialer Mode */}
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Dialer Mode</span>
+              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDialerMode("manual")}
+                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${dialerMode === "manual"
+                    ? "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"
+                    : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
+                  }`}
+              >
+                <span className={`text-[13px] font-bold ${dialerMode === "manual" ? "text-yellow-700 dark:text-yellow-400" : "text-gray-500"}`}>Manual Dialer</span>
+                <span className="text-[10px] text-gray-400 text-center">Dial next number manually after each call</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDialerMode("power")}
+                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${dialerMode === "power"
+                    ? "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"
+                    : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
+                  }`}
+              >
+                <span className={`text-[13px] font-bold ${dialerMode === "power" ? "text-yellow-700 dark:text-yellow-400" : "text-gray-500"}`}>Power Dialer</span>
+                <span className="text-[10px] text-gray-400 text-center">Automatically dials next number when call ends</span>
+              </button>
+            </div>
           </div>
 
           {/* Footer */}
@@ -393,6 +430,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     callerIds: selectedCallerIds,
                     numberOfLines: parseInt(noOfLines),
                     selectedScript: selectedScript || undefined,
+                    dialerMode,
                   },
                 })
               }

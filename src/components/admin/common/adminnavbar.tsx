@@ -78,7 +78,7 @@ const AdminNavbar = () => {
     <nav className="border-b border-[#EBEDF0] dark:border-slate-700 w-full h-16 bg-white dark:bg-slate-800 flex justify-end items-center gap-5 px-9 relative">
 
       < button onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md border text-gray-600 text-sm font-medium transition-colors" >
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md border text-gray-600 dark:text-gray-300 cursor-pointer text-sm font-medium transition-colors hover:bg-gray-300 dark:border-gray-600 dark:hover:bg-slate-700" >
         <Phone className="size-4" />
         Quick Call
       </button >

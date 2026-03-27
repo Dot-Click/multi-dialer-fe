@@ -244,10 +244,10 @@ const ContactLayout = () => {
       {/* 🔹 Main Content */}
       <div
         className={`absolute top-16 pt-4  transition-all duration-300
-          ${isMobile 
-            ? "left-0 pl-4 w-full" 
-            : isOpen 
-              ? "left-72 w-[calc(100%-18rem)]" 
+          ${isMobile
+            ? "left-0 pl-4 w-full"
+            : isOpen
+              ? "left-72 w-[calc(100%-18rem)]"
               : "left-20 w-[calc(100%-5rem)]"
           }`}
       >
@@ -257,10 +257,10 @@ const ContactLayout = () => {
       {/* 🔹 Bottom Bar */}
       <div
         className={`flex gap-7 bottom-0 fixed bg-white dark:bg-slate-800 shadow-2xl py-4 items-center transition-all duration-300
-          ${isMobile 
-            ? "left-0 pl-4 w-full" 
-            : isOpen 
-              ? "left-72 w-[calc(100%-18rem)]" 
+          ${isMobile
+            ? "left-0 pl-4 w-full"
+            : isOpen
+              ? "left-72 w-[calc(100%-18rem)]"
               : "left-20 w-[calc(100%-5rem)]"
           }`}
       >
