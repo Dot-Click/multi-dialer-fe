@@ -11,6 +11,7 @@ import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
 import { toast } from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
+import { Link } from "react-router-dom";
 
 // Helper to group events by date
 const groupEventsByDate = (eventList: CalendarEvent[]) => {
@@ -18,7 +19,7 @@ const groupEventsByDate = (eventList: CalendarEvent[]) => {
   eventList.forEach((event) => {
     const dateKey = dayjs(event.startDate).format("YYYY-MM-DD");
     if (!grouped[dateKey]) {
-      grouped[dateKey] =[];
+      grouped[dateKey] = [];
     }
     grouped[dateKey].push(event);
   });
@@ -40,7 +41,7 @@ const formatEventTime = (event: CalendarEvent) => {
  * -------------------------------------------------- */
 export default function CustomCalendar() {
   const { getEvents, updateEvent, loading } = useCalendar();
-  const[events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
@@ -50,7 +51,7 @@ export default function CustomCalendar() {
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const[showAllOpen, setShowAllOpen] = useState(false);
+  const [showAllOpen, setShowAllOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -67,7 +68,7 @@ export default function CustomCalendar() {
 
   /* selected event for detail */
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  
+
   /* selected date for detail modal */
   const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
 
@@ -91,7 +92,7 @@ export default function CustomCalendar() {
       });
       return () => observer.disconnect();
     }
-  },[]);
+  }, []);
 
   const myEvents = useMemo(() => {
     let filtered = events;
@@ -112,7 +113,7 @@ export default function CustomCalendar() {
 
   const getEventData = (date: Dayjs) => {
     const key = date.format("YYYY-MM-DD");
-    return groupedEvents[key] ||[];
+    return groupedEvents[key] || [];
   };
 
   /* handlers */
@@ -159,8 +160,8 @@ export default function CustomCalendar() {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-               <p className="font-medium text-gray-700 dark:text-gray-200 truncate">{it.title}</p>
-               <span className="text-[9px] px-1 bg-gray-100 dark:bg-[#2a2a2a] text-gray-500 dark:text-gray-300 rounded border border-gray-200 dark:border-[#3a3a3a] uppercase font-bold">
+                <p className="font-medium text-gray-700 dark:text-gray-200 truncate">{it.title}</p>
+                <span className="text-[9px] px-1 bg-gray-100 dark:bg-[#2a2a2a] text-gray-500 dark:text-gray-300 rounded border border-gray-200 dark:border-[#3a3a3a] uppercase font-bold">
                   {it.category?.replace('_', ' ')}
                 </span>
               </div>
@@ -214,7 +215,7 @@ export default function CustomCalendar() {
               </button>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setFilterOpen(true)}
             className="flex items-center gap-2 pr-[16px] pl-[10px] py-[4px] text-sm sm:text-base font-medium text-[#FFFFFF] border border-[#D8DCE1] dark:border-[#303030] rounded-[12px] bg-[#FFFFFF] dark:bg-[#141414] w-full sm:w-auto justify-center hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors"
           >
@@ -322,7 +323,7 @@ export default function CustomCalendar() {
             )}
           </div>
         </Modal>
-        
+
         {/* ------- event-detail modal ------- */}
         <Modal
           open={detailOpen}
@@ -407,6 +408,20 @@ export default function CustomCalendar() {
                   {selectedEvent?.assignTo?.fullName || selectedEvent?.assignTo?.email || "Unassigned"}
                 </p>
               </div>
+
+              {selectedEvent?.contact && (
+                <div className="mt-4">
+                  <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">Contact</p>
+                  <Link
+                    to={`/contact-detail/${selectedEvent.contactId || selectedEvent.contact.id}`}
+                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                    onClick={() => setDetailOpen(false)}
+                  >
+                    {selectedEvent.contact.fullName}
+                    <IoIosArrowForward className="w-3 h-3" />
+                  </Link>
+                </div>
+              )}
 
               {/* Description section */}
               <div className="mt-4">

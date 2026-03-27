@@ -4,7 +4,12 @@ import { Modal, Input, Badge, Spin, Select } from "antd";
 import { useContact, type ContactBackend } from "@/hooks/useContact";
 import { useCallerIds } from "@/hooks/useSystemSettings";
 import { useTwilio } from "@/providers/twilio.provider";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchContactById } from "@/store/slices/contactSlice";
+// import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
+import ContactDisposition from "@/components/agent/contactinfo/contactdisposition";
+import Notes from "@/components/agent/contactdetail/notes";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface QuickCallModalProps {
@@ -30,53 +35,53 @@ const KEYS = [
 
 // ─── Full international country code list ─────────────────────────────────────
 const COUNTRY_CODES = [
-    { code: "+1",   flag: "🇺🇸", name: "United States" },
-    { code: "+1",   flag: "🇨🇦", name: "Canada" },
-    { code: "+7",   flag: "🇷🇺", name: "Russia" },
-    { code: "+20",  flag: "🇪🇬", name: "Egypt" },
-    { code: "+27",  flag: "🇿🇦", name: "South Africa" },
-    { code: "+30",  flag: "🇬🇷", name: "Greece" },
-    { code: "+31",  flag: "🇳🇱", name: "Netherlands" },
-    { code: "+32",  flag: "🇧🇪", name: "Belgium" },
-    { code: "+33",  flag: "🇫🇷", name: "France" },
-    { code: "+34",  flag: "🇪🇸", name: "Spain" },
-    { code: "+36",  flag: "🇭🇺", name: "Hungary" },
-    { code: "+39",  flag: "🇮🇹", name: "Italy" },
-    { code: "+40",  flag: "🇷🇴", name: "Romania" },
-    { code: "+41",  flag: "🇨🇭", name: "Switzerland" },
-    { code: "+43",  flag: "🇦🇹", name: "Austria" },
-    { code: "+44",  flag: "🇬🇧", name: "United Kingdom" },
-    { code: "+45",  flag: "🇩🇰", name: "Denmark" },
-    { code: "+46",  flag: "🇸🇪", name: "Sweden" },
-    { code: "+47",  flag: "🇳🇴", name: "Norway" },
-    { code: "+48",  flag: "🇵🇱", name: "Poland" },
-    { code: "+49",  flag: "🇩🇪", name: "Germany" },
-    { code: "+51",  flag: "🇵🇪", name: "Peru" },
-    { code: "+52",  flag: "🇲🇽", name: "Mexico" },
-    { code: "+53",  flag: "🇨🇺", name: "Cuba" },
-    { code: "+54",  flag: "🇦🇷", name: "Argentina" },
-    { code: "+55",  flag: "🇧🇷", name: "Brazil" },
-    { code: "+56",  flag: "🇨🇱", name: "Chile" },
-    { code: "+57",  flag: "🇨🇴", name: "Colombia" },
-    { code: "+58",  flag: "🇻🇪", name: "Venezuela" },
-    { code: "+60",  flag: "🇲🇾", name: "Malaysia" },
-    { code: "+61",  flag: "🇦🇺", name: "Australia" },
-    { code: "+62",  flag: "🇮🇩", name: "Indonesia" },
-    { code: "+63",  flag: "🇵🇭", name: "Philippines" },
-    { code: "+64",  flag: "🇳🇿", name: "New Zealand" },
-    { code: "+65",  flag: "🇸🇬", name: "Singapore" },
-    { code: "+66",  flag: "🇹🇭", name: "Thailand" },
-    { code: "+81",  flag: "🇯🇵", name: "Japan" },
-    { code: "+82",  flag: "🇰🇷", name: "South Korea" },
-    { code: "+84",  flag: "🇻🇳", name: "Vietnam" },
-    { code: "+86",  flag: "🇨🇳", name: "China" },
-    { code: "+90",  flag: "🇹🇷", name: "Turkey" },
-    { code: "+91",  flag: "🇮🇳", name: "India" },
-    { code: "+92",  flag: "🇵🇰", name: "Pakistan" },
-    { code: "+93",  flag: "🇦🇫", name: "Afghanistan" },
-    { code: "+94",  flag: "🇱🇰", name: "Sri Lanka" },
-    { code: "+95",  flag: "🇲🇲", name: "Myanmar" },
-    { code: "+98",  flag: "🇮🇷", name: "Iran" },
+    { code: "+1", flag: "🇺🇸", name: "United States" },
+    { code: "+1", flag: "🇨🇦", name: "Canada" },
+    { code: "+7", flag: "🇷🇺", name: "Russia" },
+    { code: "+20", flag: "🇪🇬", name: "Egypt" },
+    { code: "+27", flag: "🇿🇦", name: "South Africa" },
+    { code: "+30", flag: "🇬🇷", name: "Greece" },
+    { code: "+31", flag: "🇳🇱", name: "Netherlands" },
+    { code: "+32", flag: "🇧🇪", name: "Belgium" },
+    { code: "+33", flag: "🇫🇷", name: "France" },
+    { code: "+34", flag: "🇪🇸", name: "Spain" },
+    { code: "+36", flag: "🇭🇺", name: "Hungary" },
+    { code: "+39", flag: "🇮🇹", name: "Italy" },
+    { code: "+40", flag: "🇷🇴", name: "Romania" },
+    { code: "+41", flag: "🇨🇭", name: "Switzerland" },
+    { code: "+43", flag: "🇦🇹", name: "Austria" },
+    { code: "+44", flag: "🇬🇧", name: "United Kingdom" },
+    { code: "+45", flag: "🇩🇰", name: "Denmark" },
+    { code: "+46", flag: "🇸🇪", name: "Sweden" },
+    { code: "+47", flag: "🇳🇴", name: "Norway" },
+    { code: "+48", flag: "🇵🇱", name: "Poland" },
+    { code: "+49", flag: "🇩🇪", name: "Germany" },
+    { code: "+51", flag: "🇵🇪", name: "Peru" },
+    { code: "+52", flag: "🇲🇽", name: "Mexico" },
+    { code: "+53", flag: "🇨🇺", name: "Cuba" },
+    { code: "+54", flag: "🇦🇷", name: "Argentina" },
+    { code: "+55", flag: "🇧🇷", name: "Brazil" },
+    { code: "+56", flag: "🇨🇱", name: "Chile" },
+    { code: "+57", flag: "🇨🇴", name: "Colombia" },
+    { code: "+58", flag: "🇻🇪", name: "Venezuela" },
+    { code: "+60", flag: "🇲🇾", name: "Malaysia" },
+    { code: "+61", flag: "🇦🇺", name: "Australia" },
+    { code: "+62", flag: "🇮🇩", name: "Indonesia" },
+    { code: "+63", flag: "🇵🇭", name: "Philippines" },
+    { code: "+64", flag: "🇳🇿", name: "New Zealand" },
+    { code: "+65", flag: "🇸🇬", name: "Singapore" },
+    { code: "+66", flag: "🇹🇭", name: "Thailand" },
+    { code: "+81", flag: "🇯🇵", name: "Japan" },
+    { code: "+82", flag: "🇰🇷", name: "South Korea" },
+    { code: "+84", flag: "🇻🇳", name: "Vietnam" },
+    { code: "+86", flag: "🇨🇳", name: "China" },
+    { code: "+90", flag: "🇹🇷", name: "Turkey" },
+    { code: "+91", flag: "🇮🇳", name: "India" },
+    { code: "+92", flag: "🇵🇰", name: "Pakistan" },
+    { code: "+93", flag: "🇦🇫", name: "Afghanistan" },
+    { code: "+94", flag: "🇱🇰", name: "Sri Lanka" },
+    { code: "+95", flag: "🇲🇲", name: "Myanmar" },
+    { code: "+98", flag: "🇮🇷", name: "Iran" },
     { code: "+212", flag: "🇲🇦", name: "Morocco" },
     { code: "+213", flag: "🇩🇿", name: "Algeria" },
     { code: "+216", flag: "🇹🇳", name: "Tunisia" },
@@ -248,11 +253,11 @@ const DEFAULT_COUNTRY = COUNTRY_CODE_OPTIONS.find((c) => c.name === "United Stat
 
 // ── Maps callStatus → human-readable label (same logic ContactInfoHeader uses) ──
 const CALL_STATUS_LABEL: Record<string, string> = {
-    ringing:      "Ringing...",
-    connected:    "Active Call",
-    "on-hold":    "On Hold",
+    ringing: "Ringing...",
+    connected: "Active Call",
+    "on-hold": "On Hold",
     disconnected: "Disconnected",
-    idle:         "Ready",
+    idle: "Ready",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -266,6 +271,22 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
 
     // No appStatus needed — we drive purely from callStatus like ContactInfoHeader
     const { startCall, endCall, isCalling, callStatus, duration } = useTwilio();
+    const [activeContactId, setActiveContactId] = useState<string | null>(null);
+    // const { data: sessionData } = authClient.useSession();
+    // const isAdmin = sessionData?.user?.role === "ADMIN";
+    const dispatch = useAppDispatch();
+    const { currentContact } = useAppSelector((state) => state.contacts);
+    const [showCallFocus, setShowCallFocus] = useState(false);
+
+    // Fetch contact details when call is answered to support notes/disposition in modal
+    useEffect(() => {
+        if (callStatus === "connected" && activeContactId) {
+            setShowCallFocus(true);
+            dispatch(fetchContactById(activeContactId));
+        }
+    }, [callStatus, activeContactId, dispatch]);
+
+    const isAnswered = showCallFocus;
 
     // ── Caller IDs ──
     const { data: callerIds } = useCallerIds();
@@ -301,6 +322,8 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
                 setNumber("");
                 setSearch("");
                 setTab("dialpad");
+                setActiveContactId(null);
+                setShowCallFocus(false);
             }, 200);
         }
     }, [open, isCalling]);
@@ -321,7 +344,18 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
         const cleanPhone = phone.trim().replace(/[^\d+]/g, "");
         const formattedPhone = cleanPhone.startsWith("+") ? cleanPhone : `+${cleanPhone}`;
         try {
-            await startCall(formattedPhone, selectedCallerId, contactId || "");
+            // If contactId is missing (manual dial), try to find a matching contact by phone
+            let finalContactId = contactId;
+            if (!finalContactId) {
+                const searchNum = formattedPhone.replace(/\D/g, "");
+                const match = contacts.find(c =>
+                    c.phones.some(p => p.number.replace(/\D/g, "").includes(searchNum) || searchNum.includes(p.number.replace(/\D/g, "")))
+                );
+                finalContactId = match?.id || null;
+            }
+
+            setActiveContactId(finalContactId);
+            await startCall(formattedPhone, selectedCallerId, finalContactId || "");
         } catch (_) { /* TwilioProvider already toasts */ }
     };
 
@@ -346,13 +380,13 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
 
     // ── Banner colour changes based on callStatus ──
     const isConnected = callStatus === "connected";
-    const isRinging   = callStatus === "ringing";
-    const bannerBg    = isConnected
+    const isRinging = callStatus === "ringing";
+    const bannerBg = isConnected
         ? "bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-700/40"
         : "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700/30";
-    const dotColor    = isConnected ? "bg-green-500" : "bg-yellow-400";
-    const pingColor   = isConnected ? "bg-green-400" : "bg-yellow-300";
-    const textColor   = isConnected
+    const dotColor = isConnected ? "bg-green-500" : "bg-yellow-400";
+    const pingColor = isConnected ? "bg-green-400" : "bg-yellow-300";
+    const textColor = isConnected
         ? "text-green-700 dark:text-green-400"
         : "text-yellow-700 dark:text-yellow-400";
 
@@ -410,7 +444,7 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
             open={open}
             onCancel={() => !isCalling && onOpenChange(false)}
             footer={null}
-            width={420}
+            width={isAnswered ? 900 : 420}
             closable={false}
             className="quick-call-modal"
             styles={{
@@ -429,15 +463,15 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
                             </div>
                             Quick Call
                         </div>
+
                         <button
                             onClick={() => !isCalling && onOpenChange(false)}
                             disabled={isCalling}
                             title={isCalling ? "End the call before closing" : "Close"}
-                            className={`p-1.5 rounded-md transition-colors ${
-                                isCalling
+                            className={`p-1.5 rounded-md transition-colors ${isCalling
                                     ? "opacity-30 cursor-not-allowed"
                                     : "hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500 dark:text-gray-400"
-                            }`}
+                                }`}
                         >
                             <X className="size-4" />
                         </button>
@@ -447,27 +481,53 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
                 {/* ── Active call banner ── */}
                 {ActiveCallBanner}
 
-                {/* ── Tabs ── */}
-                <div className="px-6 pt-4">
-                    <div className="flex gap-1 p-1 bg-gray-100 dark:bg-slate-700 rounded-lg">
-                        {(["dialpad", "contacts"] as const).map((t) => (
-                            <button
-                                key={t}
-                                onClick={() => setTab(t)}
-                                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
-                                    tab === t
-                                        ? "bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm"
-                                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                                }`}
-                            >
-                                {t === "dialpad" ? "Dial Pad" : "Contacts"}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                {/* ── Answered Call View ── */}
+                {isAnswered ? (
+                    <div className="p-6">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                            {/* Left: Contact Info & Notes */}
+                            <div className="flex-1 space-y-4">
+                                <div className="p-4 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800">
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Member Details</p>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{currentContact?.fullName || "Loading..."}</h3>
+                                    <p className="text-sm text-gray-500 font-mono">{currentContact?.phones?.[0]?.number || "No number"}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">In-Call Notes</p>
+                                    <Notes />
+                                </div>
+                            </div>
 
-                {/* ── Dial Pad Tab ── */}
-                {tab === "dialpad" && (
+                            {/* Right: Dispositions */}
+                            <div className="w-full lg:w-[400px]">
+                                <ContactDisposition />
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* ── Tabs ── */}
+                        <div className="px-6 pt-4">
+                            <div className="flex gap-1 p-1 bg-gray-100 dark:bg-slate-700 rounded-lg">
+                                {(["dialpad", "contacts"] as const).map((t) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => setTab(t)}
+                                        className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${tab === t
+                                            ? "bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm"
+                                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                                            }`}
+                                    >
+                                        {t === "dialpad" ? "Dial Pad" : "Contacts"}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* ── Dial Pad Tab (Only if not answered) ── */}
+                {!isAnswered && tab === "dialpad" && (
                     <div className="px-6 pb-6 pt-4 space-y-4">
                         {CallerIdSelector}
 
@@ -568,11 +628,10 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
                             <button
                                 onClick={() => handleCall(fullNumber, null)}
                                 disabled={!number || !selectedCallerId}
-                                className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${
-                                    number && selectedCallerId
+                                className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${number && selectedCallerId
                                         ? "bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white shadow-lg shadow-green-600/20"
                                         : "bg-gray-100 dark:bg-slate-900 text-gray-400 dark:text-slate-600 cursor-not-allowed"
-                                }`}
+                                    }`}
                             >
                                 <Phone className="size-4" />
                                 Call
@@ -581,8 +640,8 @@ export const QuickCallModal = ({ open, onOpenChange }: QuickCallModalProps) => {
                     </div>
                 )}
 
-                {/* ── Contacts Tab ── */}
-                {tab === "contacts" && (
+                {/* ── Contacts Tab (Only if not answered) ── */}
+                {!isAnswered && tab === "contacts" && (
                     <div className="px-6 pb-6 pt-4 space-y-3">
                         {CallerIdSelector}
 

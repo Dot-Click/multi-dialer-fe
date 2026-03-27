@@ -2,8 +2,10 @@
 // Key fix: onCallStarted now receives the actual fromNumber that was used,
 // so ContactInfo doesn't need to re-read stale state.
 
-import { useState } from "react";
-import { IoPlayOutline } from "react-icons/io5";
+import { useState, useEffect } from "react";
+import { PhoneOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
 import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -25,6 +27,8 @@ interface ContactInfoHeaderProps {
   dailyCount?: number;
   dailyLimit?: number;
   onholdUrl?: string;
+  autoDial?: boolean;
+  onAutoDialStarted?: () => void;
 }
 
 const ContactInfoHeader = ({
@@ -36,38 +40,43 @@ const ContactInfoHeader = ({
   callerId,
   onPickNextCallerId,
   onCallStarted,
-  dailyCount = 0,
-  dailyLimit = 25,
+  autoDial,
+  onAutoDialStarted,
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
     color: string;
     category: "TASK" | "FOLLOW_UP" | "APPOINTMENT";
   }>({ title: "", color: "#FFCA06", category: "TASK" });
 
-  const { isCalling, appStatus, startCall, endCall } = useTwilio();
-  const { data: regulatory } = useRegulatorySettings();
-
-  console.log("regulatory", regulatory)
+  const { isCalling, startCall, endCall } = useTwilio();
+  const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
   const now = new Date();
   const currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  console.log("currentStr", currentStr)
 
   const handleCallToggle = async () => {
+    if (isRegulatoryLoading) {
+      toast("Syncing compliance settings...", { icon: '⏳' });
+      return;
+    }
+
     if (isCalling) {
       endCall();
       return;
     }
 
     // --- TCPA CHECK ---
-    // console.log("tcpaFrom", tcpaFrom)
-    // console.log("tcpaTo", tcpaTo
     const { tcpaFrom, tcpaTo } = regulatory || {};
     if (tcpaFrom && tcpaTo) {
-      if (currentStr < tcpaFrom || currentStr > tcpaTo) {
+      const isAllowed = tcpaFrom <= tcpaTo
+        ? (currentStr >= tcpaFrom && currentStr <= tcpaTo)
+        : (currentStr >= tcpaFrom || currentStr <= tcpaTo);
+
+      if (!isAllowed) {
         toast.error(`Compliance Alert: Calling is restricted outside ${tcpaFrom} - ${tcpaTo} (TCPA Hours).`);
         return;
       }
@@ -103,87 +112,90 @@ const ContactInfoHeader = ({
     setEventModalOpen(true);
   };
 
+  // ─── Power Dialer Auto-Dial Hook ───
+  useEffect(() => {
+    if (autoDial && !isCalling) {
+      handleCallToggle();
+      if (onAutoDialStarted) onAutoDialStarted();
+    }
+  }, [autoDial, isCalling]);
+
   return (
     <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3">
         {/* Left */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <h1 className="text-[#0E1011] dark:text-white text-xl sm:text-[22px] font-semibold">
-            Live Dialing Screen
-          </h1>
-          <span
-            className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${dailyCount >= dailyLimit
-              ? "bg-orange-500"
-              : isCalling
-                ? "bg-red-500"
-                : "bg-[#07D95B]"
-              }`}
+        {/* Left: Progress indicator as seen in SS */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all group"
+            title="Go Back"
           >
-            {dailyCount >= dailyLimit
-              ? "Daily Limit Reached"
-              : isCalling
-                ? "Active Call"
-                : appStatus}
-          </span>
-          {totalContacts > 0 && (
-            <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Queue: {currentIndex + 1} / {totalContacts}
-            </span>
-          )}
+            <IoArrowBack className="text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Back</span>
+          </button>
+
+          <div className="flex flex-col gap-1 min-w-[120px]">
+            <div className="flex justify-between items-end">
+              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                {currentIndex + 1}/{totalContacts}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+               <div 
+                 className="bg-gray-600 dark:bg-gray-400 h-full transition-all duration-300" 
+                 style={{ width: `${(totalContacts > 0 ? ((currentIndex + 1) / totalContacts) * 100 : 0)}%` }} 
+               />
+            </div>
+          </div>
         </div>
 
-        {/* Desktop Buttons */}
+        {/* Desktop Buttons matched to SS */}
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={() => handleOpenEventModal("TASK")}
-            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors"
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-[#e0e2e6] transition-colors"
           >
-            <HiPlus className="text-lg dark:text-white" />
-            <span className="text-[#0E1011] dark:text-white text-sm font-medium">Task</span>
+            <HiPlus className="text-xl rotate-180 dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Tasks</span>
           </button>
 
           <button
             onClick={() => handleOpenEventModal("FOLLOW_UP")}
-            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] dark:hover:bg-slate-600 transition-colors"
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-[#e0e2e6] transition-colors"
           >
-            <HiPlus className="text-lg dark:text-white" />
-            <span className="text-[#0E1011] dark:text-white text-sm font-medium">Follow Up</span>
+            <HiPlus className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Appointment</span>
           </button>
+
+          <div className="w-px h-8 bg-gray-200 dark:bg-slate-700 mx-1" />
+
+          {/* Call Status Indicator from SS (Dot next to Start) */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-900/20">
+             <div className={`w-3 h-3 rounded-full ${isCalling ? 'bg-red-500 animate-pulse' : 'bg-red-200'}`} />
+          </div>
 
           <button
             onClick={handleCallToggle}
-            className={`${isCalling
-              ? "bg-red-500 text-white"
-              : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
-              } rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:opacity-80 transition-all`}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-6 hover:bg-[#e0e2e6] transition-all"
           >
-            {isCalling ? <FiPause className="text-xl" /> : <IoPlayOutline className="text-xl" />}
-            <span className="text-sm font-medium">
-              {isCalling ? "End Connection" : "Start"}
+            {isCalling ? <FiPause className="text-xl dark:text-white" /> : <IoPlayOutline className="text-xl dark:text-white" />}
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">
+              {isCalling ? "Pause" : "Start"}
             </span>
           </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onPrev}
-              disabled={currentIndex === 0}
-              className={`bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#D8DCE1] dark:hover:bg-slate-600 transition-all ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              <span className="text-sm font-medium">Prev</span>
-            </button>
-
-            <button
-              onClick={onNext}
-              disabled={currentIndex >= totalContacts - 1}
-              className={`bg-[#0E1011] text-white rounded-[12px] flex items-center gap-1.5 py-3 px-5 hover:bg-[#1a1c1e] transition-colors ${currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-            >
-              <HiPlus className="text-xl" />
-              <span className="text-sm font-medium">Dial Next Number</span>
-            </button>
-          </div>
+          <button
+            onClick={endCall}
+            disabled={!isCalling}
+            className={`bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 transition-all ${
+              !isCalling ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100 dark:hover:bg-red-900/40"
+            }`}
+          >
+            <PhoneOff className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Hang Up & Leave</span>
+          </button>
         </div>
 
         {/* Mobile Hamburger */}

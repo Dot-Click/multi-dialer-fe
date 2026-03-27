@@ -5,9 +5,12 @@ import { FiCheck, FiMoreVertical, FiClock, FiCheckSquare } from "react-icons/fi"
 import { useNotifications } from "@/hooks/useSystemSettings";
 import { usePush } from "@/hooks/usePush";
 import { formatDistanceToNow } from "date-fns";
+import { Phone } from "lucide-react";
+import QuickCallModal from "@/components/agent/common/quickcallmodal";
 
 const Navbar = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isQuickCallOpen, setIsQuickCallOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: notifications = [], markRead, markAllRead } = useNotifications();
   const { subscribe, loading: pushLoading } = usePush();
@@ -35,6 +38,15 @@ const Navbar = () => {
 
   return (
     <nav className="border-b border-[#EBEDF0] w-full h-16 dark:bg-slate-900 dark:border-slate-700 bg-white flex justify-end items-center gap-5 px-9 relative">
+      <button
+        onClick={() => setIsQuickCallOpen(true)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md border text-gray-600 dark:text-gray-100 text-sm font-medium transition-colors hover:bg-gray-50 dark:border-white dark:hover:bg-slate-800"
+      >
+        <Phone className="size-4" />
+        Quick Call
+      </button>
+      <QuickCallModal open={isQuickCallOpen} onOpenChange={setIsQuickCallOpen} />
+      
       <ThemeToggle />
 
       {/* Notification Bell & Dropdown */}

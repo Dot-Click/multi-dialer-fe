@@ -417,14 +417,17 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
 
   /* EMAIL STATE */
   const handleAddEmail = () => setEmails((p) => [...p, { email: '', isPrimary: false }]);
+  
   const updateEmail = (index: number, val: string) => {
     const newEmails = [...emails];
     newEmails[index].email = val;
     setEmails(newEmails);
   };
+  
   const togglePrimaryEmail = (index: number) => {
     setEmails(emails.map((e, i) => ({ ...e, isPrimary: i === index })));
   };
+
   const removeEmail = (index: number) => {
     if (emails.length > 1) {
       const newEmails = emails.filter((_, i) => i !== index);

@@ -18,6 +18,10 @@ export interface CalendarEvent {
     assignToId: string;
     assignById: string;
     contactId?: string;
+    contact?: {
+        id: string;
+        fullName: string;
+    };
     leadId?: string;
     assignTo?: {
         id: string;

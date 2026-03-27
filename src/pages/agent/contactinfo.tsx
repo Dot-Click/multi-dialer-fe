@@ -35,13 +35,15 @@ const ContactInfo = () => {
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl } = useTwilio();
+    const { setAnsweringMachineUrl, callStatus, isCalling, callDisposition, endCall } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [callerIds, setCallerIds] = useState<string[]>([]);
     const [currentCallerId, setCurrentCallerId] = useState<string | null>(null);
     const [dailyCallsCount, setDailyCallsCount] = useState(0);
     const [scriptId, setScriptId] = useState<string | null>(location.state?.selectedScript || null);
+    const dialerMode = location.state?.dialerMode || "manual";
+    const [isAutoDialing, setIsAutoDialing] = useState(false);
     const maxCallsPerId = location.state?.numberOfLines || 5;
 
     // Cooldown state from backend
@@ -114,6 +116,40 @@ const ContactInfo = () => {
 
     const handleNextContact = () => { if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); };
     const handlePreviousContact = () => { if (currentIndex > 0) setCurrentIndex((p) => p - 1); };
+
+    // ─── Power Dialer Logic ───────────────────────────────────────────────────
+
+    const [isAwaitingContactLoad, setIsAwaitingContactLoad] = useState(false);
+
+    useEffect(() => {
+        if (dialerMode === "power" && callStatus === "disconnected") {
+            if (currentIndex < queue.length - 1) {
+                const timer = setTimeout(() => {
+                    handleNextContact();
+                    setIsAwaitingContactLoad(true);
+                }, 3000); // 3-second grace period
+                return () => clearTimeout(timer);
+            } else {
+                toast.success("Power Dialing complete — reached the end of the queue!");
+            }
+        }
+    }, [callStatus, dialerMode]);
+
+    // Only start dialing AFTER the new contact is actually in the store
+    useEffect(() => {
+        if (isAwaitingContactLoad && currentContact && queue[currentIndex] && (currentContact as any).id === queue[currentIndex].id) {
+            setIsAwaitingContactLoad(false);
+            setIsAutoDialing(true);
+        }
+    }, [isAwaitingContactLoad, currentContact, currentIndex, queue]);
+
+    // Auto-skip Machine recordings in Power Dialer
+    useEffect(() => {
+        if (dialerMode === "power" && callDisposition === "MACHINE" && isCalling) {
+            toast("Machine detected — skipping to next contact...", { icon: '🤖' });
+            endCall();
+        }
+    }, [callDisposition, dialerMode, isCalling, endCall]);
 
     // ─── Rotation ─────────────────────────────────────────────────────────────
 
@@ -233,26 +269,25 @@ const ContactInfo = () => {
                 onCallStarted={onCallStarted}  // now typed as (fromNumber: string) => void
                 dailyCount={dailyCallsCount}
                 dailyLimit={TOTAL_DAILY_LIMIT}
+                autoDial={isAutoDialing}
+                onAutoDialStarted={() => setIsAutoDialing(false)}
             />
 
-            <CallSection />
-            <div className="w-full p-4 lg:flex lg:gap-4 space-y-4 lg:space-y-0">
-                <div className="w-full lg:w-[65%] space-y-4">
+            <div className="w-full flex flex-col lg:flex-row gap-4 p-4 lg:h-[calc(100vh-80px)] overflow-hidden">
+                {/* Left Column (Main Content) - Scrollable */}
+                <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
+                    <CallSection />
                     <ContactDisposition />
                     <BottomContactDetail />
                 </div>
-                <div className="w-full lg:w-[35%]">
-                    <ContactInfoScript scriptId={scriptId} />
-                    <div className="mt-4">
-                        <LiveContactScript contactId={currentContact?.id} scriptId={scriptId} />
-                    </div>
-                </div>
-            </div>
 
-            <div className="w-full p-4 lg:flex lg:gap-4 space-y-4 lg:space-y-0">
-                <div className="w-full lg:w-[65%]" />
-                <div className="w-full h-fit flex flex-col gap-2 lg:w-[35%]">
-                    <ContactInfoCallSentiment />
+                {/* Right Column (Sidebar) - Scrollable if needed */}
+                <div className="w-full lg:w-[420px] flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
+                    <div className="flex flex-col gap-4">
+                        <ContactInfoScript scriptId={scriptId} />
+                        <LiveContactScript contactId={currentContact?.id} scriptId={scriptId} />
+                        <ContactInfoCallSentiment />
+                    </div>
                 </div>
             </div>
 

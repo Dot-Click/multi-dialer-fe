@@ -20,6 +20,7 @@ interface TwilioContextType {
   toggleHold: (customHoldUrl?: string) => Promise<void>;
   transcriptionLogs: any[];
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
+  callDisposition: string | null;
   duration: number;
   resetCallStatus: () => void;
   answeringMachineUrl: string | null;
@@ -42,6 +43,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isHold, setIsHold] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
+  const [callDisposition, setCallDisposition] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
   const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
@@ -65,12 +67,14 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const handleStopCalling = useCallback(() => {
     setIsCalling(false);
+    setCallStatus('disconnected');
     setAppStatus('Agent Ready');
     setActiveCall(null);
     setActiveCallSid(null);
     setCustomerCallSid(null);
     setIsMuted(false);
     setIsHold(false);
+    setCallDisposition(null);
     setDuration(0);
     holdAudio.pause();
     holdAudio.currentTime = 0;
@@ -410,6 +414,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (data.success && (data.data.status === 'in-progress' || data.data.status === 'answered')) {
             setCallStatus('connected');
           }
+          if (data.success && data.data.disposition) {
+            setCallDisposition(data.data.disposition);
+          }
         } catch (err) { /* silent fail */ }
       }, 3000);
     }
@@ -421,6 +428,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       device, activeCall, isCalling, appStatus, activeCallSid,
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
+      callDisposition,
       duration, resetCallStatus, answeringMachineUrl,
       setAnsweringMachineUrl,
       dropVoicemail,
