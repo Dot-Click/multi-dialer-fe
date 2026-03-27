@@ -52,24 +52,24 @@ const ContactInfoHeader = ({
     category: "TASK" | "FOLLOW_UP" | "APPOINTMENT";
   }>({ title: "", color: "#FFCA06", category: "TASK" });
 
-  const { isCalling,  startCall, endCall } = useTwilio();
-  const { data: regulatory } = useRegulatorySettings();
-
-  console.log("regulatory", regulatory)
+  const { isCalling, startCall, endCall } = useTwilio();
+  const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
   const now = new Date();
   const currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  console.log("currentStr", currentStr)
 
   const handleCallToggle = async () => {
+    if (isRegulatoryLoading) {
+      toast("Syncing compliance settings...", { icon: '⏳' });
+      return;
+    }
+
     if (isCalling) {
       endCall();
       return;
     }
 
     // --- TCPA CHECK ---
-    // console.log("tcpaFrom", tcpaFrom)
-    // console.log("tcpaTo", tcpaTo
     const { tcpaFrom, tcpaTo } = regulatory || {};
     if (tcpaFrom && tcpaTo) {
       const isAllowed = tcpaFrom <= tcpaTo

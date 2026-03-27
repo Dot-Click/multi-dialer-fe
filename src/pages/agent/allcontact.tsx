@@ -8,6 +8,7 @@ import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
+import toast from "react-hot-toast";
 
 type OutletContextType = {
   activeItem: { type: string; id?: string; name: string };
@@ -97,12 +98,11 @@ const AllContact = () => {
           onClick={() => {
             if (selectedContacts.length > 0) {
               setIsDialSettingOpen(true);
+            } else {
+              toast.error("Please select at least one contact to start dialing.");
             }
           }}
-          disabled={selectedContacts.length === 0}
-          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-6 pl-5 py-2 text-sm sm:text-base font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${
-            selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""    
-          }`}
+          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-6 pl-5 py-2 text-sm sm:text-base font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
         >              
           <img
             src={callIcon}

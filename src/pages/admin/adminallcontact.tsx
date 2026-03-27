@@ -215,11 +215,11 @@ const AdminAllContact = () => {
                         e.stopPropagation();
                         if (selectedContacts.length > 0) {
                             setIsDialSettingOpen(true);
+                        } else {
+                            toast.error("Please select at least one contact to start dialing.");
                         }
                     }}
-                    disabled={selectedContacts.length === 0}
-                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
                 >
                     <MdOutlineCall className="text-base" />
                     <span>Dial Selected ({selectedContacts.length})</span>
