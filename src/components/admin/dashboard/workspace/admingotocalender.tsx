@@ -1,14 +1,29 @@
 import { IoIosArrowForward } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
-import { useCalendarEvents } from "@/hooks/useWorkspace";
+import { useCalendarEvents, useAllCalendarEvents } from "@/hooks/useWorkspace";
 import { Loader2 } from "lucide-react";
 import moment from "moment";
 import { useAppSelector } from "@/store/hooks";
 
 const AdminGoToCalender = () => {
   const navigate = useNavigate();
-  const { data: events, isLoading } = useCalendarEvents();
+  const { data: ownEvents, isLoading: ownLoading } = useCalendarEvents();
+  const { data: allEvents, isLoading: allLoading } = useAllCalendarEvents();
   const { role } = useAppSelector((state) => state.auth);
+
+  const isLoading = ownLoading || allLoading;
+
+  // For ADMIN: merge own events + all agent events (deduplicated by id)
+  const events = (() => {
+    if (role !== "ADMIN") return ownEvents || [];
+    const combined = [...(allEvents || []), ...(ownEvents || [])];
+    const seen = new Set<string>();
+    return combined.filter((ev) => {
+      if (seen.has(ev.id)) return false;
+      seen.add(ev.id);
+      return true;
+    });
+  })();
 
   if (isLoading) {
     return (
@@ -31,7 +46,7 @@ const AdminGoToCalender = () => {
         </div>
         <div
           onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar")}
-          className="flex gap-1  cursor-pointer text-[#2B3034] dark:text-gray-300 dark:hover:text-white items-center "
+          className="flex gap-1 cursor-pointer text-[#2B3034] dark:text-gray-300 dark:hover:text-white items-center"
         >
           <span className="text-[16px] font-medium">Go To Calender</span>
           <span>
@@ -49,7 +64,12 @@ const AdminGoToCalender = () => {
             events.map((ev) => (
               <div
                 key={ev.id}
-                onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar", { state: { date: ev.startDate } })}
+                onClick={() =>
+                  navigate(
+                    role === "ADMIN" ? "/admin/calendar" : "/calendar",
+                    { state: { date: ev.startDate } }
+                  )
+                }
                 className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50 cursor-pointer"
                 style={{ borderColor: ev.color || "#D43435" }}
               >
@@ -62,8 +82,14 @@ const AdminGoToCalender = () => {
                   </span>
                 </div>
                 <h1 className="text-[14px] font-normal text-[#848C94] dark:text-gray-400">
-                  {moment(ev.startDate).format("hh:mm A")} - {ev.endDate ? moment(ev.endDate).format("hh:mm A") : "..."}
+                  {moment(ev.startDate).format("hh:mm A")} -{" "}
+                  {ev.endDate ? moment(ev.endDate).format("hh:mm A") : "..."}
                 </h1>
+                {role === "ADMIN" && ev.assignTo?.fullName && (
+                  <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400">
+                    {ev.assignTo.fullName}
+                  </span>
+                )}
               </div>
             ))
           ) : (

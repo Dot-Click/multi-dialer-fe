@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { TfiDownload } from "react-icons/tfi";
 
@@ -36,6 +36,14 @@ const ContactLayout = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.activeItem) {
+      setActiveItem(location.state.activeItem);
+    }
+  }, [location.state]);
 
   return (
     <div className="min-h-screen w-full relative">

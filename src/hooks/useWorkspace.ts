@@ -10,6 +10,11 @@ export interface CalendarEvent {
     endDate?: string;
     assignToId: string;
     status: string;
+    assignTo?: {
+        id: string;
+        fullName: string;
+        email: string;
+    };
 }
 
 export interface Group {
@@ -73,6 +78,16 @@ export const useCalendarEvents = () => {
         queryKey: ['calendar-events'],
         queryFn: async (): Promise<CalendarEvent[]> => {
             const response = await api.get('/calendar');
+            return response.data.data || response.data;
+        }
+    });
+};
+
+export const useAllCalendarEvents = () => {
+    return useQuery({
+        queryKey: ['all-calendar-events'],
+        queryFn: async (): Promise<CalendarEvent[]> => {
+            const response = await api.get('/calendar/all');
             return response.data.data || response.data;
         }
     });
