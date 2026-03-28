@@ -49,7 +49,8 @@ const AdminGoToCalender = () => {
             events.map((ev) => (
               <div
                 key={ev.id}
-                className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50"
+                onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar", { state: { date: ev.startDate } })}
+                className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50 cursor-pointer"
                 style={{ borderColor: ev.color || "#D43435" }}
               >
                 <div className="flex justify-between items-start">
