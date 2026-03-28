@@ -114,7 +114,7 @@ const AddRecordingModal: React.FC<AddRecordingModalProps> = ({ onClose, onSucces
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter recording name"
-              className="w-full bg-transparent placeholder:text-sm text-sm border-none outline-none"
+              className="w-full bg-transparent placeholder:text-sm text-sm dark:text-gray-700 border-none outline-none"
             />
           </div>
 

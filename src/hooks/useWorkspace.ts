@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
-
+import { toast } from 'react-hot-toast';
 export interface CalendarEvent {
     id: string;
     title: string;
@@ -36,6 +36,9 @@ export interface DialerHealth {
     name: string;
     contact: string;
     health: 'healthy' | 'unhealthy';
+    type: 'ai' | 'reputation';
+    reputation?: string;
+    score?: number;
 }
 
 export interface SalesAgentPerformance {
@@ -114,6 +117,23 @@ export const useDialerHealth = () => {
         queryFn: async (): Promise<DialerHealth[]> => {
             const response = await api.get('/reports/dialer-health');
             return response.data.data || response.data;
+        }
+    });
+};
+
+export const useRefreshDialerHealth = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async () => {
+            const response = await api.get('/reports/refresh-health');
+            return response.data;
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['dialer-health'] });
+            toast.success(data.message || "Dialer health refreshed successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to refresh dialer health");
         }
     });
 };

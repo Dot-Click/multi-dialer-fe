@@ -9,6 +9,7 @@ import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
+import DialRestrictionModal from "@/components/modal/DialRestrictionModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { assignAgentsToList } from "@/store/slices/contactSlice";
 import { authClient } from "@/lib/auth-client";
@@ -30,6 +31,7 @@ const AdminAllContact = () => {
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
+    const [isRestrictionModalOpen, setIsRestrictionModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState(""); // used for agents modal
     const [contactSearchTerm, setContactSearchTerm] = useState(""); // used for table
 
@@ -213,6 +215,12 @@ const AdminAllContact = () => {
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+
+                        if (activeItem.type === "allContacts") {
+                            setIsRestrictionModalOpen(true);
+                            return;
+                        }
+
                         if (selectedContacts.length > 0) {
                             setIsDialSettingOpen(true);
                         } else {
@@ -245,6 +253,10 @@ const AdminAllContact = () => {
                 isOpen={isDialSettingOpen}
                 onClose={() => setIsDialSettingOpen(false)}
             />
+
+            {isRestrictionModalOpen && (
+                <DialRestrictionModal onClose={() => setIsRestrictionModalOpen(false)} />
+            )}
 
             {/* Assign To Modal */}
             {isAssignModalOpen && (
