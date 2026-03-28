@@ -1,8 +1,9 @@
-import { useDialerHealth } from "@/hooks/useWorkspace";
-import { Loader2 } from "lucide-react";
+import { useDialerHealth, useRefreshDialerHealth } from "@/hooks/useWorkspace";
+import { Loader2, RefreshCw } from "lucide-react";
 
 const AdminDialerHealth = () => {
   const { data: dialers, isLoading } = useDialerHealth();
+  const { mutate: refresh, isPending: isRefreshing } = useRefreshDialerHealth();
 
   if (isLoading) {
     return (
@@ -18,6 +19,14 @@ const AdminDialerHealth = () => {
         <h1 className="text-[20px] text-[#000000] dark:text-white font-medium">
           Dialer Health
         </h1>
+        <button
+          onClick={() => refresh()}
+          disabled={isRefreshing}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50"
+          title="Refresh Reputation"
+        >
+          <RefreshCw className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
       <div className="flex flex-col gap-5  overflow-auto custom-scrollbar h-full">
@@ -46,11 +55,13 @@ const AdminDialerHealth = () => {
                 key={dial.id}
                 className="flex mx-2 rounded-md border-b gap-2 items-center border-gray-100 dark:border-slate-700"
               >
-                <div className="flex justify-between w-full pr-3 items-center">
-                  <div>
-                    <h1 className="text-[16px] font-medium text-[#000000] dark:text-white">
-                      {dial.name}
-                    </h1>
+                <div className="flex justify-between w-full pr-3 items-center py-2">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-[16px] font-medium text-[#000000] dark:text-white">
+                        {dial.name}
+                      </h1>
+                    </div>
                     <h1 className="text-[14px] font-normal text-[#495057] dark:text-gray-400">
                       {dial.contact}
                     </h1>

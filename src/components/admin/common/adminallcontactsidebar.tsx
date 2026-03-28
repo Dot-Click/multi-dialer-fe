@@ -8,7 +8,6 @@ import {
   useContact,
   type ContactList,
   type ContactFolder,
-  type ContactGroup,
 } from "@/hooks/useContact";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchContacts } from "@/store/slices/contactSlice";
@@ -22,52 +21,31 @@ interface AllContactSidebarProps {
   }) => void;
 }
 
-interface FolderWithLists extends ContactFolder {
-  nestedLists: ContactList[];
-}
-
 const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   onSelectItem,
 }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const location = useLocation();
 
   const navigate = useNavigate();
 
 
-  const { getContactLists, getContactFolders, getContactGroups, loading } =
+  const { getContactLists, getContactFolders, loading } =
     useContact();
   const dispatch = useAppDispatch();
 
-  const [folders, setFolders] = useState<FolderWithLists[]>([]);
-  const [standaloneLists, setStandaloneLists] = useState<ContactList[]>([]);
-  const [groups, setGroups] = useState<ContactGroup[]>([]);
+  const [folders, setFolders] = useState<ContactFolder[]>([]);
+  const [lists, setLists] = useState<ContactList[]>([]);
 
   const fetchData = async () => {
-    const [allLists, allFolders, allGroups] = await Promise.all([
+    const [allLists, allFolders] = await Promise.all([
       getContactLists(),
       getContactFolders(),
-      getContactGroups(),
     ]);
 
-    const folderMap = new Map<string, FolderWithLists>();
-    const usedListIds = new Set<string>();
-
-    allFolders.forEach((folder) => {
-      const nestedLists = allLists.filter((list) =>
-        folder.listIds.includes(list.id),
-      );
-      nestedLists.forEach((l) => usedListIds.add(l.id));
-      folderMap.set(folder.id, { ...folder, nestedLists });
-    });
-
-    setFolders(Array.from(folderMap.values()));
-    setStandaloneLists(allLists.filter((list) => !usedListIds.has(list.id)));
-    setGroups(allGroups);
+    setFolders(allFolders);
+    setLists(allLists);
   };
 
   // ✅ Back button logic
@@ -97,18 +75,6 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     if (location.pathname !== "/admin/data-dialer") {
       navigate("/admin/data-dialer");
     }
-  };
-
-  const toggleFolder = (id: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
   };
 
   // ✅ Handle Import Modal
@@ -148,43 +114,8 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
         <h1 className="text-[#495057] dark:text-white font-medium uppercase text-[14px]">
           Calling Lists
         </h1>
-        <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {folders.map((folder) => (
-            <div key={folder.id} className="flex flex-col gap-1.5">
-              <div
-                onClick={() => toggleFolder(folder.id)}
-                className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                  bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]`}
-              >
-                <VscFolderOpened className="text-lg" />
-                <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
-                  {folder.name}
-                </h1>
-              </div>
-
-              {expandedFolders.has(folder.id) && (
-                <div className="flex gap-2 flex-col">
-                  {folder.nestedLists.map((list) => (
-                    <div
-                      key={list.id}
-                      onClick={() => handleClick("list", list.name, list.id)}
-                      className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                      ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-                    >
-                      <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
-                        {list.name}
-                      </h1>
-                      <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
-                        {list.name.slice(0, 2)}
-                      </h1>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {standaloneLists.map((list) => (
+        <div className="flex gap-2 h-[40vh] px-1.5 overflow-auto custom-scrollbar flex-col">
+          {lists.map((list) => (
             <div
               key={list.id}
               onClick={() => handleClick("list", list.name, list.id)}
@@ -194,13 +125,13 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
               <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
                 {list.name}
               </h1>
-              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
+              <h1 className="border border-gray-200 dark:border-slate-600 rounded-full text-[12px] px-2 py-1.5 uppercase whitespace-nowrap">
                 {list.name.slice(0, 2)}
               </h1>
             </div>
           ))}
 
-          {!loading && folders.length === 0 && standaloneLists.length === 0 && (
+          {!loading && lists.length === 0 && (
             <span className="text-xs text-gray-400 text-center py-4">
               No lists found
             </span>
@@ -210,27 +141,28 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
       <div className="border-b border-gray-100 h-1 my-3"></div>
 
-      {/* Groups */}
+      {/* Folders */}
       <div className="flex flex-col gap-2 overflow-hidden">
         <h1 className="text-[#495057] dark:text-white uppercase font-medium text-[14px]">
-          Groups
+          Folders
         </h1>
-        <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {groups.map((gro) => (
+        <div className="flex gap-2 h-[30vh] px-1.5 overflow-auto custom-scrollbar flex-col">
+          {folders.map((folder) => (
             <div
-              key={gro.id}
-              onClick={() => handleClick("group", gro.name, gro.id)}
+              key={folder.id}
+              onClick={() => handleClick("folder", folder.name, folder.id)}
               className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]"}`}
+                ${activeItem === `folder-${folder.id}` ? "bg-[#FFCA06]" : "bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]"}`}
             >
+              <VscFolderOpened className="text-lg" />
               <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
-                {gro.name}
+                {folder.name}
               </h1>
             </div>
           ))}
-          {!loading && groups.length === 0 && (
+          {!loading && folders.length === 0 && (
             <span className="text-xs text-gray-400 text-center py-4">
-              No groups found
+              No folders found
             </span>
           )}
         </div>
