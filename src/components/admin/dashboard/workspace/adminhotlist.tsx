@@ -106,8 +106,9 @@ const AdminHotList = () => {
           </div>
         ) : (
           contacts.map((cont, idx) => (
-            <div
+            <Link
               key={cont.id}
+              to={`/admin/contact-detail/${cont.id}`}
               className="flex mx-1 rounded-lg border gap-0 items-center border-[#F3F4F7] dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-900/50 transition-colors duration-150"
             >
               {/* Rank / Dialing time badge */}
@@ -137,7 +138,7 @@ const AdminHotList = () => {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

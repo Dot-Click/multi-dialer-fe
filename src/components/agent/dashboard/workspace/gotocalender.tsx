@@ -34,7 +34,12 @@ const GoToCalender = () => {
                 <div className="flex flex-col gap-3">
                     {events && events.length > 0 ? (
                         events.map((ev) => (
-                            <div key={ev.id} className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50" style={{ borderColor: ev.color || '#D43435' }}>
+                            <div 
+                                key={ev.id} 
+                                onClick={() => navigate("/calendar", { state: { date: ev.startDate } })}
+                                className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50 cursor-pointer" 
+                                style={{ borderColor: ev.color || '#D43435' }}
+                            >
                                 <div className="flex justify-between items-start">
                                     <h1 className="text-[16px] dark:text-white font-medium text-[#0E1011]">{ev.title}</h1>
                                     <span className="text-[12px] text-gray-500 dark:text-gray-400">

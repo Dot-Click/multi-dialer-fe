@@ -6,14 +6,14 @@ const AdminDialerHealth = () => {
 
   if (isLoading) {
     return (
-      <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[35vh] items-center justify-center rounded-[32px] w-full">
+      <section className="bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] items-center justify-center rounded-[32px] w-full">
         <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
       </section>
     );
   }
 
   return (
-    <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[35vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full ">
+    <section className="bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full ">
       <div className="flex justify-between items-center">
         <h1 className="text-[20px] text-[#000000] dark:text-white font-medium">
           Dialer Health

@@ -174,7 +174,8 @@ const AdminLeadIntelligence = () => {
           {/* Bottom Section */}
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-md font-medium text-[#0E1011] dark:text-white">
+              <h2 className="text-md font-medium text-[#0E1011]  dark:text-white">
+                
                 Overall Lead Score
               </h2>
               <div className="hidden sm:flex items-center gap-4">
@@ -182,7 +183,7 @@ const AdminLeadIntelligence = () => {
                   <span key={label} className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                     <span className="w-2 h-2 rounded-full" style={{ background: color }} />
                     {label}
-                  </span>
+                  </span>   
                 ))}
               </div>
             </div>

@@ -2,7 +2,6 @@ import CallStatisctics from '@/components/agent/dashboard/workspace/callstatisti
 import DialerHealth from '@/components/agent/dashboard/workspace/dialerhealth'
 import FoldersList from '@/components/agent/dashboard/workspace/folderlist'
 import GoToCalender from '@/components/agent/dashboard/workspace/gotocalender'
-import Group from '@/components/agent/dashboard/workspace/group'
 import HotList from '@/components/agent/dashboard/workspace/hotlist'
 import RecentActivity from '@/components/agent/dashboard/workspace/recentactivity'
 
@@ -15,7 +14,7 @@ const Workspace = () => {
       </div>
       <div className='flex flex-col md:flex-row gap-2'>
         <div className='flex flex-col w-full md:w-[45%] gap-5'>
-          <Group />
+          {/* <Group /> */}
           <DialerHealth />
         </div>
         <div className='w-full md:w-[55%]'>

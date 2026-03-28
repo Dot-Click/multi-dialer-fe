@@ -11,7 +11,7 @@ import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
 import { toast } from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // Helper to group events by date
 const groupEventsByDate = (eventList: CalendarEvent[]) => {
@@ -44,6 +44,19 @@ export default function CustomCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.date) {
+      const targetDate = dayjs(location.state.date);
+      setCurrentDate(targetDate);
+      setSelectedDate(targetDate);
+      // Clear the state so it doesn't persist on page refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // Track Dark Mode to sync Ant Design with Tailwind
   const [isDarkMode, setIsDarkMode] = useState(false);

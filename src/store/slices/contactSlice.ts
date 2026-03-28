@@ -604,6 +604,7 @@ export const contactSlice = createSlice({
       .addCase(fetchContactById.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.currentContact = null;
       })
       .addCase(fetchContactById.fulfilled, (state, action) => {
         state.isLoading = false;
