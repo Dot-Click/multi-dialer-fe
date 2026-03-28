@@ -123,7 +123,7 @@
 // export default ContactLayout;
 
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { TfiDownload } from "react-icons/tfi";
 import movetoicon from "../../assets/movetoicon.png";
@@ -156,6 +156,15 @@ const ContactLayout = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showMoveToModal, setShowMoveToModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.activeItem) {
+      setActiveItem(location.state.activeItem);
+    }
+  }, [location.state]);
+
   // ✅ Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
