@@ -277,7 +277,9 @@ const ContactInfo = () => {
                 {/* Left Column (Main Content) - Scrollable */}
                 <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
                     <CallSection />
-                    <ContactDisposition />
+                    <ContactDisposition 
+                        onNext={handleNextContact} 
+                    />
                     <BottomContactDetail />
                 </div>
 
