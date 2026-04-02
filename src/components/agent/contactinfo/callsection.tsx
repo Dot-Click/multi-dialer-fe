@@ -1,9 +1,8 @@
 import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
-import { Briefcase, Loader2, Mic, MicOff, Pause, Play, Voicemail } from 'lucide-react';
+import { Briefcase, Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft, Voicemail } from 'lucide-react';
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
-import { useDialerSettings } from "@/hooks/useSystemSettings";
 
 // Define the statuses to match the design (mapped from contact data if possible)
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected";
@@ -38,24 +37,29 @@ const CallSection = () => {
     isHold,
     toggleMute,
     isMuted,
-    dropVoicemail, isDroppingingVoicemail, answeringMachineUrl
+    dropVoicemail, 
+    isDroppingingVoicemail, 
+    answeringMachineUrl,
+    duration,
+    endCall
   } = useTwilio();
-
-  const { data: dialerSettings } = useDialerSettings(); // ← add
-  const isManualMode = dialerSettings?.voicemailMode === 'manual';
 
   // Reset status when contact changes
   useEffect(() => {
     resetCallStatus();
   }, [currentContact?.id, resetCallStatus]);
 
+  // Format duration (MM:SS)
+  const formatDuration = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Map internal Twilio status to UI status
   const getUiStatus = (isActive: boolean): CallStatus => {
     if (!isActive) return "Queued";
-
-    // Explicitly check isHold state first
     if (isHold) return "On Hold";
-
     switch (callStatus) {
       case 'idle': return "Queued";
       case 'ringing': return "Ringing";
@@ -71,11 +75,6 @@ const CallSection = () => {
     return <div className="p-8 text-center text-gray-500">No contacts in queue</div>;
   }
 
-
-  console.log('[DEBUG] isManualMode:', isManualMode, '| answeringMachineUrl:', answeringMachineUrl);
-
-
-
   return (
     <div className="w-full font-inter">
       {/* Horizontal Scroll Container */}
@@ -83,8 +82,74 @@ const CallSection = () => {
         {queue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
           const status = getUiStatus(isActive);
-          const showControls = isActive && (status === "Connected" || status === "On Hold");
+          const showControls = isActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
 
+          // NEW MOJO ACTIVE STYLE
+          if (isActive && showControls) {
+            return (
+              <div
+                key={call.id || index}
+                className="min-w-64 md:min-w-[280px] min-h-[220px] bg-[#111111] rounded-[24px] flex flex-col items-center justify-between p-6 shadow-2xl border border-white/5"
+              >
+                <div className="text-center w-full mt-1">
+                  <h3 className="text-[20px] font-bold text-white leading-tight uppercase tracking-tight">
+                    {call.fullName || call.name}
+                  </h3>
+                  <p className="text-[14px] font-medium text-gray-400 mt-0.5">
+                    ({call.phones?.[0]?.number?.slice(0, 3) || "252"}) {call.phones?.[0]?.number?.slice(3) || "555-0126"}
+                  </p>
+                </div>
+
+                <div className="bg-[#2D2D2D] px-6 py-1.5 rounded-full">
+                  <span className="text-[15px] font-bold text-gray-300 tracking-wider">
+                    {formatDuration(duration)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 w-full justify-center mb-1">
+                  <button
+                    onClick={toggleMute}
+                    title={isMuted ? "Unmute" : "Mute"}
+                    className={`w-12 h-12 flex justify-center items-center rounded-[14px] transition-all ${isMuted ? 'bg-[#CF3335] text-white shadow-lg shadow-red-900/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                  >
+                    {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
+                  </button>
+
+                  <button
+                    onClick={() => toggleHold(holdRecordingUrl)}
+                    title={isHold ? "Resume Call" : "Hold"}
+                    className={`w-12 h-12 flex justify-center items-center rounded-[14px] transition-all ${isHold ? 'bg-[#EAB308] text-white shadow-lg shadow-yellow-900/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                  >
+                    {isHold ? <Play size={20} /> : <Pause size={20} />}
+                  </button>
+
+                  {/* Voicemail Drop Button (The Arrow) */}
+                  <button
+                    onClick={dropVoicemail}
+                    disabled={isDroppingingVoicemail || !answeringMachineUrl}
+                    title="Drop Voicemail & Next"
+                    className="w-12 h-12 flex justify-center items-center rounded-[14px] bg-white/10 text-white hover:bg-white/20 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                  >
+                    {isDroppingingVoicemail 
+                      ? <Loader2 size={20} className="animate-spin text-gray-400" />
+                      : <ArrowRightLeft size={20} />
+                    }
+                  </button>
+
+                  {/* Hang Up Button */}
+                  <button
+                    onClick={endCall}
+                    title="Hang Up"
+                    className="w-12 h-12 flex justify-center items-center rounded-[14px] bg-[#CF3335] hover:bg-[#b8292b] text-white shadow-lg shadow-red-900/40 active:scale-95 transition-all"
+                  >
+                    <PhoneOff size={20} />
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          // ORIGINAL STYLE FOR OTHERS
           return (
             <div
               key={call.id || index}
@@ -109,75 +174,6 @@ const CallSection = () => {
 
               {/* Bottom Section: Controls & Status */}
               <div className="w-full space-y-3 mt-4">
-
-                {/* Active Call Controls (Only shows when connected/on-hold) */}
-                {/* {showControls && (
-                  <div className="flex items-center gap-2 w-full">
-                    <button
-                      onClick={toggleMute}
-                      title={isMuted ? "Unmute" : "Mute"}
-                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${isMuted
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
-                        }`}
-                    >
-                      {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                    </button>
-
-                    <button
-                      onClick={() => toggleHold(holdRecordingUrl)}
-                      title={isHold ? "Resume Call" : "Put on Hold"}
-                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${isHold
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-500'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
-                        }`}
-                    >
-                      {isHold ? <Play size={18} /> : <Pause size={18} />}
-                    </button>
-                  </div>
-                )} */}
-
-                {showControls && (
-                  <div className="flex items-center gap-2 w-full">
-                    <button
-                      onClick={toggleMute}
-                      title={isMuted ? "Unmute" : "Mute"}
-                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${isMuted
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
-                        }`}
-                    >
-                      {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                    </button>
-
-                    <button
-                      onClick={() => toggleHold(holdRecordingUrl)}
-                      title={isHold ? "Resume Call" : "Put on Hold"}
-                      className={`flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all ${isHold
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-500'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-gray-200'
-                        }`}
-                    >
-                      {isHold ? <Play size={18} /> : <Pause size={18} />}
-                    </button>
-
-                    {/* ← Voicemail drop button — only shows in manual mode with a recording configured */}
-                    {isManualMode && answeringMachineUrl && (
-                      <button
-                        onClick={dropVoicemail}
-                        disabled={isDroppingingVoicemail}
-                        title="Drop Voicemail & Hang Up"
-                        className="flex-1 flex justify-center items-center py-2.5 rounded-xl transition-all bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isDroppingingVoicemail
-                          ? <Loader2 size={18} className="animate-spin" />
-                          : <Voicemail size={18} />
-                        }
-                      </button>
-                    )}
-                  </div>
-                )}
-
                 {/* Status Badge */}
                 <div className={`w-full py-2 rounded-full text-center text-[14px] font-semibold tracking-wide ${getStatusBadgeStyle(status)}`}>
                   {status}
