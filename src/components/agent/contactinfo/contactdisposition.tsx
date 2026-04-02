@@ -14,7 +14,7 @@ import api from "@/lib/axios";
 import {
   CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming,
   Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown,
-  User, UserX, AlertCircle, Mail,
+  User
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -103,7 +103,7 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
     }
   }, [currentContact?.id, groups]);
 
-  const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [_, setSessionCounts] = useState<Record<string, number>>({});
 
   // ── Helpers ──
   const activeDispositions = dispositions.filter(d => d.isActive);
