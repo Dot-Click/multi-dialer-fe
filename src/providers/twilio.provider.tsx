@@ -393,7 +393,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   }, [activeCall, activeCallSid, customerCallSid, holdAudio, identity, isHold, isMuted]);
 
-  const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
+  // const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
 
   useEffect(() => {
     let pollInterval: any;

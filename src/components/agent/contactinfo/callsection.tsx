@@ -1,6 +1,6 @@
 import { useAppSelector } from "@/store/hooks";
 import { useEffect } from "react";
-import { Briefcase, Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft, Voicemail } from 'lucide-react';
+import { Briefcase, Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft } from 'lucide-react';
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 
