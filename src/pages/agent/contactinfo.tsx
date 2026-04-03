@@ -131,6 +131,16 @@ const ContactInfo = () => {
     }, [incomingContactId, queue]);
 
     const startSimultaneousDialing = async () => {
+        if (isAutoDialingRef.current) {
+            return;
+        }
+
+        if (!currentCallerId) {
+            toast.error("No caller ID available for power dialer.");
+            return;
+        }
+
+        isAutoDialingRef.current = true;
         toast.loading("Starting simultaneous dialer...", { id: "powerDialer" })
         try {
             const leadsPayload = queue.slice(currentIndex).map((c: any, idx: number) => ({
@@ -140,12 +150,13 @@ const ContactInfo = () => {
                 priority: queue.length - idx,
                 id: c.id
             }));
-            await api.post('/calling/leads', { leads: leadsPayload });
+            await api.post('/calling/leads', { leads: leadsPayload, callerId: currentCallerId });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {
             toast.error(e.response?.data?.message || "Failed to start power dialer", { id: "powerDialer" });
             setIsAutoDialing(false);
+            isAutoDialingRef.current = false;
         }
     }
 
@@ -154,10 +165,22 @@ const ContactInfo = () => {
             await api.post('/calling/stop-dialing');
             toast.success("Power Dialer Stopped");
             setIsAutoDialing(false);
+            isAutoDialingRef.current = false;
         } catch (e) {
             toast.error("Failed to stop dialer");
         }
     }
+
+    const isAutoDialingRef = useRef(false);
+
+    // Stop dialing if the agent navigates away from this page
+    useEffect(() => {
+        return () => {
+            if (isAutoDialingRef.current) {
+                api.post('/calling/stop-dialing').catch(() => {});
+            }
+        };
+    }, []);
 
     // ─── Rotation ─────────────────────────────────────────────────────────────
 
