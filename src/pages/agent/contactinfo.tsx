@@ -35,7 +35,7 @@ const ContactInfo = () => {
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, callStatus, isCalling, callDisposition, endCall } = useTwilio();
+    const { setAnsweringMachineUrl, incomingContactId } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [callerIds, setCallerIds] = useState<string[]>([]);
@@ -119,37 +119,45 @@ const ContactInfo = () => {
 
     // ─── Power Dialer Logic ───────────────────────────────────────────────────
 
-    const [isAwaitingContactLoad, setIsAwaitingContactLoad] = useState(false);
-
+    // Sync UI when the backend bridge answers a specific contact
     useEffect(() => {
-        if (dialerMode === "power" && callStatus === "disconnected") {
-            if (currentIndex < queue.length - 1) {
-                const timer = setTimeout(() => {
-                    handleNextContact();
-                    setIsAwaitingContactLoad(true);
-                }, 3000); // 3-second grace period
-                return () => clearTimeout(timer);
-            } else {
-                toast.success("Power Dialing complete — reached the end of the queue!");
+        if (incomingContactId && queue.length > 0) {
+            const foundIdx = queue.findIndex(c => (c as any).id === incomingContactId);
+            if (foundIdx !== -1 && foundIdx !== currentIndex) {
+                toast(`Connected to ${queue[foundIdx].name || queue[foundIdx].fullName || "Contact"}!`, { icon: '📞' });
+                setCurrentIndex(foundIdx);
             }
         }
-    }, [callStatus, dialerMode]);
+    }, [incomingContactId, queue]);
 
-    // Only start dialing AFTER the new contact is actually in the store
-    useEffect(() => {
-        if (isAwaitingContactLoad && currentContact && queue[currentIndex] && (currentContact as any).id === queue[currentIndex].id) {
-            setIsAwaitingContactLoad(false);
+    const startSimultaneousDialing = async () => {
+        toast.loading("Starting simultaneous dialer...", { id: "powerDialer" })
+        try {
+            const leadsPayload = queue.slice(currentIndex).map((c: any, idx: number) => ({
+                fullName: c.name || c.fullName,
+                phone: c.phones?.find((p: any) => p.isPrimary)?.number || c.phones?.[0]?.number || c.phone,
+                email: c.emails?.[0]?.email || c.email,
+                priority: queue.length - idx,
+                id: c.id
+            }));
+            await api.post('/calling/leads', { leads: leadsPayload });
+            toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || "Failed to start power dialer", { id: "powerDialer" });
+            setIsAutoDialing(false);
         }
-    }, [isAwaitingContactLoad, currentContact, currentIndex, queue]);
+    }
 
-    // Auto-skip Machine recordings in Power Dialer
-    useEffect(() => {
-        if (dialerMode === "power" && callDisposition === "MACHINE" && isCalling) {
-            toast("Machine detected — skipping to next contact...", { icon: '🤖' });
-            endCall();
+    const stopSimultaneousDialing = async () => {
+        try {
+            await api.post('/calling/stop-dialing');
+            toast.success("Power Dialer Stopped");
+            setIsAutoDialing(false);
+        } catch (e) {
+            toast.error("Failed to stop dialer");
         }
-    }, [callDisposition, dialerMode, isCalling, endCall]);
+    }
 
     // ─── Rotation ─────────────────────────────────────────────────────────────
 
@@ -258,7 +266,6 @@ const ContactInfo = () => {
     return (
         <div className="bg-gray-100 dark:bg-slate-900 min-h-screen">
             <ContactInfoHeader
-                settingsInfo={settingsInfo}
                 contact={currentContact}
                 onNext={handleNextContact}
                 onPrev={handlePreviousContact}
@@ -266,11 +273,14 @@ const ContactInfo = () => {
                 totalContacts={queue.length}
                 callerId={currentCallerId}
                 onPickNextCallerId={rotateCallerId}
-                onCallStarted={onCallStarted}  // now typed as (fromNumber: string) => void
+                onCallStarted={onCallStarted}
                 dailyCount={dailyCallsCount}
                 dailyLimit={TOTAL_DAILY_LIMIT}
+                onholdUrl={settingsInfo?.find((s: any) => s.type === 'General Recording')?.url}
+                dialerMode={dialerMode}
                 autoDial={isAutoDialing}
-                onAutoDialStarted={() => setIsAutoDialing(false)}
+                onStartSimultaneousDialer={startSimultaneousDialing}
+                onStopSimultaneousDialer={stopSimultaneousDialing}
             />
 
             <div className="w-full flex flex-col lg:flex-row gap-4 p-4 lg:h-[calc(100vh-80px)] overflow-hidden">

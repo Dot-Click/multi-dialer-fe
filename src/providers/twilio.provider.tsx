@@ -27,6 +27,7 @@ interface TwilioContextType {
   setAnsweringMachineUrl: (url: string | null) => void;
   dropVoicemail: () => Promise<void>;
   isDroppingingVoicemail: boolean;
+  incomingContactId: string | null;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -48,7 +49,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
   const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
   const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
-
+  const [incomingContactId, setIncomingContactId] = useState<string | null>(null);
 
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
@@ -76,6 +77,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsHold(false);
     setCallDisposition(null);
     setDuration(0);
+    setIncomingContactId(null);
     holdAudio.pause();
     holdAudio.currentTime = 0;
     ignoredCallsRef.current.clear();
@@ -134,9 +136,20 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           handleStopCalling();
         });
 
+        const contactIdParam = call.customParameters?.get('contactId');
+        if (contactIdParam) {
+           setIncomingContactId(contactIdParam);
+        }
+
         call.mute(isMuted);
-        call.accept();
-        setAppStatus('Bridge Connected');
+        try {
+          call.accept();
+          setAppStatus('Bridge Connected');
+          setIsCalling(true);
+        } catch (e: any) {
+          toast.error("Auto-answer failed: Please manually interact with the browser.");
+          console.error("Auto-answer failed", e);
+        }
       });
 
       await newDevice.register();
@@ -429,10 +442,13 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
       callDisposition,
-      duration, resetCallStatus, answeringMachineUrl,
+      duration,
+      resetCallStatus: () => setCallStatus('idle'),
+      answeringMachineUrl,
       setAnsweringMachineUrl,
       dropVoicemail,
       isDroppingingVoicemail,
+      incomingContactId
     }}>
       {children}
     </TwilioContext.Provider>

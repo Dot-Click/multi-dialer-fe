@@ -73,6 +73,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [onHoldRecording2, setOnHoldRecording2] = useState("");
   const [ivrRecording, setIvrRecording] = useState("");
   const [answeringMachineRecording, setAnsweringMachineRecording] = useState("");
+  const [busyRecording, setBusyRecording] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddRecordingOpen, setIsAddRecordingOpen] = useState(false);
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
@@ -94,7 +95,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
 
   const onHoldRecordings    = filterBySlot(recordings, "ON_HOLD");
   const answeringMachineRecs = filterBySlot(recordings, "ANSWERING_MACHINE");
-//   const ivrRecordings       = filterBySlot(recordings, "IVR");
+  const busyRecs            = filterBySlot(recordings, "IVR"); // Use IVR or fallback
 
   const fallbackRecordings  = (filtered: RecordingItem[]) =>
     filtered.length > 0 ? filtered : recordings;
@@ -110,6 +111,12 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const getAnsweringMachineUrl = () => {
     if (!answeringMachineRecording) return undefined;
     const rec = recordings.find((r) => r.id === answeringMachineRecording);
+    return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
+  };
+
+  const getBusyRecordingUrl = () => {
+    if (!busyRecording) return undefined;
+    const rec = recordings.find((r) => r.id === busyRecording);
     return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
   };
 
@@ -140,6 +147,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setOnHoldRecording2(setting.onHoldRecording2Id || "");
       setIvrRecording(setting.ivrRecordingId || "");
       setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
+      setBusyRecording((setting as any).busyRecordingId || "");
       setSelectedScript(setting.callScriptId || "");
       setDialerMode((setting as any).dialerMode || "manual");
     }
@@ -157,6 +165,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setOnHoldRecording2("");
       setIvrRecording("");
       setAnsweringMachineRecording("");
+      setBusyRecording("");
       setDialerMode("manual");
     }
   };
@@ -187,6 +196,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         onHoldRecording2Id: onHoldRecording2 || undefined,
         ivrRecordingId: ivrRecording || undefined,
         answeringMachineRecordingId: answeringMachineRecording || undefined,
+        busyRecordingId: busyRecording || undefined,
         callScriptId: selectedScript || undefined,
         dialerMode,
       };
@@ -208,6 +218,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           selectedScript: selectedScript || undefined,
           holdRecordingUrl: getSelectedRecordingUrl(),
           answeringMachineRecordingUrl: getAnsweringMachineUrl(),
+          busyRecordingUrl: getBusyRecordingUrl(),
           dialerMode,
         },
       });
@@ -300,7 +311,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
             {/* Number of Lines */}
             <FieldWrapper label="Max Calls per Caller ID (Rotation Threshold)">
               <SelectInput value={noOfLines} onChange={setNoOfLines}>
-                {[1, 2, 3, 4, 5].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                   <option key={n} value={String(n)} className="dark:bg-slate-900">
                     {n} {n === 1 ? "call" : "calls"} per ID
                   </option>
@@ -357,6 +368,23 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
               {answeringMachineRecs.length === 0 && recordings.length > 0 && (
                 <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
                   No ANSWERING_MACHINE recordings found — showing all recordings as fallback.
+                </p>
+              )}
+            </FieldWrapper>
+
+            {/* Busy / Scheduled Call back Recording */}
+            <FieldWrapper label="Busy Agent Message (Callback Scheduled)">
+              <SelectInput value={busyRecording} onChange={setBusyRecording}>
+                <option value="" className="dark:bg-slate-900">None</option>
+                {fallbackRecordings(busyRecs).map((r) => (
+                  <option key={r.id} value={r.id} className="dark:bg-slate-900">
+                    {r.name}
+                  </option>
+                ))}
+              </SelectInput>
+              {busyRecs.length === 0 && recordings.length > 0 && (
+                <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
+                  No IVR/Busy recordings found — showing all recordings as fallback.
                 </p>
               )}
             </FieldWrapper>
@@ -430,6 +458,9 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     callerIds: selectedCallerIds,
                     numberOfLines: parseInt(noOfLines),
                     selectedScript: selectedScript || undefined,
+                    holdRecordingUrl: getSelectedRecordingUrl(),
+                    answeringMachineRecordingUrl: getAnsweringMachineUrl(),
+                    busyRecordingUrl: getBusyRecordingUrl(),
                     dialerMode,
                   },
                 })

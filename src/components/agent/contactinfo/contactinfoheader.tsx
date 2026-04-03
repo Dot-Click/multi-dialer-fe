@@ -29,6 +29,9 @@ interface ContactInfoHeaderProps {
   onholdUrl?: string;
   autoDial?: boolean;
   onAutoDialStarted?: () => void;
+  dialerMode?: string;
+  onStartSimultaneousDialer?: () => void;
+  onStopSimultaneousDialer?: () => void;
 }
 
 const ContactInfoHeader = ({
@@ -42,6 +45,9 @@ const ContactInfoHeader = ({
   onCallStarted,
   autoDial,
   onAutoDialStarted,
+  dialerMode,
+  onStartSimultaneousDialer,
+  onStopSimultaneousDialer,
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
@@ -65,6 +71,9 @@ const ContactInfoHeader = ({
     }
 
     if (isCalling) {
+      if (dialerMode === "power" && onStopSimultaneousDialer) {
+        onStopSimultaneousDialer();
+      }
       endCall();
       return;
     }
@@ -80,6 +89,11 @@ const ContactInfoHeader = ({
         toast.error(`Compliance Alert: Calling is restricted outside ${tcpaFrom} - ${tcpaTo} (TCPA Hours).`);
         return;
       }
+    }
+
+    if (dialerMode === "power" && onStartSimultaneousDialer) {
+      onStartSimultaneousDialer();
+      return;
     }
 
     // Pick the callerId to use for this call
