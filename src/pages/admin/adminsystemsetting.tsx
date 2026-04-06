@@ -22,7 +22,7 @@ const AdminSystemSetting = () => {
         { id: 3, name: "Call Settings", component: <CallSetting /> },
         { id: 4, name: "Action Plan", component: <ActionPlan /> },
         { id: 5, name: "Lead Sheet", component: <LeadSheet /> },
-        { id: 6, name: "Misc Fields", component: <MiscField /> },
+        { id: 6, name: "Profile Fields", component: <MiscField /> },
         { id: 7, name: "Data Management", component: <DataManagement /> },
     ]
 

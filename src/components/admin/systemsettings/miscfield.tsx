@@ -106,7 +106,7 @@ const MiscField: FC = () => {
 
   return (
     <div className="bg-white dark:bg-slate-800 px-4 py-5 rounded-lg w-full max-w-7xl mx-auto relative border dark:border-slate-700">
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-8">Misc Fields</h2>
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-8">Profile Fields</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16 gap-y-6">
         <div className="flex flex-col gap-y-3">

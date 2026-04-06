@@ -12,7 +12,7 @@ const AdminDashboardLayout = () => {
   return (
     <div className="    min-h-screen w-full relative">
       {/* agent pages  */}
-      <div className="fixed top-0 z-[1000]">
+      <div className="fixed top-0 z-1000">
         <AdminSidebar
           session={session}
           isOpen={isOpen}
@@ -21,12 +21,12 @@ const AdminDashboardLayout = () => {
           setIsMobile={setIsMobile}
         />
       </div>
-      <div className="fixed z-[999] top-0 w-full">
+      <div className="fixed z-999 top-0 w-full">
         <AdminNavbar />
       </div>
 
       <div
-        className={`absolute top-16 pt-[1rem] min-h-full  bg-[#F7F7F7] dark:bg-slate-900 w-full   transition-all duration-300
+        className={`absolute top-16 pt-4 min-h-full  bg-[#F7F7F7] dark:bg-slate-900 w-full   transition-all duration-300
                      ${isMobile ? "pl-4" : isOpen ? "pl-72" : "pl-20"} `}
       >
         <Outlet />

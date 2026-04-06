@@ -112,6 +112,8 @@ export const fetchContacts = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          miscValues: c.miscValues || {},
+          leadsheetValues: c.leadsheetValues || {},
         }));
       }
       return rejectWithValue("Failed to fetch contacts");
@@ -137,6 +139,8 @@ export const fetchContactsByList = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          miscValues: c.miscValues || {},
+          leadsheetValues: c.leadsheetValues || {},
         }));
       }
       return rejectWithValue("Failed to fetch contacts for this list");
