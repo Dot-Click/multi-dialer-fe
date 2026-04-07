@@ -21,7 +21,13 @@ export const generateCSV = (
     return selectedFields
       .map((label) => {
         const key = fieldMapping[label];
-        const value = item[key] ?? "-";
+        let value;
+        if (key && key.startsWith("misc:")) {
+          const miscFieldId = key.replace("misc:", "");
+          value = item.miscValues?.[miscFieldId] ?? "-";
+        } else {
+          value = item[key] ?? "-";
+        }
 
         // Handle special cases like arrays (e.g., tags)
         const formattedValue = Array.isArray(value)

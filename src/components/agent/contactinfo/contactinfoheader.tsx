@@ -2,7 +2,7 @@
 // Key fix: onCallStarted now receives the actual fromNumber that was used,
 // so ContactInfo doesn't need to re-read stale state.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PhoneOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
@@ -51,6 +51,7 @@ const ContactInfoHeader = ({
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const hasTriggeredAutoDialRef = useRef(false);
   const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
@@ -128,11 +129,18 @@ const ContactInfoHeader = ({
 
   // ─── Power Dialer Auto-Dial Hook ───
   useEffect(() => {
-    if (autoDial && !isCalling) {
-      handleCallToggle();
-      if (onAutoDialStarted) onAutoDialStarted();
+    if (!autoDial) {
+      hasTriggeredAutoDialRef.current = false;
     }
-  }, [autoDial, isCalling]);
+  }, [autoDial]);
+
+  useEffect(() => {
+    if (!autoDial || isCalling || dialerMode === "power" || hasTriggeredAutoDialRef.current) return;
+
+    hasTriggeredAutoDialRef.current = true;
+    handleCallToggle();
+    if (onAutoDialStarted) onAutoDialStarted();
+  }, [autoDial, isCalling, dialerMode]);
 
   return (
     <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">

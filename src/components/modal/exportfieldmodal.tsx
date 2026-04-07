@@ -4,6 +4,7 @@ import { downloadCSV } from "@/utils/csvDownload";
 import toast from "react-hot-toast";
 import { IoClose, IoSearch } from "react-icons/io5";
 import { exportContactCSV } from "@/store/slices/contactSlice";
+import { useMiscFields } from "@/hooks/useSystemSettings";
 
 interface ExportFieldsModalProps {
   onClose: () => void;
@@ -19,7 +20,10 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({
   const dispatch = useAppDispatch();
 
   const { contacts } = useAppSelector((state) => state.contacts);
-  const fields = [
+  const { data: miscFieldsData } = useMiscFields();
+  const miscFields = miscFieldsData || [];
+
+  const baseFields = [
     "Name",
     "Email",
     "Phone",
@@ -30,6 +34,9 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({
     "Updated At",
     "Tags",
   ];
+
+  // Append Misc Fields to the list
+  const fields = [...baseFields, ...miscFields.map((f: any) => f.fieldName)];
 
   const filteredFields = fields.filter((f) =>
     f.toLowerCase().includes(search.toLowerCase()),
@@ -46,6 +53,11 @@ const ExportFieldsModal: React.FC<ExportFieldsModalProps> = ({
     "Updated At": "updatedAt",
     Tags: "tags",
   };
+
+  // Add Misc Fields to mapping
+  miscFields.forEach((f: any) => {
+    fieldMapping[f.fieldName] = `misc:${f.id}`;
+  });
 
   const toggleField = (field: string) => {
     setSelectedFields((prev) =>

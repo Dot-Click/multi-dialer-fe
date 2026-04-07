@@ -41,13 +41,16 @@ const CallSection = () => {
     isDroppingingVoicemail, 
     answeringMachineUrl,
     duration,
-    endCall
+    endCall,
+    isCalling
   } = useTwilio();
 
-  // Reset status when contact changes
+  // Reset status when contact changes - but only if not currently in a call
   useEffect(() => {
-    resetCallStatus();
-  }, [currentContact?.id, resetCallStatus]);
+    if (!isCalling) {
+      resetCallStatus();
+    }
+  }, [currentContact?.id, resetCallStatus, isCalling]);
 
   // Format duration (MM:SS)
   const formatDuration = (s: number) => {
@@ -89,38 +92,47 @@ const CallSection = () => {
             return (
               <div
                 key={call.id || index}
-                className="min-w-64 md:min-w-[280px] min-h-[220px] bg-[#111111] rounded-[24px] flex flex-col items-center justify-between p-6 shadow-2xl border border-white/5"
+                className="min-w-72 md:min-w-[320px] min-h-[280px] bg-[#000000] rounded-[28px] flex flex-col items-center justify-between p-7 shadow-2xl border border-white/5"
               >
                 <div className="text-center w-full mt-1">
-                  <h3 className="text-[20px] font-bold text-white leading-tight uppercase tracking-tight">
+                  <h3 className="text-[22px] font-bold text-white leading-tight">
                     {call.fullName || call.name}
                   </h3>
-                  <p className="text-[14px] font-medium text-gray-400 mt-0.5">
-                    ({call.phones?.[0]?.number?.slice(0, 3) || "252"}) {call.phones?.[0]?.number?.slice(3) || "555-0126"}
-                  </p>
+                  <div className="flex items-center justify-center gap-2 mt-1.5">
+                    <Briefcase size={18} className="text-gray-400" />
+                    <p className="text-[17px] font-medium text-gray-300">
+                      {call.phones?.[0]?.number || call.phone || "(252) 555-0126"}
+                    </p>
+                  </div>
+                  {/* Status Label */}
+                  <div className="mt-2.5">
+                    <span className={`text-[12px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-green-400/10 text-green-400'}`}>
+                      {status}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="bg-[#2D2D2D] px-6 py-1.5 rounded-full">
-                  <span className="text-[15px] font-bold text-gray-300 tracking-wider">
-                    {formatDuration(duration)}
+                <div className="bg-[#2D2D2D] px-10 py-2.5 rounded-full mx-auto w-fit min-w-[140px] flex justify-center">
+                  <span className={`text-[18px] font-bold text-white tracking-wider ${status === 'Ringing' ? 'animate-pulse text-yellow-400' : ''}`}>
+                    {status === 'Ringing' ? 'Ringing...' : formatDuration(duration)}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 w-full justify-center mb-1">
+                <div className="flex items-center gap-3 w-full justify-center mb-1">
                   <button
                     onClick={toggleMute}
                     title={isMuted ? "Unmute" : "Mute"}
-                    className={`w-12 h-12 flex justify-center items-center rounded-[14px] transition-all ${isMuted ? 'bg-[#CF3335] text-white shadow-lg shadow-red-900/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    className={`w-14 h-14 flex justify-center items-center rounded-2xl transition-all ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-[#E5E7EB] text-[#1F2937] hover:bg-white'}`}
                   >
-                    {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
+                    {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
                   </button>
 
                   <button
                     onClick={() => toggleHold(holdRecordingUrl)}
                     title={isHold ? "Resume Call" : "Hold"}
-                    className={`w-12 h-12 flex justify-center items-center rounded-[14px] transition-all ${isHold ? 'bg-[#EAB308] text-white shadow-lg shadow-yellow-900/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    className={`w-14 h-14 flex justify-center items-center rounded-2xl transition-all ${isHold ? 'bg-[#EAB308] text-white' : 'bg-[#E5E7EB] text-[#1F2937] hover:bg-white'}`}
                   >
-                    {isHold ? <Play size={20} /> : <Pause size={20} />}
+                    {isHold ? <Play size={22} /> : <Pause size={22} />}
                   </button>
 
                   {/* Voicemail Drop Button (The Arrow) */}
@@ -128,11 +140,11 @@ const CallSection = () => {
                     onClick={dropVoicemail}
                     disabled={isDroppingingVoicemail || !answeringMachineUrl}
                     title="Drop Voicemail & Next"
-                    className="w-12 h-12 flex justify-center items-center rounded-[14px] bg-white/10 text-white hover:bg-white/20 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                    className="w-14 h-14 flex justify-center items-center rounded-2xl bg-[#E5E7EB] text-[#1F2937] hover:bg-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                   >
                     {isDroppingingVoicemail 
-                      ? <Loader2 size={20} className="animate-spin text-gray-400" />
-                      : <ArrowRightLeft size={20} />
+                      ? <Loader2 size={22} className="animate-spin text-gray-400" />
+                      : <ArrowRightLeft size={22} />
                     }
                   </button>
 
@@ -140,9 +152,9 @@ const CallSection = () => {
                   <button
                     onClick={endCall}
                     title="Hang Up"
-                    className="w-12 h-12 flex justify-center items-center rounded-[14px] bg-[#CF3335] hover:bg-[#b8292b] text-white shadow-lg shadow-red-900/40 active:scale-95 transition-all"
+                    className="w-14 h-14 flex justify-center items-center rounded-2xl bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-lg active:scale-95 transition-all"
                   >
-                    <PhoneOff size={20} />
+                    <PhoneOff size={22} />
                   </button>
                 </div>
               </div>
@@ -153,14 +165,14 @@ const CallSection = () => {
           return (
             <div
               key={call.id || index}
-              className={`min-w-60 md:min-w-[260px] min-h-[190px] 
-                          bg-white dark:bg-slate-800 rounded-2xl border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-[#F1F3F9] dark:border-slate-700 shadow-sm'}
-                          flex flex-col items-center justify-between p-6
+              className={`min-w-72 md:min-w-[320px] min-h-[280px] 
+                          bg-white dark:bg-slate-800 rounded-[28px] border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-gray-100 dark:border-slate-700 shadow-sm'}
+                          flex flex-col items-center justify-between p-7
                           transition-all duration-200`}
             >
               {/* Top Section: Name and Info */}
-              <div className="text-center space-y-2 w-full">
-                <h3 className="text-[19px] font-semibold text-[#374151] dark:text-white truncate">
+              <div className="text-center space-y-2 w-full mt-2">
+                <h3 className="text-[22px] font-bold text-[#374151] dark:text-white truncate">
                   {call.fullName || call.name}
                 </h3>
 
@@ -172,10 +184,9 @@ const CallSection = () => {
                 </div>
               </div>
 
-              {/* Bottom Section: Controls & Status */}
-              <div className="w-full space-y-3 mt-4">
-                {/* Status Badge */}
-                <div className={`w-full py-2 rounded-full text-center text-[14px] font-semibold tracking-wide ${getStatusBadgeStyle(status)}`}>
+              {/* Bottom Section: Status */}
+              <div className="w-full mt-auto mb-2">
+                <div className={`w-full py-3 rounded-full text-center text-[16px] font-bold tracking-wide ${getStatusBadgeStyle(status)}`}>
                   {status}
                 </div>
               </div>
