@@ -436,6 +436,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(statusInterval);
   }, [isCalling, callStatus, activeCallSid]);
 
+  const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
+  
   return (
     <TwilioContext.Provider value={{
       device, activeCall, isCalling, appStatus, activeCallSid,
@@ -443,7 +445,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
       callDisposition,
       duration,
-      resetCallStatus: () => setCallStatus('idle'),
+      resetCallStatus,
       answeringMachineUrl,
       setAnsweringMachineUrl,
       dropVoicemail,
