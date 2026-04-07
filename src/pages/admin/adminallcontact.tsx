@@ -239,6 +239,7 @@ const AdminAllContact = () => {
                 <AllContactComponent
                     onSelectionChange={setSelectedContacts}
                     listId={activeItem.type === "list" ? activeItem.id : undefined}
+                    folderId={activeItem.type === "folder" ? activeItem.id : undefined}
                     searchTerm={contactSearchTerm}
                 />
             </div>

@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
-import { IoIosArrowBack } from "react-icons/io";
-import { VscFolderOpened } from "react-icons/vsc";
+import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
+import { VscFolderOpened, VscFolder } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
 import ImportContactModal from "../modals/ImportContactModal";
-import {
-  useContact,
-  type ContactList,
-  type ContactFolder,
-} from "@/hooks/useContact";
-import { useAppDispatch } from "@/store/hooks";
-import { fetchContacts } from "@/store/slices/contactSlice";
-import { useNavigate, useLocation } from "react-router-dom"
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchContacts, fetchContactFolders, fetchContactLists } from "@/store/slices/contactSlice";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -26,44 +21,24 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  
   const location = useLocation();
-
   const navigate = useNavigate();
-
-
-  const { getContactLists, getContactFolders, loading } =
-    useContact();
   const dispatch = useAppDispatch();
-
-  const [folders, setFolders] = useState<ContactFolder[]>([]);
-  const [lists, setLists] = useState<ContactList[]>([]);
-
-  const fetchData = async () => {
-    const [allLists, allFolders] = await Promise.all([
-      getContactLists(),
-      getContactFolders(),
-    ]);
-
-    setFolders(allFolders);
-    setLists(allLists);
-  };
-
-  // ✅ Back button logic
-  // let backTo = "/";
-  // if (location.pathname === "/admin/data-dialer") {
-  //   backTo = "/admin";
-  // } else if (location.pathname === "/data-dialer") {
-  //   backTo = "/";
-  // }
+  
+  const { folders, lists, isLoading } = useAppSelector((state) => state.contacts);
 
   useEffect(() => {
     onSelectItem({ type: "allContacts", name: "All Contacts" });
-    fetchData();
-  }, []);
+    dispatch(fetchContactFolders());
+    dispatch(fetchContactLists());
+  }, [dispatch]);
 
   const handleImportSuccess = () => {
-    fetchData(); // Refresh sidebar lists/groups
-    dispatch(fetchContacts()); // Refresh the main contacts table (Redux)
+    dispatch(fetchContactFolders());
+    dispatch(fetchContactLists());
+    dispatch(fetchContacts());
   };
 
   const handleClick = (type: string, name: string, id?: string) => {
@@ -71,110 +46,163 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     setActiveItem(itemKey);
     onSelectItem({ type, id, name });
 
-    // Navigate back to data-dialer if we're on find-duplicates or other admin contact subpages
     if (location.pathname !== "/admin/data-dialer") {
       navigate("/admin/data-dialer");
     }
   };
 
-  // ✅ Handle Import Modal
-  const openImportModal = () => {
-    setIsImportModalOpen(true);
+  const toggleFolder = (e: React.MouseEvent, folderId: string) => {
+    e.stopPropagation();
+    setExpandedFolders(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
   };
 
+  const renderTree = (parentId: string | null = null, depth = 0, hideLists = false) => {
+    const currentFolders = folders.filter(f => f.parentId === parentId);
+    const currentLists = hideLists ? [] : lists.filter(l => l.folderId === parentId);
+
+    return (
+      <>
+        {currentFolders.map(folder => (
+          <div key={folder.id} className="flex flex-col">
+            <div
+              onClick={() => handleClick("folder", folder.name, folder.id)}
+              style={{ paddingLeft: `${depth * 12 + 8}px` }}
+              className={`flex gap-2 items-center py-2 px-3 rounded-xl cursor-pointer transition group mb-1
+                ${activeItem === `folder-${folder.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+            >
+              <button 
+                onClick={(e) => toggleFolder(e, folder.id)}
+                className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition shrink-0"
+              >
+                {expandedFolders[folder.id] ? <IoIosArrowDown className="text-gray-400" /> : <IoIosArrowForward className="text-gray-400" />}
+              </button>
+              <div className="shrink-0">
+                {expandedFolders[folder.id] ? (
+                  <VscFolderOpened className="text-xl text-gray-600 dark:text-gray-400" />
+                ) : (
+                  <VscFolder className="text-xl text-gray-600 dark:text-gray-400" />
+                )}
+              </div>
+              <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate flex-1">
+                {folder.name}
+              </span>
+            </div>
+            
+            {expandedFolders[folder.id] && (
+              <div className="flex flex-col">
+                {renderTree(folder.id, depth + 1)}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {!hideLists && currentLists.map(list => (
+          <div
+            key={list.id}
+            onClick={() => handleClick("list", list.name, list.id)}
+            style={{ paddingLeft: `${depth * 12 + 28}px` }}
+            className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2 px-3 rounded-xl cursor-pointer transition mb-1
+              ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+          >
+            <span className="text-[#2B3034] dark:text-white font-semibold text-[13px] truncate">
+              {list.name}
+            </span>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2 shadow-sm">
+              <span className="text-[10px] font-bold text-gray-500 uppercase">
+                {list.name.slice(0, 2)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  };
+
+  const rootLists = lists.filter(l => l.folderId === null);
+
   return (
-    <aside className="bg-white dark:bg-slate-800 flex flex-col px-5 py-4 w-64 h-screen shadow-sm">
+    <aside className="bg-white dark:bg-slate-800 flex flex-col px-4 py-4 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] dark:text-white transition"
+        className="flex gap-2 items-center cursor-pointer hover:text-black dark:text-white transition mb-6"
       >
-        <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] dark:text-white font-medium">
+        <IoIosArrowBack className="text-xl text-gray-400" />
+        <span className="text-[14px] text-gray-600 dark:text-white font-semibold">
           Back
         </span>
       </button>
 
-      <div className="border-b border-gray-100 h-1 my-3"></div>
-
       {/* All Contacts */}
       <div
         onClick={() => handleClick("allContacts", "All Contacts")}
-        className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition 
-          ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+        className={`flex gap-3 items-center px-4 py-3 rounded-xl cursor-pointer transition mb-2
+          ${activeItem === "allContacts" ? "bg-slate-100 dark:bg-slate-700" : "hover:bg-slate-50 dark:hover:bg-slate-700/40"}`}
       >
-        <img src={usericon} alt="usericon" className="w-6 h-6" />
-        <h1 className="text-[#495057] dark:text-white font-medium text-[14px]">All Contacts</h1>
+        <img src={usericon} alt="usericon" className="w-5 h-5 opacity-80" />
+        <h1 className="text-[#2B3034] dark:text-white font-bold text-[14px]">All Contacts</h1>
       </div>
 
-      <div className="border-b border-gray-100 h-1 my-3"></div>
-
-      {/* Calling Lists */}
-      <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] dark:text-white font-medium uppercase text-[14px]">
-          Calling Lists
-        </h1>
-        <div className="flex gap-2 h-[40vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {lists.map((list) => (
-            <div
-              key={list.id}
-              onClick={() => handleClick("list", list.name, list.id)}
-              className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-            >
-              <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
-                {list.name}
-              </h1>
-              <h1 className="border border-gray-200 dark:border-slate-600 rounded-full text-[12px] px-2 py-1.5 uppercase whitespace-nowrap">
-                {list.name.slice(0, 2)}
-              </h1>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto custom-scrollbar flex flex-col pt-4">
+          
+          {/* CALLING LISTS Section */}
+          <div className="mb-6">
+            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+              Calling Lists
+            </h2>
+            <div className="flex flex-col gap-0.5">
+              {rootLists.map(list => (
+                <div
+                  key={list.id}
+                  onClick={() => handleClick("list", list.name, list.id)}
+                  className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2.5 px-4 rounded-xl cursor-pointer transition mb-1
+                    ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                >
+                  <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate">
+                    {list.name}
+                  </span>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-100 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      {list.name.slice(0, 2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
 
-          {!loading && lists.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">
-              No lists found
-            </span>
-          )}
+          <hr className="mb-6 border-gray-50 dark:border-slate-700 mx-2" />
+
+          {/* FOLDERS Section */}
+          <div className="flex-1">
+            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+              Folders
+            </h2>
+            <div className="flex flex-col gap-0.5">
+              {renderTree(null, 0, true)}
+              
+              {!isLoading && folders.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                   <VscFolder className="text-3xl mb-2" />
+                   <span className="text-[11px] font-medium italic">Create a folder to get started</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="border-b border-gray-100 h-1 my-3"></div>
-
-      {/* Folders */}
-      <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] dark:text-white uppercase font-medium text-[14px]">
-          Folders
-        </h1>
-        <div className="flex gap-2 h-[30vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {folders.map((folder) => (
-            <div
-              key={folder.id}
-              onClick={() => handleClick("folder", folder.name, folder.id)}
-              className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${activeItem === `folder-${folder.id}` ? "bg-[#FFCA06]" : "bg-gray-50 dark:bg-gray-700 hover:bg-[#FFCA06]"}`}
-            >
-              <VscFolderOpened className="text-lg" />
-              <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">
-                {folder.name}
-              </h1>
-            </div>
-          ))}
-          {!loading && folders.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">
-              No folders found
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-auto pt-2">
+      <div className="mt-auto pt-4">
         <button
-          onClick={openImportModal}
-          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] dark:bg-gray-700 hover:bg-[#EBE1F0] text-[#0E1011] dark:text-white font-medium rounded-md transition"
+          onClick={() => setIsImportModalOpen(true)}
+          className="w-full text-sm flex items-center justify-center gap-2 py-3 bg-[#F0F2F4] dark:bg-slate-700/50 hover:bg-[#E2E8F0] dark:hover:bg-slate-600 transition-all text-[#2B3034] dark:text-white font-bold rounded-xl"
         >
-          <LuArrowUpToLine className="text-base" />
-          Import File
+          <LuArrowUpToLine className="text-xl" />
+          <span>Import File</span>
         </button>
 
         <ImportContactModal
