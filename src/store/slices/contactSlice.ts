@@ -11,6 +11,7 @@ export interface Contact {
   tags: string;
   miscValues?: any;
   leadsheetValues?: any;
+  notes: string[];
 }
 
 interface ContactState {
@@ -111,9 +112,10 @@ export const fetchContacts = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
         }));
       }
       return rejectWithValue("Failed to fetch contacts");
@@ -138,9 +140,10 @@ export const fetchContactsByList = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
         }));
       }
       return rejectWithValue("Failed to fetch contacts for this list");
@@ -559,6 +562,23 @@ export const getAllBackupContacts = createAsyncThunk(
   },
 );
 
+export const addContactNote = createAsyncThunk(
+  "contacts/addContactNote",
+  async ({ id, note }: { id: string; note: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/contact/${id}/note`, { note });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to add note");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error adding note",
+      );
+    }
+  },
+);
+
 // ---------------------------------------------------------------------------
 // SLICE
 // ---------------------------------------------------------------------------
@@ -637,6 +657,7 @@ export const contactSlice = createSlice({
             action.payload.tags?.length > 0
               ? action.payload.tags.join(", ")
               : "-",
+          notes: action.payload.notes || [],
         };
         state.contacts.unshift(newContact);
       })
@@ -668,6 +689,7 @@ export const contactSlice = createSlice({
               action.payload.tags?.length > 0
                 ? action.payload.tags.join(", ")
                 : "-",
+            notes: action.payload.notes || [],
           };
         }
       })
@@ -792,7 +814,6 @@ export const contactSlice = createSlice({
         }
       })
 
-      // ── getAllBackupContacts ───────────────────────────────────────────────
       .addCase(getAllBackupContacts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -804,6 +825,17 @@ export const contactSlice = createSlice({
       .addCase(getAllBackupContacts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+
+      // ── addContactNote ───────────────────────────────────────────────────
+      .addCase(addContactNote.fulfilled, (state, action) => {
+        if (state.currentContact && state.currentContact.id === action.payload.id) {
+          state.currentContact = action.payload;
+        }
+        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
+        if (index !== -1) {
+          state.contacts[index].notes = action.payload.notes;
+        }
       })
       .addCase(bulkAssignContactsToList.fulfilled, (state, action) => {
         const { contactIds, listId } = action.payload;
@@ -827,3 +859,4 @@ export const contactSlice = createSlice({
 export const { setQueue, setCurrentContact } = contactSlice.actions;
 
 export default contactSlice.reducer;
+
