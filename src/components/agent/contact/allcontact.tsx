@@ -8,11 +8,12 @@ import { checkBoxProps } from "@/components/common/tablecomponent";
 import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchContacts, fetchContactsByList, type Contact } from "@/store/slices/contactSlice";
+import { fetchContacts, fetchContactsByList, fetchContactsByFolder, type Contact } from "@/store/slices/contactSlice";
 
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
   listId?: string;
+  folderId?: string;
   visibleColumns?: string[];
   searchTerm?: string;
 }
@@ -73,7 +74,7 @@ const ContactTableSkeleton = () => {
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const AllContact = ({ onSelectionChange, listId, visibleColumns, searchTerm }: AllContactProps) => {
+const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searchTerm }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
@@ -82,12 +83,14 @@ const AllContact = ({ onSelectionChange, listId, visibleColumns, searchTerm }: A
   const linkPath = isAdmin ? "/admin/contact-detail" : "contact-detail";
 
   useEffect(() => {
-    if (listId) {
+    if (folderId) {
+      dispatch(fetchContactsByFolder(folderId));
+    } else if (listId) {
       dispatch(fetchContactsByList(listId));
     } else {
       dispatch(fetchContacts());
     }
-  }, [dispatch, listId]);
+  }, [dispatch, listId, folderId]);
 
   const filteredContacts = useMemo(() => {
     if (!searchTerm) return contacts;

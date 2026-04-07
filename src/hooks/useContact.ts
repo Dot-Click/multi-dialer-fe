@@ -29,6 +29,7 @@ export interface ContactList {
   id: string;
   name: string;
   contactIds: string[];
+  folderId?: string;
   createdAt: string;
 }
 
@@ -36,6 +37,7 @@ export interface ContactFolder {
   id: string;
   name: string;
   listIds: string[];
+  parentId?: string;
   createdAt: string;
 }
 

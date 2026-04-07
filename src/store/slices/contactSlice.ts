@@ -11,6 +11,8 @@ export interface Contact {
   tags: string;
   miscValues?: any;
   leadsheetValues?: any;
+  notes: string[];
+  folderId?: string | null;
 }
 
 interface ContactState {
@@ -25,6 +27,7 @@ interface ContactState {
   groups: ContactGroup[];
   isLoading: boolean;
   error: string | null;
+  duplicateContacts: Contact[];
 }
 
 export interface ContactList {
@@ -32,6 +35,7 @@ export interface ContactList {
   name: string;
   contactIds: string[];
   agentIds: string[];
+  folderId?: string | null;
   createdAt: string;
 }
 
@@ -39,6 +43,7 @@ export interface ContactFolder {
   id: string;
   name: string;
   listIds: string[];
+  parentId?: string | null;
   createdAt: string;
 }
 
@@ -61,6 +66,7 @@ const initialState: ContactState = {
   groups: [],
   isLoading: false,
   error: null,
+  duplicateContacts: [],
 };
 
 export interface CreateContactEmail {
@@ -111,9 +117,10 @@ export const fetchContacts = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
         }));
       }
       return rejectWithValue("Failed to fetch contacts");
@@ -138,9 +145,11 @@ export const fetchContactsByList = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags.length > 0 ? c.tags.join(", ") : "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
+          folderId: c.folderId || null,
         }));
       }
       return rejectWithValue("Failed to fetch contacts for this list");
@@ -148,6 +157,36 @@ export const fetchContactsByList = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           "Error fetching contacts for this list",
+      );
+    }
+  },
+);
+
+export const fetchContactsByFolder = createAsyncThunk(
+  "contacts/fetchContactsByFolder",
+  async (folderId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/contact/contacts-folder/${folderId}`);
+      if (response.data.success) {
+        return response.data.data.map((c: any) => ({
+          id: c.id,
+          name: c.fullName || "-",
+          lastDialedDate: "-",
+          phone: c.phones?.[0]?.number || "-",
+          email: c.emails?.[0]?.email || "-",
+          list: c.source || "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          miscValues: c.miscValues || {},
+          leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
+          folderId: c.folderId || null,
+        }));
+      }
+      return rejectWithValue("Failed to fetch contacts for this folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Error fetching contacts for this folder",
       );
     }
   },
@@ -345,6 +384,63 @@ export const fetchContactFolders = createAsyncThunk(
   },
 );
 
+export const createContactFolder = createAsyncThunk(
+  "contacts/createContactFolder",
+  async (
+    payload: { name: string; listIds?: string[]; parentId?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.post("/contact/folder", payload);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to create folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error creating folder",
+      );
+    }
+  },
+);
+
+export const updateContactFolder = createAsyncThunk(
+  "contacts/updateContactFolder",
+  async (
+    { id, payload }: { id: string; payload: { name?: string; listIds?: string[]; parentId?: string | null } },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.patch(`/contact/folder/${id}`, payload);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to update folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error updating folder",
+      );
+    }
+  },
+);
+
+export const deleteContactFolder = createAsyncThunk(
+  "contacts/deleteContactFolder",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/contact/folder/${id}`);
+      if (response.data.success) {
+        return id;
+      }
+      return rejectWithValue("Failed to delete folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error deleting folder",
+      );
+    }
+  },
+);
+
 export const fetchContactLists = createAsyncThunk(
   "contacts/fetchContactLists",
   async (_, { rejectWithValue }) => {
@@ -357,6 +453,63 @@ export const fetchContactLists = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Error fetching contact lists",
+      );
+    }
+  },
+);
+
+export const createContactList = createAsyncThunk(
+  "contacts/createContactList",
+  async (
+    payload: { name: string; contactIds?: string[]; folderId?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.post("/contact/list", payload);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to create list");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error creating list",
+      );
+    }
+  },
+);
+
+export const updateContactList = createAsyncThunk(
+  "contacts/updateContactList",
+  async (
+    { id, payload }: { id: string; payload: { name?: string; contactIds?: string[]; folderId?: string | null } },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.patch(`/contact/list/${id}`, payload);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to update list");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error updating list",
+      );
+    }
+  },
+);
+
+export const deleteContactList = createAsyncThunk(
+  "contacts/deleteContactList",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/contact/list/${id}`);
+      if (response.data.success) {
+        return id;
+      }
+      return rejectWithValue("Failed to delete list");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error deleting list",
       );
     }
   },
@@ -467,12 +620,35 @@ export const bulkAssignContactsToList = createAsyncThunk(
         listId,
       });
       if (response.data.success) {
-        return { contactIds, listId };
+        return { contactIds, listId, listName: response.data.listName };
       }
       return rejectWithValue("Failed to assign contacts to list");
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Error assigning contacts to list",
+      );
+    }
+  },
+);
+
+export const bulkAssignContactsToFolder = createAsyncThunk(
+  "contacts/bulkAssignContactsToFolder",
+  async (
+    { contactIds, folderId }: { contactIds: string[]; folderId: string | null },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.patch(`/contact/bulk-assign-folder`, {
+        contactIds,
+        folderId,
+      });
+      if (response.data.success) {
+        return { contactIds, folderId };
+      }
+      return rejectWithValue("Failed to assign contacts to folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error assigning contacts to folder",
       );
     }
   },
@@ -492,6 +668,46 @@ export const bulkMoveToDnc = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Error moving contacts to DNC",
+      );
+    }
+  },
+);
+
+export const moveFolder = createAsyncThunk(
+  "contacts/moveFolder",
+  async (
+    { id, parentId }: { id: string; parentId: string | null },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.patch(`/contact/folder/${id}`, { parentId });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to move folder");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error moving folder",
+      );
+    }
+  },
+);
+
+export const moveList = createAsyncThunk(
+  "contacts/moveList",
+  async (
+    { id, folderId }: { id: string; folderId: string | null },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await api.patch(`/contact/list/${id}`, { folderId });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to move list");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error moving list",
       );
     }
   },
@@ -559,6 +775,51 @@ export const getAllBackupContacts = createAsyncThunk(
   },
 );
 
+export const addContactNote = createAsyncThunk(
+  "contacts/addContactNote",
+  async ({ id, note }: { id: string; note: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/contact/${id}/note`, { note });
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue("Failed to add note");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error adding note",
+      );
+    }
+  },
+);
+
+export const fetchDuplicateContacts = createAsyncThunk(
+  "contacts/fetchDuplicateContacts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact/duplicates");
+      if (response.data.success) {
+        return response.data.data.map((c: any) => ({
+          id: c.id,
+          name: c.fullName || "-",
+          lastDialedDate: "-",
+          phone: c.phones?.[0]?.number || "-",
+          email: c.emails?.[0]?.email || "-",
+          list: c.source || "-",
+          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          miscValues: c.miscValues || {},
+          leadsheetValues: c.leadsheetValues || {},
+          notes: c.notes || [],
+        }));
+      }
+      return rejectWithValue("Failed to fetch duplicate contacts");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching duplicate contacts",
+      );
+    }
+  },
+);
+
 // ---------------------------------------------------------------------------
 // SLICE
 // ---------------------------------------------------------------------------
@@ -604,6 +865,20 @@ export const contactSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      // ── fetchContactsByFolder ────────────────────────────────────────────────
+      .addCase(fetchContactsByFolder.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchContactsByFolder.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.contacts = action.payload;
+      })
+      .addCase(fetchContactsByFolder.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
       // ── fetchContactById ───────────────────────────────────────────────────
       .addCase(fetchContactById.pending, (state) => {
         state.isLoading = true;
@@ -637,6 +912,7 @@ export const contactSlice = createSlice({
             action.payload.tags?.length > 0
               ? action.payload.tags.join(", ")
               : "-",
+          notes: action.payload.notes || [],
         };
         state.contacts.unshift(newContact);
       })
@@ -668,6 +944,7 @@ export const contactSlice = createSlice({
               action.payload.tags?.length > 0
                 ? action.payload.tags.join(", ")
                 : "-",
+            notes: action.payload.notes || [],
           };
         }
       })
@@ -739,10 +1016,46 @@ export const contactSlice = createSlice({
       .addCase(fetchContactFolders.fulfilled, (state, action) => {
         state.folders = action.payload;
       })
+      .addCase(createContactFolder.fulfilled, (state, action) => {
+        state.folders.unshift(action.payload);
+      })
+      .addCase(updateContactFolder.fulfilled, (state, action) => {
+        const index = state.folders.findIndex((f) => f.id === action.payload.id);
+        if (index !== -1) {
+          state.folders[index] = action.payload;
+        }
+      })
+      .addCase(deleteContactFolder.fulfilled, (state, action) => {
+        state.folders = state.folders.filter((f) => f.id !== action.payload);
+      })
+      .addCase(moveFolder.fulfilled, (state, action) => {
+        const index = state.folders.findIndex((f) => f.id === action.payload.id);
+        if (index !== -1) {
+          state.folders[index] = action.payload;
+        }
+      })
 
       // ── fetchContactLists ──────────────────────────────────────────────────
       .addCase(fetchContactLists.fulfilled, (state, action) => {
         state.lists = action.payload;
+      })
+      .addCase(createContactList.fulfilled, (state, action) => {
+        state.lists.unshift(action.payload);
+      })
+      .addCase(updateContactList.fulfilled, (state, action) => {
+        const index = state.lists.findIndex((l) => l.id === action.payload.id);
+        if (index !== -1) {
+          state.lists[index] = action.payload;
+        }
+      })
+      .addCase(deleteContactList.fulfilled, (state, action) => {
+        state.lists = state.lists.filter((l) => l.id !== action.payload);
+      })
+      .addCase(moveList.fulfilled, (state, action) => {
+        const index = state.lists.findIndex((l) => l.id === action.payload.id);
+        if (index !== -1) {
+          state.lists[index] = action.payload;
+        }
       })
 
       // ── fetchContactGroups ─────────────────────────────────────────────────
@@ -792,7 +1105,6 @@ export const contactSlice = createSlice({
         }
       })
 
-      // ── getAllBackupContacts ───────────────────────────────────────────────
       .addCase(getAllBackupContacts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -805,21 +1117,51 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+
+      // ── addContactNote ───────────────────────────────────────────────────
+      .addCase(addContactNote.fulfilled, (state, action) => {
+        if (state.currentContact && state.currentContact.id === action.payload.id) {
+          state.currentContact = action.payload;
+        }
+        const index = state.contacts.findIndex((c) => c.id === action.payload.id);
+        if (index !== -1) {
+          state.contacts[index].notes = action.payload.notes;
+        }
+      })
       .addCase(bulkAssignContactsToList.fulfilled, (state, action) => {
-        const { contactIds, listId } = action.payload;
-        const list = state.lists.find((l) => l.id === listId);
-        const listName = list?.name || "-";
+        const { contactIds, listName } = action.payload;
         
         state.contacts = state.contacts.map((c) => {
           if (contactIds.includes(c.id)) {
-            return { ...c, list: listName };
+            return { ...c, list: listName || "-" };
           }
           return c;
         });
       })
+      .addCase(bulkAssignContactsToFolder.fulfilled, (state, action) => {
+        const { contactIds } = action.payload;
+        // When moved to a folder, the contact might be removed from its current list view
+        // or we just update the local state if needed.
+        // For now, let's just refresh currentContact if it was one of them.
+        if (state.currentContact && contactIds.includes(state.currentContact.id)) {
+          state.currentContact = { ...state.currentContact, folderId: action.payload.folderId };
+        }
+      })
       .addCase(bulkMoveToDnc.fulfilled, (state, action) => {
         const contactIds = action.payload;
         state.contacts = state.contacts.filter((c) => !contactIds.includes(c.id));
+      })
+      .addCase(fetchDuplicateContacts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDuplicateContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.duplicateContacts = action.payload;
+      })
+      .addCase(fetchDuplicateContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });
@@ -827,3 +1169,4 @@ export const contactSlice = createSlice({
 export const { setQueue, setCurrentContact } = contactSlice.actions;
 
 export default contactSlice.reducer;
+
