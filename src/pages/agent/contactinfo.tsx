@@ -50,6 +50,7 @@ const ContactInfo = () => {
 
     // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
+    const [contactStatuses, setContactStatuses] = useState<Record<string, string>>({});
     const [hasStarted, setHasStarted] = useState(false);
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -144,6 +145,54 @@ const ContactInfo = () => {
             }
         }
     }, [activeBridgeContactId, queue]);
+
+    // REAL-TIME CALL STATUS POLLING
+    useEffect(() => {
+        let statusPoll: any;
+        if (isAutoDialing) {
+            statusPoll = setInterval(async () => {
+                try {
+                    const { data } = await api.get('/calling/status');
+                    if (data.success && data.data.callStatuses) {
+                        setContactStatuses(prev => {
+                            const next = { ...prev };
+                            const liveStatuses: { contactId: string; status: string }[] = data.data.callStatuses;
+                            
+                            // Map of IDs in current poll
+                            const liveIds = new Set(liveStatuses.map(s => s.contactId));
+
+                            // 1. Update from live server data
+                            liveStatuses.forEach(s => {
+                                if (s.status === 'in-progress' || s.status === 'answered') {
+                                    next[s.contactId] = 'answered';
+                                } else if (s.status === 'ringing' || s.status === 'initiated') {
+                                    next[s.contactId] = 'ringing';
+                                }
+                            });
+
+                            // 2. Detect completions/failures for contacts that left the server list
+                            Object.keys(prev).forEach(id => {
+                                if (!liveIds.has(id)) {
+                                    // If it was already answered, keep it answered (Green)
+                                    // If it was ringing and now it's gone without being answered, it's failed (Red)
+                                    if (prev[id] === 'ringing') {
+                                        next[id] = 'failed';
+                                    }
+                                }
+                            });
+
+                            return next;
+                        });
+                    }
+                } catch (err) {
+                    console.warn('[ContactInfo] Status poll failed');
+                }
+            }, 2000);
+        } else {
+            setContactStatuses({}); // Reset on stop
+        }
+        return () => clearInterval(statusPoll);
+    }, [isAutoDialing]);
 
     const startSimultaneousDialing = async () => {
         if (isAutoDialingRef.current) {
@@ -324,7 +373,7 @@ const ContactInfo = () => {
             <div className="w-full flex flex-col lg:flex-row gap-4 p-4 lg:h-[calc(100vh-80px)] overflow-hidden">
                 {/* Left Column (Main Content) - Scrollable */}
                 <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
-                    <CallSection />
+                    <CallSection contactStatuses={contactStatuses} />
                     <Detail onNext={handleNextContact} />
                     <BottomContactDetail />
                 </div>

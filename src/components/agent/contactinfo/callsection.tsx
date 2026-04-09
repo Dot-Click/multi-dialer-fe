@@ -23,7 +23,11 @@ const getStatusBadgeStyle = (status: CallStatus) => {
   }
 };
 
-const CallSection = () => {
+interface CallSectionProps {
+  contactStatuses?: Record<string, string>;
+}
+
+const CallSection = ({ contactStatuses = {} }: CallSectionProps) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
 
@@ -60,18 +64,25 @@ const CallSection = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Map internal Twilio status to UI status for a specific card
-  const getUiStatus = (isBridgeActive: boolean): CallStatus => {
-    if (!isBridgeActive) return "Queued";
-    if (isHold) return "On Hold";
-    switch (callStatus) {
-      case 'idle': return "Queued";
-      case 'ringing': return "Ringing";
-      case 'connected': return "Connected";
-      case 'on-hold': return "On Hold";
-      case 'disconnected': return "Disconnected";
-      default: return "Queued";
+  // Map internal Twilio status or session history to UI status for a specific card
+  const getUiStatus = (callId: string, isBridgeActive: boolean): CallStatus => {
+    // 1. If actually bridged right now
+    if (isBridgeActive) {
+      if (isHold) return "On Hold";
+      switch (callStatus) {
+        case 'ringing': return "Ringing";
+        case 'connected': return "Connected";
+        case 'on-hold': return "On Hold";
+      }
     }
+
+    // 2. Otherwise check session statuses from polling
+    const s = contactStatuses[callId];
+    if (s === 'ringing') return "Ringing";
+    if (s === 'answered') return "Connected";
+    if (s === 'failed') return "Disconnected";
+
+    return "Queued";
   };
 
   // If no queue, show message
@@ -86,7 +97,7 @@ const CallSection = () => {
         {queue.map((call, index) => {
           const isSelected = currentContact?.id === call.id;
           const isBridgeActive = activeBridgeContactId === call.id;
-          const status = getUiStatus(isBridgeActive);
+          const status = getUiStatus(call.id, isBridgeActive);
           const showControls = isBridgeActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
 
           // NEW MOJO ACTIVE STYLE: If this specific card is the one on the phone
@@ -153,11 +164,19 @@ const CallSection = () => {
           }
 
           // ORIGINAL STYLE FOR OTHERS
+          const getBorderColor = () => {
+             if (isSelected) return 'border-[#FFCA06] shadow-md'; // Yellow selection border
+             if (status === 'Ringing') return 'border-yellow-400 shadow-sm';
+             if (status === 'Connected') return 'border-emerald-400 shadow-sm';
+             if (status === 'Disconnected') return 'border-rose-400 shadow-sm';
+             return 'border-gray-100 dark:border-slate-700 shadow-sm';
+          };
+
           return (
             <div
               key={call.id || index}
               className={`min-w-[280px] min-h-[130px] 
-                          bg-white dark:bg-slate-800 rounded-[22px] border ${isSelected ? 'border-[#FFCA06] shadow-md' : 'border-gray-100 dark:border-slate-700 shadow-sm'}
+                          bg-white dark:bg-slate-800 rounded-[22px] border-2 ${getBorderColor()}
                           flex flex-col items-center justify-center p-4
                           transition-all duration-200`}
             >
