@@ -17,13 +17,69 @@ interface EmailRecord {
 }
 
 const emailStatusData: EmailRecord[] = [
-  { id: 1, name: "Kathryn Murphy", address: "47406 N Franklin Street", label: "Text", listGroup: "High-Value Leads", type: "C2C Session", date: "18/06/2021 09:13" },
-  { id: 2, name: "Robert Fox", address: "93592 Woodside Road", label: "Text", listGroup: "-", type: "PowerDial", date: "29/10/2024 15:36" },
-  { id: 3, name: "Annette Black", address: "6286 Ryan Crossroad", label: "Text", listGroup: "Renewals Q3", type: "PowerDial", date: "2013/11/20 20:01" },
-  { id: 4, name: "Dianne Russell", address: "533 Curtis Crescent", label: "Text", listGroup: "Renewals Q3", type: "PowerDial", date: "10/06/2021 19:30" },
-  { id: 5, name: "Kathryn Murphy", address: "47406 N Franklin Street", label: "Text", listGroup: "High-Value Leads", type: "C2C Session", date: "18/06/2021 09:13" },
-  { id: 6, name: "Kathryn Murphy", address: "47406 N Franklin Street", label: "Text", listGroup: "High-Value Leads", type: "C2C Session", date: "18/06/2021 09:13" },
-  { id: 7, name: "Robert Fox", address: "93592 Woodside Road", label: "Text", listGroup: "-", type: "PowerDial", date: "29/10/2024 15:36" },
+  {
+    id: 1,
+    name: "Kathryn Murphy",
+    address: "47406 N Franklin Street",
+    label: "Text",
+    listGroup: "High-Value Leads",
+    type: "C2C Session",
+    date: "18/06/2021 09:13",
+  },
+  {
+    id: 2,
+    name: "Robert Fox",
+    address: "93592 Woodside Road",
+    label: "Text",
+    listGroup: "-",
+    type: "PowerDial",
+    date: "29/10/2024 15:36",
+  },
+  {
+    id: 3,
+    name: "Annette Black",
+    address: "6286 Ryan Crossroad",
+    label: "Text",
+    listGroup: "Renewals Q3",
+    type: "PowerDial",
+    date: "2013/11/20 20:01",
+  },
+  {
+    id: 4,
+    name: "Dianne Russell",
+    address: "533 Curtis Crescent",
+    label: "Text",
+    listGroup: "Renewals Q3",
+    type: "PowerDial",
+    date: "10/06/2021 19:30",
+  },
+  {
+    id: 5,
+    name: "Kathryn Murphy",
+    address: "47406 N Franklin Street",
+    label: "Text",
+    listGroup: "High-Value Leads",
+    type: "C2C Session",
+    date: "18/06/2021 09:13",
+  },
+  {
+    id: 6,
+    name: "Kathryn Murphy",
+    address: "47406 N Franklin Street",
+    label: "Text",
+    listGroup: "High-Value Leads",
+    type: "C2C Session",
+    date: "18/06/2021 09:13",
+  },
+  {
+    id: 7,
+    name: "Robert Fox",
+    address: "93592 Woodside Road",
+    label: "Text",
+    listGroup: "-",
+    type: "PowerDial",
+    date: "29/10/2024 15:36",
+  },
 ];
 
 // === Table Columns — NO ARROWS ===
@@ -32,7 +88,7 @@ const columns = [
     id: "select",
     header: ({ table }: any) => (
       <Checkbox
-        className="w-5 h-5 rounded-none border-[2px]"  // <- Square & thoda bada
+        className="w-5 h-5 rounded-none border-[2px] dark:border-slate-500" // <- Square & thoda bada
         checked={table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -40,7 +96,7 @@ const columns = [
     ),
     cell: ({ row }: any) => (
       <Checkbox
-        className="w-5 h-5 rounded-none border-[2px]"  // <- Square & thoda bada
+        className="w-5 h-5 rounded-none border-[2px] dark:border-slate-500" // <- Square & thoda bada
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
@@ -53,8 +109,11 @@ const columns = [
     accessorKey: "name",
     header: () => <span>Name</span>,
     cell: (info: any) => (
-      <a className="text-[#1D85F0] font-[400] text-[14px]" href="#">
-        {info.getValue()}
+      <a
+        className="text-[#1D85F0] dark:text-blue-400 font-[400] text-[14px]"
+        href="#"
+      >
+        {info.getValue() || "-"}
       </a>
     ),
   },
@@ -65,7 +124,6 @@ const columns = [
   { accessorKey: "type", header: () => <span>Type</span> },
   { accessorKey: "date", header: () => <span>Date</span> },
 ];
-
 
 // === Stats Data ===
 const statsData = [
@@ -82,10 +140,20 @@ const statsData = [
 ];
 
 // === Stat Card Component ===
-const StatCard = ({ title, value, percentage }: { title: string; value: number; percentage: number | null }) => (
-  <div className="bg-white flex flex-col gap-0.5 border border-[#EBEDF0] rounded-lg p-[16px] text-center sm:text-left">
-    <p className="text-[12px] font-[400] text-[#495057]">{title}</p>
-    <p className="text-[14px] font-[500] text-[#2B3034]">
+const StatCard = ({
+  title,
+  value,
+  percentage,
+}: {
+  title: string;
+  value: number;
+  percentage: number | null;
+}) => (
+  <div className="bg-white dark:bg-slate-800 flex flex-col gap-0.5 border border-[#EBEDF0] dark:border-slate-700 rounded-lg p-[16px] text-center sm:text-left">
+    <p className="text-[12px] font-[400] text-[#495057] dark:text-gray-400">
+      {title}
+    </p>
+    <p className="text-[14px] font-[500] text-[#2B3034] dark:text-white">
       {value}
       {percentage !== null && ` = ${percentage}%`}
     </p>
@@ -94,9 +162,11 @@ const StatCard = ({ title, value, percentage }: { title: string; value: number; 
 
 // === Filter Dropdown Component ===
 const FilterDropdown = ({ label }: { label: string }) => (
-  <div className="border border-[#D8DCE1] font-[400] rounded-[12px] px-[16px] h-[35px] flex justify-between w-[240px] items-center gap-2 cursor-pointer">
-    <span className="text-[16px] text-[#0E1011]">{label}</span>
-    <FaChevronDown className="text-[13px] text-[#71717A]" />
+  <div className="border border-[#D8DCE1] dark:border-slate-700 dark:bg-slate-800 font-[400] rounded-[12px] px-[16px] h-[35px] flex justify-between w-[240px] items-center gap-2 cursor-pointer">
+    <span className="text-[16px] text-[#0E1011] dark:text-gray-200">
+      {label}
+    </span>
+    <FaChevronDown className="text-[13px] text-[#71717A] dark:text-gray-400" />
   </div>
 );
 
@@ -117,8 +187,8 @@ const EmailStatus = () => {
 
   return (
     <Box className="mt-1.5 w-full h-full">
-    <style>
-      {`
+      <style>
+        {`
         /* THEAD */
         table thead tr th,
         table thead {
@@ -154,6 +224,20 @@ const EmailStatus = () => {
         table tbody tr:last-child {
           border-bottom: none !important;
         }
+
+        /* === DARK MODE ADJUSTMENTS === */
+        :is(.dark) table thead tr th, :is(.dark) table thead { background: #334155 !important; } /* bg-slate-700 */
+        :is(.dark) table thead tr th { 
+            color: white !important; 
+            border-bottom: 1px solid #475569 !important; 
+        }
+        :is(.dark) table tbody tr td { 
+            color: #cbd5e1 !important; /* text-slate-300 */
+        }
+        :is(.dark) table tbody tr td:nth-child(2) a {
+            color: #60a5fa !important; /* text-blue-400 */
+        }
+        :is(.dark) table tbody tr { border-bottom: 1px solid #475569 !important; }
   
         /* === MOBILE RESPONSIVE === */
         @media (max-width: 768px) {
@@ -165,38 +249,37 @@ const EmailStatus = () => {
           }
         }
       `}
-    </style>
-  
-    <main>
-      {/* Filters & Stats */}
-      {showFilters && (
-        <div className="mb-3">
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <FilterDropdown label="Email Status: All" />
-            <FilterDropdown label="Send Type: All" />
+      </style>
+
+      <main>
+        {/* Filters & Stats */}
+        {showFilters && (
+          <div className="mb-3">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <FilterDropdown label="Email Status: All" />
+              <FilterDropdown label="Send Type: All" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {statsData.map((stat, index) => (
+                <StatCard
+                  key={`${stat.title}-${index}`}
+                  title={stat.title}
+                  value={stat.value}
+                  percentage={stat.percentage}
+                />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {statsData.map((stat, index) => (
-              <StatCard
-                key={`${stat.title}-${index}`}
-                title={stat.title}
-                value={stat.value}
-                percentage={stat.percentage}
-              />
-            ))}
-          </div>
+        )}
+
+        {/* TABLE */}
+        <div className="responsive-table-wrapper">
+          <TableProvider data={emailStatusData} columns={columns}>
+            {() => <TableComponent />}
+          </TableProvider>
         </div>
-      )}
-  
-      {/* TABLE */}
-      <div className="responsive-table-wrapper">
-        <TableProvider data={emailStatusData} columns={columns}>
-          {() => <TableComponent />}
-        </TableProvider>
-      </div>
-    </main>
-  </Box>
-  
+      </main>
+    </Box>
   );
 };
 

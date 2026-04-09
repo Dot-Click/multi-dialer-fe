@@ -1,15 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { IoIosArrowBack } from "react-icons/io";
-import { VscFolderOpened } from "react-icons/vsc";
+import { useState, useEffect } from "react";
+import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
+import { VscFolderOpened, VscFolder } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
-import {
-  useContact,
-  type ContactList,
-  type ContactFolder,
-  type ContactGroup,
-} from "@/hooks/useContact";
+import ImportContactModal from "../modals/ImportContactModal";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchContacts, fetchContactFolders, fetchContactLists } from "@/store/slices/contactSlice";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -19,233 +16,199 @@ interface AllContactSidebarProps {
   }) => void;
 }
 
-interface FolderWithLists extends ContactFolder {
-  nestedLists: ContactList[];
-}
-
 const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   onSelectItem,
 }) => {
   const [activeItem, setActiveItem] = useState("allContacts");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  
   const location = useLocation();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const { getContactLists, getContactFolders, getContactGroups, loading } =
-    useContact();
-
-  const [folders, setFolders] = useState<FolderWithLists[]>([]);
-  const [standaloneLists, setStandaloneLists] = useState<ContactList[]>([]);
-  const [groups, setGroups] = useState<ContactGroup[]>([]);
-
-  // ✅ Back button logic
-  let backTo = "/";
-  if (location.pathname === "/admin/data-dialer") {
-    backTo = "/admin";
-  } else if (location.pathname === "/data-dialer") {
-    backTo = "/";
-  }
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  
+  const { folders, lists, isLoading } = useAppSelector((state) => state.contacts);
 
   useEffect(() => {
     onSelectItem({ type: "allContacts", name: "All Contacts" });
+    dispatch(fetchContactFolders());
+    dispatch(fetchContactLists());
+  }, [dispatch]);
 
-    const fetchData = async () => {
-      const [allLists, allFolders, allGroups] = await Promise.all([
-        getContactLists(),
-        getContactFolders(),
-        getContactGroups(),
-      ]);
-
-      const folderMap = new Map<string, FolderWithLists>();
-      const usedListIds = new Set<string>();
-
-      allFolders.forEach((folder) => {
-        const nestedLists = allLists.filter((list) =>
-          folder.listIds.includes(list.id),
-        );
-        nestedLists.forEach((l) => usedListIds.add(l.id));
-        folderMap.set(folder.id, { ...folder, nestedLists });
-      });
-
-      setFolders(Array.from(folderMap.values()));
-      setStandaloneLists(allLists.filter((list) => !usedListIds.has(list.id)));
-      setGroups(allGroups);
-    };
-
-    fetchData();
-  }, []);
+  const handleImportSuccess = () => {
+    dispatch(fetchContactFolders());
+    dispatch(fetchContactLists());
+    dispatch(fetchContacts());
+  };
 
   const handleClick = (type: string, name: string, id?: string) => {
     const itemKey = id ? `${type}-${id}` : type;
     setActiveItem(itemKey);
     onSelectItem({ type, id, name });
-  };
 
-  const toggleFolder = (id: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  // ✅ Handle File Select
-  const openFileDialog = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+    if (location.pathname !== "/admin/data-dialer") {
+      navigate("/admin/data-dialer");
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log("Full File Object:", file);
-      event.target.value = "";
-    }
+  const toggleFolder = (e: React.MouseEvent, folderId: string) => {
+    e.stopPropagation();
+    setExpandedFolders(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
   };
+
+  const renderTree = (parentId: string | null = null, depth = 0, hideLists = false) => {
+    const currentFolders = folders.filter(f => f.parentId === parentId);
+    const currentLists = hideLists ? [] : lists.filter(l => l.folderId === parentId);
+
+    return (
+      <>
+        {currentFolders.map(folder => (
+          <div key={folder.id} className="flex flex-col">
+            <div
+              onClick={() => handleClick("folder", folder.name, folder.id)}
+              style={{ paddingLeft: `${depth * 12 + 8}px` }}
+              className={`flex gap-2 items-center py-2 px-3 rounded-xl cursor-pointer transition group mb-1
+                ${activeItem === `folder-${folder.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+            >
+              <button 
+                onClick={(e) => toggleFolder(e, folder.id)}
+                className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition shrink-0"
+              >
+                {expandedFolders[folder.id] ? <IoIosArrowDown className="text-gray-400" /> : <IoIosArrowForward className="text-gray-400" />}
+              </button>
+              <div className="shrink-0">
+                {expandedFolders[folder.id] ? (
+                  <VscFolderOpened className="text-xl text-gray-600 dark:text-gray-400" />
+                ) : (
+                  <VscFolder className="text-xl text-gray-600 dark:text-gray-400" />
+                )}
+              </div>
+              <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate flex-1">
+                {folder.name}
+              </span>
+            </div>
+            
+            {expandedFolders[folder.id] && (
+              <div className="flex flex-col">
+                {renderTree(folder.id, depth + 1)}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {!hideLists && currentLists.map(list => (
+          <div
+            key={list.id}
+            onClick={() => handleClick("list", list.name, list.id)}
+            style={{ paddingLeft: `${depth * 12 + 28}px` }}
+            className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2 px-3 rounded-xl cursor-pointer transition mb-1
+              ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+          >
+            <span className="text-[#2B3034] dark:text-white font-semibold text-[13px] truncate">
+              {list.name}
+            </span>
+            <div className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2 shadow-sm">
+              <span className="text-[10px] font-bold text-gray-500 uppercase">
+                {list.name.slice(0, 2)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  };
+
+  const rootLists = lists.filter(l => l.folderId === null);
 
   return (
-    <aside className="bg-white flex flex-col px-5 py-4 w-64 h-screen shadow-sm">
+    <aside className="bg-white dark:bg-slate-800 flex flex-col px-4 py-4 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
       {/* Back Button */}
-      <Link
-        to={backTo}
-        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] transition"
+      <button
+        onClick={() => navigate(-1)}
+        className="flex gap-2 items-center cursor-pointer hover:text-black dark:text-white transition mb-6"
       >
-        <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] font-medium">
-          Back To Home
+        <IoIosArrowBack className="text-xl text-gray-400" />
+        <span className="text-[14px] text-gray-600 dark:text-white font-semibold">
+          Back
         </span>
-      </Link>
-
-      <div className="border-b border-gray-100 h-1 my-3"></div>
+      </button>
 
       {/* All Contacts */}
       <div
         onClick={() => handleClick("allContacts", "All Contacts")}
-        className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition 
-          ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+        className={`flex gap-3 items-center px-4 py-3 rounded-xl cursor-pointer transition mb-2
+          ${activeItem === "allContacts" ? "bg-slate-100 dark:bg-slate-700" : "hover:bg-slate-50 dark:hover:bg-slate-700/40"}`}
       >
-        <img src={usericon} alt="usericon" className="w-6 h-6" />
-        <h1 className="text-[#495057] font-medium text-[14px]">All Contacts</h1>
+        <img src={usericon} alt="usericon" className="w-5 h-5 opacity-80" />
+        <h1 className="text-[#2B3034] dark:text-white font-bold text-[14px]">All Contacts</h1>
       </div>
 
-      <div className="border-b border-gray-100 h-1 my-3"></div>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto custom-scrollbar flex flex-col pt-4">
+          
+          {/* CALLING LISTS Section */}
+          <div className="mb-6">
+            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+              Calling Lists
+            </h2>
+            <div className="flex flex-col gap-0.5">
+              {rootLists.map(list => (
+                <div
+                  key={list.id}
+                  onClick={() => handleClick("list", list.name, list.id)}
+                  className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2.5 px-4 rounded-xl cursor-pointer transition mb-1
+                    ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                >
+                  <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate">
+                    {list.name}
+                  </span>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-100 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      {list.name.slice(0, 2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* Calling Lists */}
-      <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] font-medium uppercase text-[14px]">
-          Calling Lists
-        </h1>
-        <div className="flex gap-2 h-[45vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {folders.map((folder) => (
-            <div key={folder.id} className="flex flex-col gap-1.5">
-              <div
-                onClick={() => toggleFolder(folder.id)}
-                className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                  bg-gray-50 hover:bg-[#FFCA06]`}
-              >
-                <VscFolderOpened className="text-lg" />
-                <h1 className="text-[#495057] font-medium text-[14px] truncate">
-                  {folder.name}
-                </h1>
-              </div>
+          <hr className="mb-6 border-gray-50 dark:border-slate-700 mx-2" />
 
-              {expandedFolders.has(folder.id) && (
-                <div className="flex gap-2 flex-col">
-                  {folder.nestedLists.map((list) => (
-                    <div
-                      key={list.id}
-                      onClick={() => handleClick("list", list.name, list.id)}
-                      className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                      ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-                    >
-                      <h1 className="text-[#495057] font-medium text-[14px] truncate">
-                        {list.name}
-                      </h1>
-                      <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
-                        {list.name.slice(0, 2)}
-                      </h1>
-                    </div>
-                  ))}
+          {/* FOLDERS Section */}
+          <div className="flex-1">
+            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+              Folders
+            </h2>
+            <div className="flex flex-col gap-0.5">
+              {renderTree(null, 0, true)}
+              
+              {!isLoading && folders.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                   <VscFolder className="text-3xl mb-2" />
+                   <span className="text-[11px] font-medium italic">Create a folder to get started</span>
                 </div>
               )}
             </div>
-          ))}
-
-          {standaloneLists.map((list) => (
-            <div
-              key={list.id}
-              onClick={() => handleClick("list", list.name, list.id)}
-              className={`text-[#495057] flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-            >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">
-                {list.name}
-              </h1>
-              <h1 className="border border-gray-200 rounded-full text-[12px] px-2 py-1.5 uppercase">
-                {list.name.slice(0, 2)}
-              </h1>
-            </div>
-          ))}
-
-          {!loading && folders.length === 0 && standaloneLists.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">
-              No lists found
-            </span>
-          )}
+          </div>
         </div>
       </div>
 
-      <div className="border-b border-gray-100 h-1 my-3"></div>
-
-      {/* Groups */}
-      <div className="flex flex-col gap-2 overflow-hidden">
-        <h1 className="text-[#495057] uppercase font-medium text-[14px]">
-          Groups
-        </h1>
-        <div className="flex gap-2 h-[25vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {groups.map((gro) => (
-            <div
-              key={gro.id}
-              onClick={() => handleClick("group", gro.name, gro.id)}
-              className={`flex gap-2 rounded-xl px-2 py-2 items-center cursor-pointer transition 
-                ${activeItem === `group-${gro.id}` ? "bg-[#FFCA06]" : "bg-gray-50 hover:bg-[#FFCA06]"}`}
-            >
-              <h1 className="text-[#495057] font-medium text-[14px] truncate">
-                {gro.name}
-              </h1>
-            </div>
-          ))}
-          {!loading && groups.length === 0 && (
-            <span className="text-xs text-gray-400 text-center py-4">
-              No groups found
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ✅ Fixed Bottom Import Button */}
-      <div className="mt-auto pt-2">
+      <div className="mt-auto pt-4">
         <button
-          onClick={openFileDialog}
-          className="w-full text-sm flex items-center justify-center gap-2 py-2 bg-[#EBEDF0] hover:bg-[#EBE1F0] text-[#0E1011] font-medium rounded-md transition"
+          onClick={() => setIsImportModalOpen(true)}
+          className="w-full text-sm flex items-center justify-center gap-2 py-3 bg-[#F0F2F4] dark:bg-slate-700/50 hover:bg-[#E2E8F0] dark:hover:bg-slate-600 transition-all text-[#2B3034] dark:text-white font-bold rounded-xl"
         >
-          <LuArrowUpToLine className="text-base" />
-          Import File
+          <LuArrowUpToLine className="text-xl" />
+          <span>Import File</span>
         </button>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept=".csv"
-          onChange={handleFileChange}
+        <ImportContactModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={handleImportSuccess}
         />
       </div>
     </aside>

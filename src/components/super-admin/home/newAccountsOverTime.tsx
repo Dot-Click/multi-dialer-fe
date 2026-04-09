@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ResponsiveContainer,
   LineChart,
@@ -8,50 +9,44 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-
-// Data adjusted so labels align exactly under the dots as seen in the image
-const thisMonthData = [
-  { week: "", value: 5 },
-  { week: "Week 1", value: 38 },
-  { week: "", value: 52 },
-  { week: "", value: 62 },
-  { week: "Week 2", value: 56 },
-  { week: "", value: 62 },
-  { week: "", value: 70 },
-  { week: "Week 3", value: 78 },
-  { week: "", value: 74 },
-  { week: "", value: 66 },
-  { week: "", value: 62 },
-  { week: "Week 4", value: 36 },
-  { week: "", value: 41 },
-];
-
-const lastMonthData = [
-  { week: "", value: 20 },
-  { week: "Week 1", value: 45 },
-  { week: "", value: 58 },
-  { week: "", value: 50 },
-  { week: "Week 2", value: 60 },
-  { week: "", value: 65 },
-  { week: "", value: 72 },
-  { week: "Week 3", value: 68 },
-  { week: "", value: 63 },
-  { week: "", value: 55 },
-  { week: "", value: 48 },
-  { week: "Week 4", value: 42 },
-  { week: "", value: 45 },
-];
+import { getNewAccountsOverTime } from "@/store/slices/reportsSlice";
+import type { RootState, AppDispatch } from "@/store/store";
+import Loader from "@/components/common/Loader";
 
 const NewAccountsOverTime = () => {
-  const [activeTab, setActiveTab] = useState("this");
+  const dispatch = useDispatch<AppDispatch>();
+  const { thisMonthChart, lastMonthChart, chartLoading } = useSelector(
+    (state: RootState) => state.reports
+  );
+  
+  const [activeTab, setActiveTab] = useState<"this" | "last">("this");
 
-  const data = activeTab === "this" ? thisMonthData : lastMonthData;
+  useEffect(() => {
+    // Fetch both on mount to ensure data is ready when switching tabs
+    dispatch(getNewAccountsOverTime("THIS_MONTH"));
+    dispatch(getNewAccountsOverTime("LAST_MONTH"));
+  }, [dispatch]);
+
+  const rawData = activeTab === "this" ? thisMonthChart : lastMonthChart;
+
+  // Transform API data to Recharts format
+  const chartData = rawData 
+    ? rawData.labels.map((label, index) => ({
+        week: label,
+        value: rawData.values[index] || 0,
+      }))
+    : [];
 
   return (
-    // Container and Header kept exactly as your original
-    <section className="mt-3 h-[450px] bg-[#FFFFFF] shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
+    <section className="relative mt-3 h-[450px] bg-[#FFFFFF] dark:bg-gray-800 shadow-sm work-sans px-[24px] pt-[18px] pb-[32px] rounded-[32px] w-full md:w-[50%]">
+      {chartLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 rounded-[32px]">
+          <Loader fullPage={false} />
+        </div>
+      )}
+      
       <div>
-        <h1 className="text-[#000000] font-[500] text-[20px]">
+        <h1 className="text-[#000000] dark:text-white font-[500] text-[20px]">
           New Accounts Over Time
         </h1>
 
@@ -60,8 +55,8 @@ const NewAccountsOverTime = () => {
             onClick={() => setActiveTab("this")}
             className={`text-[14px] font-[500] px-[12px] py-[8px] rounded-[8px] transition ${
               activeTab === "this"
-                ? "bg-[#0E1011] text-white"
-                : "border border-[#EBEDF0] text-[#0E1011]"
+                ? "bg-[#0E1011] dark:bg-gray-600 text-white"
+                : "border border-[#EBEDF0] dark:border-gray-600 text-[#0E1011] dark:text-white"
             }`}
           >
             This Month
@@ -71,8 +66,8 @@ const NewAccountsOverTime = () => {
             onClick={() => setActiveTab("last")}
             className={`text-[14px] font-[500] px-[12px] py-[8px] rounded-[8px] transition ${
               activeTab === "last"
-                ? "bg-[#0E1011] text-white"
-                : "border border-[#EBEDF0] text-[#0E1011]"
+                ? "bg-[#0E1011] dark:bg-gray-600 text-white"
+                : "border border-[#EBEDF0] dark:border-gray-600 text-[#0E1011] dark:text-white"
             }`}
           >
             Last Month
@@ -80,10 +75,9 @@ const NewAccountsOverTime = () => {
         </div>
       </div>
 
-      {/* Chart Logic Updated to match image */}
       <div className="h-[300px] w-full mt-8">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 0, right: 10, left: -25, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 0, right: 10, left: -25, bottom: 0 }}>
             <CartesianGrid 
               stroke="#F0F0F0" 
               vertical={false} 
@@ -93,15 +87,15 @@ const NewAccountsOverTime = () => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#6B7280", fontSize: 12 }}
-              interval={0} // Ensures all "Week" labels show up
+              interval={0}
               padding={{ left: 20, right: 20 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#6B7280", fontSize: 12 }}
-              domain={[0, 100]}
-              ticks={[0, 20, 40, 60, 80, 100]} // Matches the image's scale
+              domain={[0, 'auto']}
+              allowDecimals={false}
             />
             <Tooltip
               cursor={{ stroke: "#E5E7EB", strokeWidth: 1 }}
@@ -116,7 +110,6 @@ const NewAccountsOverTime = () => {
               dataKey="value"
               stroke="#7C838D"
               strokeWidth={2}
-              // Solid gray dots as seen in the image
               dot={{
                 r: 5,
                 fill: "#7C838D",

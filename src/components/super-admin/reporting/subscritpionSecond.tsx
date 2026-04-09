@@ -9,18 +9,17 @@ const SubscriptionDistribution = () => {
 
   // 2. Visual Data (Photo jaisa look dene ke liye)
   const visualData = [
-    { name: "Successful", value: 82 }, 
-    { name: "Failed", value: 18 }, 
+    { name: "Successful", value: 82 },
+    { name: "Failed", value: 18 },
   ];
 
-  const COLORS = ["#72D394", "#FF1E4A"]; 
+  const COLORS = ["#72D394", "#FF1E4A"];
 
   return (
-    <section className="bg-[#FFFFFF] work-sans flex flex-col gap-4 shadow-sm h-[375px] p-[24px] rounded-[32px] w-[350px]">
-      
+    <section className="bg-[#FFFFFF] dark:bg-slate-800 work-sans flex flex-col gap-4 shadow-sm h-[375px] p-[24px] rounded-[32px] w-[350px]">
       {/* Heading */}
       <div className="flex items-center">
-        <h1 className="text-[#000000] font-[500] text-[20px] whitespace-nowrap">
+        <h1 className="text-[#000000] dark:text-white font-[500] text-[20px] whitespace-nowrap">
           Subscription Distribution
         </h1>
       </div>
@@ -35,7 +34,7 @@ const SubscriptionDistribution = () => {
             cy="50%"
             innerRadius={0}
             /* Radius ko 85 kar diya taake 180px mein fit aaye aur cut na ho */
-            outerRadius={85} 
+            outerRadius={85}
             startAngle={0}
             endAngle={360}
             dataKey="value"
@@ -55,19 +54,18 @@ const SubscriptionDistribution = () => {
       <div className="flex flex-col gap-4 mt-auto pb-4">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#72D394]" />
-          <p className="text-[14px] font-[400] text-[#0E1011]">
+          <p className="text-[14px] font-[400] text-[#0E1011] dark:text-gray-300">
             Successful: {realData[0].value} ({realData[0].percent})
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#FF1E4A]" />
-          <p className="text-[14px] font-[400] text-[#0E1011]">
+          <p className="text-[14px] font-[400] text-[#0E1011] dark:text-gray-300">
             Failed: {realData[1].value} ({realData[1].percent})
           </p>
         </div>
       </div>
-
     </section>
   );
 };

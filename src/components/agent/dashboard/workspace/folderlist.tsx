@@ -1,61 +1,47 @@
-import { useState } from 'react';
+import {  useLists } from '@/hooks/useWorkspace';
+import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FoldersList = () => {
+    const { data: lists, isLoading: listsLoading } = useLists();
+    const navigate = useNavigate();
 
-    const folderLists = [
-        { id: 1, name: "All Lists", },
-        { id: 2, name: "Folder 1", },
-        { id: 3, name: "Folder 2", },
-        { id: 4, name: "Folder 3", },
-        { id: 5, name: "Folder 4", },
-    ]
+    if (listsLoading) {
+        return (
+            <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] items-center justify-center rounded-[32px] md:w-[50%] w-full '>
+                <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+            </section>
+        );
+    }
 
-    const listName = [
-        { id: 1, name: "List Name", contact: "115" },
-        { id: 2, name: "List Name", contact: "115" },
-        { id: 3, name: "List Name", contact: "115" },
-        { id: 4, name: "List Name", contact: "115" },
-        { id: 5, name: "List Name", contact: "115" },
-        { id: 6, name: "List Name", contact: "115" },
-        { id: 7, name: "List Name", contact: "115" },
-    ]
-
-    const [active, setActive] = useState(1);
+    const allLists = lists || [];
 
     return (
-        <section className='bg-white flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
-            <div className="flex flex-col justify-between gap-1.5">
-                <h1 className="text-[20px] text-[#000000] font-[500]">Folders & Lists</h1>
-                <div className='flex gap-3'>
-                    {folderLists.map((dt) => (
-                        <button
-                            key={dt.id}
-                            onClick={() => setActive(dt.id)}
-                            className={
-                                active === dt.id
-                                    ? "border px-2 rounded-md font-[500] cursor-pointer py-1 text-[9px] md:text-[12px] bg-[#0E1011] text-white"
-                                    : "border px-2 rounded-md text-gray-950 font-[500] cursor-pointer hover:bg-gray-200 py-1 text-[9px] md:text-[12px]"
-                            }
+        <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
+            <div className="flex flex-col justify-between gap-3">
+                <h1 className="text-[20px] dark:text-white text-[#000000] font-medium">Lists</h1>
+            </div>
+
+            <div className='flex flex-col gap-5  overflow-auto custom-scrollbar pr-2'>
+                {allLists.length > 0 ? (
+                    allLists.map((list) => (
+                        <div 
+                            key={list.id} 
+                            onClick={() => navigate('/data-dialer', { state: { activeItem: { type: 'list', id: list.id, name: list.name } } })}
+                            className='flex border-b gap-2 items-center border-gray-200 dark:border-slate-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 rounded-md transition-colors w-full text-left'
                         >
-                            {dt.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className='flex flex-col gap-5  overflow-auto custom-scrollbar'>
-                {listName.map((gr) => (
-                    <div key={gr.id} className='flex mx-2 rounded-md border-b gap-2 items-center border-gray-200'>
-                        <div className="flex flex-col justify-between w-full">
-                            <h1 className="text-[14px] font-[500] text-[#000000]">{gr.name}</h1>
-                            <h1 className="text-[14px] font-[400] text-[#495057]">Contacts: {gr.contact}</h1>
+                            <div className="flex flex-col justify-between w-full">
+                                <h1 className="text-[14px] dark:text-white font-medium text-[#000000]">{list.name}</h1>
+                                <h1 className="text-[14px] dark:text-gray-400 font-normal text-[#495057]">Contacts: {list.contactIds?.length || 0}</h1>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <div className="text-center py-10 text-gray-500">No lists found.</div>
+                )}
             </div>
-
         </section>
-    )
-}
+    );
+};
 
 export default FoldersList;

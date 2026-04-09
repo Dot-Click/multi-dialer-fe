@@ -1,9 +1,5 @@
-
-
-
 import { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logo from "@/assets/logo.png";
 import sidebaricon from "@/assets/sidebaricon.png";
 import dashboardicon from "@/assets/dashboardicon.png";
 import settingicon from "@/assets/settingicon.png";
@@ -11,11 +7,11 @@ import reporticon from "@/assets/reporticon.png";
 import libraryicon from "@/assets/libraryicon.png";
 import calendericon from "@/assets/calendericon.png";
 import dataicon from "@/assets/dataicon.png";
-import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "@/assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
-import { useAppDispatch } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { signout } from "@/store/slices/authSlice";
+import Loader from "@/components/common/Loader";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,7 +19,6 @@ interface SidebarProps {
   isMobile: boolean;
   setIsMobile: (mobile: boolean) => void;
   session: any;
-
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +30,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { mode } = useAppSelector((state) => state.theme);
+  const { loading } = useAppSelector((state) => state.auth);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -50,8 +48,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signout());
     navigate("/agent/login");
   };
 
@@ -60,16 +58,22 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
     { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
     { id: 4, name: "Library", link: "/library", icon: libraryicon },
-    { id: 5, name: "Reports & Analytics", link: "/reports-analytics", icon: reporticon },
+    {
+      id: 5,
+      name: "Reports & Analytics",
+      link: "/reports-analytics",
+      icon: reporticon,
+    },
     { id: 6, name: "Settings", link: "/settings", icon: settingicon },
   ];
 
-  const bottomLinks = [
-    { id: 1, name: "Training", link: "/training", icon: trainingicon },
-  ];
+  // const bottomLinks = [
+  //   { id: 1, name: "Training", link: "/training", icon: trainingicon },
+  // ];
 
   return (
     <>
+      {loading && <Loader />}
       {/* MOBILE TOGGLE ICON */}
       {isMobile && !isOpen && (
         <button
@@ -82,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 flex flex-col justify-between transition-all duration-300 z-40
+        className={`fixed top-0 left-0 h-screen bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 z-40
           ${isOpen ? "w-64" : "w-16"}
           ${isMobile && !isOpen ? "-translate-x-full" : "translate-x-0"}
         `}
@@ -94,7 +98,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Logo only shows when sidebar is OPEN */}
             {isOpen && (
               <img
-                src={logo}
+                src={
+                  mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"
+                }
                 alt="Logo"
                 className="object-contain w-36 transition-all duration-300"
               />
@@ -115,17 +121,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Agent Info */}
           {isOpen && (
-            <div className="flex bg-gray-50 border border-gray-200 px-3 py-2 rounded-md flex-col">
-              <h1 className="font-semibold text-gray-950 text-sm">
+            <div className="flex bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-md flex-col">
+              <h1 className="font-semibold text-gray-950 dark:text-slate-100 text-sm">
                 {session?.user?.fullName || "Admin User"}
               </h1>
-              <p className="text-gray-600 text-xs">
+              <p className="text-gray-600 dark:text-slate-400 text-xs">
                 {session?.user?.email || "admin@example.com"}
               </p>
             </div>
           )}
 
-          <div className="border-t border-gray-200"></div>
+          <div className="border-t border-gray-200 dark:border-slate-800"></div>
 
           {/* Sidebar Links */}
           <div className="flex flex-col gap-1 justify-center">
@@ -137,12 +143,15 @@ const Sidebar: React.FC<SidebarProps> = ({
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
                   ${isActive
-                    ? "bg-[#FFCA06] font-[600] text-gray-900"
-                    : "hover:bg-[#FFCA06] text-gray-700"
+                    ? "bg-[#FFCA06] font-semibold text-gray-900"
+                    : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                   }`
                 }
               >
-                <img src={slinks.icon} className="h-4 w-4 object-contain" />
+                <img
+                  src={slinks.icon}
+                  className="h-4 w-4 dark:invert object-contain"
+                />
                 {isOpen && (
                   <span className="text-[12px] font-medium">{slinks.name}</span>
                 )}
@@ -152,8 +161,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* 🔹 BOTTOM LINKS — STICK TO BOTTOM */}
-        <div className="flex flex-col border-t border-gray-200 px-3 py-4 gap-1">
-          {bottomLinks.map((blink) => (
+        <div className="flex flex-col border-t border-gray-200 dark:border-slate-800 px-3 py-4 gap-1">
+          {/* {bottomLinks.map((blink) => (
             <NavLink
               key={blink.id}
               to={blink.link}
@@ -162,21 +171,24 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ${!isOpen ? "justify-center" : ""}
                 ${isActive
                   ? "bg-[#FFCA06] font-[600] text-gray-900"
-                  : "hover:bg-[#FFCA06] text-gray-700"
+                  : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                 }`
               }
             >
-              <img src={blink.icon} className="h-4 w-4 object-contain" />
+              <img
+                src={blink.icon}
+                className="h-4 w-4 dark:invert object-contain"
+              />
               {isOpen && (
                 <span className="text-[12px] font-medium">{blink.name}</span>
               )}
             </NavLink>
-          ))}
+          ))} */}
 
-          {/* EXIT BUTTON */}
+
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 hover:text-white transition-all
+            className={`flex items-center gap-2 px-2 py-2 rounded-md hover:bg-red-500 text-gray-600 dark:text-slate-300 hover:text-white transition-all
               ${!isOpen ? "justify-center" : ""}`}
           >
             <img src={exiticon} className="h-3 w-3 object-contain" />

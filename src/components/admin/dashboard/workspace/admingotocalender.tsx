@@ -1,68 +1,106 @@
 import { IoIosArrowForward } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { useCalendarEvents, useAllCalendarEvents } from "@/hooks/useWorkspace";
+import { Loader2 } from "lucide-react";
+import moment from "moment";
+import { useAppSelector } from "@/store/hooks";
 
 const AdminGoToCalender = () => {
+  const navigate = useNavigate();
+  const { data: ownEvents, isLoading: ownLoading } = useCalendarEvents();
+  const { data: allEvents, isLoading: allLoading } = useAllCalendarEvents();
+  const { role } = useAppSelector((state) => state.auth);
 
-    const navigate = useNavigate()
+  const isLoading = ownLoading || allLoading;
 
-    const today = [
-        { id: 1, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#D43435]" },
-        { id: 2, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#9400BD]" },
-        { id: 3, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#37B5EF]" },
-    ]
+  // For ADMIN: merge own events + all agent events (deduplicated by id)
+  const events = (() => {
+    if (role !== "ADMIN") return ownEvents || [];
+    const combined = [...(allEvents || []), ...(ownEvents || [])];
+    const seen = new Set<string>();
+    return combined.filter((ev) => {
+      if (seen.has(ev.id)) return false;
+      seen.add(ev.id);
+      return true;
+    });
+  })();
 
-    const tomorrow = [
-        { id: 1, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#3DC269]" },
-        { id: 2, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#9400BD]" },
-        { id: 3, name: "Demo Session – Product X", timeIn: "14:10", timeOut: "15:20", color: "border-[#F6BF26]" },
-    ]
-
-
-
+  if (isLoading) {
     return (
-        <section className='bg-white  h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] '>
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-[14px] text-[#2B3034] font-[500]">Thursday</h1>
-                    <h1 className="text-[20px] text-[#0E1011] font-[500]">September 08</h1>
+      <section className="bg-white dark:bg-slate-800 h-fit lg:h-[50vh] flex flex-col items-center justify-center rounded-[32px] w-full lg:w-[55%] ">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+      </section>
+    );
+  }
+
+  return (
+    <section className="bg-white dark:bg-slate-800 h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] ">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-[14px] text-[#2B3034] dark:text-gray-400 font-medium">
+            {moment().format("dddd")}
+          </h1>
+          <h1 className="text-[20px] text-[#0E1011] dark:text-white font-medium">
+            {moment().format("MMMM DD")}
+          </h1>
+        </div>
+        <div
+          onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar")}
+          className="flex gap-1 cursor-pointer text-[#2B3034] dark:text-gray-300 dark:hover:text-white items-center"
+        >
+          <span className="text-[16px] font-medium">Go To Calender</span>
+          <span>
+            <IoIosArrowForward className="text-[19px] font-normal" />
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 h-full">
+        <h1 className="text-[14px] font-medium text-[#495057] dark:text-gray-300">
+          Latest Incomplete Events
+        </h1>
+        <div className="flex flex-col gap-3">
+          {events && events.length > 0 ? (
+            events.map((ev) => (
+              <div
+                key={ev.id}
+                onClick={() =>
+                  navigate(
+                    role === "ADMIN" ? "/admin/calendar" : "/calendar",
+                    { state: { date: ev.startDate } }
+                  )
+                }
+                className="px-3 py-2 border-l-4 rounded bg-gray-50 dark:bg-slate-700/50 cursor-pointer"
+                style={{ borderColor: ev.color || "#D43435" }}
+              >
+                <div className="flex justify-between items-start">
+                  <h1 className="text-[16px] font-medium text-[#0E1011] dark:text-white">
+                    {ev.title}
+                  </h1>
+                  <span className="text-[12px] text-gray-500 dark:text-gray-400">
+                    {moment(ev.startDate).format("MMM DD")}
+                  </span>
                 </div>
-                <div onClick={()=>navigate("/calendar")} className="flex gap-1  cursor-pointer text-[#2B3034] items-center ">
-                    <span className="text-[16px] font-[500]">Go To Calender</span>
-                    <span ><IoIosArrowForward className="text-[19px] font-[400]" /></span>
-                </div>
+                <h1 className="text-[14px] font-normal text-[#848C94] dark:text-gray-400">
+                  {moment(ev.startDate).format("hh:mm A")} -{" "}
+                  {ev.endDate ? moment(ev.endDate).format("hh:mm A") : "..."}
+                </h1>
+                {role === "ADMIN" && ev.assignTo?.fullName && (
+                  <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400">
+                    {ev.assignTo.fullName}
+                  </span>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center justify-center h-32 text-gray-400">
+              No incomplete events
             </div>
-
-            <div className="flex flex-col md:flex-row gap-8 lg:items-center lg:justify-between">
-
-            <div className=" flex flex-col gap-2">
-                <h1 className="text-[14px] font-[500] text-[#495057]">Today</h1>
-                <div className="flex flex-col gap-3">
-                    {today.map((tday) => (
-                        <div key={tday.id} className={` px-2 py-1 border-l-4 rounded ${tday.color}`}>
-                            <h1 className="text-[16px] font-[500] text-[#0E1011]">{tday.name}</h1>
-                            <h1 className="text-[14px] font-[400] text-[#848C94]">{tday.timeIn} - {tday.timeOut}</h1>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div  className=" flex flex-col gap-2">
-                <h1 className="text-[12px] lg:text-[14px] font-[500] text-[#495057]">Tomorrow, September 09</h1>
-                <div className="flex flex-col gap-3">
-                    {tomorrow.map((tday) => (
-                        <div key={tday.id} className={` px-2 py-1 border-l-4 rounded ${tday.color}`}>
-                            <h1 className="text-[16px] font-[500] text-[#0E1011]">{tday.name}</h1>
-                            <h1 className="text-[14px] font-[400] text-[#848C94]">{tday.timeIn} - {tday.timeOut}</h1>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-</div>
-
-
-        </section>
-    )
-}
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export default AdminGoToCalender;

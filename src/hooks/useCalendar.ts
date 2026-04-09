@@ -2,6 +2,8 @@ import { useState } from 'react';
 import api from '../lib/axios';
 
 export type EventType = 'START_ONLY' | 'FROM_TO' | 'ALL_DAY';
+export type EventCategory = 'TASK' | 'APPOINTMENT' | 'FOLLOW_UP';
+export type EventStatus = 'SET' | 'MET' | 'CANCELLED';
 
 export interface CalendarEvent {
     id: string;
@@ -9,10 +11,18 @@ export interface CalendarEvent {
     description?: string;
     color: string;
     eventType: EventType;
+    category: EventCategory;
     startDate: string;
     endDate?: string;
+    status: EventStatus;
     assignToId: string;
     assignById: string;
+    contactId?: string;
+    contact?: {
+        id: string;
+        fullName: string;
+    };
+    leadId?: string;
     assignTo?: {
         id: string;
         fullName: string;
@@ -32,9 +42,13 @@ export interface CreateCalendarEventPayload {
     description?: string;
     color: string;
     eventType: EventType;
+    category?: EventCategory;
     startDate: string;
     endDate?: string;
+    status?: EventStatus;
     assignToId?: string;
+    contactId?: string;
+    leadId?: string;
 }
 
 export const useCalendar = () => {
@@ -47,7 +61,7 @@ export const useCalendar = () => {
         try {
             const response = await api.get('/calendar');
             console.log(response);
-            
+
             return response.data.data;
         } catch (err: any) {
             const message = err.response?.data?.message || 'Failed to fetch calendar events';

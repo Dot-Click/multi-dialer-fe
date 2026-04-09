@@ -10,11 +10,17 @@ const AdminCreateContact = () => {
     const onSaveRef = useRef<(() => void) | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
 
-    const handleSave = () => {
-        console.log("SAVE.....")
-        onSaveRef.current?.();
+    const handleSave = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            await onSaveRef.current?.();
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleCancel = () => {
@@ -22,12 +28,12 @@ const AdminCreateContact = () => {
     };
 
     return (
-        <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-7 py-2 lg:py-1 lg:px-3 transition-all">
+        <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-7 py-2 lg:py-1 lg:px-3 bg-white dark:bg-slate-900 text-gray-950 dark:text-white transition-all">
             {/* 🔹 Breadcrumb + Heading */}
             <div className="flex flex-col">
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <h1 className="text-[24px] sm:text-[28px] font-medium">
+                    <h1 className="text-[24px] sm:text-[28px] font-medium text-gray-950 dark:text-white">
                         Create Contact
                     </h1>
 
@@ -39,7 +45,7 @@ const AdminCreateContact = () => {
 
                             <button
                                 onClick={handleCancel}
-                                className="text-sm px-5 py-2 cursor-pointer rounded-md w-28 hover:bg-[#dde0e4] bg-[#EBEDF0] font-medium text-gray-950 transition-colors"
+                                className="text-sm px-5 py-2 cursor-pointer rounded-md w-28 hover:bg-[#dde0e4] bg-[#EBEDF0] dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 font-medium text-gray-950 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -48,9 +54,14 @@ const AdminCreateContact = () => {
 
                             <button
                                 onClick={handleSave}
-                                className="text-sm px-5 py-2 cursor-pointer rounded-md w-28 hover:bg-[#f7c205] bg-[#FFCA06] font-medium text-gray-950 transition-colors"
+                                disabled={isSubmitting}
+                                className={`text-sm px-5 py-2 rounded-md w-28 font-medium text-gray-950 transition-colors
+                                    ${isSubmitting
+                                        ? 'bg-[#ffe484] cursor-not-allowed opacity-60'
+                                        : 'bg-[#FFCA06] hover:bg-[#f7c205] dark:hover:bg-[#ffd633] cursor-pointer'
+                                    }`}
                             >
-                                Save
+                                {isSubmitting ? 'Saving...' : 'Save'}
                             </button>
                         </div>
 
@@ -58,8 +69,6 @@ const AdminCreateContact = () => {
 
                 </div>
             </div>
-
-
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1  sm:-ml-10">

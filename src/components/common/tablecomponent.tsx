@@ -97,7 +97,7 @@ const TableComponent: FC<
                   return (
                     <TableHead
                       key={header.id}
-                      className="py-5 text-left tracking-wide px-5"
+                      className="py-5 text-left dark:bg-slate-800 dark:text-white text-slate-700  tracking-wide px-5"
                     >
                       {header.isPlaceholder
                         ? null
@@ -232,7 +232,7 @@ export const SortedHeader: FC<{ header: Header<any, any>; label: string }> = ({
 }) => {
   return (
     <Flex
-      className="cursor-pointer items-center text-slate-600 font-semibold capitalize w-fit"
+      className="cursor-pointer items-center text-slate-600 dark:text-slate-300 font-semibold capitalize w-fit"
       onClick={() => header.column.toggleSorting()}
     >
       {label}

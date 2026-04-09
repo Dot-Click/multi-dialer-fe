@@ -5,6 +5,7 @@ import { IoWarningOutline } from "react-icons/io5";
 import { useScript, type ScriptData } from "@/hooks/useScript";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
+import Loader from "@/components/common/Loader";
 
 // =================================================================
 // DATA TYPES AND INTERFACES
@@ -33,12 +34,12 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, loading }: Delete
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-1200 p-3">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
         <div className="mx-auto flex items-center justify-center w-fit">
           <span className="text-3xl text-red-600"><IoWarningOutline /></span>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mt-5">Delete Script?</h3>
-        <p className="text-sm text-gray-500 mt-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-5">Delete Script?</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           Once deleted, this action cannot be undone. Are you sure?
         </p>
         <div className="mt-8 flex justify-center space-x-3">
@@ -88,18 +89,18 @@ const ScriptModal = ({ isOpen, onClose, onSave, scriptData, loading }: ScriptMod
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-1100 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex justify-between items-center p-5 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">{scriptData ? "Edit Script" : "Create Call Script "}</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{scriptData ? "Edit Script" : "Create Call Script "}</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><HiX className="h-6 w-6 text-gray-500" /></button>
         </div>
         <div className="p-6 space-y-6">
-          <div className="bg-gray-100 px-3 py-2 flex flex-col gap-1 border border-gray-200 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="block text-sm font-medium text-[#495057]">Script Name</label>
+          <div className="bg-gray-100 dark:bg-slate-800 px-3 py-2 flex flex-col gap-1 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
+            <label className="block text-sm font-medium text-[#495057] dark:text-white">Script Name</label>
             <input type="text" value={scriptName} onChange={(e) => setScriptName(e.target.value)} className="w-full bg-transparent outline-none" placeholder="Enter script name" />
           </div>
-          <div className="bg-gray-100 px-3 py-2 flex flex-col gap-1 border border-gray-200 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
-            <label className="block text-sm font-medium text-[#495057]">Script text</label>
+          <div className="bg-gray-100 dark:bg-slate-800 px-3 py-2 flex flex-col gap-1 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus-within:ring-2 focus-within:ring-yellow-400">
+            <label className="block text-sm font-medium text-[#495057] dark:text-white">Script text</label>
             <textarea value={scriptText} onChange={(e) => setScriptText(e.target.value)} rows={8} className="w-full bg-transparent outline-none resize-none" placeholder="Enter script text" />
           </div>
         </div>
@@ -215,15 +216,15 @@ const Script = () => {
     <div className="">
       {/* Search + Add button */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
-        <div className="relative w-full sm:w-[40%] py-[12px] px-[24px] border-[1.5px] border-[#D8DCE1] bg-white rounded-[1000000px]">
+        <div className="relative w-full sm:w-[40%] py-[12px] px-[24px] border-[1.5px] border-[#D8DCE1] dark:bg-slate-800 bg-white rounded-[1000000px]">
           <input
             type="text"
             placeholder="Search by script name"
-            className="w-full text-[#495057] font-normal text-[16px] placeholder:text-sm text-sm focus:outline-none"
+            className="w-full text-[#495057] dark:text-white font-normal text-[16px] placeholder:text-sm text-sm focus:outline-none bg-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <HiOutlineSearch className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#495057]" />
+          <HiOutlineSearch className="absolute right-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#495057] dark:text-gray-400" />
         </div>
         <button onClick={handleAddClick} className="bg-[#FFCA06] text-[16px] hover:bg-yellow-500 text-[#000000] font-medium py-[8px] pr-[24px] pl-[20px] rounded-[12px] flex items-center transition-all">
           <HiPlus className="h-5 w-5 mr-2" />
@@ -234,53 +235,53 @@ const Script = () => {
       {/* Script cards */}
       <div className="space-y-4">
         {loading && scripts.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Loading scripts...</div>
+          <Loader/>
         ) : filteredScripts.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No scripts found</div>
         ) : (
           filteredScripts.map((script) => (
             <div
               key={script.id}
-              className="bg-white p-[16px] rounded-[16px] shadow-sm border border-[#EBEDF0] grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto] items-center gap-x-4 gap-y-3 transition-all"
+              className="bg-white dark:bg-slate-800 p-[16px] rounded-[16px] shadow-sm border dark:border-slate-700 border-[#EBEDF0] grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto] items-center gap-x-4 gap-y-3 transition-all"
             >
               {/* Script Name */}
-              <div className="font-medium text-[14px] text-[#0E1011] col-span-2 lg:col-span-1">
+              <div className="font-medium text-[14px] text-[#0E1011] dark:text-white col-span-2 lg:col-span-1">
                 {script.scriptName}
               </div>
 
               {/* Created By */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[#495057] text-[12px] font-normal">
+                <span className="text-[#495057] dark:text-gray-400 text-[12px] font-normal">
                   Created by
                 </span>
-                <span className="font-medium text-[#2B3034] text-[14px] truncate">
+                <span className="font-medium text-[#2B3034] dark:text-white text-[14px] truncate">
                   {script.library?.user?.fullName || "System"}
                 </span>
               </div>
 
               {/* Created On */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[#495057] text-[12px] font-normal">
+                <span className="text-[#495057] dark:text-gray-400 text-[12px] font-normal">
                   Created on
                 </span> 
-                <span className="font-medium text-[#2B3034] text-[14px]">
+                <span className="font-medium text-[#2B3034] dark:text-white text-[14px]">
                   {dayjs(script.createdAt).format("DD/MM/YYYY")}
                 </span>
               </div>
 
               {/* Modified On */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[#495057] text-[12px] font-normal">
+                <span className="text-[#495057] dark:text-gray-400 text-[12px] font-normal">
                   Modified on
                 </span>
-                <span className="font-medium text-[#2B3034] text-[14px]">
+                <span className="font-medium text-[#2B3034] dark:text-white text-[14px]">
                   {dayjs(script.updatedAt).format("DD/MM/YYYY")}
                 </span>
               </div>
 
               {/* STATUS COLUMN */}
               <div className="flex flex-col gap-1.5 mr-20">
-                <span className="text-[#495057] text-[12px] font-normal">
+                <span className="text-[#495057] dark:text-gray-400 text-[12px] font-normal">
                   Status
                 </span>
                 <div className="flex items-center">
@@ -298,7 +299,7 @@ const Script = () => {
                         onChange={() => handleToggleStatus(script.id, script.status)}
                       />
                       <div
-                        className={`block w-[48px] h-[24px] rounded-[25.95px] transition-colors duration-300 ${script.status ? "bg-black" : "bg-gray-300"
+                        className={`block w-[48px] h-[24px] rounded-[25.95px] transition-colors duration-300 ${script.status ? "bg-black" : "bg-gray-300 dark:bg-slate-700"
                           }`}
                       ></div>
                       <div
@@ -316,22 +317,22 @@ const Script = () => {
                   onClick={() =>
                     setOpenMenuId(openMenuId === script.id ? null : script.id)
                   }
-                  className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <BsThreeDots className="h-5 w-5" />
                 </button>
 
                 {openMenuId === script.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl z-10 border">
+                  <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-slate-800 rounded-lg shadow-xl z-10 border dark:border-slate-700 overflow-hidden py-1">
                     <button
                       onClick={() => handleEditClick(script)}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => openDeleteModal(script.id)}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                     >
                       Delete
                     </button>

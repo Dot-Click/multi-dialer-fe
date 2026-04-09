@@ -67,9 +67,9 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
 
   return (
     <div className="fixed inset-0 z-[1100] flex justify-center items-center bg-black/50 p-4 sm:p-6 overflow-y-auto">
-      <div className="bg-white w-full max-w-md sm:rounded-2xl rounded-xl shadow-2xl p-5 sm:p-6 relative animate-fadeIn">
+      <div className="bg-white dark:bg-gray-800 w-full max-w-md sm:rounded-2xl rounded-xl shadow-2xl p-5 sm:p-6 relative animate-fadeIn">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
             Upload Recording
           </h2>
           <button
@@ -82,7 +82,7 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
 
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1 custom-scroll">
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-1 block">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-400 mb-1 block">
               Type
             </label>
             <div className="space-y-2 pl-2">
@@ -98,11 +98,11 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
                     id={type.id}
                     name="recordingType"
                     value={type.id}
-                    checked={selectedType === type.id}
+                    checked={selectedType === type.id}  
                     onChange={handleTypeChange}
-                    className="w-4 h-4 accent-gray-900 text-black border-gray-300 focus:ring-black cursor-pointer"
+                    className="w-4 h-4 accent-gray-900 text-black border-gray-300 dark:border-gray-600 focus:ring-black cursor-pointer"
                   />
-                  <label htmlFor={type.id} className="ml-3 text-xs sm:text-sm text-gray-700 cursor-pointer">
+                  <label htmlFor={type.id} className="ml-3 text-xs sm:text-sm text-gray-700 dark:text-gray-400 cursor-pointer">
                     {type.label}
                   </label>
                 </div>
@@ -110,10 +110,10 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
             </div>
           </div>
 
-          <div className="bg-gray-100 rounded-lg p-3">
+          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
             <label
               htmlFor="templateName"
-              className="text-[12px] font-semibold text-[#495057] block mb-1"
+              className="text-[12px] font-semibold text-[#495057] dark:text-gray-400 block mb-1"
             >
               Template Name
             </label>
@@ -127,12 +127,12 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
             />
           </div>
 
-          <div className="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
             <HiOutlinePlay size={32} className="text-gray-500 mb-4" />
             <button
               onClick={handleUploadClick}
               disabled={loading}
-              className="bg-white border border-gray-300 text-sm font-medium text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-50 mb-2 transition"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-800 dark:text-gray-400 px-6 py-2 rounded-lg hover:bg-gray-50 mb-2 transition"
             >
               {selectedFile ? selectedFile.name : "Upload Recording"}
             </button>

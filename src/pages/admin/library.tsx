@@ -31,19 +31,19 @@ const Library = () => {
   };
 
   return (
-    <div className=" pr-10">
+    <div className=" pr-10 min-h-screen bg-white dark:bg-slate-900 transition-colors">
 
-      <h1 className="text-2xl sm:text-4xl font-medium text-gray-800">Library</h1>
+      <h1 className="text-2xl sm:text-4xl font-medium text-gray-800 dark:text-white">Library</h1>
 
-      <div className="mt-4 rounded-md w-fit bg-gray-200">
+      <div className="mt-4 rounded-md w-fit bg-gray-200 dark:bg-slate-800">
         <nav className="flex   flex-wrap gap-4">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`py-2 px-4 font-medium text-xs sm:text-sm transition-colors duration-300 whitespace-nowrap ${activeTab === tab
-                ? 'bg-yellow-400 text-black rounded-lg'
-                : 'text-gray-500 hover:text-gray-800'
+                ? 'bg-yellow-400 text-black rounded-lg shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                 }`}
             >
               {tab}

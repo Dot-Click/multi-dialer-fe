@@ -48,16 +48,16 @@ const AddSetting: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white ">
+    <div className="min-h-screen bg-gray-100 dark:bg-slate-900 py-6 px-4">
+      <div className="max-w-4xl mx-auto shadow-sm rounded-xl overflow-hidden">
+        <div className="bg-white dark:bg-slate-800">
           {/* Header with Cancel and Save buttons */}
-          <div className="flex bg-gray-100  justify-between items-center p-4 md:p-6 ">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Create Call Settings</h2>
+          <div className="flex bg-gray-100 dark:bg-slate-800 justify-between items-center p-4 md:p-6 border-b dark:border-slate-700">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Create Call Settings</h2>
             <div className="flex gap-3">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -75,7 +75,7 @@ const AddSetting: React.FC = () => {
             <div className="space-y-6">
               {/* Name Field - Full Width */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Name
                 </label>
                 <input
@@ -84,23 +84,23 @@ const AddSetting: React.FC = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter Name"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-transparent dark:text-white dark:placeholder-gray-500"
                 />
               </div>
 
               {/* Voice Recordings Details - 2 Columns */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Voice recordings Details</h3>
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-4">Voice recordings Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       On-hold Recording 1
                     </label>
                     <select
                       name="onHoldRecording1"
                       value={formData.onHoldRecording1}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                     >
                       <option value="">Select</option>
                       <option value="recording1">Recording 1</option>
@@ -115,7 +115,7 @@ const AddSetting: React.FC = () => {
                       name="onHoldRecording2"
                       value={formData.onHoldRecording2}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                     >
                       <option value="">Select</option>
                       <option value="recording1">Recording 1</option>
@@ -130,7 +130,7 @@ const AddSetting: React.FC = () => {
                       name="onHoldRecording3"
                       value={formData.onHoldRecording3}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                     >
                       <option value="">Select</option>
                       <option value="recording1">Recording 1</option>
@@ -138,14 +138,14 @@ const AddSetting: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Answering Machine Recordings
                     </label>
                     <select
                       name="answeringMachineRecording"
                       value={formData.answeringMachineRecording}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                     >
                       <option value="">Select</option>
                       <option value="recording1">Recording 1</option>
@@ -159,7 +159,7 @@ const AddSetting: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* General Communication - Left Column */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-4">General Communication</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-4">General Communication</h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <input
@@ -170,7 +170,7 @@ const AddSetting: React.FC = () => {
                         onChange={handleInputChange}
                         className="h-4 w-4 accent-black focus:ring-black border-gray-300 rounded cursor-pointer"
                       />
-                      <label htmlFor="enableAutoPause" className="ml-3 text-sm text-gray-700 cursor-pointer">
+                      <label htmlFor="enableAutoPause" className="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                         Enable Auto Pause
                       </label>
                     </div>
@@ -205,7 +205,7 @@ const AddSetting: React.FC = () => {
 
                 {/* Make Calls to DNC Numbers - Right Column */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Make Calls to DNC Numbers
                   </label>
                   <div className="flex gap-6">
@@ -219,7 +219,7 @@ const AddSetting: React.FC = () => {
                         onChange={() => handleRadioChange('makeCallsToDNC', 'No')}
                         className="h-4 w-4 accent-black focus:ring-black border-gray-300 cursor-pointer"
                       />
-                      <label htmlFor="dncNo" className="ml-2 text-sm text-gray-700 cursor-pointer">
+                      <label htmlFor="dncNo" className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                         No
                       </label>
                     </div>
@@ -233,7 +233,7 @@ const AddSetting: React.FC = () => {
                         onChange={() => handleRadioChange('makeCallsToDNC', 'Yes')}
                         className="h-4 w-4 accent-black focus:ring-black border-gray-300 cursor-pointer"
                       />
-                      <label htmlFor="dncYes" className="ml-2 text-sm text-gray-700 cursor-pointer">
+                      <label htmlFor="dncYes" className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                         Yes
                       </label>
                     </div>
@@ -244,7 +244,7 @@ const AddSetting: React.FC = () => {
               {/* Caller ID and Country Code - Side by Side */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Caller ID
                   </label>
                   <input
@@ -252,18 +252,18 @@ const AddSetting: React.FC = () => {
                     name="callerId"
                     value={formData.callerId}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-transparent dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Country Code
                   </label>
                   <select
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                   >
                     <option value="">Select</option>
                     <option value="+1">+1 (US/Canada)</option>
@@ -276,14 +276,14 @@ const AddSetting: React.FC = () => {
               {/* No of Lines, Phone Ring Time, Call Script - Three Columns */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     No of Lines
                   </label>
                   <select
                     name="numberOfLines"
                     value={formData.numberOfLines}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white appearance-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm bg-white dark:bg-slate-800 dark:text-white appearance-none"
                   >
                     <option value="">Select</option>
                     <option value="1">1</option>
@@ -294,7 +294,7 @@ const AddSetting: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Phone Ring Time
                   </label>
                   <select
@@ -366,7 +366,7 @@ const AddSetting: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Send Text
                   </label>
                   <div className="flex gap-6">

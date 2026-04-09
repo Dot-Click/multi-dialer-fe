@@ -41,10 +41,10 @@ const SuperAdminReportsOfUserHeader = ({ onSearchChange, onPlanChange, onStatusC
     };
 
     return (
-        <div className="bg-[#FFFFFF] flex flex-col md:flex-row gap-5 md:gap-2 md:justify-between md:items-center w-full rounded-[13.48px] px-5 py-4">
+        <div className="bg-[#FFFFFF] dark:bg-slate-800 flex flex-col md:flex-row gap-5 md:gap-2 md:justify-between md:items-center w-full rounded-[13.48px] px-5 py-4">
 
             {/* Search Input */}
-            <div className='w-full md:w-[65%] bg-[#F2F2F2] h-[40px] flex justify-start items-center gap-3 rounded-[11.56px] px-3 py-2'>
+            <div className='w-full md:w-[65%] bg-[#F2F2F2] dark:bg-slate-700 h-[40px] flex justify-start items-center gap-3 rounded-[11.56px] px-3 py-2'>
                 <span>
                     <img src={searchIcon} alt="searchIcon" className='h-[17.343202590942383] object-contain' />
                 </span>
@@ -52,7 +52,7 @@ const SuperAdminReportsOfUserHeader = ({ onSearchChange, onPlanChange, onStatusC
                     type="text" 
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="w-full bg-transparent outline-none text-[#6C6D72] text-[13.73px] font-[400]" 
+                    className="w-full bg-transparent outline-none text-[#6C6D72] dark:text-white text-[13.73px] font-[400]" 
                     placeholder='Search branches, rentals, services...' 
                 />
             </div>
@@ -63,18 +63,18 @@ const SuperAdminReportsOfUserHeader = ({ onSearchChange, onPlanChange, onStatusC
                 <div className="relative">
                     <button 
                         onClick={() => { setPlanOpen(!planOpen); setStatusOpen(false); }}
-                        className='bg-[#F2F2F2] px-3 py-2 h-[40px] flex rounded-[11.56px] w-[150px] justify-between items-center gap-2'
+                        className='bg-[#F2F2F2] dark:bg-slate-700 px-3 py-2 h-[40px] flex rounded-[11.56px] w-[150px] justify-between items-center gap-2'
                     >
-                        <span className='text-[#030213] text-[15.41px] font-[400]'>{selectedPlan}</span>
-                        <img src={downarrow} alt="arrow" className={`h-1.5 object-contain transition-transform ${planOpen ? 'rotate-180' : ''}`} />
+                        <span className='text-[#030213] dark:text-white text-[15.41px] font-[400]'>{selectedPlan}</span>
+                        <img src={downarrow} alt="arrow" className={`h-1.5 object-contain dark:invert transition-transform ${planOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {planOpen && (
-                        <div className="absolute top-[45px] left-0 w-full bg-white shadow-lg rounded-[11.56px] z-50 border border-gray-100 overflow-hidden">
+                        <div className="absolute top-[45px] left-0 w-full bg-white dark:bg-slate-700 shadow-lg rounded-[11.56px] z-50 border border-gray-100 dark:border-gray-600 overflow-hidden">
                             {planOptions.map((opt) => (
                                 <div 
                                     key={opt}
-                                    className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+                                    className="px-4 py-2 hover:bg-[#F2F2F2] dark:hover:bg-slate-600 cursor-pointer text-[14px] text-[#030213] dark:text-white"
                                     onClick={() => selectPlan(opt)}
                                 >
                                     {opt}
@@ -88,18 +88,18 @@ const SuperAdminReportsOfUserHeader = ({ onSearchChange, onPlanChange, onStatusC
                 <div className="relative">
                     <button 
                         onClick={() => { setStatusOpen(!statusOpen); setPlanOpen(false); }}
-                        className='bg-[#F2F2F2] px-3 py-2 h-[40px] flex rounded-[11.56px] w-[150px] justify-between items-center gap-2'
+                        className='bg-[#F2F2F2] dark:bg-slate-700 px-3 py-2 h-[40px] flex rounded-[11.56px] w-[150px] justify-between items-center gap-2'
                     >
-                        <span className='text-[15.41px] text-[#030213] font-[400]'>{selectedStatus}</span>
-                        <img src={downarrow} alt="arrow" className={`h-1.5 object-contain transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
+                        <span className='text-[15.41px] text-[#030213] dark:text-white font-[400]'>{selectedStatus}</span>
+                        <img src={downarrow} alt="arrow" className={`h-1.5 object-contain dark:invert transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {statusOpen && (
-                        <div className="absolute top-[45px] left-0 w-full bg-white shadow-lg rounded-[11.56px] z-50 border border-gray-100 overflow-hidden">
+                        <div className="absolute top-[45px] left-0 w-full bg-white dark:bg-slate-700 shadow-lg rounded-[11.56px] z-50 border border-gray-100 dark:border-gray-600 overflow-hidden">
                             {statusOptions.map((opt) => (
                                 <div 
                                     key={opt}
-                                    className="px-4 py-2 hover:bg-[#F2F2F2] cursor-pointer text-[14px] text-[#030213]"
+                                    className="px-4 py-2 hover:bg-[#F2F2F2] dark:hover:bg-slate-600 cursor-pointer text-[14px] text-[#030213] dark:text-white"
                                     onClick={() => selectStatus(opt)}
                                 >
                                     {opt}

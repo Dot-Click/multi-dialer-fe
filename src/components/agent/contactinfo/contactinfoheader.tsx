@@ -1,145 +1,302 @@
-import { useState } from "react";
-import { IoPlayOutline } from "react-icons/io5";
+// ─── ContactInfoHeader.tsx ────────────────────────────────────────────────────
+// Key fix: onCallStarted now receives the actual fromNumber that was used,
+// so ContactInfo doesn't need to re-read stale state.
+
+import { useState, useEffect, useRef } from "react";
+import { PhoneOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
 import { FiPause } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useTwilio } from "@/providers/twilio.provider";
+import AddEventForm from "@/components/modal/addeventmodal";
+import { useRegulatorySettings } from "@/hooks/useSystemSettings";
+import toast from "react-hot-toast";
 
 interface ContactInfoHeaderProps {
+  settingsInfo?: any;
   contact?: any;
   onNext?: () => void;
   onPrev?: () => void;
   currentIndex?: number;
   totalContacts?: number;
+  callerId?: string | null;
+  onPickNextCallerId?: () => string | null;
+  onCallStarted?: (fromNumber: string) => void; // ← now receives the number used
+  dailyCount?: number;
+  dailyLimit?: number;
+  onholdUrl?: string;
+  autoDial?: boolean;
+  onAutoDialStarted?: () => void;
+  dialerMode?: string;
+  onStartSimultaneousDialer?: () => void;
+  onStopSimultaneousDialer?: () => void;
 }
 
-const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalContacts = 0 }: ContactInfoHeaderProps) => {
+const ContactInfoHeader = ({
+  contact,
+  onNext,
+  onPrev,
+  currentIndex = 0,
+  totalContacts = 0,
+  callerId,
+  onPickNextCallerId,
+  onCallStarted,
+  autoDial,
+  onAutoDialStarted,
+  dialerMode,
+  onStartSimultaneousDialer,
+  onStopSimultaneousDialer,
+}: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isCalling, appStatus, startCall, endCall } = useTwilio();
+  const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const hasTriggeredAutoDialRef = useRef(false);
+  const navigate = useNavigate();
+  const [eventDefaults, setEventDefaults] = useState<{
+    title: string;
+    color: string;
+    category: "TASK" | "FOLLOW_UP" | "APPOINTMENT";
+  }>({ title: "", color: "#FFCA06", category: "TASK" });
 
-  const handleCallToggle = () => {
+  const { isCalling, startCall, endCall } = useTwilio();
+  const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
+
+  const now = new Date();
+  const currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  const handleCallToggle = async () => {
+    if (isRegulatoryLoading) {
+      toast("Syncing compliance settings...", { icon: '⏳' });
+      return;
+    }
+
     if (isCalling) {
+      if (dialerMode === "power" && onStopSimultaneousDialer) {
+        onStopSimultaneousDialer();
+      }
       endCall();
-    } else {
-      // Use the primary phone from the contact's phones array
-      const phone = contact?.phones?.find((p: any) => p.isPrimary)?.number || contact?.phones?.[0]?.number || "+923413227282";
-      startCall(phone);
+      return;
+    }
+
+    // --- TCPA CHECK ---
+    const { tcpaFrom, tcpaTo } = regulatory || {};
+    if (tcpaFrom && tcpaTo) {
+      const isAllowed = tcpaFrom <= tcpaTo
+        ? (currentStr >= tcpaFrom && currentStr <= tcpaTo)
+        : (currentStr >= tcpaFrom || currentStr <= tcpaTo);
+
+      if (!isAllowed) {
+        toast.error(`Compliance Alert: Calling is restricted outside ${tcpaFrom} - ${tcpaTo} (TCPA Hours).`);
+        return;
+      }
+    }
+
+    if (dialerMode === "power" && onStartSimultaneousDialer) {
+      onStartSimultaneousDialer();
+      return;
+    }
+
+    // Pick the callerId to use for this call
+    const fromNumber = onPickNextCallerId
+      ? onPickNextCallerId()
+      : callerId || "+15203530496";
+
+    if (!fromNumber) return; // All on cooldown or daily limit reached
+
+    const phone =
+      contact?.phones?.find((p: any) => p.isPrimary)?.number ||
+      contact?.phones?.[0]?.number ||
+      "+923413227282";
+
+    try {
+      await startCall(phone, fromNumber, contact?.id);
+      // ✅ Pass the actual fromNumber used — no stale state reads
+      if (onCallStarted) onCallStarted(fromNumber);
+    } catch {
+      // Error already toasted by startCall
     }
   };
 
+  const handleOpenEventModal = (type: "TASK" | "FOLLOW_UP") => {
+    setEventDefaults({
+      title: `${type === "FOLLOW_UP" ? "Follow up with" : "Task for"} ${contact?.fullName || "Contact"}`,
+      color: type === "FOLLOW_UP" ? "#3B82F6" : "#FFCA06",
+      category: type,
+    });
+    setEventModalOpen(true);
+  };
+
+  // ─── Power Dialer Auto-Dial Hook ───
+  useEffect(() => {
+    if (!autoDial) {
+      hasTriggeredAutoDialRef.current = false;
+    }
+  }, [autoDial]);
+
+  useEffect(() => {
+    if (!autoDial || isCalling || dialerMode === "power" || hasTriggeredAutoDialRef.current) return;
+
+    hasTriggeredAutoDialRef.current = true;
+    handleCallToggle();
+    if (onAutoDialStarted) onAutoDialStarted();
+  }, [autoDial, isCalling, dialerMode]);
+
   return (
-    <div className="w-full work-sans bg-white border-t border-[#EBEDF0] shadow-sm">
+    <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
       {/* Main Header Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-        {/* Left - Title + Status */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <h1 className="text-[#0E1011] text-xl sm:text-[22px] font-semibold">
-            Live Dialing Screen
-          </h1>
-          <span className={`text-white text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full transition-colors ${isCalling ? 'bg-red-500' : 'bg-[#07D95B]'}`}>
-            {isCalling ? 'Active Call' : appStatus}
-          </span>
-          {totalContacts > 0 && (
-            <span className="text-gray-500 text-sm font-medium">
-              Queue: {currentIndex + 1} / {totalContacts}
-            </span>
-          )}
-        </div>
-
-        {/* Desktop Buttons - hidden on mobile */}
-        <div className="hidden md:flex items-center gap-3">
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors">
-            <HiPlus className="text-lg" />
-            <span className="text-[#0E1011] text-sm font-medium">Task</span>
-          </button>
-
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors">
-            <HiPlus className="text-lg" />
-            <span className="text-[#0E1011] text-sm font-medium">Follow Up</span>
-          </button>
-
-          <button 
-            onClick={handleCallToggle}
-            className={`${isCalling ? 'bg-red-500 text-white' : 'bg-[#EBEDF0] text-[#0E1011]'} rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:opacity-80 transition-all`}
+        {/* Left */}
+        {/* Left: Progress indicator as seen in SS */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all group"
+            title="Go Back"
           >
-            {isCalling ? <FiPause className="text-xl" /> : <IoPlayOutline className="text-xl" />}
-            <span className="text-sm font-medium">{isCalling ? 'End Connection' : 'Start'}</span>
+            <IoArrowBack className="text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Back</span>
           </button>
 
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#e0e2e6] transition-colors">
-            <FiPause className="text-xl" />
-            <span className="text-[#0E1011] text-sm font-medium">Pause</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {dialerMode === "manual" && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={onPrev}
+                  disabled={currentIndex === 0}
+                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  title="Previous Contact"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={currentIndex >= totalContacts - 1}
+                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  title="Next Contact"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
+                </button>
+              </div>
+            )}
 
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onPrev}
-              disabled={currentIndex === 0}
-              className={`bg-[#EBEDF0] text-[#0E1011] rounded-[12px] flex items-center gap-1.5 py-3 px-4 hover:bg-[#D8DCE1] transition-all ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span className="text-sm font-medium">Prev</span>
-            </button>
-
-            <button 
-              onClick={onNext}
-              disabled={currentIndex >= totalContacts - 1}
-              className={`bg-[#0E1011] text-white rounded-[12px] flex items-center gap-1.5 py-3 px-5 hover:bg-[#1a1c1e] transition-colors ${currentIndex >= totalContacts - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <HiPlus className="text-xl" />
-              <span className="text-sm font-medium">Dial Next Number</span>
-            </button>
+            <div className="flex flex-col gap-1 min-w-[120px]">
+              <div className="flex justify-between items-end">
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                  {currentIndex + 1}/{totalContacts}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                 <div 
+                   className="bg-gray-600 dark:bg-gray-400 h-full transition-all duration-300" 
+                   style={{ width: `${(totalContacts > 0 ? ((currentIndex + 1) / totalContacts) * 100 : 0)}%` }} 
+                 />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Hamburger - visible only on mobile */}
+        {/* Desktop Buttons matched to SS */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={() => handleOpenEventModal("TASK")}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-[#e0e2e6] transition-colors"
+          >
+            <HiPlus className="text-xl rotate-180 dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Tasks</span>
+          </button>
+
+          <button
+            onClick={() => handleOpenEventModal("FOLLOW_UP")}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-[#e0e2e6] transition-colors"
+          >
+            <HiPlus className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Appointment</span>
+          </button>
+
+          <div className="w-px h-8 bg-gray-200 dark:bg-slate-700 mx-1" />
+
+          {/* Call Status Indicator from SS (Dot next to Start) */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-900/20">
+             <div className={`w-3 h-3 rounded-full ${isCalling ? 'bg-red-500 animate-pulse' : 'bg-red-200'}`} />
+          </div>
+
+          <button
+            onClick={handleCallToggle}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-6 hover:bg-[#e0e2e6] transition-all"
+          >
+            {isCalling ? <FiPause className="text-xl dark:text-white" /> : <IoPlayOutline className="text-xl dark:text-white" />}
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">
+              {isCalling ? "Pause" : "Start"}
+            </span>
+          </button>
+
+          <button
+            onClick={endCall}
+            disabled={!isCalling}
+            className={`bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 transition-all ${
+              !isCalling ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100 dark:hover:bg-red-900/40"
+            }`}
+          >
+            <PhoneOff className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Hang Up & Leave</span>
+          </button>
+        </div>
+
+        {/* Mobile Hamburger */}
         <button
-          className="md:hidden text-[#0E1011] p-2 -mr-2"
+          className="md:hidden text-[#0E1011] dark:text-white p-2 -mr-2"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
         >
           <RxHamburgerMenu size={28} />
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-[#EBEDF0] bg-white px-4 py-5 flex flex-col gap-3">
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]">
-            <HiPlus className="text-xl" />
-            <span className="text-[#0E1011] font-medium">Task</span>
+        <div className="md:hidden border-t border-[#EBEDF0] dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-5 flex flex-col gap-3">
+          <button
+            onClick={() => handleOpenEventModal("TASK")}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4"
+          >
+            <HiPlus className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white font-medium">Task</span>
           </button>
 
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]">
-            <HiPlus className="text-xl" />
-            <span className="text-[#0E1011] font-medium">Follow Up</span>
+          <button
+            onClick={() => handleOpenEventModal("FOLLOW_UP")}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center justify-center gap-2 py-3 px-4"
+          >
+            <HiPlus className="text-xl dark:text-white" />
+            <span className="text-[#0E1011] dark:text-white font-medium">Follow Up</span>
           </button>
 
-          <button 
+          <button
             onClick={handleCallToggle}
-            className={`rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 transition-colors ${isCalling ? 'bg-red-500 text-white' : 'bg-[#EBEDF0] text-[#0E1011]'}`}
+            className={`rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 transition-colors ${isCalling
+              ? "bg-red-500 text-white"
+              : "bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white"
+              }`}
           >
             {isCalling ? <FiPause className="text-2xl" /> : <IoPlayOutline className="text-2xl" />}
-            <span className="font-medium">{isCalling ? 'End Connection' : 'Start'}</span>
-          </button>
-
-          <button className="bg-[#EBEDF0] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade]">
-            <FiPause className="text-2xl" />
-            <span className="text-[#0E1011] font-medium">Pause</span>
+            <span className="font-medium">{isCalling ? "End Connection" : "Start"}</span>
           </button>
 
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={onPrev}
               disabled={currentIndex === 0}
-              className={`flex-1 bg-[#EBEDF0] text-[#0E1011] rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#d8dade] ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex-1 bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <span className="font-medium">Previous</span>
             </button>
 
-            <button 
+            <button
               onClick={onNext}
               disabled={currentIndex >= totalContacts - 1}
-              className={`flex-1 bg-[#0E1011] text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 active:bg-[#1a1c1e] ${currentIndex >= totalContacts - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex-1 bg-[#0E1011] dark:bg-slate-900 text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               <HiPlus className="text-2xl" />
               <span className="font-medium">Next</span>
@@ -147,6 +304,15 @@ const ContactInfoHeader = ({ contact, onNext, onPrev, currentIndex = 0, totalCon
           </div>
         </div>
       )}
+
+      <AddEventForm
+        open={isEventModalOpen}
+        onClose={() => setEventModalOpen(false)}
+        contactId={contact?.id}
+        defaultTitle={eventDefaults.title}
+        defaultColor={eventDefaults.color}
+        defaultCategory={eventDefaults.category}
+      />
     </div>
   );
 };

@@ -3,14 +3,44 @@ import { TableProvider } from "@/providers/table.provider";
 import { TableComponent } from "@/components/common/tablecomponent";
 
 const eventData = [
-  { name: "Kathryn Murphy", startDate: "18/06/2021 09:13", repeat: 2, type: "Email" },
+  {
+    name: "Kathryn Murphy",
+    startDate: "18/06/2021 09:13",
+    repeat: 2,
+    type: "Email",
+  },
   { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
-  { name: "Annette Black", startDate: "2021/11/2013 20:01", repeat: 1, type: "Call back" },
-  { name: "Dianne Russell", startDate: "10/06/2021 19:30", repeat: 0, type: "Email" },
-  { name: "Kathryn Murphy", startDate: "18/06/2021 09:13", repeat: 2, type: "Email" },
+  {
+    name: "Annette Black",
+    startDate: "2021/11/2013 20:01",
+    repeat: 1,
+    type: "Call back",
+  },
+  {
+    name: "Dianne Russell",
+    startDate: "10/06/2021 19:30",
+    repeat: 0,
+    type: "Email",
+  },
+  {
+    name: "Kathryn Murphy",
+    startDate: "18/06/2021 09:13",
+    repeat: 2,
+    type: "Email",
+  },
   { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
-  { name: "Annette Black", startDate: "2021/11/2013 20:01", repeat: 1, type: "Call back" },
-  { name: "Dianne Russell", startDate: "10/06/2021 19:30", repeat: 0, type: "Email" },
+  {
+    name: "Annette Black",
+    startDate: "2021/11/2013 20:01",
+    repeat: 1,
+    type: "Call back",
+  },
+  {
+    name: "Dianne Russell",
+    startDate: "10/06/2021 19:30",
+    repeat: 0,
+    type: "Email",
+  },
 ];
 
 const columns = [
@@ -18,7 +48,9 @@ const columns = [
     accessorKey: "name",
     header: () => <span>Name</span>,
     cell: (info: any) => (
-      <span style={{ color: "#1D85F0", fontWeight: 400 }}>{info.getValue()}</span>
+      <span className="text-[#1D85F0] dark:text-blue-400 font-[400]">
+        {info.getValue() || "-"}
+      </span>
     ),
   },
   { accessorKey: "startDate", header: () => <span>Start Date</span> },
@@ -55,6 +87,17 @@ const RecurringEvent = () => {
           table tbody tr:last-child {
             border-bottom: none !important;
           }
+
+          /* DARK MODE ADJUSTMENTS */
+          :is(.dark) table thead tr th, :is(.dark) table thead { background: #334155 !important; } /* bg-slate-700 */
+          :is(.dark) table thead tr th { 
+              color: white !important; 
+              border-bottom: 1px solid #475569 !important; 
+          }
+          :is(.dark) table tbody tr td { 
+              color: #cbd5e1 !important; /* text-slate-300 */
+          }
+          :is(.dark) table tbody tr { border-bottom: 1px solid #475569 !important; }
 
           /* MOBILE ADJUSTMENT */
           @media (max-width: 768px) {

@@ -51,15 +51,13 @@ import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
-
 import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
 import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
 import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
-
-
+import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
 
 const Router: React.FC = () => {
   return (
@@ -90,9 +88,9 @@ const Router: React.FC = () => {
 
             <Route path="/data-dialer" element={<ContactLayout />}>
               <Route index element={<AllContact />} />
+              <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
-            <Route path="/contact-detail" element={<ContactDetail />} />
             <Route path="/contact-info" element={<ContactInfo />} />
           </Route>
         </Route>
@@ -105,6 +103,7 @@ const Router: React.FC = () => {
             <Route path="/admin" element={<AdminContact />}>
               <Route path="data-dialer" element={<AdminAllContact />} />
               <Route path="find-duplicate" element={<AdminFindDuplicate />} />
+              <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
             {/* ✅ Admin Dashboard Section */}
@@ -133,7 +132,6 @@ const Router: React.FC = () => {
               <Route path="change-password" element={<AdminChangePassword />} />
             </Route>
 
-            <Route path="/admin/contact-detail" element={<ContactDetail />} />
             <Route path="/admin/password-change" element={<AdminChangePassword />} />
             <Route path="/admin/contact-info" element={<ContactInfo />} />
           </Route>
@@ -150,6 +148,7 @@ const Router: React.FC = () => {
             <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
             <Route path="reporting" element={<SuperAdminReporting />} />
             <Route path="setting" element={<SuperAdminSetting />} />
+            <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
           </Route>
         </Route>
 

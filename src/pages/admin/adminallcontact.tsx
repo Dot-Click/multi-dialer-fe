@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useOutletContext, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useOutletContext } from "react-router-dom";
 import { GrSplits } from "react-icons/gr";
 import { IoAdd, IoFilter } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
@@ -8,32 +8,78 @@ import { FiEdit } from "react-icons/fi";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
+import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
+import DialRestrictionModal from "@/components/modal/DialRestrictionModal";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { assignAgentsToList } from "@/store/slices/contactSlice";
+import { authClient } from "@/lib/auth-client";
+import { fetchContactLists } from "@/store/slices/contactSlice";
+import toast from "react-hot-toast";
 
-// ✅ Define type for the Outlet context
 type OutletContextType = {
     activeItem: { type: string; id?: string; name: string };
+    selectedContacts: any[];
+    setSelectedContacts: (contacts: any[]) => void;
 };
 
 const AdminAllContact = () => {
+    const dispatch = useAppDispatch();
+    const { lists } = useAppSelector((state) => state.contacts);
+    const { session } = useAppSelector((state) => state.auth);
+
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
-    const [assignedToName, setAssignedToName] = useState("John Lord");
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    const [selectedName, setSelectedName] = useState(assignedToName);
-    const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
-    const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState("");
+    const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
+    const [isRestrictionModalOpen, setIsRestrictionModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState(""); // used for agents modal
+    const [contactSearchTerm, setContactSearchTerm] = useState(""); // used for table
 
-    const users = [
-        "None",
-        "John Lee",
-        "Cody Fisher",
-        "Marvin McKinney",
-        "Cameron Williamson",
-        "Devon Lane",
-    ];
+    const [realUsers, setRealUsers] = useState<any[]>([]);
+    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-    const { activeItem } = useOutletContext<OutletContextType>();
+    const { activeItem, selectedContacts, setSelectedContacts } = useOutletContext<OutletContextType>();
+
+    const fetchUsers = async () => {
+        if (!session?.user?.id) return;
+        setIsLoadingUsers(true);
+        try {
+            const { data, error } = await authClient.admin.listUsers({
+                query: { limit: 100 }
+            });
+            if (error) {
+                toast.error(error.message || "Failed to fetch users");
+            } else if (data) {
+                const filtered = data.users?.filter((u: any) =>
+                    u.createdById === session.user.id
+                ) || [];
+                setRealUsers(filtered);
+            }
+        } catch (err: any) {
+            console.error("Fetch Users Error:", err);
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    };
+
+    useEffect(() => {
+        if (session?.user?.id) {
+            dispatch(fetchContactLists());
+        }
+    }, [session?.user?.id]);
+
+    useEffect(() => {
+        if (isAssignModalOpen) {
+            fetchUsers();
+            if (activeItem.type === "list" && activeItem.id) {
+                const currentList = lists.find(l => l.id === activeItem.id);
+                if (currentList) {
+                    setSelectedAgentIds(currentList.agentIds || []);
+                }
+            }
+        }
+    }, [isAssignModalOpen]);
 
     const getBreadcrumb = () => {
         if (activeItem.type === "allContacts") return "";
@@ -48,43 +94,71 @@ const AdminAllContact = () => {
         return activeItem.name;
     };
 
-    const handleSaveAssign = () => {
-        if (selectedName === "None") {
-            setAssignedToName("Unassigned");
-        } else {
-            setAssignedToName(selectedName);
+    const getAssignedToText = () => {
+        if (activeItem.type !== "list" || !activeItem.id) return "";
+        const currentList = lists.find(l => l.id === activeItem.id);
+        if (!currentList || !currentList.agentIds || currentList.agentIds.length === 0) return "Unassigned";
+
+        const assignedNames = currentList.agentIds.map(id => {
+            const u = realUsers.find(user => user.id === id);
+            return u ? (u.fullName || u.name) : "Agent";
+        }).filter(Boolean);
+
+        if (assignedNames.length === 0) return `${currentList.agentIds.length} Agent(s)`;
+        if (assignedNames.length === 1) return assignedNames[0];
+        return `${assignedNames[0]} + ${assignedNames.length - 1} more`;
+    };
+
+    const handleSaveAssign = async () => {
+        if (activeItem.type !== "list" || !activeItem.id) return;
+        try {
+            await dispatch(assignAgentsToList({
+                listId: activeItem.id,
+                agentIds: selectedAgentIds
+            })).unwrap();
+            toast.success("Agents assigned successfully");
+            setIsAssignModalOpen(false);
+        } catch (error: any) {
+            toast.error(error || "Failed to assign agents");
         }
-        setIsAssignModalOpen(false);
+    };
+
+    const toggleAgentSelection = (agentId: string) => {
+        setSelectedAgentIds(prev =>
+            prev.includes(agentId)
+                ? prev.filter(id => id !== agentId)
+                : [...prev, agentId]
+        );
     };
 
     return (
         <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all">
-            {/* 🔹 Breadcrumb + Heading */}
+
+            {/* Breadcrumb + Heading */}
             <div className="flex flex-col">
                 {getBreadcrumb() && (
-                    <span className="text-sm text-[#6c757d] font-medium mb-1">
+                    <span className="text-sm text-[#6c757d] dark:text-slate-400 font-medium mb-1">
                         {getBreadcrumb()}
                     </span>
                 )}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    {/* 🔹 Heading + Assigned To */}
+                    {/* Heading + Assigned To */}
                     <div className="flex items-center gap-3 flex-wrap">
-                        <h1 className="text-[24px] sm:text-[28px] font-medium">
+                        <h1 className="text-[24px] sm:text-[28px] font-medium text-[#0E1011] dark:text-white">
                             {renderHeading()}
                         </h1>
 
-                        {/* Only show "Assigned to" when NOT Data & Dialer */}
-                        {renderHeading() !== "Data & Dialer" && (
-                            <div className="flex items-center gap-2 text-[#495057]">
+                        {activeItem.type === "list" && (
+                            <div className="flex items-center gap-2 text-[#495057] dark:text-slate-400">
                                 <span className="text-sm font-medium">
                                     Assigned to
                                 </span>
-                                <span className="text-sm font-semibold">
-                                    {assignedToName}
+                                <span className="text-sm font-semibold text-[#0E1011] dark:text-white">
+                                    {getAssignedToText()}
                                 </span>
                                 <button
                                     onClick={() => setIsAssignModalOpen(true)}
-                                    className="text-gray-600 hover:text-gray-800"
+                                    className="text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-white transition-colors"
                                 >
                                     <FiEdit className="text-base" />
                                 </button>
@@ -96,42 +170,40 @@ const AdminAllContact = () => {
                     <div className="flex items-center gap-5">
                         <Link
                             to="/admin/create-contact"
-                            className="flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent"
+                            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
                         >
-                            <IoAdd className="text-xl text-[#495057]" />
-                            <span className="text-sm font-medium text-[#495057] ">
-                                New Contact
-                            </span>
+                            <IoAdd className="text-xl" />
+                            <span className="text-sm font-medium">New Contact</span>
                         </Link>
                         <div
-                            className="flex gap-2 hover:bg-gray-200 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent"
+                            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
                             onClick={() => setShowColumnsModal(true)}
                         >
-                            <GrSplits className="text-base text-[#495057]" />
-                            <span className="text-sm font-medium text-[#495057]">
-                                Manage Columns
-                            </span>
+                            <GrSplits className="text-base" />
+                            <span className="text-sm font-medium">Manage Columns</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 🔹 Search + Filter + Dial button */}
+            {/* Search + Filter + Dial button */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
                 {/* Search + Filter */}
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="bg-white flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] py-1.5 px-4">
+                    <div className="bg-white dark:bg-slate-800 flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] dark:border-slate-600 py-1.5 px-4">
                         <input
                             type="search"
                             placeholder="Search by name, email, phone number..."
-                            className="w-full placeholder:text-sm text-sm outline-none"
+                            className="w-full placeholder:text-sm text-sm outline-none bg-transparent text-gray-800 dark:text-white dark:placeholder-slate-500"
+                            value={contactSearchTerm}
+                            onChange={(e) => setContactSearchTerm(e.target.value)}
                         />
-                        <IoIosSearch className="text-2xl text-gray-600" />
+                        <IoIosSearch className="text-2xl text-gray-500 dark:text-slate-400 shrink-0" />
                     </div>
 
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className="bg-[#2B3034] text-lg text-white p-2 rounded-full shrink-0"
+                        className="bg-[#2B3034] dark:bg-slate-700 hover:bg-[#3a4045] dark:hover:bg-slate-600 text-lg text-white p-2 rounded-full shrink-0 transition-colors"
                     >
                         <IoFilter />
                     </button>
@@ -139,95 +211,132 @@ const AdminAllContact = () => {
 
                 {/* Dial Button */}
                 <button
-                    onClick={() => {
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (activeItem.type === "allContacts") {
+                            setIsRestrictionModalOpen(true);
+                            return;
+                        }
+
                         if (selectedContacts.length > 0) {
-                            // Navigate to contact-info with the selected contacts as a queue
-                            navigate("/admin/contact-info", {
-                                state: { contacts: selectedContacts }
-                            });
+                            setIsDialSettingOpen(true);
+                        } else {
+                            toast.error("Please select at least one contact to start dialing.");
                         }
                     }}
-                    disabled={selectedContacts.length === 0}
-                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm sm:text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
                 >
                     <MdOutlineCall className="text-base" />
                     <span>Dial Selected ({selectedContacts.length})</span>
                 </button>
             </div>
 
-            {/* 🔹 Table / Contact List */}
+            {/* Table / Contact List */}
             <div className="flex-1 sm:-ml-10 mt-2">
-                <AllContactComponent 
-                    onSelectionChange={setSelectedContacts} 
-                    listId={activeItem.type === 'list' ? activeItem.id : undefined}
+                <AllContactComponent
+                    onSelectionChange={setSelectedContacts}
+                    listId={activeItem.type === "list" ? activeItem.id : undefined}
+                    folderId={activeItem.type === "folder" ? activeItem.id : undefined}
+                    searchTerm={contactSearchTerm}
                 />
             </div>
 
-            {/* 🔹 Modals */}
+            {/* Modals */}
             {isFilterOpen && <FilterModal onClose={() => setIsFilterOpen(false)} />}
             {showColumnsModal && (
                 <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
             )}
+            <CreateCallSettingModal
+                selectedContacts={selectedContacts}
+                isOpen={isDialSettingOpen}
+                onClose={() => setIsDialSettingOpen(false)}
+            />
 
-            {/* 🔹 Assign To Modal */}
+            {isRestrictionModalOpen && (
+                <DialRestrictionModal onClose={() => setIsRestrictionModalOpen(false)} />
+            )}
+
+            {/* Assign To Modal */}
             {isAssignModalOpen && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white w-[380px] rounded-xl shadow-lg p-5 relative">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-slate-900 w-[380px] rounded-xl shadow-xl p-5 relative border border-gray-100 dark:border-slate-700">
+
+                        {/* Close button */}
                         <button
                             onClick={() => setIsAssignModalOpen(false)}
-                            className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-lg"
+                            className="absolute top-3 right-4 text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-white text-lg transition-colors"
                         >
                             ✕
                         </button>
 
-                        <h2 className="text-lg font-semibold mb-4">Assign to</h2>
+                        <h2 className="text-lg font-semibold mb-4 text-[#0E1011] dark:text-white">
+                            Assign to Agents
+                        </h2>
 
                         {/* Search Bar */}
                         <div className="relative mb-4">
                             <input
                                 type="text"
-                                placeholder="Search"
+                                placeholder="Search agents..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg pl-3 py-2 text-sm outline-none focus:ring-1 focus:ring-[#FFCA06]"
+                                className="w-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg pl-3 pr-10 py-2 text-sm outline-none focus:ring-1 focus:ring-[#FFCA06] transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500"
                             />
-                            <IoIosSearch className="absolute right-3 top-2.5 text-gray-500 text-lg" />
+                            <IoIosSearch className="absolute right-3 top-2.5 text-gray-400 dark:text-slate-500 text-lg" />
                         </div>
 
                         {/* User List */}
-                        <div className="max-h-[280px] custom-scrollbar overflow-y-auto space-y-2 mb-4">
-                            {users
-                                .filter((u) =>
-                                    u.toLowerCase().includes(searchTerm.toLowerCase())
-                                )
-                                .map((user) => (
-                                    <label
-                                        key={user}
-                                        className={`flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer ${selectedName === user
-                                            ? "bg-gray-100"
-                                            : "hover:bg-gray-50"
-                                            }`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            className="h-4 w-4 accent-black"
-                                            name="assignedUser"
-                                            value={user}
-                                            checked={selectedName === user}
-                                            onChange={() => setSelectedName(user)}
-                                        />
-                                        <span className="text-base">{user}</span>
-                                    </label>
-                                ))}
+                        <div className="max-h-[280px] custom-scrollbar overflow-y-auto space-y-1 mb-6 pr-1">
+                            {isLoadingUsers ? (
+                                <div className="flex justify-center py-10 text-gray-400 dark:text-slate-500 text-sm italic">
+                                    Loading agents...
+                                </div>
+                            ) : realUsers.length === 0 ? (
+                                <div className="text-center py-10 text-gray-400 dark:text-slate-500 text-sm">
+                                    No agents found
+                                </div>
+                            ) : (
+                                realUsers
+                                    .filter((u) => {
+                                        const name = u.fullName || u.name || "";
+                                        return name.toLowerCase().includes(searchTerm.toLowerCase());
+                                    })
+                                    .map((user) => (
+                                        <label
+                                            key={user.id}
+                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${selectedAgentIds.includes(user.id)
+                                                    ? "bg-gray-100 dark:bg-slate-700/80"
+                                                    : "hover:bg-gray-50 dark:hover:bg-slate-800"
+                                                }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 accent-[#FFCA06] rounded cursor-pointer shrink-0"
+                                                checked={selectedAgentIds.includes(user.id)}
+                                                onChange={() => toggleAgentSelection(user.id)}
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="text-[15px] font-medium text-[#0E1011] dark:text-white">
+                                                    {user.fullName || user.name || "Unnamed User"}
+                                                </span>
+                                                <span className="text-[11px] text-gray-500 dark:text-slate-400 uppercase tracking-tight">
+                                                    {user.role}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    ))
+                            )}
                         </div>
 
                         {/* Save Button */}
                         <button
                             onClick={handleSaveAssign}
-                            className="w-full bg-[#FFCA06] hover:bg-[#ffd633] text-[#2B3034] font-semibold py-2.5 rounded-lg"
+                            className="w-full bg-[#FFCA06] hover:bg-[#ffd633] text-[#2B3034] font-semibold py-3 rounded-lg shadow-sm transition-all duration-200 active:scale-[0.98]"
                         >
-                            Save
+                            Save Assignments
                         </button>
                     </div>
                 </div>

@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { Device, Call } from '@twilio/voice-sdk';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
+// import { useCallSettings } from '@/hooks/useSystemSettings';
 
 interface TwilioContextType {
   device: Device | null;
@@ -9,15 +10,24 @@ interface TwilioContextType {
   isCalling: boolean;
   appStatus: string;
   activeCallSid: string | null;
-  startCall: (phone: string) => Promise<void>;
+  startCall: (phone: string, from: string, contactId: string) => Promise<void>;
   endCall: () => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
+  isHold: boolean;
   toggleMute: () => void;
   toggleSpeaker: () => void;
+  toggleHold: (customHoldUrl?: string) => Promise<void>;
   transcriptionLogs: any[];
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
+  callDisposition: string | null;
+  duration: number;
   resetCallStatus: () => void;
+  answeringMachineUrl: string | null;
+  setAnsweringMachineUrl: (url: string | null) => void;
+  dropVoicemail: () => Promise<void>;
+  isDroppingingVoicemail: boolean;
+  incomingContactId: string | null;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -29,18 +39,61 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [appStatus, setAppStatus] = useState('Initializing Agent...');
   const [activeCallSid, setActiveCallSid] = useState<string | null>(null);
   const [transcriptionLogs, setTranscriptionLogs] = useState<any[]>([]);
+  const [identity, setIdentity] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [isHold, setIsHold] = useState(false);
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected'>('idle');
+  const [callDisposition, setCallDisposition] = useState<string | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
+  const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
+  const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
+  const [incomingContactId, setIncomingContactId] = useState<string | null>(null);
+
+  // 🚨 ALL REFS AT THE TOP LEVEL
+  const isHoldRef = useRef(false);
+  const ignoredCallsRef = useRef<Set<Call>>(new Set());
+  const isHoldProcessing = useRef(false);
+
+  useEffect(() => {
+    isHoldRef.current = isHold;
+  }, [isHold]);
+
+  const [holdAudio] = useState(() => {
+    const audio = new Audio('https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3');
+    audio.loop = true;
+    return audio;
+  });
+
+  const handleStopCalling = useCallback(() => {
+    setIsCalling(false);
+    setCallStatus('disconnected');
+    setAppStatus('Agent Ready');
+    setActiveCall(null);
+    setActiveCallSid(null);
+    setCustomerCallSid(null);
+    setIsMuted(false);
+    setIsHold(false);
+    setCallDisposition(null);
+    setDuration(0);
+    setIncomingContactId(null);
+    holdAudio.pause();
+    holdAudio.currentTime = 0;
+    ignoredCallsRef.current.clear();
+  }, [holdAudio]);
 
   const setupDevice = useCallback(async () => {
     try {
       setAppStatus('Fetching Token...');
       const { data } = await api.get('/calling/token');
-      
+
       if (!data.success || !data.data.token) {
         throw new Error(data.message || 'Failed to fetch token');
       }
+
+      const agentIdentity = data.data.identity || 'tester_agent';
+      setIdentity(agentIdentity);
 
       const newDevice = new Device(data.data.token, {
         codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
@@ -51,37 +104,60 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('error', (error) => {
-        console.error('Twilio Device Error:', error);
         setAppStatus(`Error: ${error.message}`);
       });
 
       newDevice.on('incoming', (call: Call) => {
-        console.log('Incoming bridge connection');
         setActiveCall(call);
-        setCallStatus('ringing');
-        
-        call.on('accepted', () => {
-          console.log('Call accepted');
-          setCallStatus('connected');
-        });
+        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
+        setActiveCallSid(sid);
+
+        call.on('ringing', () => setCallStatus('ringing'));
+        call.on('accept', () => setCallStatus('connected'));
 
         call.on('disconnect', () => {
-          console.log('Call disconnected');
-          setCallStatus('disconnected');
+          if (ignoredCallsRef.current.has(call)) return;
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          }
+        });
+
+        call.on('cancel', () => {
+          if (ignoredCallsRef.current.has(call)) return;
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          }
+        });
+
+        call.on('error', () => {
+          if (ignoredCallsRef.current.has(call)) return;
           handleStopCalling();
         });
 
-        call.accept();
-        setAppStatus('Bridge Connected');
+        const contactIdParam = call.customParameters?.get('contactId');
+        if (contactIdParam) {
+           setIncomingContactId(contactIdParam);
+        }
+
+        call.mute(isMuted);
+        try {
+          call.accept();
+          setAppStatus('Bridge Connected');
+          setIsCalling(true);
+        } catch (e: any) {
+          toast.error("Auto-answer failed: Please manually interact with the browser.");
+          console.error("Auto-answer failed", e);
+        }
       });
 
       await newDevice.register();
       setDevice(newDevice);
     } catch (err: any) {
-      console.error('Twilio Setup Error:', err);
       setAppStatus(`Setup Failed: ${err.message}`);
     }
-  }, []);
+  }, [handleStopCalling, isMuted]);
 
   useEffect(() => {
     setupDevice();
@@ -93,143 +169,288 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
-  const handleStopCalling = useCallback(() => {
-    setIsCalling(false);
-    setAppStatus('Agent Ready');
-    setActiveCall(null);
-    setActiveCallSid(null);
-    setIsMuted(false);
-    // Removed setCallStatus('idle') to allow 'disconnected' to persist for the UI
-    // Note: Speaker status usually persists across calls on the device level
-  }, []);
-
-  const startCall = async (phone: string) => {
+  const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
-    
+
     setIsCalling(true);
     setAppStatus('Dialing...');
     setCallStatus('ringing');
     setTranscriptionLogs([]);
 
+
     try {
-      const { data } = await api.post('/calling/test-call', { to: phone });
-      
-      if (data.success) {
-        setActiveCallSid(data.data.sid);
-        console.log('Call initiated:', data.data.sid);
+      const call = await device!.connect({
+        params: {
+          To: phone,
+          From: from,
+          agentId: identity || 'tester_agent',
+          contactId: contactId,
+          answeringMachineUrl: answeringMachineUrl || '',
+        }
+      });
+
+      if (call) {
+        setActiveCall(call);
+        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
+        setActiveCallSid(sid);
+
+        call.on('ringing', () => setCallStatus('ringing'));
+
+        call.on('accept', () => {
+          const finalSid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
+          setActiveCallSid(finalSid);
+        });
+
+        call.on('disconnect', () => {
+          if (ignoredCallsRef.current.has(call)) return;
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          }
+        });
+
+        call.on('cancel', () => {
+          if (ignoredCallsRef.current.has(call)) return;
+          if (!isHoldRef.current) {
+            setCallStatus('disconnected');
+            handleStopCalling();
+          }
+        });
+
+        call.on('error', (error) => {
+          if (ignoredCallsRef.current.has(call)) return;
+          toast.error(`Call Error: ${error.message}`);
+          handleStopCalling();
+        });
       } else {
-        throw new Error(data.message);
+        throw new Error('Call connection failed');
       }
     } catch (err: any) {
-      console.error('Start Call Error:', err);
       handleStopCalling();
-      console.log()
       toast.error(`Failed to start call: ${err.message}`);
     }
   };
 
-  const endCall = async () => {
-    if (activeCall) {
-      activeCall.disconnect();
+  const dropVoicemail = async () => {
+    if (!activeCallSid || !answeringMachineUrl) {
+      toast.error('No voicemail recording configured');
+      return;
     }
-    
-    if (activeCallSid) {
-      try {
-        await api.post('/calling/end-call', { callSid: activeCallSid });
-      } catch (err) {
-        console.error('End Call Server Error:', err);
-      }
+    setIsDroppingVoicemail(true);
+    try {
+      await api.post('/calling/drop-voicemail', {
+        callSid: activeCallSid,
+        voicemailUrl: answeringMachineUrl,
+      });
+      toast.success('Voicemail dropped successfully');
+      // End the call after dropping voicemail
+      handleStopCalling();
+    } catch (err: any) {
+      toast.error('Failed to drop voicemail');
+    } finally {
+      setIsDroppingVoicemail(false);
     }
+  };
 
+
+  const endCall = async () => {
+    if (activeCall) activeCall.disconnect();
+    const sidToDrop = activeCallSid || customerCallSid;
+    if (sidToDrop) {
+      try {
+        await api.post('/calling/end-call', { callSid: sidToDrop });
+      } catch (err) { }
+    }
     handleStopCalling();
   };
 
   const toggleMute = useCallback(() => {
     const muted = !isMuted;
-    
-    // 1. SDK level mute (if call is active)
-    if (activeCall) {
-      console.log(`Setting call mute to: ${muted}`);
-      activeCall.mute(muted);
-    }
+    if (activeCall) activeCall.mute(muted);
 
-    // 2. Forceful Browser level mute via Device Audio
     if (device?.audio?.inputStream) {
-      console.log(`Disabling inputStream tracks: ${muted}`);
       device.audio.inputStream.getAudioTracks().forEach(track => {
         track.enabled = !muted;
       });
     }
-
-    // 3. Fallback: Search for any active media tracks in the browser and mute them
-    // (This is a safety net in case Twilio is using a different internal stream)
-    navigator.mediaDevices.enumerateDevices().then(() => {
-        // We don't want to request new tracks, just find existing ones if possible
-        // Actually, tracks are usually scoped to the stream they belong to.
-        // We'll trust the device.audio.inputStream for now but add more logs.
-    });
-
     setIsMuted(muted);
     toast.success(muted ? 'Microphone Muted' : 'Microphone Unmuted');
   }, [activeCall, device, isMuted]);
 
   const toggleSpeaker = useCallback(() => {
     const speakerOn = !isSpeakerOn;
-    
-    // 1. Mute all <audio> elements (Twilio uses these for output)
     const audioElements = document.querySelectorAll('audio');
     audioElements.forEach(el => {
-      console.log('Muting audio element:', el);
       el.muted = !speakerOn;
-      // Also set volume to be safe
       el.volume = speakerOn ? 1.0 : 0.0;
     });
-
-    // 2. Device level speaker toggle (if supported/available)
-    // Note: Twilio v2 manages output via speakerDevices, but muting elements is more immediate.
-
     setIsSpeakerOn(speakerOn);
     toast.success(speakerOn ? 'Speaker ON' : 'Speaker OFF (Muted)');
   }, [isSpeakerOn]);
 
-  const resetCallStatus = useCallback(() => {
-    setCallStatus('idle');
-  }, []);
+  const toggleHold = useCallback(async (customHoldUrl?: string) => {
+    if (isHoldProcessing.current) {
+      console.log("Hold request currently processing, please wait...");
+      return;
+    }
 
-  // Poll for transcriptions
+    isHoldProcessing.current = true;
+    const newHoldStatus = !isHold;
+    // Prevent race conditions: if we're going ON hold, set the ref immediately.
+    // If we're RESUMING, keep the ref as 'true' to continue ignoring disconnects 
+    // from the old leg until the transition is complete.
+    if (newHoldStatus) {
+      isHoldRef.current = true;
+    }
+
+    if (newHoldStatus && activeCall) {
+      ignoredCallsRef.current.add(activeCall);
+    }
+
+    // SAFE MUTE (only when putting on hold)
+    if (newHoldStatus && activeCall) {
+      try {
+        if (activeCall.status() !== 'closed') {
+          activeCall.mute(true);
+        }
+      } catch (e) {
+        console.warn("Mute ignored: Call not active");
+      }
+    }
+
+    if (activeCallSid) {
+      try {
+        const response = await api.post('/calling/toggle-hold', {
+          callSid: activeCallSid,
+          customerCallSid: customerCallSid,
+          hold: newHoldStatus,
+          agentIdentity: identity,
+          holdUrl: customHoldUrl
+        });
+
+        if (response.data?.data?.customerLegSid) {
+          setCustomerCallSid(response.data.data.customerLegSid);
+        }
+
+        if (newHoldStatus) {
+          if (activeCall) {
+            try {
+              if (activeCall.status() !== 'closed') {
+                activeCall.disconnect();
+              }
+            } catch (e) {
+              console.warn("Local disconnect failed safely", e);
+            }
+          }
+
+          const defaultAudio = 'https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3';
+          const targetAudioSrc = customHoldUrl || defaultAudio;
+          if (holdAudio.src !== targetAudioSrc) {
+            holdAudio.src = targetAudioSrc;
+          }
+          holdAudio.play().catch(console.error);
+
+          setIsHold(true);
+          toast.success('Call on Hold');
+
+        } else {
+          holdAudio.pause();
+          holdAudio.currentTime = 0;
+
+          // Now that we've successfully called the backend to resume, 
+          // we can allow future disconnects to be handled normally.
+          isHoldRef.current = false;
+          setIsHold(false);
+          setCallStatus('connected');
+          toast.success('Call Resumed');
+        }
+
+      } catch (err) {
+        // Rollback on failure
+        isHoldRef.current = isHold;
+        if (newHoldStatus && activeCall) {
+          ignoredCallsRef.current.delete(activeCall);
+        }
+
+        if (activeCall) {
+          try {
+            if (activeCall.status() !== 'closed') activeCall.mute(isMuted);
+          } catch (e) { }
+        }
+
+        holdAudio.pause();
+        holdAudio.currentTime = 0;
+        toast.error('Failed to toggle hold');
+
+        isHoldProcessing.current = false;
+        return;
+      }
+    }
+
+    setTimeout(() => {
+      isHoldProcessing.current = false;
+    }, 1200);
+
+  }, [activeCall, activeCallSid, customerCallSid, holdAudio, identity, isHold, isMuted]);
+
+  // const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
+
   useEffect(() => {
     let pollInterval: any;
     if (isCalling) {
       pollInterval = setInterval(async () => {
         try {
           const { data } = await api.get('/calling/transcription-logs');
-          if (data.success && data.data.logs) {
-            setTranscriptionLogs(data.data.logs);
-          }
-        } catch (err) {
-          console.error('Polling error:', err);
-        }
-      }, 2000);
+          if (data.success && data.data.logs) setTranscriptionLogs(data.data.logs);
+        } catch (err) { /* silent fail */ }
+      }, 9000);
     }
     return () => clearInterval(pollInterval);
   }, [isCalling]);
 
+  useEffect(() => {
+    let timerInterval: any;
+    if (callStatus === 'connected') {
+      timerInterval = setInterval(() => setDuration(prev => prev + 1), 1000);
+    } else if (callStatus === 'idle' || callStatus === 'disconnected' || callStatus === 'ringing') {
+      setDuration(0);
+    }
+    return () => clearInterval(timerInterval);
+  }, [callStatus]);
+
+  useEffect(() => {
+    let statusInterval: any;
+    if (isCalling && callStatus === 'ringing' && activeCallSid) {
+      statusInterval = setInterval(async () => {
+        try {
+          const { data } = await api.get(`/calling/status/${activeCallSid}`);
+          if (data.success && (data.data.status === 'in-progress' || data.data.status === 'answered')) {
+            setCallStatus('connected');
+          }
+          if (data.success && data.data.disposition) {
+            setCallDisposition(data.data.disposition);
+          }
+        } catch (err) { /* silent fail */ }
+      }, 3000);
+    }
+    return () => clearInterval(statusInterval);
+  }, [isCalling, callStatus, activeCallSid]);
+
+  const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
+  
   return (
-    <TwilioContext.Provider value={{ 
-      device, 
-      activeCall, 
-      isCalling, 
-      appStatus, 
-      activeCallSid, 
-      startCall, 
-      endCall,
-      toggleMute,
-      toggleSpeaker,
-      isMuted,
-      isSpeakerOn,
-      transcriptionLogs,
-      callStatus,
-      resetCallStatus
+    <TwilioContext.Provider value={{
+      device, activeCall, isCalling, appStatus, activeCallSid,
+      startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
+      isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
+      callDisposition,
+      duration,
+      resetCallStatus,
+      answeringMachineUrl,
+      setAnsweringMachineUrl,
+      dropVoicemail,
+      isDroppingingVoicemail,
+      incomingContactId
     }}>
       {children}
     </TwilioContext.Provider>
@@ -238,8 +459,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useTwilio = () => {
   const context = useContext(TwilioContext);
-  if (context === undefined) {
-    throw new Error('useTwilio must be used within a TwilioProvider');
-  }
+  if (context === undefined) throw new Error('useTwilio must be used within a TwilioProvider');
   return context;
 };

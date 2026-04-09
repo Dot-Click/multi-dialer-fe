@@ -32,8 +32,8 @@ const BasicInformationInputField: React.FC<BasicInformationInputFieldProps> = ({
   value,
   onChange,
 }) => (
-  <div className="bg-gray-100 px-3 py-2 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 text-sm transition-all shadow-sm">
-    <label className="block text-[12px] font-[500] text-[#495057] mb-1">
+  <div className="bg-gray-100 dark:bg-slate-600/50 px-3 py-2 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 text-sm transition-all shadow-sm">
+    <label className="block text-[12px] font-[500] text-[#495057] dark:text-gray-400 mb-1">
       {label}
     </label>
     <input
@@ -41,7 +41,7 @@ const BasicInformationInputField: React.FC<BasicInformationInputFieldProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
+      className="w-full outline-none text-[#111] dark:text-white text-[16px] font-[400] bg-transparent"
     />
   </div>
 );
@@ -66,18 +66,18 @@ const EmailInputField: React.FC<EmailInputFieldProps> = ({
   onRemove,
 }) => (
   <div className="flex gap-2 items-center">
-    <div className="flex-1 bg-gray-100 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
+    <div className="flex-1 bg-gray-100 dark:bg-slate-600/50 px-3 py-4 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
       <input
         type="email"
         value={email}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
+        className="w-full outline-none text-[#111] dark:text-white text-[16px] font-[400] bg-transparent"
       />
     </div>
     <button
       onClick={onTogglePrimary}
-      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${isPrimary ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+      className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${isPrimary ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}
     >
       Primary
     </button>
@@ -92,43 +92,50 @@ const EmailInputField: React.FC<EmailInputFieldProps> = ({
 interface PhoneInputFieldProps {
   value: string;
   type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK";
+  pattern?: string;
   onChange: (val: string) => void;
   onTypeChange: (type: "MOBILE" | "TELEPHONE" | "HOME" | "WORK") => void;
   onRemove?: () => void;
 }
 
-const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, onChange, onTypeChange, onRemove }) => {
+const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, type, pattern, onChange, onTypeChange, onRemove }) => {
   const [isOpen, setIsOpen] = useState(false);
   const options: ("MOBILE" | "TELEPHONE" | "HOME" | "WORK")[] = ['MOBILE', 'TELEPHONE', 'HOME', 'WORK'];
 
   return (
     <div className="flex gap-3 items-center">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_140px] gap-3 flex-1">
-        <div className="bg-gray-100 px-4 py-3 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
+        <div className="bg-gray-100 dark:bg-slate-600/50 px-4 py-3 rounded-[12px] focus-within:ring-2 focus-within:ring-blue-500 shadow-sm transition-all">
           <input
             type="tel"
-            placeholder="Phone number"
+            placeholder="+1234567890"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full outline-none text-[#111] text-[16px] font-[400] bg-transparent"
+            pattern={pattern}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || /^\+?[0-9]*$/.test(val)) {
+                onChange(val);
+              }
+            }}
+            className="w-full outline-none text-[#111] dark:text-white text-[16px] font-[400] bg-transparent"
           />
         </div>
 
         <div className="relative">
           <div
             onClick={() => setIsOpen(!isOpen)}
-            className="bg-gray-100 px-4 py-3 h-full rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] text-[15px] font-[400] shadow-sm hover:bg-gray-200 transition-all"
+            className="bg-gray-100 dark:bg-slate-600/50 px-4 py-3 h-full rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] dark:text-white text-[15px] font-[400] shadow-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-all font-sans"
           >
             <span className="capitalize">{type.toLowerCase()}</span>
-            <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <FiChevronDown className={`transition-transform duration-200 dark:text-gray-400 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
 
           {isOpen && (
-            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white shadow-2xl rounded-[12px] z-[100] border border-gray-100 overflow-hidden py-1">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-[100] border border-gray-100 dark:border-gray-700 overflow-hidden py-1">
               {options.map((opt) => (
                 <div
                   key={opt}
-                  className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-[14px] text-[#2B3034] capitalize"
+                  className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#2B3034] dark:text-gray-200 capitalize"
                   onClick={() => {
                     onTypeChange(opt);
                     setIsOpen(false);
@@ -159,25 +166,24 @@ const SourceSelectField: React.FC<SourceSelectFieldProps> = ({ value, onChange }
   const [isOpen, setIsOpen] = useState(false);
   const options = ['Manual entry', 'Imported', 'Website', 'Referral'];
 
-  return (
-    <div className="relative w-full">
-      <label className="block text-[#495057] font-[500] text-[13px] mb-2 uppercase">
+  return (    <div className="relative w-full">
+      <label className="block text-[#495057] dark:text-gray-400 font-[500] text-[13px] mb-2 uppercase">
         How did you acquire this contact?
       </label>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gray-100 px-4 py-3 rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] text-[15px] font-[400] shadow-sm hover:bg-gray-200 transition-all"
+        className="bg-gray-100 dark:bg-slate-600/50 px-4 py-3 rounded-[12px] cursor-pointer flex justify-between items-center text-[#111] dark:text-white text-[15px] font-[400] shadow-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-all"
       >
         <span>{value}</span>
-        <FiChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <FiChevronDown className={`transition-transform duration-200 dark:text-gray-400 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
-
+ 
       {isOpen && (
-        <div className="absolute bottom-[calc(100%+8px)] left-0 w-full bg-white shadow-2xl rounded-[12px] z-[100] border border-gray-100 overflow-hidden py-1">
+        <div className="absolute bottom-[calc(100%+8px)] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-[100] border border-gray-100 dark:border-gray-700 overflow-hidden py-1">
           {options.map((opt) => (
             <div
               key={opt}
-              className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-[14px] text-[#2B3034]"
+              className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#2B3034] dark:text-gray-200"
               onClick={() => {
                 onChange(opt);
                 setIsOpen(false);
@@ -233,6 +239,12 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       return;
     }
 
+    const invalidPhone = phones.find(p => p.number.trim() !== "" && !/^\+[1-9]\d{1,14}$/.test(p.number));
+    if (invalidPhone) {
+      toast.error("Please enter valid E.164 formatted phone numbers (e.g., +1234567890)");
+      return;
+    }
+
     const payload = {
       fullName: formData.fullName,
       city: formData.city,
@@ -244,6 +256,8 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       phones: phones.filter(p => p.number.trim() !== ""),
       contactListId: formData.contactListId || undefined,
     };
+
+    console.log("payload", payload)
 
     const res = await dispatch(createContact(payload));
     if (createContact.fulfilled.match(res)) {
@@ -403,14 +417,17 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
 
   /* EMAIL STATE */
   const handleAddEmail = () => setEmails((p) => [...p, { email: '', isPrimary: false }]);
+  
   const updateEmail = (index: number, val: string) => {
     const newEmails = [...emails];
     newEmails[index].email = val;
     setEmails(newEmails);
   };
+  
   const togglePrimaryEmail = (index: number) => {
     setEmails(emails.map((e, i) => ({ ...e, isPrimary: i === index })));
   };
+
   const removeEmail = (index: number) => {
     if (emails.length > 1) {
       const newEmails = emails.filter((_, i) => i !== index);
@@ -441,8 +458,8 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       <div className="flex flex-col gap-5">
 
         {/* BASIC INFORMATION */}
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-3 shadow-sm">
-          <h1 className="text-[#495057] font-medium uppercase text-[14px]">
+        <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-3 shadow-sm border border-transparent dark:border-gray-700">
+          <h1 className="text-[#495057] dark:text-gray-400 font-medium uppercase text-[14px]">
             Basic Information
           </h1>
 
@@ -480,9 +497,9 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
         </div>
 
         {/* EMAIL ADDRESSES */}
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4 shadow-sm border border-transparent dark:border-gray-700">
           <div className="flex justify-between items-center">
-            <h1 className="text-[#495057] font-medium uppercase text-[14px]">
+            <h1 className="text-[#495057] dark:text-gray-400 font-medium uppercase text-[14px]">
               Email Addresses
             </h1>
             <button
@@ -509,9 +526,9 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
         </div>
 
         {/* PHONE NUMBERS */}
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-4 shadow-sm border border-transparent dark:border-gray-700">
           <div className="flex justify-between items-center">
-            <h1 className="text-[#495057] font-medium uppercase text-[14px]">
+            <h1 className="text-[#495057] dark:text-gray-400 font-medium uppercase text-[14px]">
               Phone Numbers
             </h1>
             <button
@@ -528,6 +545,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                 key={i}
                 value={phone.number}
                 type={phone.type}
+                pattern="^\+[1-9]\d{1,14}$"
                 onChange={(val) => updatePhone(i, 'number', val)}
                 onTypeChange={(type) => updatePhone(i, 'type', type)}
                 onRemove={phones.length > 1 ? () => removePhone(i) : undefined}
@@ -537,8 +555,8 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
         </div>
 
         {/* SOURCE */}
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-2">
-          <h1 className="text-[#495057] font-[500] uppercase text-[14px] mb-2">Source</h1>
+        <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-2 border border-transparent dark:border-gray-700">
+          <h1 className="text-[#495057] dark:text-gray-400 font-[500] uppercase text-[14px] mb-2">Source</h1>
           <SourceSelectField 
             value={formData.source}
             onChange={(val) => setFormData({ ...formData, source: val })}
@@ -546,26 +564,26 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
         </div>
 
         {/* LISTS & GROUPS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 bg-white p-3 sm:p-4 md:p-6 rounded-[24px] shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] shadow-sm border border-transparent dark:border-gray-700">
           {/* LISTS */}
-          <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
+          <div className="bg-white dark:bg-slate-800 border border-[#E9E9EB] dark:border-gray-700 rounded-[16px] p-4 h-[400px] flex flex-col">
             <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">LISTS & FOLDERS</h2>
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">LISTS & FOLDERS</h2>
               <button
                 onClick={handleCreateFolder}
-                className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors"
+                className="bg-[#F3F4F7] dark:bg-gray-700 p-1.5 rounded-[6px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <FiPlus className="text-[#5F6368] text-[14px]" />
+                <FiPlus className="text-[#5F6368] dark:text-gray-400 text-[14px]" />
               </button>
             </div>
 
             <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {folders.map((folder) => (
                 <div key={folder.id} className="space-y-1">
-                  <div className="flex items-center justify-between p-2 rounded-lg cursor-pointer group hover:bg-[#F9FAFB]">
+                  <div className="flex items-center justify-between p-2 rounded-lg cursor-pointer group hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <FiFolder className="text-[18px] text-[#9AA0A6]" />
-                      <span className="text-[14px] font-[500] text-[#5F6368]">
+                      <FiFolder className="text-[18px] text-[#9AA0A6] dark:text-gray-400" />
+                      <span className="text-[14px] font-[500] text-[#5F6368] dark:text-gray-300">
                         {folder.name}
                       </span>
                     </div>
@@ -575,7 +593,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                           e.stopPropagation();
                           handleCreateList(folder.id);
                         }}
-                        className="text-[#1D85F0] text-[12px] font-[500] hover:underline"
+                        className="text-[#1D85F0] dark:text-blue-400 text-[12px] font-[500] hover:underline"
                       >
                         + List
                       </button>
@@ -586,19 +604,19 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                             const menuKey = `folder-${folder.id}`;
                             setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                           }}
-                          className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                          className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full transition-colors"
                         >
-                          <FiMoreHorizontal className="text-[#9AA0A6]" />
+                          <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400" />
                         </button>
                         {openMenuId === `folder-${folder.id}` && (
-                          <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                          <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteFolder(folder.id, folder.name);
                                 setOpenMenuId(null);
                               }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                             >
                               Delete
                             </button>
@@ -621,11 +639,11 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                           }}
                           className={`flex items-center justify-between p-2 rounded-lg cursor-pointer group transition-all ${
                             formData.contactListId === list.id 
-                              ? "bg-[#F3F4F6] ring-1 ring-[#FFCA06]" 
-                              : "hover:bg-[#F9FAFB]"
+                              ? "bg-[#F3F4F6] dark:bg-slate-700 ring-1 ring-[#FFCA06]" 
+                              : "hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50"
                           }`}
                         >
-                          <span className={`text-[14px] font-[400] ${formData.contactListId === list.id ? "text-[#111]" : "text-[#5F6368]"}`}>
+                          <span className={`text-[14px] font-[400] ${formData.contactListId === list.id ? "text-[#111] dark:text-white" : "text-[#5F6368] dark:text-gray-400"}`}>
                             {list.name}
                           </span>
                           <div className="flex items-center gap-2">
@@ -636,12 +654,12 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                                   const menuKey = `list-${folder.id}-${list.id}`;
                                   setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                                 }}
-                                className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full opacity-0 group-hover:opacity-100 transition-all"
                               >
-                                <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
+                                <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400 text-[14px]" />
                               </button>
                               {openMenuId === `list-${folder.id}-${list.id}` && (
-                                <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                                <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -655,7 +673,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                                 </div>
                               )}
                             </div>
-                            <div className={`w-[24px] h-[24px] rounded-full border border-[#E9E9EB] flex items-center justify-center text-[10px] font-[500] bg-white transition-colors ${formData.contactListId === list.id ? "text-[#000]" : "text-[#5F6368]"}`}>
+                            <div className={`w-[24px] h-[24px] rounded-full border border-[#E9E9EB] dark:border-gray-700 flex items-center justify-center text-[10px] font-[500] bg-white dark:bg-slate-700 transition-colors ${formData.contactListId === list.id ? "text-[#000] dark:text-white" : "text-[#5F6368] dark:text-gray-400"}`}>
                               {getInitials(list.name)}
                             </div>
                           </div>
@@ -672,14 +690,14 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
           </div>
 
           {/* GROUPS */}
-          <div className="bg-white border border-[#E9E9EB] rounded-[16px] p-4 h-[400px] flex flex-col">
+          <div className="bg-white dark:bg-slate-800 border border-[#E9E9EB] dark:border-gray-700 rounded-[16px] p-4 h-[400px] flex flex-col">
             <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-[500] uppercase text-[#495057] tracking-wide">GROUPS</h2>
+              <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">GROUPS</h2>
               <button
                 onClick={handleCreateGroup}
-                className="bg-[#F3F4F7] p-1.5 rounded-[6px] hover:bg-gray-200 transition-colors"
+                className="bg-[#F3F4F7] dark:bg-gray-700 p-1.5 rounded-[6px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <FiPlus className="text-[#5F6368] text-[14px]" />
+                <FiPlus className="text-[#5F6368] dark:text-gray-400 text-[14px]" />
               </button>
             </div>
 
@@ -687,7 +705,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="group flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] cursor-pointer text-[14px] font-[500] text-[#495057]"
+                  className="group flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50 cursor-pointer text-[14px] font-[500] text-[#495057] dark:text-gray-300 transition-colors"
                 >
                   <span>{group.name}</span>
                   <div className="relative">
@@ -697,12 +715,12 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                         const menuKey = `group-${group.id}`;
                         setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                       }}
-                      className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <FiMoreHorizontal className="text-[#9AA0A6] text-[14px]" />
+                      <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400 text-[14px]" />
                     </button>
                     {openMenuId === `group-${group.id}` && (
-                      <div className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-md py-1 z-[110] border border-gray-100 min-w-[100px]">
+                      <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

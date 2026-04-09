@@ -1,4 +1,3 @@
-// LeadIntelligence.js
 import {
     PieChart,
     Pie,
@@ -11,44 +10,44 @@ import {
     CartesianGrid,
     Tooltip
 } from "recharts";
+import { useLeadIntelligence } from "@/hooks/useAiSidekick";
+import { Loader2 } from "lucide-react";
 
-const pieData = [
-    { name: "High", value: 70 },
-    { name: "Medium", value: 19 },
-    { name: "Low", value: 11 }
-];
-
-// UPDATED COLORS (Low = #EB9D34)
 const COLORS = ["#9400BD", "#F91E4A", "#ff7f3a"];
 
-// Line chart legend colors unchanged
 const lineLegendData = [
     { name: "Positive", color: "#22C55E" },
     { name: "Neutral", color: "#FBBF24" },
     { name: "Negative", color: "#EF4444" }
 ];
 
-const lineChartData = [
-    { name: "Mon", Positive: 20, Neutral: 25, Negative: 50 },
-    { name: "Tue", Positive: 48, Neutral: 30, Negative: 33 },
-    { name: "Wed", Positive: 64, Neutral: 35, Negative: 25 },
-    { name: "Thu", Positive: 70, Neutral: 38, Negative: 22 },
-    { name: "Fri", Positive: 85, Neutral: 42, Negative: 15 },
-    { name: "Sat", Positive: 74, Neutral: 38, Negative: 21 },
-    { name: "Sun", Positive: 52, Neutral: 35, Negative: 32 }
-];
+const LeadIntelligence = () => {
+    const { data: leadData, isLoading } = useLeadIntelligence();
 
-const AdminLeadIntelligence = () => {
+    if (isLoading) {
+        return (
+            <section className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm w-full px-[24px] pt-[24px] pb-[32px] flex items-center justify-center min-h-[500px]">
+                <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+            </section>
+        );
+    }
+
     const summaryData = [
-        { id: 1, name: "Avg AI Lead Score", number: "62%" },
-        { id: 2, name: "Engagement Prediction", number: "45%" },
-        { id: 3, name: "Urgent Leads", number: "7" }
+        { id: 1, name: "Avg AI Lead Score", number: leadData?.summary.avgLeadScore || "0%" },
+        { id: 2, name: "Engagement Prediction", number: leadData?.summary.engagementPrediction || "0%" },
+        { id: 3, name: "Urgent Leads", number: leadData?.summary.urgentLeads?.toString() || "0" }
+    ];
+
+    const pieData = leadData?.pieData || [
+        { name: "High", value: 0 },
+        { name: "Medium", value: 0 },
+        { name: "Low", value: 0 }
     ];
 
     return (
-        <section className="bg-white rounded-[32px] shadow-sm w-full px-[24px] pt-[24px] pb-[32px] flex flex-col gap-4">
+        <section className="bg-white dark:bg-slate-800 rounded-[32px] shadow-sm w-full px-[24px] pt-[24px] pb-[32px] flex flex-col gap-4">
 
-            <h1 className="text-[20px] font-[500] text-[#000000]">Lead Intelligence</h1>
+            <h1 className="text-[20px] font-medium text-[#000000] dark:text-white">Lead Intelligence</h1>
 
             {/* Top Section */}
             <div className="flex flex-col md:flex-row gap-6">
@@ -57,22 +56,20 @@ const AdminLeadIntelligence = () => {
                 <div className="flex-1 flex flex-col gap-4">
                     {summaryData.map((dt) => (
                         <div key={dt.id}>
-                            <p className="text-[14px] text-[#495057] font-[500]">{dt.name}</p>
-                            <p className="text-[16px] font-[500] text-[#000000]">{dt.number}</p>
+                            <p className="text-[14px] text-[#495057] dark:text-gray-400 font-medium">{dt.name}</p>
+                            <p className="text-[16px] font-medium text-[#000000] dark:text-white">{dt.number}</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Right Pie Chart */}
                 <div className="flex-1 flex flex-col items-center justify-center">
-                    <h2 className="text-[14px] text-[#495057] mb-1 md:mr-[45%] font-[500] mr-[25%]">AI Lead Score</h2>
+                    <h2 className="text-[14px] text-[#495057] dark:text-gray-400 mb-1 md:mr-[45%] font-medium mr-[25%]">AI Lead Score</h2>
 
                     <div className="flex items-center gap-3">
                         <div className="w-40 h-40 relative">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
-
-                                    {/* SHADOW FILTER */}
                                     <defs>
                                         <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
                                             <feDropShadow
@@ -84,7 +81,6 @@ const AdminLeadIntelligence = () => {
                                         </filter>
                                     </defs>
 
-                                    {/* DONUT WITH SHADOW */}
                                     <Pie
                                         data={pieData}
                                         cx="50%"
@@ -93,20 +89,18 @@ const AdminLeadIntelligence = () => {
                                         outerRadius={70}
                                         dataKey="value"
                                         paddingAngle={1}
-                                        filter="url(#shadow)"   // <-- shadow applied here
+                                        filter="url(#shadow)"
                                     >
                                         {pieData.map((_, index) => (
-                                            <Cell key={index} fill={COLORS[index]} />
+                                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
 
                                 </PieChart>
                             </ResponsiveContainer>
 
-
-
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-[24px] font-[600] text-[#000000]">72%</span>
+                                <span className="text-[24px] dark:text-white font-semibold text-[#000000]">{leadData?.overallScore || 0}%</span>
                             </div>
                         </div>
 
@@ -115,9 +109,9 @@ const AdminLeadIntelligence = () => {
                                 <div key={index} className="flex items-center gap-2">
                                     <span
                                         className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: COLORS[index] }}
+                                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
                                     ></span>
-                                    <span className="text-[12px] text-[#0E1011] font-[400]">{entry.name}</span>
+                                    <span className="text-[12px] text-[#0E1011] dark:text-white font-normal">{entry.name}</span>
                                 </div>
                             ))}
                         </div>
@@ -129,11 +123,11 @@ const AdminLeadIntelligence = () => {
             <div className="mt-2">
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
-                    <h2 className="text-[16px] font-[500] text-[#0E1011]">Lead Sentiment Trend</h2>
+                    <h2 className="text-[16px] dark:text-white font-medium text-[#0E1011]">Lead Sentiment Trend</h2>
 
                     <div className="flex items-center gap-4">
                         {lineLegendData.map((legend) => (
-                            <div key={legend.name} className="flex items-center gap-1 text-[12px] text-[#0E1011] font-[400]">
+                            <div key={legend.name} className="flex items-center gap-1 text-[12px] text-[#0E1011] dark:text-white font-normal">
                                 <span
                                     className="w-2 h-2 rounded-full"
                                     style={{ backgroundColor: legend.color }}
@@ -147,7 +141,7 @@ const AdminLeadIntelligence = () => {
                 <div style={{ width: "100%", height: 260 }}>
                     <ResponsiveContainer>
                         <LineChart
-                            data={lineChartData}
+                            data={leadData?.sentimentTrend}
                             margin={{ top: 10, right: 20, left: -30, bottom: 0 }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
@@ -159,7 +153,6 @@ const AdminLeadIntelligence = () => {
                                 tickLine={false}
                                 padding={{ left: 20, right: 10 }}
                             />
-
 
                             <YAxis
                                 tick={{ fill: "#6B7280", fontSize: 12 }}
@@ -200,18 +193,18 @@ const AdminLeadIntelligence = () => {
             {/* Bottom Section */}
             <div className="flex flex-col gap-2 mt-4">
                 <div className="flex items-center mb-4 justify-between">
-                    <h2 className="text-[16px] font-[500] text-[#495057]">Lead Sentiment Trend</h2>
+                    <h2 className="text-[16px] font-medium dark:text-white text-[#495057]">Lead Sentiment Trend</h2>
 
                     <div className="hidden sm:flex items-center gap-4">
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-normal text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#3DC269" }}></span>
                             High
                         </span>
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-normal text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#F6BF26" }}></span>
                             Medium
                         </span>
-                        <span className="flex items-center gap-1 font-[400] text-[12px] text-[#0E1011]">
+                        <span className="flex items-center gap-1 font-normal text-[12px] text-[#0E1011] dark:text-white">
                             <span className="w-2 h-2 rounded-full" style={{ background: "#D43435" }}></span>
                             Low
                         </span>
@@ -220,13 +213,13 @@ const AdminLeadIntelligence = () => {
 
                 {/* Progress Bar */}
                 <div className="flex items-center gap-3">
-                    <div className="w-full bg-gray-200 rounded-md h-7 overflow-hidden">
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-md h-7 overflow-hidden">
                         <div
-                            className="h-full rounded-md"
-                            style={{ width: "90%", background: "#1EAC22" }}
+                            className="h-full rounded-md transition-all duration-500"
+                            style={{ width: `${leadData?.overallScore || 0}%`, background: "#1EAC22" }}
                         ></div>
                     </div>
-                    <span className="font-semibold text-gray-900">45%</span>
+                    <span className="font-semibold dark:text-white text-gray-900">{leadData?.overallScore || 0}%</span>
                 </div>
             </div>
 
@@ -234,4 +227,4 @@ const AdminLeadIntelligence = () => {
     );
 };
 
-export default AdminLeadIntelligence;
+export default LeadIntelligence;
