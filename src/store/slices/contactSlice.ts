@@ -3,16 +3,34 @@ import api from "../../lib/axios";
 
 export interface Contact {
   id: string;
-  name: string;
-  lastDialedDate: string;
-  phone: string;
-  email: string;
-  list: string;
-  tags: string;
+  fullName?: string;
+  name?: string;
+  lastDialedDate?: string;
+  phone?: string;
+  email?: string;
+  list?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  mailingAddress?: string;
+  mailingCity?: string;
+  mailingState?: string;
+  mailingZip?: string;
+  source?: string;
+  tags?: any;
+  phones?: { number: string; type: string; isPrimary?: boolean }[];
+  emails?: { email: string; isPrimary: boolean }[];
   miscValues?: any;
   leadsheetValues?: any;
   notes: string[];
   folderId?: string | null;
+  permission?: boolean;
+  want?: boolean;
+  why?: boolean;
+  statusQuo?: boolean;
+  timeline?: boolean;
+  agent?: boolean;
 }
 
 interface ContactState {
@@ -87,9 +105,14 @@ export interface CreateContactPhone {
 
 export interface CreateContactPayload {
   fullName: string;
+  address?: string;
   city?: string;
   state?: string;
   zip?: string;
+  mailingAddress?: string;
+  mailingCity?: string;
+  mailingState?: string;
+  mailingZip?: string;
   source?: string;
   tags?: string[];
   dataDialerId?: string;
@@ -98,6 +121,12 @@ export interface CreateContactPayload {
   contactListId?: string;
   miscValues?: any;
   leadsheetValues?: any;
+  permission?: boolean;
+  want?: boolean;
+  why?: boolean;
+  statusQuo?: boolean;
+  timeline?: boolean;
+  agent?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -831,8 +860,16 @@ export const contactSlice = createSlice({
     setQueue: (state, action) => {
       state.queue = action.payload;
     },
+    removeFromQueue: (state, action) => {
+      state.queue = state.queue.filter((c: any) => c.id !== action.payload);
+    },
     setCurrentContact: (state, action) => {
       state.currentContact = action.payload;
+    },
+    setCurrentContactFields: (state, action) => {
+      if (state.currentContact) {
+        state.currentContact = { ...state.currentContact, ...action.payload };
+      }
     },
   },
   extraReducers: (builder) => {
@@ -1166,7 +1203,7 @@ export const contactSlice = createSlice({
   },
 });
 
-export const { setQueue, setCurrentContact } = contactSlice.actions;
+export const { setQueue, setCurrentContact, setCurrentContactFields, removeFromQueue } = contactSlice.actions;
 
 export default contactSlice.reducer;
 

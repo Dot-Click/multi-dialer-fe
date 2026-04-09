@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchContactById, setQueue } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
@@ -7,8 +7,8 @@ import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfo
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader';
 import ContactInfoScript from '@/components/admin/contactinfo/contactinfoscript';
 import LiveContactScript from '@/components/admin/contactinfo/livecallscript';
-import ContactDisposition from '@/components/agent/contactinfo/contactdisposition';
 import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
+import Detail from '@/components/agent/contactdetail/detail';
 import { useTwilio } from '@/providers/twilio.provider';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
@@ -31,8 +31,10 @@ const POLL_INTERVAL_MS = 30_000;
 
 const ContactInfo = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { queue, currentContact } = useAppSelector((state) => state.contacts);
+    const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
     const { setAnsweringMachineUrl, incomingContactId } = useTwilio();
@@ -48,6 +50,7 @@ const ContactInfo = () => {
 
     // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
+    const [hasStarted, setHasStarted] = useState(false);
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
@@ -68,6 +71,18 @@ const ContactInfo = () => {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
         pollTimerRef.current = setInterval(() => fetchCooldownStatus(numbers), POLL_INTERVAL_MS);
     }, [fetchCooldownStatus]);
+
+    useEffect(() => {
+        if (queue.length > 0) setHasStarted(true);
+    }, [queue.length]);
+
+    useEffect(() => {
+        if (hasStarted && queue.length === 0) {
+            toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
+            const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
+            navigate(path);
+        }
+    }, [hasStarted, queue.length, navigate, role]);
 
     useEffect(() => () => { if (pollTimerRef.current) clearInterval(pollTimerRef.current); }, []);
 
@@ -150,7 +165,7 @@ const ContactInfo = () => {
                 priority: queue.length - idx,
                 id: c.id
             }));
-            await api.post('/calling/leads', { leads: leadsPayload, callerId: currentCallerId });
+            await api.post('/calling/leads', { leads: leadsPayload, callerIds });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {
@@ -310,9 +325,7 @@ const ContactInfo = () => {
                 {/* Left Column (Main Content) - Scrollable */}
                 <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
                     <CallSection />
-                    <ContactDisposition 
-                        onNext={handleNextContact} 
-                    />
+                    <Detail onNext={handleNextContact} />
                     <BottomContactDetail />
                 </div>
 

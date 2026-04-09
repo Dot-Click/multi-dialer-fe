@@ -3,7 +3,7 @@
 // so ContactInfo doesn't need to re-read stale state.
 
 import { useState, useEffect, useRef } from "react";
-import { PhoneOff } from "lucide-react";
+import { PhoneOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
@@ -158,17 +158,40 @@ const ContactInfoHeader = ({
             <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Back</span>
           </button>
 
-          <div className="flex flex-col gap-1 min-w-[120px]">
-            <div className="flex justify-between items-end">
-              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                {currentIndex + 1}/{totalContacts}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
-               <div 
-                 className="bg-gray-600 dark:bg-gray-400 h-full transition-all duration-300" 
-                 style={{ width: `${(totalContacts > 0 ? ((currentIndex + 1) / totalContacts) * 100 : 0)}%` }} 
-               />
+          <div className="flex items-center gap-4">
+            {dialerMode === "manual" && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={onPrev}
+                  disabled={currentIndex === 0}
+                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  title="Previous Contact"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={currentIndex >= totalContacts - 1}
+                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  title="Next Contact"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1 min-w-[120px]">
+              <div className="flex justify-between items-end">
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                  {currentIndex + 1}/{totalContacts}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                 <div 
+                   className="bg-gray-600 dark:bg-gray-400 h-full transition-all duration-300" 
+                   style={{ width: `${(totalContacts > 0 ? ((currentIndex + 1) / totalContacts) * 100 : 0)}%` }} 
+                 />
+              </div>
             </div>
           </div>
         </div>
