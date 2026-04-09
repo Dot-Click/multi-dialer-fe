@@ -165,7 +165,7 @@ const ContactInfo = () => {
                 priority: queue.length - idx,
                 id: c.id
             }));
-            await api.post('/calling/leads', { leads: leadsPayload, callerId: currentCallerId });
+            await api.post('/calling/leads', { leads: leadsPayload, callerIds });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {
