@@ -37,7 +37,7 @@ const ContactInfo = () => {
     const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, incomingContactId } = useTwilio();
+    const { setAnsweringMachineUrl, activeBridgeContactId } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [callerIds, setCallerIds] = useState<string[]>([]);
@@ -136,14 +136,14 @@ const ContactInfo = () => {
 
     // Sync UI when the backend bridge answers a specific contact
     useEffect(() => {
-        if (incomingContactId && queue.length > 0) {
-            const foundIdx = queue.findIndex(c => (c as any).id === incomingContactId);
+        if (activeBridgeContactId && queue.length > 0) {
+            const foundIdx = queue.findIndex(c => (c as any).id === activeBridgeContactId);
             if (foundIdx !== -1 && foundIdx !== currentIndex) {
                 toast(`Connected to ${queue[foundIdx].name || queue[foundIdx].fullName || "Contact"}!`, { icon: '📞' });
                 setCurrentIndex(foundIdx);
             }
         }
-    }, [incomingContactId, queue]);
+    }, [activeBridgeContactId, queue]);
 
     const startSimultaneousDialing = async () => {
         if (isAutoDialingRef.current) {

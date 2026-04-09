@@ -42,7 +42,8 @@ const CallSection = () => {
     answeringMachineUrl,
     duration,
     endCall,
-    isCalling
+    isCalling,
+    activeBridgeContactId
   } = useTwilio();
 
   // Reset status when contact changes - but only if not currently in a call
@@ -59,9 +60,9 @@ const CallSection = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Map internal Twilio status to UI status
-  const getUiStatus = (isActive: boolean): CallStatus => {
-    if (!isActive) return "Queued";
+  // Map internal Twilio status to UI status for a specific card
+  const getUiStatus = (isBridgeActive: boolean): CallStatus => {
+    if (!isBridgeActive) return "Queued";
     if (isHold) return "On Hold";
     switch (callStatus) {
       case 'idle': return "Queued";
@@ -83,12 +84,13 @@ const CallSection = () => {
       {/* Horizontal Scroll Container */}
       <div className="flex space-x-4 py-4 px-2 overflow-x-auto no-scrollbar scroll-smooth">
         {queue.map((call, index) => {
-          const isActive = currentContact?.id === call.id;
-          const status = getUiStatus(isActive);
-          const showControls = isActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
+          const isSelected = currentContact?.id === call.id;
+          const isBridgeActive = activeBridgeContactId === call.id;
+          const status = getUiStatus(isBridgeActive);
+          const showControls = isBridgeActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
 
-          // NEW MOJO ACTIVE STYLE
-          if (isActive && showControls) {
+          // NEW MOJO ACTIVE STYLE: If this specific card is the one on the phone
+          if (isBridgeActive && showControls) {
             return (
               <div
                 key={call.id || index}
@@ -155,7 +157,7 @@ const CallSection = () => {
             <div
               key={call.id || index}
               className={`min-w-[280px] min-h-[130px] 
-                          bg-white dark:bg-slate-800 rounded-[22px] border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-gray-100 dark:border-slate-700 shadow-sm'}
+                          bg-white dark:bg-slate-800 rounded-[22px] border ${isSelected ? 'border-[#FFCA06] shadow-md' : 'border-gray-100 dark:border-slate-700 shadow-sm'}
                           flex flex-col items-center justify-center p-4
                           transition-all duration-200`}
             >

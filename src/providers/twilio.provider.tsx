@@ -27,7 +27,7 @@ interface TwilioContextType {
   setAnsweringMachineUrl: (url: string | null) => void;
   dropVoicemail: () => Promise<void>;
   isDroppingingVoicemail: boolean;
-  incomingContactId: string | null;
+  activeBridgeContactId: string | null;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -49,7 +49,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [customerCallSid, setCustomerCallSid] = useState<string | null>(null);
   const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
   const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
-  const [incomingContactId, setIncomingContactId] = useState<string | null>(null);
+  const [activeBridgeContactId, setActiveBridgeContactId] = useState<string | null>(null);
 
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
@@ -77,7 +77,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsHold(false);
     setCallDisposition(null);
     setDuration(0);
-    setIncomingContactId(null);
+    setActiveBridgeContactId(null);
     holdAudio.pause();
     holdAudio.currentTime = 0;
     ignoredCallsRef.current.clear();
@@ -138,7 +138,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         const contactIdParam = call.customParameters?.get('contactId');
         if (contactIdParam) {
-           setIncomingContactId(contactIdParam);
+           setActiveBridgeContactId(contactIdParam);
         }
 
         call.mute(isMuted);
@@ -176,6 +176,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAppStatus('Dialing...');
     setCallStatus('ringing');
     setTranscriptionLogs([]);
+    setActiveBridgeContactId(contactId);
 
 
     try {
@@ -450,7 +451,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setAnsweringMachineUrl,
       dropVoicemail,
       isDroppingingVoicemail,
-      incomingContactId
+      activeBridgeContactId
     }}>
       {children}
     </TwilioContext.Provider>
