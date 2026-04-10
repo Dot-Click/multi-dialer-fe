@@ -141,16 +141,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            setIncomingContactId(contactIdParam);
         }
 
-        // Explicitly unmuting and monitoring media flow
-        call.mute(false);
-        call.on('sample', (sample) => {
-          // Log energy to confirm media is actually traversing the WebRTC connection
-          if (sample.localVolume > 0 || sample.remoteVolume > 0) {
-             console.log(`[Twilio Audio] Energy detected - Local: ${sample.localVolume}, Remote: ${sample.remoteVolume}`);
-          }
-        });
-
-
+        call.mute(isMuted);
         try {
           call.accept();
           setAppStatus('Bridge Connected');
@@ -445,8 +436,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(statusInterval);
   }, [isCalling, callStatus, activeCallSid]);
 
-  const resetCallStatus = useCallback(() => setCallStatus('idle'), []);
-  
   return (
     <TwilioContext.Provider value={{
       device, activeCall, isCalling, appStatus, activeCallSid,
@@ -454,7 +443,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
       callDisposition,
       duration,
-      resetCallStatus,
+      resetCallStatus: () => setCallStatus('idle'),
       answeringMachineUrl,
       setAnsweringMachineUrl,
       dropVoicemail,
