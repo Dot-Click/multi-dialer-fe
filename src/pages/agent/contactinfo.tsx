@@ -101,7 +101,6 @@ const ContactInfo = () => {
         }
         return () => {
             if (statusPoll) clearInterval(statusPoll);
-            if (pollTimerRef.current) clearInterval(pollTimerRef.current);
         };
     }, [isAutoDialing]);
 
