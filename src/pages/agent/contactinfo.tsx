@@ -50,6 +50,7 @@ const ContactInfo = () => {
 
     // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
+    const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({}); // leadId -> status
     const [hasStarted, setHasStarted] = useState(false);
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -84,7 +85,25 @@ const ContactInfo = () => {
         }
     }, [hasStarted, queue.length, navigate, role]);
 
-    useEffect(() => () => { if (pollTimerRef.current) clearInterval(pollTimerRef.current); }, []);
+    useEffect(() => {
+        let statusPoll: any;
+        if (isAutoDialing) {
+            statusPoll = setInterval(async () => {
+                try {
+                    const { data } = await api.get('/calling/status');
+                    if (data.success && data.data.leadStatuses) {
+                        setLeadStatuses(data.data.leadStatuses);
+                    }
+                } catch (e) {
+                    console.warn('[ContactInfo] Status poll failed');
+                }
+            }, 2000);
+        }
+        return () => {
+            if (statusPoll) clearInterval(statusPoll);
+            if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        };
+    }, [isAutoDialing]);
 
     // ─── Init from navigation state ───────────────────────────────────────────
 
@@ -324,7 +343,7 @@ const ContactInfo = () => {
             <div className="w-full flex flex-col lg:flex-row gap-4 p-4 lg:h-[calc(100vh-80px)] overflow-hidden">
                 {/* Left Column (Main Content) - Scrollable */}
                 <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
-                    <CallSection />
+                    <CallSection leadStatuses={leadStatuses} />
                     <Detail onNext={handleNextContact} />
                     <BottomContactDetail />
                 </div>
