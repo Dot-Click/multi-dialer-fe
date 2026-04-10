@@ -95,7 +95,6 @@ const Router: React.FC = () => {
           </Route>
         </Route>
 
-
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
