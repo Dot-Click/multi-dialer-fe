@@ -55,6 +55,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const isHoldRef = useRef(false);
   const ignoredCallsRef = useRef<Set<Call>>(new Set());
   const isHoldProcessing = useRef(false);
+  // Tracks the most-recently-accepted call so stale disconnect handlers
+  // from a superseded call do NOT wipe the state for the new active call.
+  const activeCallRef = useRef<Call | null>(null);
 
   useEffect(() => {
     isHoldRef.current = isHold;
@@ -78,6 +81,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCallDisposition(null);
     setDuration(0);
     setIncomingContactId(null);
+    activeCallRef.current = null;
     holdAudio.pause();
     holdAudio.currentTime = 0;
     ignoredCallsRef.current.clear();
@@ -108,15 +112,27 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('incoming', (call: Call) => {
+        // Mark this call as the active one BEFORE setting up event handlers
+        // so that any stale disconnect from a previous call can detect it's superseded.
+        activeCallRef.current = call;
         setActiveCall(call);
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
 
-        call.on('ringing', () => setCallStatus('ringing'));
-        call.on('accept', () => setCallStatus('connected'));
+        call.on('ringing', () => {
+          if (activeCallRef.current !== call) return;
+          setCallStatus('ringing');
+        });
+        call.on('accept', () => {
+          if (activeCallRef.current !== call) return;
+          setCallStatus('connected');
+        });
 
         call.on('disconnect', () => {
           if (ignoredCallsRef.current.has(call)) return;
+          // If a newer call has taken over, this disconnect belongs to the
+          // superseded call — do NOT reset contact/status state.
+          if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
             handleStopCalling();
@@ -125,6 +141,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         call.on('cancel', () => {
           if (ignoredCallsRef.current.has(call)) return;
+          if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
             handleStopCalling();
@@ -133,6 +150,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         call.on('error', () => {
           if (ignoredCallsRef.current.has(call)) return;
+          if (activeCallRef.current !== call) return;
           handleStopCalling();
         });
 
