@@ -65,7 +65,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
     const bStatus = leadStatuses[leadId]?.toLowerCase();
     
     if (bStatus === 'answered' || bStatus === 'in-progress' || bStatus === 'connected') return "Connected";
-    if (bStatus === 'ringing') return "Ringing";
+    if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued') return "Ringing";
 
     if (!isActive) return "Queued";
     if (isHold) return "On Hold";
@@ -133,7 +133,10 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                     )}
                   </div>
                   <div className="flex items-center justify-center gap-1.5 mt-0.5">
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-green-400/10 text-green-400'}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.15em] px-2 py-0.5 rounded-full 
+                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-400' 
+                      : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]' 
+                      : 'bg-gray-500/20 text-gray-400'}`}>
                       {status}
                     </span>
                     <span className="text-gray-500 text-xs">•</span>
