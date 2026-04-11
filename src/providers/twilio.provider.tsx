@@ -171,6 +171,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         try {
           call.accept();
+          // Unmute AFTER accept — calling mute() before accept corrupts the audio state
+          call.mute(false);
           setAppStatus('Bridge Connected');
           setIsCalling(true);
         } catch (e: any) {
