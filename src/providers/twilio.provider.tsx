@@ -126,7 +126,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         call.on('accept', () => {
           if (activeCallRef.current !== call) return;
           setCallStatus('connected');
-          try { call.mute(false); } catch (e) { console.warn("Failed to explicitly unmute:", e); }
         });
 
         call.on('disconnect', () => {
