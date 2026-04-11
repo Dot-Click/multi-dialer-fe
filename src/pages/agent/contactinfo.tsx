@@ -91,8 +91,21 @@ const ContactInfo = () => {
             statusPoll = setInterval(async () => {
                 try {
                     const { data } = await api.get('/calling/status');
-                    if (data.success && data.data.leadStatuses) {
-                        setLeadStatuses(data.data.leadStatuses);
+                    if (data.success) {
+                        if (data.data.leadStatuses) {
+                            setLeadStatuses(data.data.leadStatuses);
+                        }
+
+                        // Check backend for completion
+                        if (data.data.queueSize === 0 && data.data.activeCallsCount === 0) {
+                            clearInterval(statusPoll);
+                            toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
+                            setIsAutoDialing(false);
+                            isAutoDialingRef.current = false;
+                            
+                            const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
+                            navigate(path);
+                        }
                     }
                 } catch (e) {
                     console.warn('[ContactInfo] Status poll failed');
@@ -102,7 +115,7 @@ const ContactInfo = () => {
         return () => {
             if (statusPoll) clearInterval(statusPoll);
         };
-    }, [isAutoDialing]);
+    }, [isAutoDialing, navigate, role]);
 
     // ─── Init from navigation state ───────────────────────────────────────────
 
