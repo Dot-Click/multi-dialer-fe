@@ -58,6 +58,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Tracks the most-recently-accepted call so stale disconnect handlers
   // from a superseded call do NOT wipe the state for the new active call.
   const activeCallRef = useRef<Call | null>(null);
+  const deviceRef = useRef<Device | null>(null);
 
   useEffect(() => {
     isHoldRef.current = isHold;
@@ -89,9 +90,17 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const setupDevice = useCallback(async () => {
     try {
+      // Clean up previous device if it exists to prevent leaks
+      if (deviceRef.current) {
+        console.log("[TwilioProvider] Cleaning up existing device before re-setup...");
+        deviceRef.current.unregister();
+        deviceRef.current.destroy();
+        deviceRef.current = null;
+      }
+
       setAppStatus('Fetching Token...');
       const { data } = await api.get('/calling/token');
-
+      // ... rest of the setup logic ...
       if (!data.success || !data.data.token) {
         throw new Error(data.message || 'Failed to fetch token');
       }
@@ -105,15 +114,16 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       newDevice.on('registered', () => {
         setAppStatus('Agent Ready');
+        console.log("[TwilioProvider] Device registered for:", agentIdentity);
       });
 
       newDevice.on('error', (error) => {
         setAppStatus(`Error: ${error.message}`);
+        console.error("[TwilioProvider] Device error:", error);
       });
 
       newDevice.on('incoming', (call: Call) => {
-        // Mark this call as the active one BEFORE setting up event handlers
-        // so that any stale disconnect from a previous call can detect it's superseded.
+        console.log("[TwilioProvider] Incoming call received:", call.parameters.CallSid);
         activeCallRef.current = call;
         setActiveCall(call);
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
@@ -130,8 +140,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         call.on('disconnect', () => {
           if (ignoredCallsRef.current.has(call)) return;
-          // If a newer call has taken over, this disconnect belongs to the
-          // superseded call — do NOT reset contact/status state.
           if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
@@ -159,15 +167,12 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            setIncomingContactId(contactIdParam);
         }
 
-        // Explicitly unmuting and monitoring media flow
         call.mute(false);
         call.on('sample', (sample) => {
-          // Log energy to confirm media is actually traversing the WebRTC connection
           if (sample.localVolume > 0 || sample.remoteVolume > 0) {
              console.log(`[Twilio Audio] Energy detected - Local: ${sample.localVolume}, Remote: ${sample.remoteVolume}`);
           }
         });
-
 
         try {
           call.accept();
@@ -180,21 +185,25 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       await newDevice.register();
+      deviceRef.current = newDevice;
       setDevice(newDevice);
     } catch (err: any) {
       setAppStatus(`Setup Failed: ${err.message}`);
+      console.error("[TwilioProvider] setupDevice failed:", err);
     }
-  }, [handleStopCalling, isMuted]);
+  }, [handleStopCalling]);
 
   useEffect(() => {
     setupDevice();
     return () => {
-      if (device) {
-        device.unregister();
-        device.destroy();
+      if (deviceRef.current) {
+        console.log("[TwilioProvider] Unmounting: destroying Twilio device...");
+        deviceRef.current.unregister();
+        deviceRef.current.destroy();
+        deviceRef.current = null;
       }
     };
-  }, []);
+  }, [setupDevice]);
 
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;

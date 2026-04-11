@@ -2,7 +2,7 @@
 // Key fix: onCallStarted now receives the actual fromNumber that was used,
 // so ContactInfo doesn't need to re-read stale state.
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { PhoneOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
@@ -62,7 +62,7 @@ const ContactInfoHeader = ({
   const { isCalling, startCall, endCall } = useTwilio();
   const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
-  const handleCallToggle = async () => {
+  const handleCallToggle = useCallback(async () => {
     if (isRegulatoryLoading) {
       toast("Syncing compliance settings...", { icon: '⏳' });
       return;
@@ -127,7 +127,20 @@ const ContactInfoHeader = ({
     } catch {
       // Error already toasted by startCall
     }
-  };
+  }, [
+    isRegulatoryLoading,
+    isCalling,
+    dialerMode,
+    regulatory,
+    onStopSimultaneousDialer,
+    endCall,
+    onStartSimultaneousDialer,
+    onPickNextCallerId,
+    callerId,
+    contact,
+    startCall,
+    onCallStarted
+  ]);
 
   const handleOpenEventModal = (type: "TASK" | "FOLLOW_UP") => {
     setEventDefaults({
@@ -151,7 +164,7 @@ const ContactInfoHeader = ({
     hasTriggeredAutoDialRef.current = true;
     handleCallToggle();
     if (onAutoDialStarted) onAutoDialStarted();
-  }, [autoDial, isCalling, dialerMode]);
+  }, [autoDial, isCalling, dialerMode, handleCallToggle, onAutoDialStarted]);
 
   return (
     <div className="w-full work-sans bg-white dark:bg-slate-800 border-t border-[#EBEDF0] dark:border-slate-800 shadow-sm">
