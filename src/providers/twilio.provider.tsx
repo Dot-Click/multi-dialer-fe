@@ -126,7 +126,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         call.on('accept', () => {
           if (activeCallRef.current !== call) return;
           setCallStatus('connected');
-          try { call.mute(false); } catch (e) { console.warn("Failed to explicitly unmute:", e); }
         });
 
         call.on('disconnect', () => {
@@ -160,7 +159,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            setIncomingContactId(contactIdParam);
         }
 
-        // Monitor media flow
+        // Explicitly unmuting and monitoring media flow
+        call.mute(false);
         call.on('sample', (sample) => {
           // Log energy to confirm media is actually traversing the WebRTC connection
           if (sample.localVolume > 0 || sample.remoteVolume > 0) {

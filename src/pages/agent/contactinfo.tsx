@@ -97,11 +97,7 @@ const ContactInfo = () => {
                         }
 
                         // Check backend for completion
-                        if (
-                            data.data.queueSize === 0 &&
-                            data.data.activeCallsCount === 0 &&
-                            (data.data.pendingRecycles || 0) === 0
-                        ) {
+                        if (data.data.queueSize === 0 && data.data.activeCallsCount === 0) {
                             clearInterval(statusPoll);
                             toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
                             setIsAutoDialing(false);
