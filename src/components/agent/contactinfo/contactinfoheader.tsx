@@ -62,9 +62,6 @@ const ContactInfoHeader = ({
   const { isCalling, startCall, endCall } = useTwilio();
   const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
-  const now = new Date();
-  const currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
   const handleCallToggle = async () => {
     if (isRegulatoryLoading) {
       toast("Syncing compliance settings...", { icon: '⏳' });
@@ -79,9 +76,23 @@ const ContactInfoHeader = ({
       return;
     }
 
-    // --- TCPA CHECK ---
+    // --- TCPA CHECK (timezone-aware, matching backend logic) ---
     const { tcpaFrom, tcpaTo } = regulatory || {};
     if (tcpaFrom && tcpaTo) {
+      const timeZone = regulatory?.companyTimeZone || "UTC";
+      let currentStr = "";
+      try {
+        const formatter = new Intl.DateTimeFormat('en-US', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false });
+        const parts = formatter.formatToParts(new Date());
+        const hr = parts.find(p => p.type === 'hour')?.value || "00";
+        const mn = parts.find(p => p.type === 'minute')?.value || "00";
+        const adjustedHr = hr === '24' ? '00' : hr;
+        currentStr = `${adjustedHr}:${mn}`;
+      } catch {
+        const now = new Date();
+        currentStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      }
+
       const isAllowed = tcpaFrom <= tcpaTo
         ? (currentStr >= tcpaFrom && currentStr <= tcpaTo)
         : (currentStr >= tcpaFrom || currentStr <= tcpaTo);

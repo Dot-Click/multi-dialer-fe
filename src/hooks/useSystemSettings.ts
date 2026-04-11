@@ -110,6 +110,7 @@ export interface RegulatorySettings {
   gdprRetentionDays: number;
   gdprDeleteRelated: boolean;
   systemSettingId: string;
+  companyTimeZone?: string; // Company timezone for consistent TCPA checks
 }
 
 export interface AuditLog {
