@@ -118,7 +118,7 @@ const ContactInfoHeader = ({
     const phone =
       contact?.phones?.find((p: any) => p.isPrimary)?.number ||
       contact?.phones?.[0]?.number ||
-      "+923413227282";
+      "";
 
     try {
       await startCall(phone, fromNumber, contact?.id);
