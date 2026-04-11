@@ -159,7 +159,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            setIncomingContactId(contactIdParam);
         }
 
-        // Monitor media flow
+        // Explicitly unmuting and monitoring media flow
+        call.mute(false);
         call.on('sample', (sample) => {
           // Log energy to confirm media is actually traversing the WebRTC connection
           if (sample.localVolume > 0 || sample.remoteVolume > 0) {
@@ -170,8 +171,6 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         try {
           call.accept();
-          // Unmute AFTER accept — calling mute() before accept corrupts the audio state
-          call.mute(false);
           setAppStatus('Bridge Connected');
           setIsCalling(true);
         } catch (e: any) {
