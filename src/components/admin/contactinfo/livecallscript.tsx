@@ -104,7 +104,7 @@ const LiveContactScript = ({ scriptId, contactId }: Props) => {
   if (!scriptId) return null;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm flex flex-col min-h-[400px]">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm flex flex-col h-[200px]">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[15px] font-semibold text-gray-800 dark:text-white">
           Live Script Tracker

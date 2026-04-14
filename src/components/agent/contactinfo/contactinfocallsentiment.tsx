@@ -103,7 +103,7 @@ const CallSentiment = () => {
   const isProcessing = ['polling_status', 'fetching_sentiment', 'processing_sentiment'].includes(sentimentStatus);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 w-full font-inter flex flex-col h-full">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 w-full font-inter flex flex-col h-[200px]">
       {/* Header */}
       <div className="flex justify-between items-center mb-5 shrink-0">
         <div className="flex items-center gap-2 text-[#4b5563] dark:text-gray-400">
@@ -130,7 +130,7 @@ const CallSentiment = () => {
       </div>
 
       {/* Content Area - Scrollable for small screens */}
-      <div className="space-y-3 overflow-y-auto pr-1">
+      <div className="space-y-3 overflow-y-auto pr-1 flex-1">
         
         {/* AI Sidekick Box */}
         <div className="bg-[#f4f6fa] dark:bg-slate-700/50 rounded-xl p-4">

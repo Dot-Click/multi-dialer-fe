@@ -361,7 +361,7 @@ const ContactInfo = () => {
                 </div>
 
                 {/* Right Column (Sidebar) - Scrollable if needed */}
-                <div className="w-full lg:w-[420px] flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
+                <div className="w-full lg:w-[420px] flex flex-col gap-4">
                     <div className="flex flex-col gap-4">
                         <ContactInfoScript scriptId={scriptId} />
                         <LiveContactScript contactId={currentContact?.id} scriptId={scriptId} />
