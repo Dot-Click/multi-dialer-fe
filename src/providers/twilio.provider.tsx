@@ -129,11 +129,14 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const newDevice = new Device(token, {
         codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
         allowIncomingWhileBusy: true,
+        edge: ['ashburn', 'dublin', 'singapore', 'sydney', 'frankfurt', 'tokyo'],
       });
 
       newDevice.on('registered', () => {
         setAppStatus('Agent Ready');
-        console.log("[TwilioProvider] Device registered for:", agentIdentity);
+        console.log("[TwilioProvider] Device registered successfully.");
+        console.log("[TwilioProvider] I am registered as:", agentIdentity);
+        console.log("[TwilioProvider] Device Status:", newDevice.state);
       });
 
       newDevice.on('error', (error) => {
@@ -146,7 +149,14 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('incoming', (call: Call) => {
-        console.log("[TwilioProvider] Incoming call received:", call.parameters.CallSid);
+        console.log("==================================================");
+        console.log("[TwilioProvider] INCOMING CALL DETECTED");
+        console.log("[TwilioProvider] Call SID:", call.parameters.CallSid);
+        console.log("[TwilioProvider] Device Status:", newDevice.state);
+        console.log("[TwilioProvider] Call Parameters:", JSON.stringify(call.parameters));
+        console.log("[TwilioProvider] Custom Parameters:", JSON.stringify(Object.fromEntries((call as any).customParameters || [])));
+        console.log("==================================================");
+
         activeCallRef.current = call;
         setActiveCall(call);
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
