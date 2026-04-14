@@ -128,6 +128,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const newDevice = new Device(token, {
         codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
+        allowIncomingWhileBusy: true,
       });
 
       newDevice.on('registered', () => {
@@ -197,12 +198,14 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
 
         try {
+          console.log("[TwilioProvider] Accepting incoming call...");
           call.accept();
           setAppStatus('Bridge Connected');
           setIsCalling(true);
+          console.log("[TwilioProvider] call.accept() transition complete.");
         } catch (e: any) {
           toast.error("Auto-answer failed: Please manually interact with the browser.");
-          console.error("Auto-answer failed", e);
+          console.error("[TwilioProvider] Auto-answer failed:", e);
         }
       });
 
@@ -252,6 +255,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       if (call) {
+        activeCallRef.current = call;
         setActiveCall(call);
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
