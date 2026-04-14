@@ -88,6 +88,30 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     ignoredCallsRef.current.clear();
   }, [holdAudio]);
 
+  const fetchVoiceToken = useCallback(async () => {
+    const { data } = await api.get('/calling/token');
+    if (!data.success || !data.data.token) {
+      throw new Error(data.message || 'Failed to fetch token');
+    }
+
+    return {
+      token: data.data.token as string,
+      identity: (data.data.identity || 'tester_agent') as string,
+    };
+  }, []);
+
+  const refreshDeviceToken = useCallback(async (targetDevice: Device) => {
+    try {
+      const { token, identity: refreshedIdentity } = await fetchVoiceToken();
+      targetDevice.updateToken(token);
+      setIdentity(refreshedIdentity);
+      console.log("[TwilioProvider] Device token refreshed for:", refreshedIdentity);
+    } catch (err: any) {
+      console.error("[TwilioProvider] Token refresh failed:", err);
+      setAppStatus(`Token Refresh Failed: ${err.message}`);
+    }
+  }, [fetchVoiceToken]);
+
   const setupDevice = useCallback(async () => {
     try {
       // Clean up previous device if it exists to prevent leaks
@@ -99,16 +123,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       setAppStatus('Fetching Token...');
-      const { data } = await api.get('/calling/token');
-      // ... rest of the setup logic ...
-      if (!data.success || !data.data.token) {
-        throw new Error(data.message || 'Failed to fetch token');
-      }
-
-      const agentIdentity = data.data.identity || 'tester_agent';
+      const { token, identity: agentIdentity } = await fetchVoiceToken();
       setIdentity(agentIdentity);
 
-      const newDevice = new Device(data.data.token, {
+      const newDevice = new Device(token, {
         codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
       });
 
@@ -120,6 +138,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       newDevice.on('error', (error) => {
         setAppStatus(`Error: ${error.message}`);
         console.error("[TwilioProvider] Device error:", error);
+      });
+
+      newDevice.on('tokenWillExpire', () => {
+        refreshDeviceToken(newDevice);
       });
 
       newDevice.on('incoming', (call: Call) => {
@@ -191,7 +213,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setAppStatus(`Setup Failed: ${err.message}`);
       console.error("[TwilioProvider] setupDevice failed:", err);
     }
-  }, [handleStopCalling]);
+  }, [fetchVoiceToken, handleStopCalling, refreshDeviceToken]);
 
   useEffect(() => {
     setupDevice();
@@ -207,6 +229,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
+    if (!device) {
+      toast.error('Twilio device is not ready yet.');
+      return;
+    }
 
     setIsCalling(true);
     setAppStatus('Dialing...');
@@ -215,7 +241,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 
     try {
-      const call = await device!.connect({
+      const call = await device.connect({
         params: {
           To: phone,
           From: from,
