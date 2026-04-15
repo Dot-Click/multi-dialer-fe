@@ -7,6 +7,7 @@ import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
+import ContactDetailModal from "@/components/modal/ContactDetailModal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
 import { toast } from "react-hot-toast";
@@ -67,6 +68,7 @@ export default function CustomCalendar() {
   const [showAllOpen, setShowAllOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   // const { currentContact } = useAppSelector((state) => state.contacts);
   const { session } = useAppSelector((state) => state.auth);
@@ -146,9 +148,11 @@ export default function CustomCalendar() {
   };
 
   const openDetail = (ev: CalendarEvent, date: Dayjs) => {
-    setSelectedEvent(ev);
-    setSelectedEventDate(date);
-    setDetailOpen(true);
+    if (ev.contactId || ev.contact?.id) {
+      setSelectedEvent(ev);
+      setSelectedEventDate(date);
+      setContactModalOpen(true);
+    }
   };
 
   const prev = () => setCurrentDate((d) => d.subtract(1, "month"));
@@ -337,139 +341,15 @@ export default function CustomCalendar() {
           </div>
         </Modal>
 
-        {/* ------- event-detail modal ------- */}
-        <Modal
-          open={detailOpen}
-          footer={null}
-          onCancel={() => setDetailOpen(false)}
-          className="event-detail-modal"
-          width="90%"
-          style={{ maxWidth: 400 }}
-          closeIcon={null}
-          title={null}
-          maskClosable={true}
-        >
-          <div className="bg-white dark:bg-[#141414] transition-colors h-full">
-            {/* Header with title, date/time, and action icons */}
-            <div className="relative px-5 pt-5 pb-4">
-              {/* Edit and Close icons in top right */}
-              <div className="absolute top-5 right-5 flex items-center gap-3 z-10">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAddOpen(true);
-                    setDetailOpen(false);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
-                  aria-label="Edit event"
-                >
-                  <FiEdit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDetailOpen(false);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
-                  aria-label="Close"
-                >
-                  <span className="text-lg leading-none">✕</span>
-                </button>
-              </div>
-
-              {/* Title with green bar */}
-              <div className="flex items-start gap-3 pr-20">
-                <div className="w-[2px] h-5 bg-emerald-500 flex-shrink-0" style={{ marginTop: '2px' }} />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-[#E0E0E0] leading-tight">
-                    {selectedEvent?.title}
-                  </h3>
-                  {/* Date and time on same line */}
-                  <div className="flex items-center gap-2 mt-1 text-sm font-normal text-gray-600 dark:text-gray-400">
-                    <span>
-                      {selectedEventDate?.format("dddd, MMMM DD")}
-                    </span>
-                    <span className="text-gray-400 dark:text-gray-600">|</span>
-                    <span>{selectedEvent && formatEventTime(selectedEvent)}</span>
-                    <span className="text-gray-400 dark:text-gray-600">|</span>
-                    <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded border border-blue-100 dark:border-blue-800 uppercase">
-                      {selectedEvent?.category?.replace('_', ' ')}
-                    </span>
-                    {selectedEvent?.status === 'MET' && (
-                      <span className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded uppercase">
-                        Completed
-                      </span>
-                    )}
-                    {selectedEvent?.status === 'CANCELLED' && (
-                      <span className="ml-2 px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold rounded uppercase">
-                        Cancelled
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Content sections */}
-            <div className="px-5 pb-5">
-              {/* Assignee section */}
-              <div className="mt-4">
-                <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">
-                  Assignee
-                </p>
-                <p className="text-sm font-normal text-gray-900 dark:text-[#E0E0E0] mt-0.5">
-                  {selectedEvent?.assignTo?.fullName || selectedEvent?.assignTo?.email || "Unassigned"}
-                </p>
-              </div>
-
-              {selectedEvent?.contact && (
-                <div className="mt-4">
-                  <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">Contact</p>
-                  <Link
-                    to={`/contact-detail/${selectedEvent.contactId || selectedEvent.contact.id}`}
-                    className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-                    onClick={() => setDetailOpen(false)}
-                  >
-                    {selectedEvent.contact.fullName}
-                    <IoIosArrowForward className="w-3 h-3" />
-                  </Link>
-                </div>
-              )}
-
-              {/* Description section */}
-              <div className="mt-4">
-                <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mb-1">
-                  Description
-                </p>
-                <p className="text-sm font-normal text-gray-900 dark:text-[#E0E0E0] mt-0.5 leading-relaxed">
-                  {selectedEvent?.description || "No description available."}
-                </p>
-              </div>
-
-              {/* Quick Actions */}
-              {selectedEvent && selectedEvent.status !== 'MET' && (
-                <div className="mt-6 pt-4 border-t dark:border-gray-800">
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        await updateEvent(selectedEvent.id, { status: 'MET' });
-                        fetchEvents();
-                        setDetailOpen(false);
-                        toast.success('Event marked as completed');
-                      } catch (err) {
-                        toast.error('Failed to update event status');
-                      }
-                    }}
-                    className="w-full bg-green-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-green-700 transition-colors"
-                  >
-                    Mark as Completed
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </Modal>
+        {/* ------- contact-detail modal ------- */}
+        <ContactDetailModal
+          isOpen={contactModalOpen}
+          onClose={() => {
+            setContactModalOpen(false);
+            setSelectedEvent(null);
+          }}
+          contactId={selectedEvent?.contactId || selectedEvent?.contact?.id}
+        />
 
         {/* ------- filter modal ------- */}
         <Modal

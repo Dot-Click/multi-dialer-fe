@@ -324,7 +324,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
   };
 
   const handleModalSave = (name: string) => {
-    if (modalConfig.type === 'folder') dispatch(createFolder(name));
+    if (modalConfig.type === 'folder') dispatch(createFolder({ name }));
     if (modalConfig.type === 'list' && modalConfig.targetFolderId) {
       dispatch(createList({ name, folderId: modalConfig.targetFolderId }));
     }

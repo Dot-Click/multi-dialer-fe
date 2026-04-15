@@ -5,8 +5,11 @@ import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
 import ImportContactModal from "../modals/ImportContactModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchContacts, fetchContactFolders, fetchContactLists } from "@/store/slices/contactSlice";
+import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList, deleteContactList } from "@/store/slices/contactSlice";
 import { useNavigate, useLocation } from "react-router-dom";
+import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
+import StructureModal from "@/components/modal/StructureModal";
+import toast from "react-hot-toast";
 
 interface AllContactSidebarProps {
   onSelectItem: (selection: {
@@ -22,6 +25,20 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
   const [activeItem, setActiveItem] = useState("allContacts");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    type: 'folder' | 'list';
+    parentId?: string;
+    title: string;
+    placeholder: string;
+  }>({
+    isOpen: false,
+    type: 'folder',
+    title: "",
+    placeholder: "",
+  });
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,6 +76,102 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     }));
   };
 
+  const handleCreateFolder = (parentId?: string) => {
+    setModalConfig({
+      isOpen: true,
+      type: 'folder',
+      parentId,
+      title: parentId ? "Add New Subfolder" : "Add New Folder",
+      placeholder: "Enter folder name",
+    });
+  };
+
+  const handleCreateList = (folderId?: string) => {
+    setModalConfig({
+      isOpen: true,
+      type: 'list',
+      parentId: folderId,
+      title: folderId ? "Add New List to Folder" : "Add New Calling List",
+      placeholder: "Enter list name",
+    });
+  };
+
+  const handleModalSave = async (name: string) => {
+    if (modalConfig.type === 'folder') {
+      const res = await dispatch(createContactFolder({ name, parentId: modalConfig.parentId }));
+      if (createContactFolder.fulfilled.match(res)) {
+        toast.success("Folder created successfully!");
+        if (modalConfig.parentId) {
+          setExpandedFolders(prev => ({ ...prev, [modalConfig.parentId!]: true }));
+        }
+      }
+    } else {
+      const res = await dispatch(createContactList({ name, folderId: modalConfig.parentId }));
+      if (createContactList.fulfilled.match(res)) {
+        toast.success("List created successfully!");
+        if (modalConfig.parentId) {
+          setExpandedFolders(prev => ({ ...prev, [modalConfig.parentId!]: true }));
+        }
+      }
+    }
+  };
+
+  const handleDeleteList = (id: string, name: string) => {
+     toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Delete list <b className="text-gray-900">"{name}"</b>?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              dispatch(deleteContactList(id));
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
+  };
+
+  const handleDeleteFolder = (id: string, name: string) => {
+    toast((t) => (
+      <span className="flex flex-wrap items-center gap-2">
+        Delete folder <b className="text-gray-900">"{name}"</b>?
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              dispatch(deleteContactFolder(id));
+            }}
+            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 6000 });
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const renderTree = (parentId: string | null = null, depth = 0, hideLists = false) => {
     const currentFolders = folders.filter(f => f.parentId === parentId);
     const currentLists = hideLists ? [] : lists.filter(l => l.folderId === parentId);
@@ -89,6 +202,54 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
               <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate flex-1">
                 {folder.name}
               </span>
+
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(openMenuId === folder.id ? null : folder.id);
+                  }}
+                  className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition opacity-0 group-hover:opacity-100"
+                >
+                  <FiMoreHorizontal className="text-gray-400" />
+                </button>
+                {openMenuId === folder.id && (
+                  <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-xl rounded-xl py-2 z-[110] border border-gray-100 dark:border-slate-700 min-w-[140px] animate-in fade-in zoom-in duration-150">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateFolder(folder.id);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-2"
+                    >
+                      <FiPlus className="text-[14px]" />
+                      Add Subfolder
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateList(folder.id);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors flex items-center gap-2"
+                    >
+                      <FiPlus className="text-[14px]" />
+                      Add List
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFolder(folder.id, folder.name);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors flex items-center gap-2"
+                    >
+                      Delete Folder
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             
             {expandedFolders[folder.id] && (
@@ -151,9 +312,17 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
           
           {/* CALLING LISTS Section */}
           <div className="mb-6">
-            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-              Calling Lists
-            </h2>
+            <div className="flex justify-between items-center mb-3 pr-2">
+              <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">
+                Calling Lists
+              </h2>
+              <button
+                onClick={() => handleCreateList()}
+                className="p-1.5 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-500 dark:text-gray-400"
+              >
+                <FiPlus className="text-sm" />
+              </button>
+            </div>
             <div className="flex flex-col gap-0.5">
               {rootLists.map(list => (
                 <div
@@ -179,9 +348,17 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
           {/* FOLDERS Section */}
           <div className="flex-1">
-            <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-              Folders
-            </h2>
+            <div className="flex justify-between items-center mb-3 pr-2">
+              <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest ">
+                Folders
+              </h2>
+              <button
+                onClick={() => handleCreateFolder()}
+                className="p-1.5 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-500 dark:text-gray-400"
+              >
+                <FiPlus className="text-sm" />
+              </button>
+            </div>
             <div className="flex flex-col gap-0.5">
               {renderTree(null, 0, true)}
               
@@ -211,6 +388,14 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
           onSuccess={handleImportSuccess}
         />
       </div>
+
+      <StructureModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onSave={handleModalSave}
+        title={modalConfig.title}
+        placeholder={modalConfig.placeholder}
+      />
     </aside>
   );
 };

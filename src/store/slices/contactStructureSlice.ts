@@ -5,6 +5,7 @@ import { createContact } from './contactSlice';
 export interface ContactFolder {
   id: string;
   name: string;
+  parentId?: string; // Added for nested folders
   listIds: string[];
   createdAt: string;
   updatedAt: string;
@@ -13,6 +14,7 @@ export interface ContactFolder {
 export interface ContactList {
   id: string;
   name: string;
+  folderId?: string | null;
   agentIds: string[];
   contactIds: string[];
   createdAt: string;
@@ -71,9 +73,9 @@ export const fetchGroups = createAsyncThunk('contactStructure/fetchGroups', asyn
 });
 
 // Async Thunks for Creation
-export const createFolder = createAsyncThunk('contactStructure/createFolder', async (name: string, { rejectWithValue }) => {
+export const createFolder = createAsyncThunk('contactStructure/createFolder', async ({ name, parentId }: { name: string, parentId?: string }, { rejectWithValue }) => {
   try {
-    const response = await api.post('/contact/folder', { name });
+    const response = await api.post('/contact/folder', { name, parentId });
     return response.data.data;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || 'Failed to create folder');
@@ -82,11 +84,13 @@ export const createFolder = createAsyncThunk('contactStructure/createFolder', as
 
 export const createList = createAsyncThunk(
   'contactStructure/createList',
-  async ({ name, folderId }: { name: string; folderId: string }, { rejectWithValue }) => {
+  async ({ name, folderId }: { name: string; folderId?: string }, { rejectWithValue }) => {
     try {
       const response = await api.post('/contact/list', { name, folderId });
       const list = response.data.data;
-      await api.patch(`/contact/folder/${folderId}`, { listIds: [list.id] });
+      if (folderId) {
+        await api.patch(`/contact/folder/${folderId}`, { listIds: [list.id] });
+      }
       return { list, folderId };
 
     } catch (err: any) {

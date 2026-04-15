@@ -218,8 +218,9 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
                   <Radio value="START_ONLY" className="dark:text-white">Start Only</Radio>
                   {formData.eventType === 'START_ONLY' && (
                     <DatePicker
-                      showTime
-                      placeholder="DD/MM/YYYY 00:00"
+                      showTime={{ use12Hours: true, format: 'h:mm A' }}
+                      format="DD/MM/YYYY h:mm A"
+                      placeholder="DD/MM/YYYY 00:00 AM"
                       className="w-full mt-2"
                       value={formData.startDate}
                       onChange={(date) => setFormData({ ...formData, startDate: date })}
@@ -232,14 +233,16 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
                   {formData.eventType === 'FROM_TO' && (
                     <div className="mt-2 space-y-2">
                       <DatePicker
-                        showTime
+                        showTime={{ use12Hours: true, format: 'h:mm A' }}
+                        format="DD/MM/YYYY h:mm A"
                         placeholder="Start Date"
                         className="w-full"
                         value={formData.startDate}
                         onChange={(date) => setFormData({ ...formData, startDate: date })}
                       />
                       <DatePicker
-                        showTime
+                        showTime={{ use12Hours: true, format: 'h:mm A' }}
+                        format="DD/MM/YYYY h:mm A"
                         placeholder="End Date"
                         className="w-full"
                         value={formData.endDate}
