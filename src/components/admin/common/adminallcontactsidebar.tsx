@@ -5,7 +5,7 @@ import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
 import ImportContactModal from "../modals/ImportContactModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList, deleteContactList } from "@/store/slices/contactSlice";
+import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList } from "@/store/slices/contactSlice";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiPlus, FiMoreHorizontal } from "react-icons/fi";
 import StructureModal from "@/components/modal/StructureModal";
@@ -116,30 +116,7 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
     }
   };
 
-  const handleDeleteList = (id: string, name: string) => {
-     toast((t) => (
-      <span className="flex flex-wrap items-center gap-2">
-        Delete list <b className="text-gray-900">"{name}"</b>?
-        <div className="flex gap-2 ml-auto">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              dispatch(deleteContactList(id));
-            }}
-            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </span>
-    ), { duration: 6000 });
-  };
+
 
   const handleDeleteFolder = (id: string, name: string) => {
     toast((t) => (

@@ -3,16 +3,15 @@ import { Calendar, ConfigProvider, Modal, theme } from "antd"; // Added theme
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { FiEdit, FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
+import { FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
 import ContactDetailModal from "@/components/modal/ContactDetailModal";
 import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
-import { toast } from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
-import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // Helper to group events by date
 const groupEventsByDate = (eventList: CalendarEvent[]) => {
@@ -41,7 +40,7 @@ const formatEventTime = (event: CalendarEvent) => {
  *  MAIN COMPONENT
  * -------------------------------------------------- */
 export default function CustomCalendar() {
-  const { getEvents, updateEvent, loading } = useCalendar();
+  const { getEvents, loading } = useCalendar();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
@@ -66,7 +65,6 @@ export default function CustomCalendar() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [showAllOpen, setShowAllOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
@@ -83,9 +81,6 @@ export default function CustomCalendar() {
 
   /* selected event for detail */
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-
-  /* selected date for detail modal */
-  const [selectedEventDate, setSelectedEventDate] = useState<Dayjs | null>(null);
 
   const fetchEvents = async () => {
     const data = await getEvents();
@@ -147,10 +142,9 @@ export default function CustomCalendar() {
     setShowAllOpen(true);
   };
 
-  const openDetail = (ev: CalendarEvent, date: Dayjs) => {
+  const openDetail = (ev: CalendarEvent) => {
     if (ev.contactId || ev.contact?.id) {
       setSelectedEvent(ev);
-      setSelectedEventDate(date);
       setContactModalOpen(true);
     }
   };
@@ -169,7 +163,7 @@ export default function CustomCalendar() {
         {list.slice(0, max).map((it, i) => (
           <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
             e.stopPropagation();
-            openDetail(it, value);
+            openDetail(it);
           }}>
             <div
               className="w-1 rounded-full self-stretch flex-shrink-0"
@@ -321,7 +315,7 @@ export default function CustomCalendar() {
               <div
                 key={i}
                 className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1f1f1f] p-2 rounded-md transition-colors"
-                onClick={() => openDetail(evt, selectedDate || dayjs())}
+                onClick={() => openDetail(evt)}
               >
                 <div
                   className="w-1 rounded-full h-full"
