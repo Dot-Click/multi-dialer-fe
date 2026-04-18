@@ -1,4 +1,4 @@
-import bgImage from "@/assets/bg.png";
+import bgImage from "@/assets/resetpass-bg.svg";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 
@@ -9,7 +9,7 @@ const RecoveryPassword: React.FC = () => {
       className="h-screen w-full bg-cover bg-center flex justify-end lg:px-40 px-5 items-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="bg-white h-fit w-[24rem] lg:h-fit lg:w-[25rem] rounded-xl flex gap-3 flex-col items-center py-7 lg:py-8 px-12">
+      <div className="bg-white h-fit w-[24rem] lg:h-fit lg:w-100 rounded-xl flex gap-3 flex-col items-center py-7 lg:py-8 px-12">
         {/* Logo */}
         <div>
           <img

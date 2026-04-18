@@ -1,5 +1,5 @@
 import { useState } from "react";
-import bgImage from "@/assets/bg.png";
+import bgImage from "@/assets/resetpass-bg.svg";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
