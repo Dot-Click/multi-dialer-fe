@@ -10,7 +10,7 @@ import { FaChevronUp } from "react-icons/fa6";
 import { FaChevronDown } from "react-icons/fa";
 import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 import { TbInfoTriangle } from "react-icons/tb";
-import { deleteContact } from "@/store/slices/contactSlice";
+import { bulkDeleteContacts } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import MoveToModal from "@/components/modal/movetomodal";
@@ -68,15 +68,23 @@ const ContactLayout = () => {
       return;
     }
     try {
-      // Loop through all selected contacts and delete them
-      for (const contact of selectedContacts) {
-        if (contact.id) {
-          await dispatch(deleteContact(contact.id)).unwrap();
-          setLoading(false);
-        }
-      }
-      toast.success("Contact(s) deleted successfully");
-      setSelectedContacts([]); // Clear selection after hit
+      const contactIds = selectedContacts.map(c => c.id).filter(Boolean);
+      
+      const payload = {
+        contactIds,
+        folderId: activeItem.type === "folder" ? activeItem.id : undefined,
+        listId: activeItem.type === "list" ? activeItem.id : undefined,
+        hardDelete: false
+      };
+
+      await dispatch(bulkDeleteContacts(payload)).unwrap();
+      
+      const successMsg = activeItem.type === "folder" 
+        ? "Contact(s) removed from folder successfully" 
+        : "Contact(s) deleted successfully";
+        
+      toast.success(successMsg);
+      setSelectedContacts([]);
       setShowDeleteModal(false);
     } catch (error: any) {
       setLoading(false);
@@ -210,10 +218,13 @@ const ContactLayout = () => {
             <div className="text-red-500 flex justify-center text-4xl mb-3">
               <TbInfoTriangle />
             </div>
-            <h2 className="text-lg font-medium mb-1 dark:text-white">Delete Lead?</h2>
+            <h2 className="text-lg font-medium mb-1 dark:text-white">
+              {activeItem.type === "folder" ? "Remove from Folder?" : "Delete Lead?"}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-              Once deleted, this action cannot be undone. Are you sure you want
-              to proceed?
+              {activeItem.type === "folder" 
+                ? `This will remove the selected leads from the "${activeItem.name}" folder. They will remain in your database.`
+                : "Once deleted, this action cannot be undone. Are you sure you want to proceed?"}
             </p>
 
             {/* Buttons */}
@@ -228,7 +239,7 @@ const ContactLayout = () => {
                 onClick={() => handleConfirmDelete()}
                 className="bg-[#FFCA06] w-full hover:bg-[#ffd633] text-[#2B3034] font-semibold px-5 py-2 rounded-lg"
               >
-                {loading ? "Deleting..." : `Yes, Delete`}
+                {loading ? "Processing..." : activeItem.type === "folder" ? "Yes, Remove" : "Yes, Delete"}
               </button>
             </div>
           </div>

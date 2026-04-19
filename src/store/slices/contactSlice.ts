@@ -296,9 +296,16 @@ export const updateContact = createAsyncThunk(
 
 export const deleteContact = createAsyncThunk(
   "contacts/deleteContact",
-  async (id: string, { rejectWithValue }) => {
+  async (
+    { id, folderId, listId, hardDelete = false }: { id: string; folderId?: string; listId?: string; hardDelete?: boolean },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await api.delete(`/contact/${id}?restore=false`);
+      let url = `/contact/${id}?hardDelete=${hardDelete}`;
+      if (folderId) url += `&folderId=${folderId}`;
+      if (listId) url += `&listId=${listId}`;
+
+      const response = await api.delete(url);
       if (response.data.success) {
         return id;
       }
@@ -309,6 +316,31 @@ export const deleteContact = createAsyncThunk(
       );
     }
   },
+);
+
+export const bulkDeleteContacts = createAsyncThunk(
+  "contacts/bulkDeleteContacts",
+  async (
+    { contactIds, folderId, listId, hardDelete = false }: { contactIds: string[]; folderId?: string; listId?: string; hardDelete?: boolean },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await api.post("/contact/bulk-delete", {
+        contactIds,
+        folderId,
+        listId,
+        hardDelete
+      });
+      if (response.data.success) {
+        return contactIds;
+      }
+      return rejectWithValue("Failed to perform bulk deletion");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error during bulk deletion",
+      );
+    }
+  }
 );
 
 export const restoreContact = createAsyncThunk(
