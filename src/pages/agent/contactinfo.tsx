@@ -219,9 +219,26 @@ const ContactInfo = () => {
 
     const isAutoDialingRef = useRef(false);
 
-    // Stop dialing if the agent navigates away from this page
+    // Stop dialing if the agent navigates away or closes the tab
     useEffect(() => {
+        const handleUnload = () => {
+            if (isAutoDialingRef.current) {
+                // Use fetch with keepalive to ensure the request finishes even if the tab is closing
+                fetch(`${api.defaults.baseURL}/calling/stop-dialing`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': api.defaults.headers.common['Authorization'] as string
+                    },
+                    keepalive: true
+                }).catch(() => {});
+            }
+        };
+
+        window.addEventListener('beforeunload', handleUnload);
+
         return () => {
+            window.removeEventListener('beforeunload', handleUnload);
             if (isAutoDialingRef.current) {
                 api.post('/calling/stop-dialing').catch(() => {});
             }
