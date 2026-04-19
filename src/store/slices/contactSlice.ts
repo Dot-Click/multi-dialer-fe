@@ -343,6 +343,34 @@ export const bulkDeleteContacts = createAsyncThunk(
   }
 );
 
+export const mergeContacts = createAsyncThunk(
+  "contacts/mergeContacts",
+  async (
+    { masterId, duplicateIds, targetFolderId, targetListId }: { masterId: string; duplicateIds: string[]; targetFolderId: string; targetListId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await api.post("/contact/merge", {
+        masterId,
+        duplicateIds,
+        targetFolderId,
+        targetListId,
+      });
+      if (response.data.success) {
+        return {
+          mergedContact: response.data.data,
+          duplicateIds,
+        };
+      }
+      return rejectWithValue("Failed to merge contacts");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error merging contacts",
+      );
+    }
+  }
+);
+
 export const restoreContact = createAsyncThunk(
   "contacts/restoreContact",
   async (id: string, { rejectWithValue }) => {
@@ -1219,6 +1247,25 @@ export const contactSlice = createSlice({
       .addCase(bulkMoveToDnc.fulfilled, (state, action) => {
         const contactIds = action.payload;
         state.contacts = state.contacts.filter((c) => !contactIds.includes(c.id));
+      })
+      .addCase(bulkDeleteContacts.fulfilled, (state, action) => {
+        const contactIds = action.payload;
+        state.contacts = state.contacts.filter(
+          (c) => !contactIds.includes(c.id)
+        );
+        state.duplicateContacts = state.duplicateContacts.filter(
+          (c) => !contactIds.includes(c.id)
+        );
+      })
+      .addCase(mergeContacts.fulfilled, (state, action) => {
+        const { duplicateIds, mergedContact } = action.payload;
+        state.contacts = state.contacts.filter(
+          (c) => !duplicateIds.includes(c.id)
+        );
+        // Remove duplicates and update master in duplicateContacts list if present
+        state.duplicateContacts = state.duplicateContacts.filter(
+          (c) => !duplicateIds.includes(c.id) && c.id !== mergedContact.id
+        );
       })
       .addCase(fetchDuplicateContacts.pending, (state) => {
         state.isLoading = true;

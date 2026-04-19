@@ -1,4 +1,4 @@
-import { FiPlus, FiFolder, FiMoreHorizontal, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiMoreHorizontal, FiChevronDown, FiList, FiTrash } from 'react-icons/fi';
 import React, { useState, useEffect } from 'react';
 import { IoAdd } from 'react-icons/io5';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -223,6 +223,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
     zip: '',
     source: 'Manual entry',
     contactListId: '',
+    folderId: '',
   });
 
   const [emails, setEmails] = useState<{ email: string; isPrimary: boolean }[]>([
@@ -255,6 +256,7 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       emails: emails.filter(e => e.email.trim() !== ""),
       phones: phones.filter(p => p.number.trim() !== ""),
       contactListId: formData.contactListId || undefined,
+      folderIds: formData.folderId ? [formData.folderId] : [],
     };
 
     console.log("payload", payload)
@@ -563,15 +565,71 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
           />
         </div>
 
-        {/* LISTS & GROUPS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] shadow-sm border border-transparent dark:border-gray-700">
-          {/* LISTS */}
+        {/* ASSIGNMENTS: LISTS & FOLDERS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4 bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] shadow-sm border border-transparent dark:border-gray-700">
+          
+          {/* LEFT COLUMN: LISTS */}
           <div className="bg-white dark:bg-slate-800 border border-[#E9E9EB] dark:border-gray-700 rounded-[16px] p-4 h-[400px] flex flex-col">
             <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">LISTS & FOLDERS</h2>
+              <div className="flex items-center gap-2">
+                <FiList className="text-[#9AA0A6] dark:text-gray-400" />
+                <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">Select List</h2>
+              </div>
+              {/* Optional: Add creation button if needed, although lists usually need a folder. 
+                  Let's keep the user's request for "give that button" by showing Create Folder/List logic differently or simplified.
+              */}
+            </div>
+
+            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
+              {lists.map((list) => (
+                <div
+                  key={list.id}
+                  onClick={() => setFormData({ ...formData, contactListId: formData.contactListId === list.id ? '' : list.id })}
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer group transition-all border-2 ${
+                    formData.contactListId === list.id 
+                      ? "bg-[#FFCA06]/5 border-[#FFCA06] shadow-sm" 
+                      : "border-transparent hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-[32px] h-[32px] rounded-full border border-[#E9E9EB] dark:border-gray-700 flex items-center justify-center text-[10px] font-bold ${formData.contactListId === list.id ? "bg-[#FFCA06] text-black" : "bg-white dark:bg-slate-700 text-gray-500"}`}>
+                      {getInitials(list.name)}
+                    </div>
+                    <span className={`text-[14px] font-[500] ${formData.contactListId === list.id ? "text-black dark:text-white" : "text-[#5F6368] dark:text-gray-300"}`}>
+                      {list.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteList(list.id, list.name);
+                      }}
+                      className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-full transition-all"
+                    >
+                      <FiTrash size={14} />
+                    </button>
+                    {formData.contactListId === list.id && <div className="w-2 h-2 rounded-full bg-[#FFCA06]" />}
+                  </div>
+                </div>
+              ))}
+              {lists.length === 0 && (
+                <div className="text-center py-10 text-gray-400 text-sm">No calling lists found</div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: FOLDERS */}
+          <div className="bg-white dark:bg-slate-800 border border-[#E9E9EB] dark:border-gray-700 rounded-[16px] p-4 h-[400px] flex flex-col">
+            <div className="flex justify-between items-center mb-4 pl-2 pr-1">
+              <div className="flex items-center gap-2">
+                <FiFolder className="text-[#9AA0A6] dark:text-gray-400" />
+                <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">Select Folder</h2>
+              </div>
               <button
                 onClick={handleCreateFolder}
                 className="bg-[#F3F4F7] dark:bg-gray-700 p-1.5 rounded-[6px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                title="Add New Folder"
               >
                 <FiPlus className="text-[#5F6368] dark:text-gray-400 text-[14px]" />
               </button>
@@ -579,165 +637,47 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
 
             <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
               {folders.map((folder) => (
-                <div key={folder.id} className="space-y-1">
-                  <div className="flex items-center justify-between p-2 rounded-lg cursor-pointer group hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <FiFolder className="text-[18px] text-[#9AA0A6] dark:text-gray-400" />
-                      <span className="text-[14px] font-[500] text-[#5F6368] dark:text-gray-300">
-                        {folder.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCreateList(folder.id);
-                        }}
-                        className="text-[#1D85F0] dark:text-blue-400 text-[12px] font-[500] hover:underline"
-                      >
-                        + List
-                      </button>
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const menuKey = `folder-${folder.id}`;
-                            setOpenMenuId(openMenuId === menuKey ? null : menuKey);
-                          }}
-                          className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full transition-colors"
-                        >
-                          <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400" />
-                        </button>
-                        {openMenuId === `folder-${folder.id}` && (
-                          <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteFolder(folder.id, folder.name);
-                                setOpenMenuId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                    {/* Render Nested Lists */}
-                  <div className="ml-8 space-y-1 border-l border-gray-100 pl-2">
-                    {lists
-                      .filter((list) => folder.listIds?.includes(list.id))
-                      .map((list) => (
-                        <div
-                          key={list.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData({ ...formData, contactListId: list.id });
-                          }}
-                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer group transition-all ${
-                            formData.contactListId === list.id 
-                              ? "bg-[#F3F4F6] dark:bg-slate-700 ring-1 ring-[#FFCA06]" 
-                              : "hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50"
-                          }`}
-                        >
-                          <span className={`text-[14px] font-[400] ${formData.contactListId === list.id ? "text-[#111] dark:text-white" : "text-[#5F6368] dark:text-gray-400"}`}>
-                            {list.name}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <div className="relative">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const menuKey = `list-${folder.id}-${list.id}`;
-                                  setOpenMenuId(openMenuId === menuKey ? null : menuKey);
-                                }}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                              >
-                                <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400 text-[14px]" />
-                              </button>
-                              {openMenuId === `list-${folder.id}-${list.id}` && (
-                                <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteList(list.id, list.name);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                            <div className={`w-[24px] h-[24px] rounded-full border border-[#E9E9EB] dark:border-gray-700 flex items-center justify-center text-[10px] font-[500] bg-white dark:bg-slate-700 transition-colors ${formData.contactListId === list.id ? "text-[#000] dark:text-white" : "text-[#5F6368] dark:text-gray-400"}`}>
-                              {getInitials(list.name)}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-
-              {folders.length === 0 && lists.length === 0 && (
-                <div className="text-center py-10 text-gray-400 text-sm">No lists or folders found</div>
-              )}
-            </div>
-          </div>
-
-          {/* GROUPS */}
-          <div className="bg-white dark:bg-slate-800 border border-[#E9E9EB] dark:border-gray-700 rounded-[16px] p-4 h-[400px] flex flex-col">
-            <div className="flex justify-between items-center mb-4 pl-2 pr-1">
-              <h2 className="text-[14px] font-[500] uppercase text-[#495057] dark:text-gray-400 tracking-wide">GROUPS</h2>
-              <button
-                onClick={handleCreateGroup}
-                className="bg-[#F3F4F7] dark:bg-gray-700 p-1.5 rounded-[6px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                <FiPlus className="text-[#5F6368] dark:text-gray-400 text-[14px]" />
-              </button>
-            </div>
-
-            <div className="overflow-y-auto pr-1 flex-grow space-y-1 custom-scrollbar">
-              {groups.map((group) => (
                 <div
-                  key={group.id}
-                  className="group flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] dark:hover:bg-slate-700/50 cursor-pointer text-[14px] font-[500] text-[#495057] dark:text-gray-300 transition-colors"
+                  key={folder.id}
+                  onClick={() => setFormData({ ...formData, folderId: formData.folderId === folder.id ? '' : folder.id })}
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer group transition-all border-2 ${
+                    formData.folderId === folder.id 
+                      ? "bg-[#FFCA06]/5 border-[#FFCA06] shadow-sm" 
+                      : "border-transparent hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                  }`}
                 >
-                  <span>{group.name}</span>
-                  <div className="relative">
+                  <div className="flex items-center gap-3">
+                    <FiFolder className={`text-[18px] ${formData.folderId === folder.id ? "text-[#FFCA06]" : "text-[#9AA0A6] dark:text-gray-400"}`} />
+                    <span className={`text-[14px] font-[500] ${formData.folderId === folder.id ? "text-black dark:text-white" : "text-[#5F6368] dark:text-gray-300"}`}>
+                      {folder.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const menuKey = `group-${group.id}`;
-                        setOpenMenuId(openMenuId === menuKey ? null : menuKey);
+                        // Special logic for adding list to this folder if needed
+                        handleCreateList(folder.id);
                       }}
-                      className="p-1 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1 px-2 text-[10px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-100"
                     >
-                      <FiMoreHorizontal className="text-[#9AA0A6] dark:text-gray-400 text-[14px]" />
+                      + List
                     </button>
-                    {openMenuId === `group-${group.id}` && (
-                      <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 shadow-lg rounded-md py-1 z-[110] border border-gray-100 dark:border-gray-700 min-w-[100px]">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteGroup(group.id, group.name);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFolder(folder.id, folder.name);
+                      }}
+                      className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-full transition-all"
+                    >
+                      <FiTrash size={14} />
+                    </button>
+                    {formData.folderId === folder.id && <div className="w-2 h-2 rounded-full bg-[#FFCA06]" />}
                   </div>
                 </div>
               ))}
-              {groups.length === 0 && (
-                <div className="text-center py-10 text-gray-400 text-sm">No groups found</div>
+              {folders.length === 0 && (
+                <div className="text-center py-10 text-gray-400 text-sm">No folders found</div>
               )}
             </div>
           </div>
