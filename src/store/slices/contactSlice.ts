@@ -13,7 +13,9 @@ export interface Contact {
   city?: string;
   state?: string;
   zip?: string;
+  address2?: string;
   mailingAddress?: string;
+  mailingAddress2?: string;
   mailingCity?: string;
   mailingState?: string;
   mailingZip?: string;

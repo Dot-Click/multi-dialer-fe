@@ -220,6 +220,13 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
     city: '',
     state: '',
     zip: '',
+    address: '',
+    address2: '',
+    mailingAddress: '',
+    mailingAddress2: '',
+    mailingCity: '',
+    mailingState: '',
+    mailingZip: '',
     source: 'Manual entry',
     contactListId: '',
     folderId: '',
@@ -250,6 +257,13 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       city: formData.city,
       state: formData.state,
       zip: formData.zip,
+      address: formData.address,
+      address2: formData.address2,
+      mailingAddress: formData.mailingAddress,
+      mailingAddress2: formData.mailingAddress2,
+      mailingCity: formData.mailingCity,
+      mailingState: formData.mailingState,
+      mailingZip: formData.mailingZip,
       source: formData.source,
       tags: [],
       emails: emails.filter(e => e.email.trim() !== ""),
@@ -459,21 +473,38 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
       <div className="flex flex-col gap-5">
 
         {/* BASIC INFORMATION */}
-        <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 md:p-6 rounded-[24px] flex flex-col gap-3 shadow-sm border border-transparent dark:border-gray-700">
-          <h1 className="text-[#495057] dark:text-gray-400 font-medium uppercase text-[14px]">
-            Basic Information
-          </h1>
+        <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[32px] flex flex-col gap-6 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between border-b border-gray-50 dark:border-gray-800 pb-4">
+            <h1 className="text-[#495057] dark:text-gray-400 font-bold uppercase text-[13px] tracking-widest">
+              Basic Information
+            </h1>
+          </div>
 
-          <div className="grid grid-cols-1 gap-y-5">
+          <div className="flex flex-col gap-6">
+            {/* Full Name - Important! */}
             <BasicInformationInputField 
               label="Full Name" 
               placeholder="Enter lead's name"
               value={formData.fullName}
               onChange={(val) => setFormData({ ...formData, fullName: val })}
             />
-            {/* <BasicInformationInputField label="Email" placeholder="Enter lead's email" type="email" /> */}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <BasicInformationInputField 
+                label="Property Address 1" 
+                placeholder="Enter street address"
+                value={formData.address}
+                onChange={(val) => setFormData({ ...formData, address: val })}
+              />
+              <BasicInformationInputField 
+                label="Property Address 2 (Unit/Suite)" 
+                placeholder="Apt, Suite, Unit, etc."
+                value={formData.address2}
+                onChange={(val) => setFormData({ ...formData, address2: val })}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <BasicInformationInputField 
                 label="City" 
                 placeholder="Enter lead's city"
@@ -486,14 +517,58 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
                 value={formData.state}
                 onChange={(val) => setFormData({ ...formData, state: val })}
               />
+               <BasicInformationInputField 
+                label="Zip" 
+                placeholder="Enter lead's Zip"
+                value={formData.zip}
+                onChange={(val) => setFormData({ ...formData, zip: val })}
+              />
             </div>
 
-            <BasicInformationInputField 
-              label="Zip" 
-              placeholder="Enter lead's Zip"
-              value={formData.zip}
-              onChange={(val) => setFormData({ ...formData, zip: val })}
-            />
+            <div className="mt-4 pt-6 border-t border-gray-50 dark:border-gray-800">
+              <div className="flex items-center gap-2 mb-6">
+                <span className="w-8 h-[1px] bg-gray-200 dark:bg-gray-700"></span>
+                <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Mailing Address (If different)</h2>
+              </div>
+              
+              <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <BasicInformationInputField 
+                    label="Mailing Address 1" 
+                    placeholder="Enter mailing street address"
+                    value={formData.mailingAddress}
+                    onChange={(val) => setFormData({ ...formData, mailingAddress: val })}
+                  />
+                  <BasicInformationInputField 
+                    label="Mailing Address 2" 
+                    placeholder="Apt, Suite, Unit, etc."
+                    value={formData.mailingAddress2}
+                    onChange={(val) => setFormData({ ...formData, mailingAddress2: val })}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <BasicInformationInputField 
+                    label="Mailing City" 
+                    placeholder="Mailing city"
+                    value={formData.mailingCity}
+                    onChange={(val) => setFormData({ ...formData, mailingCity: val })}
+                  />
+                  <BasicInformationInputField 
+                    label="Mailing State" 
+                    placeholder="Mailing state"
+                    value={formData.mailingState}
+                    onChange={(val) => setFormData({ ...formData, mailingState: val })}
+                  />
+                  <BasicInformationInputField 
+                    label="Mailing Zip" 
+                    placeholder="Mailing zip"
+                    value={formData.mailingZip}
+                    onChange={(val) => setFormData({ ...formData, mailingZip: val })}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -691,14 +766,6 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
           placeholder={modalConfig.placeholder}
         />
       </div>
-      {/* {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-200">
-          <div className="bg-white p-5 rounded-xl shadow-xl flex items-center gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>
-            <span className="font-medium">Saving contact...</span>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 };
