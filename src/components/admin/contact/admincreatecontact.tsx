@@ -1,4 +1,4 @@
-import { FiPlus, FiFolder, FiMoreHorizontal, FiChevronDown, FiList, FiTrash } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiChevronDown, FiList, FiTrash } from 'react-icons/fi';
 import React, { useState, useEffect } from 'react';
 import { IoAdd } from 'react-icons/io5';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -11,7 +11,6 @@ import {
   createGroup,
   deleteFolder,
   deleteList,
-  deleteGroup
 } from '@/store/slices/contactStructureSlice';
 import StructureModal from '@/components/modal/StructureModal';
 
@@ -212,7 +211,7 @@ interface AdminCreateContactComponentProps {
 const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = ({ onSaveRef }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { folders, lists, groups } = useAppSelector((state) => state.contactStructure);
+  const { folders, lists } = useAppSelector((state) => state.contactStructure);
 
   /* FORM STATE */
   const [formData, setFormData] = useState({
@@ -316,14 +315,14 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
     });
   };
 
-  const handleCreateGroup = () => {
-    setModalConfig({
-      isOpen: true,
-      type: 'group',
-      title: 'Add New Group',
-      placeholder: 'Enter group name',
-    });
-  };
+  // const handleCreateGroup = () => {
+  //   setModalConfig({
+  //     isOpen: true,
+  //     type: 'group',
+  //     title: 'Add New Group',
+  //     placeholder: 'Enter group name',
+  //   });
+  // };
 
   const handleModalSave = (name: string) => {
     if (modalConfig.type === 'folder') dispatch(createFolder({ name }));
@@ -384,32 +383,32 @@ const AdminCreateContactComponent: React.FC<AdminCreateContactComponentProps> = 
     ), { duration: 6000 });
   };
 
-  const handleDeleteGroup = (id: string, name: string) => {
-    toast((t) => (
-      <span className="flex flex-wrap items-center gap-2">
-        Are you sure you want to delete group <b className="text-gray-900">"{name}"</b>?
-        <div className="flex gap-2 ml-auto">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              dispatch(deleteGroup(id));
-            }}
-            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </span>
-    ), { duration: 6000 });
-  };
+  // const handleDeleteGroup = (id: string, name: string) => {
+  //   toast((t) => (
+  //     <span className="flex flex-wrap items-center gap-2">
+  //       Are you sure you want to delete group <b className="text-gray-900">"{name}"</b>?
+  //       <div className="flex gap-2 ml-auto">
+  //         <button
+  //           onClick={() => {
+  //             toast.dismiss(t.id);
+  //             dispatch(deleteGroup(id));
+  //           }}
+  //           className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-md font-medium hover:bg-red-600 transition-colors"
+  //         >
+  //           Delete
+  //         </button>
+  //         <button
+  //           onClick={() => toast.dismiss(t.id)}
+  //           className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium hover:bg-gray-200 transition-colors"
+  //         >
+  //           Cancel
+  //         </button>
+  //       </div>
+  //     </span>
+  //   ), { duration: 6000 });
+  // };
 
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [_openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);

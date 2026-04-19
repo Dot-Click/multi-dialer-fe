@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { mergeContacts } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
