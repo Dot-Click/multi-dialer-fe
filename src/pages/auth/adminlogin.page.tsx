@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { login, setAuthData, logout } from "@/store/slices/authSlice";
@@ -155,12 +155,12 @@ const AdminLogin: React.FC = () => {
             </div>
 
             <div className="flex justify-end w-full">
-              <a
-                href="/admin/change-password"
+              <Link
+                to={"/admin/change-password"}
                 className="text-gray-600 text-[0.65rem] lg:text-xs"
               >
                 Forget your password?
-              </a>
+              </Link>
             </div>
 
             <Button
