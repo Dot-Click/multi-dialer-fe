@@ -103,6 +103,7 @@ const Router: React.FC = () => {
               <Route path="data-dialer" element={<AdminAllContact />} />
               <Route path="find-duplicate" element={<AdminFindDuplicate />} />
               <Route path="contact-detail/:id" element={<ContactDetail />} />
+              <Route path="create-contact" element={<AdminCreateContact />} />
             </Route>
 
             {/* ✅ Admin Dashboard Section */}
@@ -120,7 +121,6 @@ const Router: React.FC = () => {
               <Route path="upgrade" element={<Upgrade />} />
               <Route path="lead-store" element={<LeadStore />} />
               <Route path="compliance" element={<Compliance />} />
-              <Route path="create-contact" element={<AdminCreateContact />} />
               <Route path="add-setting" element={<AddSettingPage />} />
               <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
               <Route path="edit-signature" element={<AdminEditSignature />} />

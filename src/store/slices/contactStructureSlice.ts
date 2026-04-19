@@ -32,6 +32,7 @@ interface ContactStructureState {
   folders: ContactFolder[];
   lists: ContactList[];
   groups: ContactGroup[];
+  actionPlans: any[];
   isLoading: boolean;
   error: string | null;
 }
@@ -40,6 +41,7 @@ const initialState: ContactStructureState = {
   folders: [],
   lists: [],
   groups: [],
+  actionPlans: [],
   isLoading: false,
   error: null,
 };
@@ -71,6 +73,27 @@ export const fetchGroups = createAsyncThunk('contactStructure/fetchGroups', asyn
     return rejectWithValue(err.response?.data?.message || 'Failed to fetch groups');
   }
 });
+
+export const fetchActionPlans = createAsyncThunk('contactStructure/fetchActionPlans', async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get('/system-settings/action-plans');
+    return response.data.data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to fetch action plans');
+  }
+});
+
+export const assignActionPlan = createAsyncThunk(
+  'contactStructure/assignActionPlan',
+  async (payload: { contactId: string; planId: string; assignToId: string; startDate: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/system-settings/action-plans/assign', payload);
+      return response.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to assign action plan');
+    }
+  }
+);
 
 // Async Thunks for Creation
 export const createFolder = createAsyncThunk('contactStructure/createFolder', async ({ name, parentId }: { name: string, parentId?: string }, { rejectWithValue }) => {
@@ -170,6 +193,16 @@ export const contactStructureSlice = createSlice({
         state.groups = action.payload;
       })
       .addCase(fetchGroups.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Fetch Action Plans
+      .addCase(fetchActionPlans.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchActionPlans.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.actionPlans = action.payload;
+      })
+      .addCase(fetchActionPlans.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })

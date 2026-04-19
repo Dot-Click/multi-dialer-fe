@@ -308,6 +308,7 @@ const ContactDetailHeader = () => {
       <TakeActionModal
         isOpen={isActionModalOpen}
         onClose={() => setActionModalOpen(false)}
+        contactId={currentContact?.id}
       />
       <DncSelectionModal
         isOpen={isDncModalOpen}
