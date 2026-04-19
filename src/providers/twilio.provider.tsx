@@ -208,11 +208,18 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
 
         try {
-          console.log("[TwilioProvider] Accepting incoming call...");
-          call.accept();
-          setAppStatus('Bridge Connected');
-          setIsCalling(true);
-          console.log("[TwilioProvider] call.accept() transition complete.");
+          console.log("[TwilioProvider] Attempting setup for bridge call...");
+          setAppStatus('Connecting...');
+          
+          // Slight delay to ensure SDK is fully ready for the accept()
+          setTimeout(() => {
+            console.log("[TwilioProvider] Auto-accepting incoming call...");
+            call.accept();
+            setAppStatus('Bridge Connected');
+            setIsCalling(true);
+            console.log("[TwilioProvider] call.accept() transition complete.");
+          }, 400);
+
         } catch (e: any) {
           toast.error("Auto-answer failed: Please manually interact with the browser.");
           console.error("[TwilioProvider] Auto-answer failed:", e);
