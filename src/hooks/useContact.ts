@@ -124,10 +124,10 @@ export const useContact = () => {
     }
   };
 
-  const importContactsCSV = async (formData: FormData) => {
+  const importContacts = async (formData: FormData) => {
     setLoading(true);
     try {
-      const response = await api.post("/contact/import-csv", formData, {
+      const response = await api.post("/contact/import", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -153,6 +153,6 @@ export const useContact = () => {
     getContactLists,
     getContactFolders,
     getContactGroups,
-    importContactsCSV,
+    importContacts,
   };
 };

@@ -8,10 +8,11 @@ import { IoIosSearch } from "react-icons/io";
 import {
   useContact,
   type ContactList,
-  type ContactGroup,
+  type ContactFolder,
 } from "@/hooks/useContact";
 import { useMiscFields } from "@/hooks/useSystemSettings";
 import toast from "react-hot-toast";
+import * as xlsx from "xlsx";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,24 +50,57 @@ type DuplicateHandling = "Keep Old" | "Overwrite" | "Skip";
 
 // ─── CSV Header Parser ────────────────────────────────────────────────────────
 
-const parseCSVHeaders = (file: File): Promise<string[]> => {
+const parseFileHeaders = (file: File): Promise<string[]> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const firstLine = text.split(/\r?\n/)[0];
-        const headers = firstLine
-          .split(",")
-          .map((h) => h.trim().replace(/^"|"$/g, ""))
-          .filter(Boolean);
-        resolve(headers);
-      } catch {
-        reject(new Error("Failed to parse CSV headers"));
-      }
-    };
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsText(file);
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    
+    if (extension === "csv") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const firstLine = text.split(/\r?\n/)[0];
+          const headers = firstLine
+            .split(",")
+            .map((h) => h.trim().replace(/^"|"$/g, ""))
+            .filter(Boolean);
+          resolve(headers);
+        } catch {
+          reject(new Error("Failed to parse CSV headers"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsText(file);
+    } else if (extension === "xlsx" || extension === "xls") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = xlsx.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const allRows = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+          
+          // Find the first row that actually contains some content
+          const headerRow = allRows.find(row => 
+            row && Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined && cell.toString().trim() !== "")
+          );
+
+          if (!headerRow) {
+            reject(new Error("No headers detected in the file"));
+            return;
+          }
+
+          resolve(headerRow.map(h => h?.toString().trim()).filter(Boolean));
+        } catch {
+          reject(new Error("Failed to parse Excel headers"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsArrayBuffer(file);
+    } else {
+      reject(new Error("Unsupported file format"));
+    }
   });
 };
 
@@ -113,7 +147,7 @@ const autoMapHeaders = (
 
 const STEPS = [
   { label: "CHOOSE YOUR FILE", num: 1 },
-  { label: "LIST OR GROUP ASSIGNMENT", num: 2 },
+  { label: "LIST OR FOLDER ASSIGNMENT", num: 2 },
   { label: "MAP YOUR FIELDS", num: 3 },
   { label: "CHECK FOR DUPLICATES", num: 4 },
 ];
@@ -198,8 +232,9 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validate = (f: File) => {
-    if (f.type !== "text/csv" && !f.name.endsWith(".csv")) {
-      toast.error("Please upload a CSV file");
+    const extension = f.name.split(".").pop()?.toLowerCase();
+    if (extension !== "csv" && extension !== "xlsx" && extension !== "xls") {
+      toast.error("Please upload a CSV or Excel file");
       return;
     }
     setFile(f);
@@ -214,7 +249,7 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
         <p className="text-[13px] text-gray-500 dark:text-slate-400 leading-relaxed">
           In the following steps, we will walk you through importing your lead files.
           <span className="font-medium text-gray-700 dark:text-slate-300 mt-1 block">
-            Accepted format: <span className="font-bold text-gray-900 dark:text-white">.csv</span>
+            Accepted formats: <span className="font-bold text-gray-900 dark:text-white">.csv, .xlsx, .xls</span>
           </span>
         </p>
       </div>
@@ -229,7 +264,7 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
             : "border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 hover:border-[#FFCA06] dark:hover:border-yellow-600 hover:bg-yellow-50/20 dark:hover:bg-yellow-900/10"
           }`}
       >
-        <input type="file" ref={fileInputRef} onChange={(e) => { const f = e.target.files?.[0]; if (f) validate(f); }} className="hidden" accept=".csv" />
+        <input type="file" ref={fileInputRef} onChange={(e) => { const f = e.target.files?.[0]; if (f) validate(f); }} className="hidden" accept=".csv,.xlsx,.xls" />
         {file ? (
           <>
             <div className="p-3 bg-green-100 dark:bg-green-900/40 rounded-full text-green-600 dark:text-green-400">
@@ -250,7 +285,7 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
             </div>
             <div className="text-center">
               <p className="text-[14px] font-medium text-gray-800 dark:text-white">Click to upload or drag and drop</p>
-              <p className="text-[12px] text-gray-400 dark:text-slate-500 mt-0.5">CSV files only</p>
+              <p className="text-[12px] text-gray-400 dark:text-slate-500 mt-0.5">CSV or Excel files only</p>
             </div>
           </>
         )}
@@ -262,26 +297,26 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
 // ─── Step 2: List or Group Assignment ────────────────────────────────────────
 
 const Step2Assignment = ({
-  lists, groups, selectedList, setSelectedList, selectedGroup, setSelectedGroup, loading,
+  lists, folders, selectedList, setSelectedList, selectedFolder, setSelectedFolder, loading,
 }: {
-  lists: ContactList[]; groups: ContactGroup[];
+  lists: ContactList[]; folders: ContactFolder[];
   selectedList: ContactList | null; setSelectedList: (l: ContactList | null) => void;
-  selectedGroup: ContactGroup | null; setSelectedGroup: (g: ContactGroup | null) => void;
+  selectedFolder: ContactFolder | null; setSelectedFolder: (f: ContactFolder | null) => void;
   loading: boolean;
 }) => {
   const [listSearch, setListSearch] = useState("");
-  const [groupSearch, setGroupSearch] = useState("");
+  const [folderSearch, setFolderSearch] = useState("");
 
   const filteredLists = lists.filter((l) => l.name.toLowerCase().includes(listSearch.toLowerCase()));
-  const filteredGroups = groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()));
+  const filteredFolders = folders.filter((f) => f.name.toLowerCase().includes(folderSearch.toLowerCase()));
 
   return (
     <div className="p-6 space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1">Step 2: List or Group Assignment</h3>
+        <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1">Step 2: List or Folder Assignment</h3>
         <p className="text-[13px] text-gray-500 dark:text-slate-400 leading-relaxed">
-          Select an existing list or group, or create a new one with <strong className="text-gray-700 dark:text-slate-300">[+]</strong>.
-          Select either a <strong className="text-gray-700 dark:text-slate-300">List</strong> OR a <strong className="text-gray-700 dark:text-slate-300">Group</strong> — not both.
+          Select an existing list or folder, or create a new one with <strong className="text-gray-700 dark:text-slate-300">[+]</strong>.
+          Select either a <strong className="text-gray-700 dark:text-slate-300">List</strong> OR a <strong className="text-gray-700 dark:text-slate-300">Folder</strong> — not both.
         </p>
       </div>
 
@@ -302,7 +337,7 @@ const Step2Assignment = ({
               <input type="text" placeholder="Search..." value={listSearch} onChange={(e) => setListSearch(e.target.value)}
                 className="w-full text-[12px] px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg outline-none text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
-              <div className={`border rounded-xl overflow-hidden ${selectedGroup ? "opacity-40 pointer-events-none" : ""} border-gray-200 dark:border-slate-600 max-h-[200px] overflow-y-auto custom-scrollbar`}>
+              <div className={`border rounded-xl overflow-hidden ${selectedFolder ? "opacity-40 pointer-events-none" : ""} border-gray-200 dark:border-slate-600 max-h-[200px] overflow-y-auto custom-scrollbar`}>
                 {filteredLists.length === 0
                   ? <p className="text-[12px] text-gray-400 dark:text-slate-500 italic p-3 text-center">No lists found</p>
                   : filteredLists.map((list) => (
@@ -323,11 +358,11 @@ const Step2Assignment = ({
               <div className="flex-1 w-px bg-gray-200 dark:bg-slate-700 min-h-[80px]" />
             </div>
 
-            {/* Groups */}
+            {/* Folders */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-[13px] font-semibold text-gray-700 dark:text-slate-300">Groups</span>
+                  <span className="text-[13px] font-semibold text-gray-700 dark:text-slate-300">Folders</span>
                   <p className="text-[10px] text-gray-400 dark:text-slate-500">
                     Hold <kbd className="px-1 bg-gray-100 dark:bg-slate-700 rounded text-[9px]">Ctrl</kbd> or{" "}
                     <kbd className="px-1 bg-gray-100 dark:bg-slate-700 rounded text-[9px]">Cmd</kbd> for multi-select
@@ -338,30 +373,30 @@ const Step2Assignment = ({
                   <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoAdd size={14} /></button>
                 </div>
               </div>
-              <input type="text" placeholder="Search..." value={groupSearch} onChange={(e) => setGroupSearch(e.target.value)}
+              <input type="text" placeholder="Search..." value={folderSearch} onChange={(e) => setFolderSearch(e.target.value)}
                 className="w-full text-[12px] px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg outline-none text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
               <div className={`border rounded-xl overflow-hidden ${selectedList ? "opacity-40 pointer-events-none" : ""} border-gray-200 dark:border-slate-600 max-h-[200px] overflow-y-auto custom-scrollbar`}>
-                {filteredGroups.length === 0
-                  ? <p className="text-[12px] text-gray-400 dark:text-slate-500 italic p-3 text-center">No groups found</p>
-                  : filteredGroups.map((group) => (
-                    <div key={group.id} onClick={() => setSelectedGroup(selectedGroup?.id === group.id ? null : group)}
+                {filteredFolders.length === 0
+                  ? <p className="text-[12px] text-gray-400 dark:text-slate-500 italic p-3 text-center">No folders found</p>
+                  : filteredFolders.map((folder) => (
+                    <div key={folder.id} onClick={() => setSelectedFolder(selectedFolder?.id === folder.id ? null : folder)}
                       className={`px-3 py-2.5 text-[13px] cursor-pointer border-b last:border-0 border-gray-100 dark:border-slate-700 transition-colors
-                        ${selectedGroup?.id === group.id ? "bg-yellow-50 dark:bg-yellow-900/20 text-gray-900 dark:text-white font-medium" : "hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300"}`}
+                        ${selectedFolder?.id === folder.id ? "bg-yellow-50 dark:bg-yellow-900/20 text-gray-900 dark:text-white font-medium" : "hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300"}`}
                     >
-                      {group.name}
+                      {folder.name}
                     </div>
                   ))}
               </div>
             </div>
           </div>
 
-          {(selectedList || selectedGroup) && (
+          {(selectedList || selectedFolder) && (
             <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
               <FiCheckCircle size={14} className="text-yellow-600 dark:text-yellow-400 shrink-0" />
               <p className="text-[12px] text-yellow-700 dark:text-yellow-300 font-medium">
-                Selected: <span className="font-bold">{selectedList ? selectedList.name : selectedGroup?.name}</span>{" "}
-                ({selectedList ? "List" : "Group"})
+                Selected: <span className="font-bold">{selectedList ? selectedList.name : selectedFolder?.name}</span>{" "}
+                ({selectedList ? "List" : "Folder"})
               </p>
             </div>
           )}
@@ -661,7 +696,7 @@ const Step4Duplicates = ({
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
 const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { getContactLists, getContactGroups, importContactsCSV } = useContact();
+  const { getContactLists, getContactFolders, importContacts } = useContact();
   const { data: miscFieldsData = [], isLoading: miscFieldsLoading } = useMiscFields();
 
   const [step, setStep] = useState(1);
@@ -671,9 +706,9 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
 
   const [lists, setLists] = useState<ContactList[]>([]);
-  const [groups, setGroups] = useState<ContactGroup[]>([]);
+  const [folders, setFolders] = useState<ContactFolder[]>([]);
   const [selectedList, setSelectedList] = useState<ContactList | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<ContactGroup | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<ContactFolder | null>(null);
 
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
 
@@ -712,7 +747,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
       return;
     }
 
-    parseCSVHeaders(file)
+    parseFileHeaders(file)
       .then((headers) => {
         setCsvHeaders(headers);
         const autoMapped = autoMapHeaders(headers, allSystemFields.map((f) => f.systemField));
@@ -723,7 +758,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
           }))
         );
       })
-      .catch(() => toast.error("Could not read CSV headers"));
+      .catch(() => toast.error("Could not read file headers"));
   }, [file, allSystemFields]); // allSystemFields covers both file change and misc fields load
 
   useEffect(() => {
@@ -732,11 +767,11 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
       const fetchData = async () => {
         setLoading(true);
         try {
-          const [allLists, allGroups] = await Promise.all([getContactLists(), getContactGroups()]);
+          const [allLists, allFolders] = await Promise.all([getContactLists(), getContactFolders()]);
           setLists(allLists);
-          setGroups(allGroups);
+          setFolders(allFolders);
         } catch {
-          toast.error("Failed to load lists and groups");
+          toast.error("Failed to load lists and folders");
         } finally {
           setLoading(false);
         }
@@ -746,7 +781,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
       setFile(null);
       setCsvHeaders([]);
       setSelectedList(null);
-      setSelectedGroup(null);
+      setSelectedFolder(null);
       setMappings(allSystemFields.map((f) => ({ ...f, csvHeader: "" })));
       setDupScope(["Entire Database", "File Import"]);
       setDupFields(["Phone"]);
@@ -755,8 +790,8 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
   }, [isOpen]);
 
   const handleNext = () => {
-    if (step === 1 && !file) { toast.error("Please upload a CSV file first"); return; }
-    if (step === 2 && !selectedList && !selectedGroup) { toast.error("Please select a List or a Group"); return; }
+    if (step === 1 && !file) { toast.error("Please upload a file first"); return; }
+    if (step === 2 && !selectedList && !selectedFolder) { toast.error("Please select a List or a Folder"); return; }
     setStep((s) => s + 1);
   };
 
@@ -765,8 +800,8 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
 
     const formData = new FormData();
     formData.append("file", file);
-    if (selectedList)  formData.append("contactListId",  selectedList.id);
-    if (selectedGroup) formData.append("contactGroupId", selectedGroup.id);
+    if (selectedList)   formData.append("contactListId",   selectedList.id);
+    if (selectedFolder) formData.append("contactFolderId", selectedFolder.id);
 
     // Primary fields — keyed by system field name e.g. { "Name": "full_name" }
     const primaryMappings: Record<string, string> = {};
@@ -788,7 +823,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     formData.append("dupHandling",   dupHandling);
 
     try {
-      await importContactsCSV(formData);
+      await importContacts(formData);
       toast.success("Contacts imported successfully!");
       if (onSuccess) onSuccess();
       onClose();
@@ -822,9 +857,9 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           {step === 1 && <Step1Upload file={file} setFile={setFile} />}
           {step === 2 && (
-            <Step2Assignment lists={lists} groups={groups} selectedList={selectedList}
-              setSelectedList={setSelectedList} selectedGroup={selectedGroup}
-              setSelectedGroup={setSelectedGroup} loading={loading} />
+            <Step2Assignment lists={lists} folders={folders} selectedList={selectedList}
+              setSelectedList={setSelectedList} selectedFolder={selectedFolder}
+              setSelectedFolder={setSelectedFolder} loading={loading} />
           )}
           {step === 3 && (
             <Step3MapFields mappings={mappings} setMappings={setMappings}
