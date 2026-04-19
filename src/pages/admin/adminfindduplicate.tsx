@@ -6,15 +6,12 @@ import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import FindDuplicates from "@/components/admin/contact/findduplicates";
 
 
+import { useAppSelector } from "@/store/hooks";
+
 const AdminFindDuplicate = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
-
-    // ✅ Use typed context
-
-  
-
-   
+    const { duplicateContacts } = useAppSelector((state) => state.contacts);
 
     return (
         <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all">
@@ -23,7 +20,7 @@ const AdminFindDuplicate = () => {
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <h1 className="text-[24px] sm:text-[28px] font-[500] dark:text-white">
-                        Duplicates Found: 3
+                        Duplicates Found: {duplicateContacts.length}
                     </h1>
 
                     {/* Manage Columns button */}

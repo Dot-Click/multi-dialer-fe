@@ -59,26 +59,62 @@ const columns = [
     ),
   },
   {
-    accessorKey: "list",
-    header: (info: any) => <SortedHeader header={info.header} label="List" />,
+    accessorKey: "duplicateReason",
+    header: (info: any) => <SortedHeader header={info.header} label="Reason" />,
+    cell: ({ getValue }: any) => (
+      <span className="text-red-500 font-medium text-xs dark:text-red-400">
+        {getValue() || "Unknown"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "locations",
+    header: (info: any) => <SortedHeader header={info.header} label="Locations" />,
+    cell: ({ row }: any) => {
+      const contact = row.original;
+      const locations = [];
+      if (contact.contactList?.name) locations.push(`List: ${contact.contactList.name}`);
+      const folders = Array.isArray(contact.folders) ? contact.folders : [];
+      if (folders.length > 0) {
+        folders.forEach((f: any) => locations.push(`Folder: ${f.name}`));
+      }
+      return (
+        <div className="flex flex-col gap-1">
+          {locations.length > 0 ? (
+            locations.map((loc, i) => (
+              <span key={i} className="text-[11px] text-gray-400 dark:text-gray-500 italic">
+                {loc}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400">-</span>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "tags",
     header: (info: any) => <SortedHeader header={info.header} label="Tags" />,
     cell: ({ getValue }: any) => {
-      const tagsString = getValue();
-      const tags = tagsString && tagsString !== "-" ? tagsString.split(",") : [];
+      const rawTags = getValue();
+      const tags = Array.isArray(rawTags) ? rawTags : 
+                   (typeof rawTags === 'string' && rawTags.length > 0 ? rawTags.split(',') : []);
+      
       return (
         <div className="flex flex-wrap gap-1">
           {tags.length > 0 ? (
-            tags.map((tag: string, index: number) => (
+            tags.map((tag: any, index: number) => {
+              const tagValue = typeof tag === 'string' ? tag.trim() : JSON.stringify(tag);
+              return (
                 <Badge
                   key={index}
                   className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md w-fit text-xs font-medium border border-gray-200"
                 >
-                  {tag.trim()}
+                  {tagValue}
                 </Badge>
-            ))
+              );
+            })
           ) : (
             <span className="text-gray-400">-</span>
           )}
