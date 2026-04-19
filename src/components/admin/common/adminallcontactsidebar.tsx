@@ -3,6 +3,7 @@ import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/i
 import { VscFolderOpened, VscFolder } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
 import usericon from "../../../assets/admin/usericons.png";
+import logo from "@/assets/logo.png";
 import ImportContactModal from "../modals/ImportContactModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList } from "@/store/slices/contactSlice";
@@ -263,6 +264,12 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
   return (
     <aside className="bg-white dark:bg-slate-800 flex flex-col px-4 py-4 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
+      
+      {/* logo */}
+      <div className="flex items-center justify-center mb-8">
+        <img src={logo} alt="CallScout Logo" className="w-[140px] h-auto object-contain" />
+      </div>
+
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}

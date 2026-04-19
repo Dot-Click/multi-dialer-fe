@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 import usericon from "../../../assets/admin/usericons.png";
+import logo from "@/assets/logo.png";
 import { VscFolderOpened } from "react-icons/vsc";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchFolders, fetchLists, fetchGroups, createFolder, deleteFolder, createList, type ContactList } from "@/store/slices/contactStructureSlice";
@@ -258,7 +259,12 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   // const standaloneLists = lists.filter(list => !folderListIds.has(list.id));
 
   return (
-    <aside className="bg-white dark:bg-slate-800 flex gap-4 flex-col px-5 py-4 w-64 h-screen  ">
+    <aside className="bg-white dark:bg-slate-800 flex flex-col px-5 py-6 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
+      
+      {/* logo */}
+      <div className="flex items-center justify-center mb-8">
+        <img src={logo} alt="CallScout Logo" className="w-[140px] h-auto object-contain" />
+      </div>
 
       {/* ✅ Updated Back Button */}
       <button
