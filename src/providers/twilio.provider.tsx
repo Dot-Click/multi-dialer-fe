@@ -149,17 +149,24 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('incoming', (call: Call) => {
+        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         console.log("==================================================");
         console.log("[TwilioProvider] INCOMING CALL DETECTED");
-        console.log("[TwilioProvider] Call SID:", call.parameters.CallSid);
+        console.log("[TwilioProvider] Call SID:", sid);
         console.log("[TwilioProvider] Device Status:", newDevice.state);
         console.log("[TwilioProvider] Call Parameters:", JSON.stringify(call.parameters));
         console.log("[TwilioProvider] Custom Parameters:", JSON.stringify(Object.fromEntries((call as any).customParameters || [])));
         console.log("==================================================");
 
+        // Check if we are already in a call
+        if (activeCallRef.current && activeCallRef.current.status() !== 'closed') {
+          console.log("[TwilioProvider] REJECTING: Already has an active call:", activeCallRef.current.parameters.CallSid);
+          call.reject();
+          return;
+        }
+
         activeCallRef.current = call;
         setActiveCall(call);
-        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         setActiveCallSid(sid);
 
         call.on('ringing', () => {
