@@ -110,8 +110,8 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
       >
         {queue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
-          const isConnected = incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered';
           const status = getUiStatus(isActive, call.id);
+          const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');
           const showControls = isActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
 
           // NEW MOJO ACTIVE STYLE - with enhanced connected highlighting
