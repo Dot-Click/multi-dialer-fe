@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft } from 'lucide-react';
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
+import { VscCallOutgoing } from "react-icons/vsc";
 
 // Define the statuses to match the design (mapped from contact data if possible)
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback";

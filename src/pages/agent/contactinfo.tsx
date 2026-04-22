@@ -52,7 +52,7 @@ const ContactInfo = () => {
     // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
     const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({}); // leadId -> status
-    const [hasStarted, setHasStarted] = useState(false);
+    const [_, setHasStarted] = useState(false);
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
