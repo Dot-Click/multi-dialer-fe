@@ -78,13 +78,9 @@ const ContactInfo = () => {
         if (queue.length > 0) setHasStarted(true);
     }, [queue.length]);
 
-    useEffect(() => {
-        if (hasStarted && queue.length === 0) {
-            toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
-            const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
-            navigate(path);
-        }
-    }, [hasStarted, queue.length, navigate, role]);
+    // Only redirect based on backend status polling, not local queue length
+    // which can be misleading in Power Dialer mode.
+
 
     useEffect(() => {
         let statusPoll: any;
@@ -97,8 +93,12 @@ const ContactInfo = () => {
                             setLeadStatuses(data.data.leadStatuses);
                         }
 
-                        // Check backend for completion
-                        if (data.data.queueSize === 0 && data.data.activeCallsCount === 0) {
+                        // Check backend for completion - must be truly empty and no redials pending
+                        const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
+                            (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
+                        );
+
+                        if (data.data.queueSize === 0 && data.data.activeCallsCount === 0 && !hasPendingCallbacks) {
                             clearInterval(statusPoll);
                             toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
                             setIsAutoDialing(false);

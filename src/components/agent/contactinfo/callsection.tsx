@@ -112,7 +112,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
           const isActive = currentContact?.id === call.id;
           const status = getUiStatus(isActive, call.id);
           const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');
-          const showControls = isActive && (status === "Connected" || status === "On Hold" || status === "Ringing");
+          const showControls = isActive && (status === "Connected" || status === "On Hold");
 
           // NEW MOJO ACTIVE STYLE - with enhanced connected highlighting
           if (isActive || isConnected) {
@@ -122,13 +122,13 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                 ref={el => { cardRefs.current[call.id] = el; }}
                 className={`min-w-[280px] min-h-[130px] rounded-[22px] flex flex-col items-center justify-between p-4 shadow-2xl transition-all duration-300 border-2 
                            ${isConnected 
-                             ? 'bg-[#000000] border-[#10B981] shadow-[#10B981]/20' 
-                             : 'bg-[#18181B] border-white/5 shadow-black/40'}`}
+                             ? 'bg-white dark:bg-slate-800 border-[#10B981] shadow-[#10B981]/10' 
+                             : 'bg-white dark:bg-slate-800 border-[#6366F1] shadow-[#6366F1]/10'}`}
               >
                 <div className="text-center w-full">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-[17px] font-bold text-white leading-tight truncate max-w-[180px]">
-                      {call.fullName || call.name}
+                    <h3 className="text-[17px] font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[180px]">
+                      {call.name || call.fullName || "Unknown"}
                     </h3>
                     {isConnected && (
                       <span className="flex items-center gap-1 bg-[#10B981] text-white text-[9px] font-black px-2 py-0.5 rounded-md animate-pulse">
@@ -136,9 +136,12 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                       </span>
                     )}
                   </div>
+                  <p className="text-[13px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1">
+                    <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
+                  </p>
                   <div className="flex items-center justify-center gap-1.5 mt-0.5">
                     <span className={`text-[10px] font-bold uppercase tracking-[0.15em] px-2 py-0.5 rounded-full 
-                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-400' 
+                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-500' 
                       : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]' 
                       : 'bg-gray-500/20 text-gray-400'}`}>
                       {status}
