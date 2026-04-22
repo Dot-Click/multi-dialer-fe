@@ -43,7 +43,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
     isMuted,
     dropVoicemail, 
     isDroppingingVoicemail, 
-    answeringMachineUrl,
+    // answeringMachineUrl,
     duration,
     endCall,
     isCalling
