@@ -97,8 +97,13 @@ const ContactInfo = () => {
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );
+                        
+                        const isTrulyEmpty = data.data.queueSize === 0 && 
+                                           data.data.activeCallsCount === 0 && 
+                                           (data.data.pendingRedialsCount || 0) === 0 && 
+                                           !hasPendingCallbacks;
 
-                        if (data.data.queueSize === 0 && data.data.activeCallsCount === 0 && !hasPendingCallbacks) {
+                        if (isTrulyEmpty) {
                             clearInterval(statusPoll);
                             toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
                             setIsAutoDialing(false);
