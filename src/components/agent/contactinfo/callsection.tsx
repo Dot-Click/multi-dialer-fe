@@ -159,7 +159,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                     <button
                       onClick={toggleMute}
                       title={isMuted ? "Unmute" : "Mute"}
-                      className={`w-10 h-10 flex justify-center items-center rounded-xl transition-all ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                      className={`w-10 h-10 flex justify-center items-center rounded-xl transition-all shadow-sm ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                       {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
                     </button>
@@ -167,19 +167,19 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                     <button
                       onClick={() => toggleHold(holdRecordingUrl)}
                       title={isHold ? "Resume Call" : "Hold"}
-                      className={`w-10 h-10 flex justify-center items-center rounded-xl transition-all ${isHold ? 'bg-[#EAB308] text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                      className={`w-10 h-10 flex justify-center items-center rounded-xl transition-all shadow-sm ${isHold ? 'bg-[#EAB308] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                       {isHold ? <Play size={18} /> : <Pause size={18} />}
                     </button>
 
                     <button
                       onClick={dropVoicemail}
-                      disabled={isDroppingingVoicemail || !answeringMachineUrl}
+                      disabled={isDroppingingVoicemail}
                       title="Drop Voicemail & Next"
-                      className="w-10 h-10 flex justify-center items-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all disabled:opacity-10"
+                      className="w-10 h-10 flex justify-center items-center rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 shadow-sm transition-all disabled:opacity-30"
                     >
                       {isDroppingingVoicemail 
-                        ? <Loader2 size={18} className="animate-spin text-gray-400" />
+                        ? <Loader2 size={18} className="animate-spin text-slate-400" />
                         : <ArrowRightLeft size={18} />
                       }
                     </button>
