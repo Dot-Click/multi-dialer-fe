@@ -47,6 +47,7 @@ const ContactInfo = () => {
     const dialerMode = location.state?.dialerMode || "manual";
     const [isAutoDialing, setIsAutoDialing] = useState(false);
     const maxCallsPerId = location.state?.numberOfLines || 5;
+    const pacing: number | undefined = location.state?.pacing; // Power Dialer pacing override
 
     // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
@@ -196,7 +197,7 @@ const ContactInfo = () => {
                 priority: queue.length - idx,
                 id: c.id
             }));
-            await api.post('/calling/leads', { leads: leadsPayload, callerIds });
+            await api.post('/calling/leads', { leads: leadsPayload, callerIds, pacing });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {

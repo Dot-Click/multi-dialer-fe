@@ -84,6 +84,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [scripts, setScripts] = useState<ScriptData[]>([]);
   const [selectedScript, setSelectedScript] = useState("");
   const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
+  const [pacing, setPacing] = useState(1); // Power Dialer: simultaneous calls
 
   const { data: session } = authClient.useSession();
   const role = session?.user.role;
@@ -150,6 +151,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setBusyRecording((setting as any).busyRecordingId || "");
       setSelectedScript(setting.callScriptId || "");
       setDialerMode((setting as any).dialerMode || "manual");
+      setPacing((setting as any).pacing || 1);
     }
   }, [isOpen, existingSettings]);
 
@@ -167,6 +169,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setAnsweringMachineRecording("");
       setBusyRecording("");
       setDialerMode("manual");
+      setPacing(1);
     }
   };
 
@@ -220,6 +223,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           answeringMachineRecordingUrl: getAnsweringMachineUrl(),
           busyRecordingUrl: getBusyRecordingUrl(),
           dialerMode,
+          pacing: dialerMode === "power" ? pacing : undefined,
         },
       });
 
@@ -439,6 +443,28 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                 <span className="text-[10px] text-gray-400 text-center">Automatically dials next number when call ends</span>
               </button>
             </div>
+
+            {/* Pacing — only visible in Power Dialer mode */}
+            {dialerMode === "power" && (
+              <FieldWrapper label="Pacing (Simultaneous Calls)">
+                <div className="flex items-center gap-3">
+                  <select
+                    value={pacing}
+                    onChange={(e) => setPacing(Number(e.target.value))}
+                    className="w-full bg-transparent appearance-none text-[13px] font-semibold text-gray-700 dark:text-white outline-none cursor-pointer"
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                      <option key={n} value={n} className="dark:bg-slate-900">
+                        {n} {n === 1 ? "simultaneous call" : "simultaneous calls"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  How many contacts to dial at the same time. The first to answer connects; others hear hold music and are redialed automatically.
+                </p>
+              </FieldWrapper>
+            )}
           </div>
 
           {/* Footer */}
@@ -462,6 +488,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     answeringMachineRecordingUrl: getAnsweringMachineUrl(),
                     busyRecordingUrl: getBusyRecordingUrl(),
                     dialerMode,
+                    pacing: dialerMode === "power" ? pacing : undefined,
                   },
                 })
               }

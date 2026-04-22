@@ -5,19 +5,21 @@ import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 
 // Define the statuses to match the design (mapped from contact data if possible)
-type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected";
+type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback";
 
 const getStatusBadgeStyle = (status: CallStatus) => {
   switch (status) {
     case 'Connected':
-      return 'bg-[#E8FFF3] text-[#10B981]'; // Light Green / Dark Green text
+      return 'bg-[#E8FFF3] text-[#10B981]'; // Green
     case 'Ringing':
-      return 'bg-blue-50 text-blue-500 animate-pulse';
+      return 'bg-blue-50 text-blue-500 animate-pulse'; // Blue pulsing
     case 'On Hold':
-      return 'bg-[#FEFCE8] text-[#CA8A04]'; // Light Yellow / Dark Yellow text
+      return 'bg-[#FEFCE8] text-[#CA8A04]'; // Yellow
+    case 'Callback':
+      return 'bg-orange-50 text-orange-500 animate-pulse'; // Amber / Callback
     case 'Hung Up':
     case 'Disconnected':
-      return 'bg-[#FEE2E2] text-[#EF4444]'; // Light Red / Dark Red text
+      return 'bg-[#FEE2E2] text-[#EF4444]'; // Red
     default:
       return 'bg-gray-100 text-gray-600';
   }
@@ -63,13 +65,15 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
   // Map internal Twilio/Backend status to UI status
   const getUiStatus = (isActive: boolean, leadId: string): CallStatus => {
     const bStatus = leadStatuses[leadId]?.toLowerCase();
-    
+
     if (bStatus === 'answered' || bStatus === 'in-progress' || bStatus === 'connected') return "Connected";
     if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued') return "Ringing";
+    if (bStatus === 'call_back' || bStatus === 'callback') return "Callback";
+    if (bStatus === 'completed' || bStatus === 'failed' || bStatus === 'busy' || bStatus === 'no-answer' || bStatus === 'no_answer') return "Disconnected";
 
     if (!isActive) return "Queued";
     if (isHold) return "On Hold";
-    
+
     switch (callStatus) {
       case 'idle': return "Queued";
       case 'ringing': return "Ringing";
@@ -191,13 +195,24 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
             );
           }
 
-          // ORIGINAL STYLE FOR OTHERS
+          // NON-ACTIVE CARDS — show status-aware border colour
+          const cardBorderClass =
+            status === 'Disconnected' || status === 'Hung Up'
+              ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10'
+              : status === 'Callback'
+              ? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10'
+              : status === 'Connected'
+              ? 'border-green-300 dark:border-green-700'
+              : isActive
+              ? 'border-[#FFCA06] shadow-md'
+              : 'border-gray-100 dark:border-slate-700 shadow-sm';
+
           return (
             <div
               key={call.id || index}
               ref={el => { cardRefs.current[call.id] = el; }}
               className={`min-w-[280px] min-h-[130px] 
-                          bg-white dark:bg-slate-800 rounded-[22px] border ${isActive ? 'border-[#FFCA06] shadow-md' : 'border-gray-100 dark:border-slate-700 shadow-sm'}
+                          bg-white dark:bg-slate-800 rounded-[22px] border ${cardBorderClass}
                           flex flex-col items-center justify-center p-4
                           transition-all duration-200`}
             >
@@ -207,7 +222,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                 </h3>
                 <div className="flex items-center justify-center gap-1.5 text-[#6B7280] dark:text-gray-400">
                   <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
-                    {status}
+                    {status === 'Callback' ? 'Callback — Redialing...' : status}
                   </span>
                 </div>
               </div>
