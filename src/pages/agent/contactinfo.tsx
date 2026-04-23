@@ -5,10 +5,10 @@ import { fetchContactById, setQueue } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader';
-import ContactInfoScript from '@/components/admin/contactinfo/contactinfoscript';
-import LiveContactScript from '@/components/admin/contactinfo/livecallscript';
 import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
-import Detail from '@/components/agent/contactdetail/detail';
+import ActionPanel from '@/components/agent/contactinfo/actionpanel';
+import OutcomeRow from '@/components/agent/contactinfo/outcomerow';
+import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
 import { useTwilio } from '@/providers/twilio.provider';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
@@ -47,13 +47,12 @@ const ContactInfo = () => {
     const dialerMode = location.state?.dialerMode || "manual";
     const [isAutoDialing, setIsAutoDialing] = useState(false);
     const maxCallsPerId = location.state?.numberOfLines || 5;
-    const pacing: number | undefined = location.state?.pacing; // Power Dialer pacing override
+    const pacing: number | undefined = location.state?.pacing; 
 
-    // Cooldown state from backend
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
-    const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({}); // leadId -> status
-    const [_, setHasStarted] = useState(false);
+    const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({});
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isAutoDialingRef = useRef(false);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
@@ -75,29 +74,16 @@ const ContactInfo = () => {
     }, [fetchCooldownStatus]);
 
     useEffect(() => {
-        if (queue.length > 0) setHasStarted(true);
-    }, [queue.length]);
-
-    // Only redirect based on backend status polling, not local queue length
-    // which can be misleading in Power Dialer mode.
-
-
-    useEffect(() => {
         let statusPoll: any;
         if (isAutoDialing) {
             statusPoll = setInterval(async () => {
                 try {
                     const { data } = await api.get('/calling/status');
                     if (data.success) {
-                        if (data.data.leadStatuses) {
-                            setLeadStatuses(data.data.leadStatuses);
-                        }
-
-                        // Check backend for completion - must be truly empty and no redials pending
+                        if (data.data.leadStatuses) setLeadStatuses(data.data.leadStatuses);
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );
-                        
                         const isTrulyEmpty = data.data.queueSize === 0 && 
                                            data.data.activeCallsCount === 0 && 
                                            (data.data.pendingRedialsCount || 0) === 0 && 
@@ -105,10 +91,9 @@ const ContactInfo = () => {
 
                         if (isTrulyEmpty) {
                             clearInterval(statusPoll);
-                            toast.success("All contacts processed! Returning to dialer...", { icon: '🏁' });
+                            toast.success("All contacts processed!", { icon: '🏁' });
                             setIsAutoDialing(false);
                             isAutoDialingRef.current = false;
-                            
                             const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
                             navigate(path);
                         }
@@ -118,9 +103,7 @@ const ContactInfo = () => {
                 }
             }, 2000);
         }
-        return () => {
-            if (statusPoll) clearInterval(statusPoll);
-        };
+        return () => { if (statusPoll) clearInterval(statusPoll); };
     }, [isAutoDialing, navigate, role]);
 
     // ─── Init from navigation state ───────────────────────────────────────────
@@ -137,9 +120,7 @@ const ContactInfo = () => {
         const ids: string[] =
             Array.isArray(incomingCallerIds) && incomingCallerIds.length > 0
                 ? incomingCallerIds
-                : location.state?.callerId
-                    ? [location.state.callerId]
-                    : [];
+                : location.state?.callerId ? [location.state.callerId] : [];
 
         if (ids.length > 0) {
             setCallerIds(ids);
@@ -148,7 +129,6 @@ const ContactInfo = () => {
         }
     }, [location.state]);
 
-    // Pick initial callerId once status loads
     useEffect(() => {
         if (callerIds.length === 0 || currentCallerId) return;
         const now = Date.now();
@@ -171,7 +151,6 @@ const ContactInfo = () => {
 
     // ─── Power Dialer Logic ───────────────────────────────────────────────────
 
-    // Sync UI when the backend bridge answers a specific contact
     useEffect(() => {
         if (incomingContactId && queue.length > 0) {
             const foundIdx = queue.findIndex(c => (c as any).id === incomingContactId);
@@ -183,15 +162,7 @@ const ContactInfo = () => {
     }, [incomingContactId, queue]);
 
     const startSimultaneousDialing = async () => {
-        if (isAutoDialingRef.current) {
-            return;
-        }
-
-        if (!currentCallerId) {
-            toast.error("No caller ID available for power dialer.");
-            return;
-        }
-
+        if (isAutoDialingRef.current || !currentCallerId) return;
         isAutoDialingRef.current = true;
         toast.loading("Starting simultaneous dialer...", { id: "powerDialer" })
         try {
@@ -206,7 +177,7 @@ const ContactInfo = () => {
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Failed to start power dialer", { id: "powerDialer" });
+            toast.error(e.response?.data?.message || "Failed", { id: "powerDialer" });
             setIsAutoDialing(false);
             isAutoDialingRef.current = false;
         }
@@ -223,31 +194,20 @@ const ContactInfo = () => {
         }
     }
 
-    const isAutoDialingRef = useRef(false);
-
-    // Stop dialing if the agent navigates away or closes the tab
     useEffect(() => {
         const handleUnload = () => {
             if (isAutoDialingRef.current) {
-                // Use fetch with keepalive to ensure the request finishes even if the tab is closing
                 fetch(`${api.defaults.baseURL}/calling/stop-dialing`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': api.defaults.headers.common['Authorization'] as string
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': api.defaults.headers.common['Authorization'] as string },
                     keepalive: true
                 }).catch(() => {});
             }
         };
-
         window.addEventListener('beforeunload', handleUnload);
-
         return () => {
             window.removeEventListener('beforeunload', handleUnload);
-            if (isAutoDialingRef.current) {
-                api.post('/calling/stop-dialing').catch(() => {});
-            }
+            if (isAutoDialingRef.current) api.post('/calling/stop-dialing').catch(() => {});
         };
     }, []);
 
@@ -255,108 +215,53 @@ const ContactInfo = () => {
 
     const rotateCallerId = useCallback((): string | null => {
         if (dailyCallsCount >= TOTAL_DAILY_LIMIT) {
-            toast.error(`Daily limit of ${TOTAL_DAILY_LIMIT} calls reached!`);
+            toast.error(`Daily limit reached!`);
             return null;
         }
-
         const now = Date.now();
-
-        // Can we keep using the current ID?
         if (currentCallerId) {
             const s = callerIdStatus[currentCallerId];
-            if (!s?.isFrozen && (s?.callCount ?? 0) < maxCallsPerId) {
-                return currentCallerId;
-            }
+            if (!s?.isFrozen && (s?.callCount ?? 0) < maxCallsPerId) return currentCallerId;
         }
-
-        // Find next available ID
-        const startIdx = currentCallerId
-            ? (callerIds.indexOf(currentCallerId) + 1) % callerIds.length
-            : 0;
-
+        const startIdx = currentCallerId ? (callerIds.indexOf(currentCallerId) + 1) % callerIds.length : 0;
         for (let i = 0; i < callerIds.length; i++) {
             const idx = (startIdx + i) % callerIds.length;
             const cid = callerIds[idx];
             const s = callerIdStatus[cid];
-            const available = !s?.isFrozen || (s.unfreezeAt && now >= s.unfreezeAt);
-            if (available) {
+            if (!s?.isFrozen || (s.unfreezeAt && now >= s.unfreezeAt)) {
                 setCurrentCallerId(cid);
                 return cid;
             }
         }
-
-        const minSecs = Math.min(...callerIds.map((cid) => callerIdStatus[cid]?.secondsRemaining ?? 0).filter((s) => s > 0));
-        toast.error(`All Caller IDs on cooldown. Next in ~${Math.ceil(minSecs / 60)} min.`);
         return null;
     }, [callerIds, currentCallerId, callerIdStatus, dailyCallsCount, maxCallsPerId]);
 
-    // ─── onCallStarted — receives the actual fromNumber used ─────────────────
-    // FIX: fromNumber is passed in directly from handleCallToggle,
-    // so we never read stale React state for currentCallerId.
-
     const onCallStarted = useCallback(async (fromNumber: string) => {
         setDailyCallsCount((prev) => prev + 1);
-
-        // Optimistically update local status before BE responds
         setCallerIdStatus((prev) => {
             const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
             const newCount = current.callCount + 1;
             const willFreeze = newCount >= maxCallsPerId;
-            const unfreezeAt = willFreeze ? Date.now() + 20 * 60 * 1000 : current.unfreezeAt;
-            return {
-                ...prev,
-                [fromNumber]: {
-                    callCount: newCount,
-                    isFrozen: willFreeze,
-                    unfreezeAt: willFreeze ? unfreezeAt : null,
-                    secondsRemaining: willFreeze ? 20 * 60 : 0,
-                },
-            };
+            return { ...prev, [fromNumber]: { ...current, callCount: newCount, isFrozen: willFreeze, secondsRemaining: willFreeze ? 1200 : 0 } };
         });
-
-        // Persist to backend
         try {
-            const { data } = await api.post('/system-settings/caller-id/use', {
-                callerNumber: fromNumber,
-                maxCallsPerCid: maxCallsPerId,
-            });
-
+            const { data } = await api.post('/system-settings/caller-id/use', { callerNumber: fromNumber, maxCallsPerCid: maxCallsPerId });
             if (data.success) {
-                const result = data.data;
-
-                // Sync local state with authoritative BE response
-                setCallerIdStatus((prev) => ({
-                    ...prev,
-                    [fromNumber]: {
-                        callCount: result.callCount,
-                        isFrozen: result.isFrozen,
-                        unfreezeAt: result.unfreezeAt,
-                        secondsRemaining: result.secondsRemaining,
-                    },
-                }));
-
-                if (result.rotated) {
-                    toast(`Caller ID ${fromNumber} is now on a 20-min cooldown.`);
-                    // Advance to next available ID
+                const res = data.data;
+                setCallerIdStatus(prev => ({ ...prev, [fromNumber]: { ...prev[fromNumber], ...res } }));
+                if (res.rotated) {
+                    toast(`Caller ID ${fromNumber} on cooldown.`);
                     const next = rotateCallerId();
                     if (next && next !== fromNumber) setCurrentCallerId(next);
                 }
             }
-        } catch (err) {
-            console.error('[ContactInfo] Failed to persist callerId usage:', err);
-            // Optimistic update stays in place — next poll will correct it
-        }
+        } catch (err) { console.error(err); }
     }, [maxCallsPerId, rotateCallerId]);
-
-    // ─── Debug stats ──────────────────────────────────────────────────────────
-
-    const currentStatus = currentCallerId ? (callerIdStatus[currentCallerId] ?? null) : null;
-    const callsMadeCurrent = currentStatus?.callCount ?? 0;
 
     // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
-        <div className="bg-gray-100 dark:bg-slate-900 min-h-screen">
+        <div className="bg-gray-100 dark:bg-slate-900 h-screen overflow-hidden flex flex-col">
             <ContactInfoHeader
                 contact={currentContact}
                 onNext={handleNextContact}
@@ -375,50 +280,85 @@ const ContactInfo = () => {
                 onStopSimultaneousDialer={stopSimultaneousDialing}
             />
 
-            <div className="w-full flex flex-col lg:flex-row gap-4 p-4 lg:h-[calc(100vh-80px)] overflow-hidden">
-                {/* Left Column (Main Content) - Scrollable */}
-                <div className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
-                    <CallSection leadStatuses={leadStatuses} />
-                    <Detail onNext={handleNextContact} />
-                    <BottomContactDetail />
-                </div>
+            <main className="flex-1 overflow-hidden p-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+                    {/* Left Column (Main Info) - 8/12 width */}
+                    <div className="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
+                        <div className="shrink-0">
+                            <CallSection leadStatuses={leadStatuses} />
+                        </div>
+                        <div className="shrink-0">
+                            <OutcomeRow onNext={handleNextContact} />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <BottomContactDetail />
+                        </div>
+                    </div>
 
-                {/* Right Column (Sidebar) - Scrollable if needed */}
-                <div className="w-full lg:w-[420px] flex flex-col gap-4">
-                    <div className="flex flex-col gap-4">
-                        <ContactInfoScript scriptId={scriptId} />
-                        <LiveContactScript contactId={currentContact?.id} scriptId={scriptId} />
+                    {/* Right Column (Sidebar) - 4/12 width */}
+                    <div className="lg:col-span-4 flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
+                        <ActionPanel onNext={handleNextContact} />
+                        <ScriptTabs scriptId={scriptId} contactId={currentContact?.id} />
                         <ContactInfoCallSentiment />
+                        
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Session Health</h4>
+                             
+                             <div className="space-y-4">
+                                {/* Daily Progress */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-xs font-bold">
+                                        <span className="text-gray-500 uppercase tracking-tighter">Daily Progress</span>
+                                        <span className="text-gray-900 dark:text-white">{dailyCallsCount} / {TOTAL_DAILY_LIMIT}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(dailyCallsCount/TOTAL_DAILY_LIMIT)*100}%` }} />
+                                    </div>
+                                </div>
+
+                                {/* Caller IDs Status */}
+                                <div className="space-y-2">
+                                    <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Caller ID Rotation</h5>
+                                    <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar pr-1">
+                                        {callerIds.map((cid) => {
+                                            const status = callerIdStatus[cid];
+                                            const isCurrent = currentCallerId === cid;
+                                            const isFrozen = status?.isFrozen;
+                                            
+                                            return (
+                                                <div key={cid} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                                                    isCurrent 
+                                                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800' 
+                                                    : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
+                                                }`}>
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                                                            isFrozen ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                                                        }`} />
+                                                        <span className={`text-xs font-bold truncate ${isCurrent ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                                            {cid}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col items-end shrink-0">
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase">
+                                                            {status?.callCount || 0} / {maxCallsPerId}
+                                                        </span>
+                                                        {isFrozen && (
+                                                            <span className="text-[8px] font-bold text-red-500 uppercase animate-pulse">
+                                                                Frozen {Math.ceil((status.secondsRemaining || 0) / 60)}m
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Session Stats Overlay */}
-            <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 z-50 text-[12px]">
-                <p className="font-bold text-gray-700 dark:text-gray-200">Session Stats</p>
-                <div className="mt-1 space-y-0.5">
-                    <p className="text-gray-500">Today: <span className="text-black dark:text-white font-medium">{dailyCallsCount}/{TOTAL_DAILY_LIMIT}</span></p>
-                    <p className="text-gray-500">Current ID Calls: <span className="text-black dark:text-white font-medium">{callsMadeCurrent}/{maxCallsPerId}</span></p>
-                    <p className="text-gray-500 truncate max-w-[150px]">Current ID: <span className="text-yellow-500 font-medium">{currentCallerId || 'None'}</span></p>
-                    {currentStatus?.isFrozen && (
-                        <p className="text-red-500 font-medium">Frozen: {Math.ceil((currentStatus.secondsRemaining ?? 0) / 60)}m left</p>
-                    )}
-                    {callerIds.length > 1 && (
-                        <div className="mt-1 pt-1 border-t border-gray-100 dark:border-slate-700 space-y-0.5">
-                            {callerIds.map((cid) => {
-                                const s = callerIdStatus[cid];
-                                return (
-                                    <p key={cid} className="truncate max-w-[150px]">
-                                        <span className={s?.isFrozen ? 'text-red-400' : 'text-green-400'}>●</span>{' '}
-                                        <span className="text-gray-400">{cid.slice(-4)}</span>
-                                        {s?.isFrozen && <span className="text-red-400"> {Math.ceil((s.secondsRemaining ?? 0) / 60)}m</span>}
-                                    </p>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            </div>
+            </main>
         </div>
     );
 };

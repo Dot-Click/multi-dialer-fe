@@ -45,7 +45,6 @@
 
 import { useState } from "react";
 import Notes from "@/components/agent/contactdetail/notes";
-// import Email from "@/components/agent/contactdetail/email";
 import SMS from "@/components/agent/contactdetail/sms";
 import TouchPoint from "@/components/agent/contactdetail/touchpoint";
 import Attachments from "@/components/agent/contactdetail/attachments";
@@ -56,46 +55,54 @@ import LeadSheet from "@/components/agent/contactdetail/leadsheet";
 import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
 import { useLocation } from "react-router-dom";
 import Email from "./email";
+import DetailsTab from "./detailstab";
+import QualifyTab from "./qualifytab";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Notes");
-    // const navigate = useNavigate();
-
     const location = useLocation();
-
     const isContactInfo = location.pathname.includes("contact-info");
 
     const stages = [
         { id: 1, name: "Notes" },
-        { id: 2, name: "Profile" },
-        { id: 3, name: "Activities" },
-        { id: 4, name: "History" },
-        { id: 5, name: "Emails" },
-        { id: 6, name: "SMS" },
-        { id: 7, name: "Touch Point" },
-        { id: 8, name: "Lead Sheet" },
-        { id: 9, name: "Attachments" },
-        ...(!isContactInfo ? [{ id: 10, name: "AI Sidekick" }] : []),
+        ...(isContactInfo ? [
+            { id: 2, name: "Details" },
+            { id: 3, name: "Dominios" },
+        ] : []),
+        { id: 4, name: "Activities" },
+        { id: 5, name: "History" },
+        { id: 6, name: "Emails" },
+        { id: 7, name: "SMS" },
+        { id: 8, name: "Profile" },
+        { id: 9, name: "Touch Point" },
+        { id: 10, name: "Lead Sheet" },
+        { id: 11, name: "Attachments" },
+        ...(!isContactInfo ? [{ id: 12, name: "AI Sidekick" }] : []),
     ];
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col gap-8 mb-22 px-6 py-5 w-full mx-auto rounded-[24px] shadow-sm">
+        <section className="bg-white dark:bg-slate-800 flex flex-col h-full w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
             {/* Tabs */}
-            <div className="flex bg-[#F3F4F7] dark:bg-gray-700 gap-5 md:gap-0 max-w-screen overflow-x-auto whitespace-nowrap rounded-[16px] p-[4px] justify-between items-center transition-colors">
+            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto no-scrollbar p-1.5 shrink-0">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
                         onClick={() => setOpenStatus(stg.name)}
-                        className={`${openStatus === stg.name ? "bg-[#FFCA06] dark:bg-[#FFCA06] text-[#0E1011]" : "text-[#0E1011] dark:text-white"} px-[12px] text-center w-[130px] py-[8px] rounded-[12px] cursor-pointer text-sm font-medium transition-all`}
+                        className={`${openStatus === stg.name 
+                            ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm" 
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"} 
+                            px-4 py-2 rounded-xl cursor-pointer text-xs font-bold transition-all whitespace-nowrap min-w-[100px]`}
                     >
                         {stg.name}
                     </button>
                 ))}
             </div>
 
-            {/* Content Section */}
-            <div className="w-full">
+            {/* Content Section - Scrollable internally */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                 {openStatus === "Notes" && (<Notes />)}
+                {openStatus === "Details" && (<DetailsTab />)}
+                {openStatus === "Dominios" && (<QualifyTab />)}
                 {openStatus === "Profile" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}
                 {openStatus === "History" && (<History />)}

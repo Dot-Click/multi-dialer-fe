@@ -129,18 +129,13 @@ const CallSentiment = () => {
         </div>
       </div>
 
-      {/* Content Area - Scrollable for small screens */}
-      <div className="space-y-3 overflow-y-auto pr-1 flex-1">
-        
-        {/* AI Sidekick Box */}
-        <div className="bg-[#f4f6fa] dark:bg-slate-700/50 rounded-xl p-4">
-          <p className="text-[13px] font-bold text-[#1a1a1a] dark:text-white mb-1">AI Sidekick:</p>
-          <p className="text-[14px] text-[#374151] dark:text-gray-300 leading-relaxed">
+      {/* Content Area - Simple direct display */}
+      <div className="overflow-y-auto pr-1 flex-1">
+          <p className="text-[14px] text-[#374151] dark:text-gray-300 leading-relaxed italic">
             {sentimentStatus === 'polling_status' ? 'Waiting for call analysis...' : 
              (sentimentStatus === 'fetching_sentiment' || sentimentStatus === 'processing_sentiment') ? 'Analyzing call...' :
              sentimentData?.aiSummary || 'Analysis will appear here after the call.'}
           </p>
-        </div>
 
         {/* Suggestion Boxes
         {suggestions.map((item) => (
