@@ -5,6 +5,7 @@ import DashboardLayout from "@/layouts/agent/dashboardlayout"
 import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import SuperAdminDashboardLayout from "@/layouts/super-admin/superadmindashboardlayout";
 import AgentHome from "@/pages/agent/agenthome"
+import Inbox from "@/pages/agent/inbox"
 
 import ContactLayout from "@/layouts/agent/contactlayout";
 import AllContact from "@/pages/agent/allcontact";
@@ -80,6 +81,7 @@ const Router: React.FC = () => {
           <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<AgentHome />} />
+              <Route path="inbox" element={<Inbox />} />
               <Route path="library" element={<Library />} />
               <Route path="calendar" element={<Calender />} />
               <Route path="reports-analytics" element={<ReportAnalytics />} />
@@ -109,6 +111,8 @@ const Router: React.FC = () => {
             {/* ✅ Admin Dashboard Section */}
             <Route path="/admin" element={<AdminDashboardLayout />}>
               <Route index element={<AdminHome />} />
+              <Route path="inbox" element={<Inbox />} />
+
               <Route path="calendar" element={<AdminCalender />} />
               <Route path="library" element={<AdminLibrary />} />
               <Route path="reports-analytics" element={<AdminReportAnalytics />} />

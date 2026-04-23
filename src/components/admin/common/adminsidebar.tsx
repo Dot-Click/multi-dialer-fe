@@ -16,6 +16,7 @@ import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { signout } from "@/store/slices/authSlice";
 import Loader from "@/components/common/Loader";
+import emailIcon from "@/assets/emailIcon.png";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -59,39 +60,40 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   const sidebarLinks = [
     { id: 1, name: "Dashboard", link: "/admin", icon: dashboardicon },
+    { id: 2, name: "Inbox", link: "/admin/inbox", icon: emailIcon },
     {
-      id: 2,
+      id: 3,
       name: "Data & Dialer",
       link: "/admin/data-dialer",
       icon: dataicon,
     },
-    { id: 3, name: "Calendar", link: "/admin/calendar", icon: calendericon },
-    { id: 4, name: "Library", link: "/admin/library", icon: libraryicon },
+    { id: 4, name: "Calendar", link: "/admin/calendar", icon: calendericon },
+    { id: 5, name: "Library", link: "/admin/library", icon: libraryicon },
     {
-      id: 5,
+      id: 6,
       name: "Reports & Analytics",
       link: "/admin/reports-analytics",
       icon: reporticon,
     },
     {
-      id: 6,
+      id: 7,
       name: "Compliance & DNC",
       link: "/admin/compliance",
       icon: bulbicon,
     },
     {
-      id: 7,
+      id: 8,
       name: "User Management",
       link: "/admin/user-management",
       icon: usericon,
     },
     {
-      id: 8,
+      id: 9,
       name: "System Settings",
       link: "/admin/system-settings",
       icon: settingicon,
     },
-    { id: 9, name: "Billing", link: "/admin/billing", icon: billingicon },
+    { id: 10, name: "Billing", link: "/admin/billing", icon: billingicon },
   ];
 
   // const bottomLinks = [
@@ -170,10 +172,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 className={({ isActive }) =>
                   `flex items-center gap-2 cursor-pointer px-2 py-2 rounded-md transition-all duration-200
                   ${!isOpen ? "justify-center" : ""}
-                  ${
-                    isActive
-                      ? "bg-[#FFCA06] font-[600] text-gray-900"
-                      : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
+                  ${isActive
+                    ? "bg-[#FFCA06] font-[600] text-gray-900"
+                    : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"
                   }`
                 }
               >

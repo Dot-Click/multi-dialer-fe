@@ -7,6 +7,7 @@ import reporticon from "@/assets/reporticon.png";
 import libraryicon from "@/assets/libraryicon.png";
 import calendericon from "@/assets/calendericon.png";
 import dataicon from "@/assets/dataicon.png";
+import emailIcon from "@/assets/emailIcon.png";
 import exiticon from "@/assets/exiticon.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -56,15 +57,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   const sidebarLinks = [
     { id: 1, name: "Dashboard", link: "/", icon: dashboardicon },
     { id: 2, name: "Data & Dialer", link: "/data-dialer", icon: dataicon },
-    { id: 3, name: "Calendar", link: "/calendar", icon: calendericon },
-    { id: 4, name: "Library", link: "/library", icon: libraryicon },
+    { id: 3, name: "Inbox", link: "/inbox", icon: emailIcon },
+    { id: 4, name: "Calendar", link: "/calendar", icon: calendericon },
+    { id: 5, name: "Library", link: "/library", icon: libraryicon },
     {
-      id: 5,
+      id: 6,
       name: "Reports & Analytics",
       link: "/reports-analytics",
       icon: reporticon,
     },
-    { id: 6, name: "Settings", link: "/settings", icon: settingicon },
+    { id: 7, name: "Settings", link: "/settings", icon: settingicon },
   ];
 
   // const bottomLinks = [

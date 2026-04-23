@@ -41,9 +41,9 @@ export const fetchSMSTemplates = createAsyncThunk(
 // Send SMS
 export const sendSMSMessage = createAsyncThunk(
     'sms/sendSMS',
-    async ({ to, message, from }: { to: string; message: string; from?: string }, { rejectWithValue }) => {
+    async ({ to, message, from, contactId }: { to: string; message: string; from?: string; contactId?: string }, { rejectWithValue }) => {
         try {
-            const response = await api.post('/calling/send-sms', { to, message, from });
+            const response = await api.post('/calling/send-sms', { to, message, from, contactId });
             if (response.data.success) {
                 return response.data;
             }

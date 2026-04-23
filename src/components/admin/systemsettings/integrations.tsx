@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiLoader, FiX } from 'react-icons/fi';
 import stanppLogo from "../../../assets/stamnp.png";
-import bombLogo from "../../../assets/bomb.png";
+import bombLogo from "/images/bombbomb_icon.png";
 import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
 import toast from 'react-hot-toast';
 
