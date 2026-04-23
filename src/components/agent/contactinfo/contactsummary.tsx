@@ -1,5 +1,5 @@
 import { useAppSelector } from '@/store/hooks';
-import { MapPin, Phone, Mail, Tag, User } from 'lucide-react';
+import { MapPin, Phone, User } from 'lucide-react';
 
 const ContactSummary = () => {
     const { currentContact } = useAppSelector((state) => state.contacts);

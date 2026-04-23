@@ -47,7 +47,7 @@ const ContactInfo = () => {
     const dialerMode = location.state?.dialerMode || "manual";
     const [isAutoDialing, setIsAutoDialing] = useState(false);
     const maxCallsPerId = location.state?.numberOfLines || 5;
-    const pacing: number | undefined = location.state?.pacing; 
+    const pacing: number | undefined = location.state?.pacing;
 
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
     const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({});
@@ -84,10 +84,10 @@ const ContactInfo = () => {
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );
-                        const isTrulyEmpty = data.data.queueSize === 0 && 
-                                           data.data.activeCallsCount === 0 && 
-                                           (data.data.pendingRedialsCount || 0) === 0 && 
-                                           !hasPendingCallbacks;
+                        const isTrulyEmpty = data.data.queueSize === 0 &&
+                            data.data.activeCallsCount === 0 &&
+                            (data.data.pendingRedialsCount || 0) === 0 &&
+                            !hasPendingCallbacks;
 
                         if (isTrulyEmpty) {
                             clearInterval(statusPoll);
@@ -109,7 +109,7 @@ const ContactInfo = () => {
     // ─── Init from navigation state ───────────────────────────────────────────
 
     useEffect(() => {
-        const selectedContacts  = location.state?.contacts;
+        const selectedContacts = location.state?.contacts;
         const incomingCallerIds = location.state?.callerIds;
         const amUrl = location.state?.answeringMachineRecordingUrl;
 
@@ -201,13 +201,13 @@ const ContactInfo = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': api.defaults.headers.common['Authorization'] as string },
                     keepalive: true
-                }).catch(() => {});
+                }).catch(() => { });
             }
         };
         window.addEventListener('beforeunload', handleUnload);
         return () => {
             window.removeEventListener('beforeunload', handleUnload);
-            if (isAutoDialingRef.current) api.post('/calling/stop-dialing').catch(() => {});
+            if (isAutoDialingRef.current) api.post('/calling/stop-dialing').catch(() => { });
         };
     }, []);
 
@@ -297,14 +297,14 @@ const ContactInfo = () => {
 
                     {/* Right Column (Sidebar) - 4/12 width */}
                     <div className="lg:col-span-4 flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
-                        <ActionPanel onNext={handleNextContact} />
+                        <ActionPanel />
                         <ScriptTabs scriptId={scriptId} contactId={currentContact?.id} />
                         <ContactInfoCallSentiment />
-                        
+
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
-                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Session Health</h4>
-                             
-                             <div className="space-y-4">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Session Health</h4>
+
+                            <div className="space-y-4">
                                 {/* Daily Progress */}
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold">
@@ -312,7 +312,7 @@ const ContactInfo = () => {
                                         <span className="text-gray-900 dark:text-white">{dailyCallsCount} / {TOTAL_DAILY_LIMIT}</span>
                                     </div>
                                     <div className="w-full bg-gray-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                        <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(dailyCallsCount/TOTAL_DAILY_LIMIT)*100}%` }} />
+                                        <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(dailyCallsCount / TOTAL_DAILY_LIMIT) * 100}%` }} />
                                     </div>
                                 </div>
 
@@ -324,17 +324,15 @@ const ContactInfo = () => {
                                             const status = callerIdStatus[cid];
                                             const isCurrent = currentCallerId === cid;
                                             const isFrozen = status?.isFrozen;
-                                            
+
                                             return (
-                                                <div key={cid} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
-                                                    isCurrent 
-                                                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800' 
-                                                    : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
-                                                }`}>
+                                                <div key={cid} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${isCurrent
+                                                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
+                                                        : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
+                                                    }`}>
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${
-                                                            isFrozen ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                                                        }`} />
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${isFrozen ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                                                            }`} />
                                                         <span className={`text-xs font-bold truncate ${isCurrent ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
                                                             {cid}
                                                         </span>
@@ -354,7 +352,7 @@ const ContactInfo = () => {
                                         })}
                                     </div>
                                 </div>
-                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
