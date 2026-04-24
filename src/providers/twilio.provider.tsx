@@ -11,7 +11,7 @@ interface TwilioContextType {
   appStatus: string;
   activeCallSid: string | null;
   startCall: (phone: string, from: string, contactId: string) => Promise<void>;
-  endCall: () => Promise<void>;
+  endCall: (callSid?: string) => Promise<void>;
   isMuted: boolean;
   isSpeakerOn: boolean;
   isHold: boolean;
@@ -207,7 +207,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
            setIncomingContactId(contactIdParam);
         }
 
-        call.mute(false);
+        call.mute(isMuted);
         call.on('sample', (sample) => {
           if (sample.localVolume > 0 || sample.remoteVolume > 0) {
              console.log(`[Twilio Audio] Energy detected - Local: ${sample.localVolume}, Remote: ${sample.remoteVolume}`);
@@ -343,15 +343,23 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
 
-  const endCall = async () => {
-    if (activeCall) activeCall.disconnect();
-    const sidToDrop = activeCallSid || customerCallSid;
+  const endCall = async (callSid?: string) => {
+    // If we're ending the currently active browser leg
+    if (!callSid || callSid === activeCallSid) {
+      if (activeCall) activeCall.disconnect();
+    }
+
+    const sidToDrop = callSid || activeCallSid || customerCallSid;
     if (sidToDrop) {
       try {
         await api.post('/calling/end-call', { callSid: sidToDrop });
       } catch (err) { }
     }
-    handleStopCalling();
+
+    // Only full stop if we are dropping the main active call
+    if (!callSid || callSid === activeCallSid) {
+      handleStopCalling();
+    }
   };
 
   const toggleMute = useCallback(() => {

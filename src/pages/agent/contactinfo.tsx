@@ -51,6 +51,7 @@ const ContactInfo = () => {
 
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
     const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({});
+    const [leadSids, setLeadSids] = useState<Record<string, string>>({});
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isAutoDialingRef = useRef(false);
 
@@ -81,6 +82,7 @@ const ContactInfo = () => {
                     const { data } = await api.get('/calling/status');
                     if (data.success) {
                         if (data.data.leadStatuses) setLeadStatuses(data.data.leadStatuses);
+                        if (data.data.leadSids) setLeadSids(data.data.leadSids);
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );
@@ -285,7 +287,7 @@ const ContactInfo = () => {
                     {/* Left Column (Main Info) - 8/12 width */}
                     <div className="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
                         <div className="shrink-0">
-                            <CallSection leadStatuses={leadStatuses} />
+                            <CallSection leadStatuses={leadStatuses} leadSids={leadSids} />
                         </div>
                         <div className="shrink-0">
                             <OutcomeRow onNext={handleNextContact} />

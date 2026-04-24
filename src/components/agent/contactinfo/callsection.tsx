@@ -19,7 +19,7 @@ const getStatusBadgeStyle = (status: CallStatus) => {
   }
 };
 
-const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, string> }) => {
+const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string> }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -34,8 +34,8 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
     isHold,
     toggleMute,
     isMuted,
-    dropVoicemail, 
-    isDroppingingVoicemail, 
+    dropVoicemail,
+    isDroppingingVoicemail,
     duration,
     endCall,
     isCalling
@@ -82,7 +82,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
 
   return (
     <div className="w-full font-inter">
-      <div 
+      <div
         ref={scrollContainerRef}
         className="flex space-x-4 py-4 px-2 overflow-x-auto no-scrollbar scroll-smooth"
       >
@@ -98,9 +98,9 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                 key={call.id || index}
                 ref={el => { cardRefs.current[call.id] = el; }}
                 className={`min-w-[260px] min-h-[95px] rounded-[20px] flex flex-col items-center justify-between p-3 shadow-xl transition-all duration-300 border-2 
-                           ${isConnected 
-                             ? 'bg-white dark:bg-slate-800 border-[#10B981] shadow-[#10B981]/10' 
-                             : 'bg-white dark:bg-slate-800 border-[#6366F1] shadow-[#6366F1]/10'}`}
+                           ${isConnected
+                    ? 'bg-white dark:bg-slate-800 border-[#10B981] shadow-[#10B981]/10'
+                    : 'bg-white dark:bg-slate-800 border-[#6366F1] shadow-[#6366F1]/10'}`}
               >
                 <div className="text-center w-full">
                   <div className="flex items-center justify-between mb-0.5">
@@ -118,9 +118,9 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-0.5">
                     <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full 
-                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-500' 
-                      : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]' 
-                      : 'bg-gray-500/20 text-gray-400'}`}>
+                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-500'
+                        : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]'
+                          : 'bg-gray-500/20 text-gray-400'}`}>
                       {status}
                     </span>
                     <span className="text-gray-500 text-xs">•</span>
@@ -141,7 +141,7 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
                     <button onClick={dropVoicemail} disabled={isDroppingingVoicemail} className="w-8 h-8 flex justify-center items-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 shadow-sm disabled:opacity-30">
                       {isDroppingingVoicemail ? <Loader2 size={14} className="animate-spin" /> : <ArrowRightLeft size={14} />}
                     </button>
-                    <button onClick={endCall} className="w-8 h-8 flex justify-center items-center rounded-lg bg-[#EF4444] text-white shadow-lg">
+                    <button onClick={() => endCall(leadSids[call.id])} className="w-8 h-8 flex justify-center items-center rounded-lg bg-[#EF4444] text-white shadow-lg">
                       <PhoneOff size={14} />
                     </button>
                   </div>
@@ -156,12 +156,12 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
             status === 'Disconnected' || status === 'Hung Up'
               ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10'
               : status === 'Callback'
-              ? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10'
-              : status === 'Connected'
-              ? 'border-green-300 dark:border-green-700'
-              : isActive
-              ? 'border-[#FFCA06] shadow-md'
-              : 'border-gray-100 dark:border-slate-700 shadow-sm';
+                ? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10'
+                : status === 'Connected'
+                  ? 'border-green-300 dark:border-green-700'
+                  : isActive
+                    ? 'border-[#FFCA06] shadow-md'
+                    : 'border-gray-100 dark:border-slate-700 shadow-sm';
 
           return (
             <div
@@ -183,7 +183,8 @@ const CallSection = ({ leadStatuses = {} }: { leadStatuses?: Record<string, stri
           );
         })}
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .no-scrollbar::-webkit-scrollbar { height: 6px; }
         .no-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .no-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
