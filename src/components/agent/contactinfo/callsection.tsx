@@ -5,12 +5,13 @@ import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 import { VscCallOutgoing } from "react-icons/vsc";
 
-type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback";
+type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback" | "Redialing";
 
 const getStatusBadgeStyle = (status: CallStatus) => {
   switch (status) {
     case 'Connected': return 'bg-[#E8FFF3] text-[#10B981]';
     case 'Ringing': return 'bg-blue-50 text-blue-500 animate-pulse';
+    case 'Redialing': return 'bg-purple-50 text-purple-500 animate-pulse';
     case 'On Hold': return 'bg-[#FEFCE8] text-[#CA8A04]';
     case 'Callback': return 'bg-orange-50 text-orange-500 animate-pulse';
     case 'Hung Up':
@@ -57,6 +58,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
   const getUiStatus = (isActive: boolean, leadId: string): CallStatus => {
     const bStatus = leadStatuses[leadId]?.toLowerCase();
     if (bStatus === 'answered' || bStatus === 'in-progress' || bStatus === 'connected') return "Connected";
+    if (bStatus === 'redialing') return "Redialing";
     if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued') return "Ringing";
     if (bStatus === 'call_back' || bStatus === 'callback') return "Callback";
     if (bStatus === 'completed' || bStatus === 'failed' || bStatus === 'busy' || bStatus === 'no-answer' || bStatus === 'no_answer') return "Disconnected";
@@ -121,14 +123,14 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-0.5">
                     <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full 
-                      ${status === 'Ringing' ? 'bg-yellow-400/10 text-yellow-500'
+                      ${(status === 'Ringing' || status === 'Redialing') ? 'bg-yellow-400/10 text-yellow-500'
                         : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]'
                           : 'bg-gray-500/20 text-gray-400'}`}>
                       {status}
                     </span>
                     <span className="text-gray-500 text-xs">•</span>
-                    <span className={`text-[11px] font-bold text-white tracking-wider ${status === 'Ringing' ? 'animate-pulse text-yellow-400' : ''}`}>
-                      {status === 'Ringing' ? 'Ringing...' : (isConnected || status === 'Connected') ? formatDuration(duration) : '00:00'}
+                    <span className={`text-[11px] font-bold text-white tracking-wider ${(status === 'Ringing' || status === 'Redialing') ? 'animate-pulse text-yellow-400' : ''}`}>
+                      {(status === 'Ringing' || status === 'Redialing') ? `${status}...` : (isConnected || status === 'Connected') ? formatDuration(duration) : '00:00'}
                     </span>
                   </div>
                 </div>
