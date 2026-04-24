@@ -256,7 +256,7 @@ const ContactInfoHeader = ({
           </button>
 
           <button
-            onClick={endCall}
+            onClick={() => endCall()}
             disabled={!isCalling}
             className={`bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 transition-all ${
               !isCalling ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100 dark:hover:bg-red-900/40"
