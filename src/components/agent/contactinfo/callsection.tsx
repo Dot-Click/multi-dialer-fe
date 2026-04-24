@@ -19,6 +19,9 @@ const getStatusBadgeStyle = (status: CallStatus) => {
   }
 };
 
+
+
+
 const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string> }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
