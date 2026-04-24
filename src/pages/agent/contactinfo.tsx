@@ -53,7 +53,8 @@ const ContactInfo = () => {
     const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({});
     const [leadSids, setLeadSids] = useState<Record<string, string>>({});
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const isAutoDialingRef = useRef(false);
+    const isAutoDialingRef = useRef(isAutoDialing);
+    const emptyCountRef = useRef(0);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
@@ -92,12 +93,19 @@ const ContactInfo = () => {
                             !hasPendingCallbacks;
 
                         if (isTrulyEmpty) {
-                            clearInterval(statusPoll);
-                            toast.success("All contacts processed!", { icon: '🏁' });
-                            setIsAutoDialing(false);
-                            isAutoDialingRef.current = false;
-                            const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
-                            navigate(path);
+                            // Grace period: require 3 consecutive empty polls (6 seconds)
+                            // before declaring the session finished.
+                            emptyCountRef.current = (emptyCountRef.current || 0) + 1;
+                            if (emptyCountRef.current >= 3) {
+                                clearInterval(statusPoll);
+                                toast.success("All contacts processed!", { icon: '🏁' });
+                                setIsAutoDialing(false);
+                                isAutoDialingRef.current = false;
+                                const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
+                                navigate(path);
+                            }
+                        } else {
+                            emptyCountRef.current = 0;
                         }
                     }
                 } catch (e) {
