@@ -183,7 +183,13 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
             setCallStatus('disconnected');
-            handleStopCalling();
+            setActiveCall(null);
+            setActiveCallSid(null);
+            setCustomerCallSid(null);
+            setIsMuted(false);
+            setDuration(0);
+            setIncomingContactId(null);
+            activeCallRef.current = null;
           }
         });
 
