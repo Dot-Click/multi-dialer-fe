@@ -79,9 +79,9 @@ const TableComponent: FC<
     return (
       <>
         <Table
-          className={cn("overflow-hidden text-sm", isLoading && "min-h-[50vh]")}
+          className={cn("overflow-hidden text-[13px]", isLoading && "min-h-[50vh]")}
         >
-          <TableHeader className="bg-slate-50 text-slate-700 font-semibold text-sm">
+          <TableHeader className="bg-slate-50 dark:bg-slate-800/50 text-slate-700 font-semibold text-[13px]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -97,7 +97,7 @@ const TableComponent: FC<
                   return (
                     <TableHead
                       key={header.id}
-                      className="py-5 text-left dark:bg-slate-800 dark:text-white text-slate-700  tracking-wide px-5"
+                      className="py-3.5 text-left dark:bg-slate-800 dark:text-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px] px-5"
                     >
                       {header.isPlaceholder
                         ? null
@@ -137,7 +137,7 @@ const TableComponent: FC<
                           onDoubleClickHandler?.(row);
                         }
                       }}
-                      className="py-5 text-slate-700 px-5 border-0"
+                      className="py-3 text-slate-600 dark:text-slate-300 px-5 border-0 font-medium"
                     >
                       {row.id === selectedRowId ? (
                         <Skeleton className="size-full h-10" />

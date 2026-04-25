@@ -45,26 +45,26 @@ const AllContact = () => {
       {/* Breadcrumb + Heading */}
       <div className="flex flex-col">
         {getBreadcrumb() && (
-          <span className="text-sm text-[#6c757d] dark:text-slate-400 font-medium mb-1">
+          <span className="text-[11px] text-[#6c757d] dark:text-slate-400 font-bold uppercase tracking-wider mb-1">
             {getBreadcrumb()}
           </span>
         )}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-          <h1 className="text-[24px] sm:text-[28px] font-medium text-[#0E1011] dark:text-white">
+          <h1 className="text-[20px] sm:text-[24px] font-bold text-[#0E1011] dark:text-white tracking-tight">
             {renderHeading()}
           </h1>
 
           {/* Manage Columns button */}
           <div
-            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors"
+            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-1.5 items-center justify-center bg-transparent transition-colors"
             onClick={() => setShowColumnsModal(true)}
           >
             <img
               src={managecolicon}
-              className="w-[20px] h-[16px] object-contain dark:invert dark:opacity-70"
+              className="w-[16px] h-[14px] object-contain dark:invert dark:opacity-70"
               alt="managecolicon"
             />
-            <span className="text-[16px] font-medium text-[#495057] dark:text-slate-300">
+            <span className="text-[13px] font-bold text-[#495057] dark:text-slate-300 uppercase tracking-wide">
               Manage Columns
             </span>
           </div>
@@ -76,11 +76,11 @@ const AllContact = () => {
 
         {/* Search + Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="bg-white dark:bg-slate-800 flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] dark:border-slate-600 py-3 px-6">
+          <div className="bg-white dark:bg-slate-800 flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] dark:border-slate-600 py-2.5 px-6">
             <input
               type="search"
               placeholder="Search by name, email, phone number..."
-              className="w-full bg-transparent placeholder:text-base font-normal text-[#495057] dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 text-base outline-none"
+              className="w-full bg-transparent placeholder:text-sm font-normal text-[#495057] dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 text-sm outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -98,25 +98,20 @@ const AllContact = () => {
         {/* Dial Button */}
         <button
           onClick={() => {
-            if (activeItem.type === "allContacts") {
-              setIsRestrictionModalOpen(true);
-              return;
-            }
-
             if (selectedContacts.length > 0) {
               setIsDialSettingOpen(true);
             } else {
               toast.error("Please select at least one contact to start dialing.");
             }
           }}
-          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg pr-6 pl-5 py-2 text-sm sm:text-base font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
+          className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-full px-5 py-2 text-xs sm:text-sm font-bold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all active:scale-95`}
         >              
           <img
             src={callIcon}
-            className="w-[15px] h-[20px] object-contain"
+            className="w-[12px] h-[16px] object-contain"
             alt="callIcon"
           />
-          <span className="text-black font-medium text-base">
+          <span className="text-black font-bold text-xs uppercase tracking-wider">
             Dial Selected ({selectedContacts.length})
           </span>
         </button>

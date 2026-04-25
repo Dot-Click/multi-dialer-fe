@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
-import { VscFolderOpened, VscFolder } from "react-icons/vsc";
+import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
-import usericon from "../../../assets/admin/usericons.png";
-import logo from "@/assets/logo.png";
+import usericon from "@/assets/usericon.svg";
 import ImportContactModal from "../modals/ImportContactModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList } from "@/store/slices/contactSlice";
@@ -161,8 +160,8 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
             <div
               onClick={() => handleClick("folder", folder.name, folder.id)}
               style={{ paddingLeft: `${depth * 12 + 8}px` }}
-              className={`flex gap-2 items-center py-2 px-3 rounded-xl cursor-pointer transition group mb-1
-                ${activeItem === `folder-${folder.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+              className={`flex gap-2 items-center py-2 px-3 rounded-md cursor-pointer transition group mb-1
+                ${activeItem === `folder-${folder.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
             >
               <button 
                 onClick={(e) => toggleFolder(e, folder.id)}
@@ -171,13 +170,9 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
                 {expandedFolders[folder.id] ? <IoIosArrowDown className="text-gray-400" /> : <IoIosArrowForward className="text-gray-400" />}
               </button>
               <div className="shrink-0">
-                {expandedFolders[folder.id] ? (
-                  <VscFolderOpened className="text-xl text-gray-600 dark:text-gray-400" />
-                ) : (
-                  <VscFolder className="text-xl text-gray-600 dark:text-gray-400" />
-                )}
+                <VscFolderOpened className="text-lg" />
               </div>
-              <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate flex-1">
+              <span className="text-[12px] font-medium truncate flex-1">
                 {folder.name}
               </span>
 
@@ -243,14 +238,14 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
             key={list.id}
             onClick={() => handleClick("list", list.name, list.id)}
             style={{ paddingLeft: `${depth * 12 + 28}px` }}
-            className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2 px-3 rounded-xl cursor-pointer transition mb-1
-              ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+            className={`flex justify-between items-center py-2 px-2 rounded-md cursor-pointer transition mb-1
+              ${activeItem === `list-${list.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
           >
-            <span className="text-[#2B3034] dark:text-white font-semibold text-[13px] truncate">
+            <span className="font-medium text-[12px] truncate">
               {list.name}
             </span>
-            <div className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2 shadow-sm">
-              <span className="text-[10px] font-bold text-gray-500 uppercase">
+            <div className="h-5 w-5 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 ml-2 shadow-inner">
+              <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">
                 {list.name.slice(0, 2)}
               </span>
             </div>
@@ -262,64 +257,74 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
 
   const rootLists = lists.filter(l => l.folderId === null);
 
+  const { mode } = useAppSelector((state) => state.theme);
+
   return (
-    <aside className="bg-white dark:bg-slate-800 flex flex-col px-4 py-4 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
+    <aside className="fixed top-0 left-0 px-4 pb-4 h-screen bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 flex flex-col w-64 z-40">
       
       {/* logo */}
-      <div className="flex items-center justify-center mb-8">
-        <img src={logo} alt="CallScout Logo" className="w-[140px] h-auto object-contain" />
+      <div className="px-3 py-4 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <img
+            src={mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"}
+            alt="Logo"
+            loading="lazy"
+            className="object-contain w-36 transition-all duration-300"
+          />
+        </div>
       </div>
+    
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex gap-2 items-center cursor-pointer text-gray-600 dark:text-slate-300 hover:text-[#FFCA06] transition-all px-2"
+        >
+          <IoIosArrowBack className="text-xl" />
+          <span className="text-[12px] font-medium">
+            Back
+          </span>
+        </button>
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex gap-2 items-center cursor-pointer hover:text-black dark:text-white transition mb-6"
-      >
-        <IoIosArrowBack className="text-xl text-gray-400" />
-        <span className="text-[14px] text-gray-600 dark:text-white font-semibold">
-          Back
-        </span>
-      </button>
+        <div className="border-t border-gray-200 dark:border-slate-800 mt-4"></div>
 
-      {/* All Contacts */}
-      <div
-        onClick={() => handleClick("allContacts", "All Contacts")}
-        className={`flex gap-3 items-center px-4 py-3 rounded-xl cursor-pointer transition mb-2
-          ${activeItem === "allContacts" ? "bg-slate-100 dark:bg-slate-700" : "hover:bg-slate-50 dark:hover:bg-slate-700/40"}`}
-      >
-        <img src={usericon} alt="usericon" className="w-5 h-5 opacity-80" />
-        <h1 className="text-[#2B3034] dark:text-white font-bold text-[14px]">All Contacts</h1>
-      </div>
+        {/* All Contacts */}
+        <div
+          onClick={() => handleClick("allContacts", "All Contacts")}
+          className={`flex gap-2 items-center mt-4 px-2 py-2 rounded-md cursor-pointer transition-all duration-200
+            ${activeItem === "allContacts" ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
+        >
+          <img src={usericon} alt="usericon" className="w-4 h-4 dark:invert" />
+          <h1 className="text-[12px] font-medium">All Contacts</h1>
+        </div>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex-1 overflow-auto custom-scrollbar flex flex-col pt-4">
+        <div className="border-t border-gray-200 dark:border-slate-800 mt-4"></div>
+
+        <div className="flex flex-col flex-1 overflow-hidden pt-2 gap-4">
           
           {/* CALLING LISTS Section */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3 pr-2">
-              <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                Calling Lists
-              </h2>
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex justify-between items-center mb-2 px-2 text-gray-500 dark:text-slate-400 uppercase font-bold text-[10px] tracking-wider shrink-0">
+              <span>Calling Lists</span>
               <button
                 onClick={() => handleCreateList()}
-                className="p-1.5 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-500 dark:text-gray-400"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
               >
-                <FiPlus className="text-sm" />
+                <FiPlus size={14} />
               </button>
             </div>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 px-1">
               {rootLists.map(list => (
                 <div
                   key={list.id}
                   onClick={() => handleClick("list", list.name, list.id)}
-                  className={`text-[#2B3034] dark:text-white flex justify-between items-center py-2.5 px-4 rounded-xl cursor-pointer transition mb-1
-                    ${activeItem === `list-${list.id}` ? "bg-slate-100 dark:bg-slate-700/50" : "hover:bg-slate-50 dark:hover:bg-slate-700/30"}`}
+                  className={`flex justify-between items-center py-2 px-2 rounded-md cursor-pointer transition-all duration-200
+                    ${activeItem === `list-${list.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
                 >
-                  <span className="text-[#2B3034] dark:text-white font-semibold text-[14px] truncate">
+                  <span className="text-[12px] font-medium truncate flex-1">
                     {list.name}
                   </span>
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-100 dark:border-slate-600 bg-white dark:bg-slate-800 shrink-0 ml-2">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                  <div className="h-5 w-5 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 ml-2 shadow-inner">
+                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">
                       {list.name.slice(0, 2)}
                     </span>
                   </div>
@@ -328,50 +333,46 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
             </div>
           </div>
 
-          <hr className="mb-6 border-gray-50 dark:border-slate-700 mx-2" />
+          <div className="border-t border-gray-100 dark:border-slate-800 shrink-0"></div>
 
           {/* FOLDERS Section */}
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-3 pr-2">
-              <h2 className="px-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest ">
-                Folders
-              </h2>
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex justify-between items-center mb-2 px-2 text-gray-500 dark:text-slate-400 uppercase font-bold text-[10px] tracking-wider shrink-0">
+              <span>Folders</span>
               <button
                 onClick={() => handleCreateFolder()}
-                className="p-1.5 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-500 dark:text-gray-400"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
               >
-                <FiPlus className="text-sm" />
+                <FiPlus size={14} />
               </button>
             </div>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 px-1">
               {renderTree(null, 0, true)}
               
               {!isLoading && folders.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-10 opacity-30">
-                   <VscFolder className="text-3xl mb-2" />
-                   <span className="text-[11px] font-medium italic">Create a folder to get started</span>
+                <div className="text-center py-4 opacity-40 text-[10px] font-bold uppercase tracking-widest italic">
+                   Empty
                 </div>
               )}
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-auto pt-4">
-        <button
-          onClick={() => setIsImportModalOpen(true)}
-          className="w-full text-sm flex items-center justify-center gap-2 py-3 bg-[#F0F2F4] dark:bg-slate-700/50 hover:bg-[#E2E8F0] dark:hover:bg-slate-600 transition-all text-[#2B3034] dark:text-white font-bold rounded-xl"
-        >
-          <LuArrowUpToLine className="text-xl" />
-          <span>Import File</span>
-        </button>
+        <div className="pt-4 mt-auto border-t border-gray-200 dark:border-slate-800">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="w-full text-[12px] flex items-center justify-center gap-2 py-2.5 bg-[#F0F2F4] dark:bg-slate-800 hover:bg-[#E2E8F0] dark:hover:bg-slate-700 transition-all text-[#2B3034] dark:text-white font-bold rounded-md shadow-sm"
+          >
+            <LuArrowUpToLine className="text-lg" />
+            <span>IMPORT FILE</span>
+          </button>
+        </div>
 
         <ImportContactModal
           isOpen={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
           onSuccess={handleImportSuccess}
         />
-      </div>
 
       <StructureModal
         isOpen={modalConfig.isOpen}

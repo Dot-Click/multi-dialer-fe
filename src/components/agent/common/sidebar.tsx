@@ -76,15 +76,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {loading && <Loader />}
-      {/* MOBILE TOGGLE ICON */}
-      {isMobile && !isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md shadow-md hover:bg-gray-700 transition"
-        >
-          <FiMenu size={22} />
-        </button>
-      )}
 
       {/* SIDEBAR */}
       <aside

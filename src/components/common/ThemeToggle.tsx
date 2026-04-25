@@ -10,13 +10,13 @@ const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={() => dispatch(toggleTheme())}
-      className="w-full px-4 py-2 text-left cursor-pointer  text-sm  transition-colors"
+      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-all duration-300 flex items-center justify-center text-gray-600 dark:text-gray-300"
       aria-label="Toggle Theme"
     >
       {mode === "light" ? (
-        <p className="flex items-center justify-between gap-2">Light Mode <Sun className="size-4" /></p>
+        <Sun className="size-5" />
       ) : (
-        <p className="flex items-center justify-between gap-2">Dark Mode <Moon className="size-4" /></p>
+        <Moon className="size-5" />
       )}
     </button>
   );

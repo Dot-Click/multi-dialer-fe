@@ -76,7 +76,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Navbar */}
       <div className="fixed z-999 top-0 w-full">
-        <Navbar />
+        <Navbar  />
       </div>
 
       {/* 🔹 Main Content */}

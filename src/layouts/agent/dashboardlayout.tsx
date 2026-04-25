@@ -22,7 +22,7 @@ const DashboardLayout = () => {
         />
       </div>
       <div className="fixed z-999 top-0 w-full">
-        <Navbar />
+        <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
       </div>
 
       <div

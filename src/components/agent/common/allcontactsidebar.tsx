@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
-import usericon from "../../../assets/admin/usericons.png";
-import logo from "@/assets/logo.png";
+import usericon from "@/assets/admin/usericons.png";
 import { VscFolderOpened } from "react-icons/vsc";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchFolders, fetchLists, fetchGroups, createFolder, deleteFolder, createList, type ContactList } from "@/store/slices/contactStructureSlice";
@@ -150,7 +149,8 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
 
   const renderTree = (parentId: string | null = null, depth = 0) => {
     const currentFolders = folders.filter(f => f.parentId === parentId);
-    const currentLists = lists.filter(l => l.folderId === parentId);
+    // Only show lists inside folders. Standalone lists are in the Calling Lists section.
+    const currentLists = parentId ? lists.filter(l => l.folderId === parentId) : [];
 
     return (
       <>
@@ -160,7 +160,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
               onClick={() => handleClick("folder", folder.name, folder.id)}
               style={{ paddingLeft: `${depth * 12 + 8}px` }}
               className={`flex gap-2 items-center py-2 px-2 rounded-md cursor-pointer transition group mb-1
-                ${activeItem === `folder-${folder.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+                ${activeItem === `folder-${folder.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
             >
               <button 
                 onClick={(e) => toggleFolder(e, folder.id)}
@@ -171,7 +171,7 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
               
               <VscFolderOpened className="text-lg shrink-0" />
               
-              <span className="text-[#495057] dark:text-white font-medium text-[14px] truncate flex-1">
+              <span className="text-[12px] font-medium truncate flex-1">
                 {folder.name}
               </span>
 
@@ -237,14 +237,14 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
             key={list.id}
             onClick={() => handleClick("list", list.name, list.id)}
             style={{ paddingLeft: `${depth * 12 + 28}px` }}
-            className={`text-[#495057] dark:text-white flex justify-between items-center py-1.5 px-3 rounded-md cursor-pointer transition mb-1
-              ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+            className={`flex justify-between items-center py-2 px-2 rounded-md cursor-pointer transition mb-1
+              ${activeItem === `list-${list.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
           >
-            <span className="text-[#495057] dark:text-white font-medium text-[13px] truncate">
+            <span className="font-medium text-[12px] truncate">
               {list.name}
             </span>
-            <div className="h-6 w-6 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 ml-2">
-              <span className="text-[9px] font-bold text-gray-500 uppercase">
+            <div className="h-5 w-5 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 ml-2">
+              <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">
                 {getInitials(list.name)}
               </span>
             </div>
@@ -257,87 +257,96 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
   // Find lists that don't belong to any folder
   // const folderListIds = new Set(folders.flatMap(f => f.listIds || []));
   // const standaloneLists = lists.filter(list => !folderListIds.has(list.id));
+  const { mode } = useAppSelector((state) => state.theme);
 
   return (
-    <aside className="bg-white dark:bg-slate-800 flex flex-col px-5 py-6 w-64 h-screen shadow-sm border-r border-gray-100 dark:border-slate-700">
+    <aside className="fixed top-0 left-0 h-screen bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 flex flex-col w-64 z-40">
       
       {/* logo */}
-      <div className="flex items-center justify-center mb-8">
-        <img src={logo} alt="CallScout Logo" className="w-[140px] h-auto object-contain" />
-      </div>
-
-      {/* ✅ Updated Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex gap-2 items-center cursor-pointer hover:text-[#FFCA06] dark:text-white transition"
-      >
-        <IoIosArrowBack className="text-2xl" />
-        <span className="text-[16px] text-[#495057] dark:text-white font-medium">
-          Back
-        </span>
-      </button>
-
-      <div className="border-b border-gray-100 h-1"></div>
-
-      {/* All Contacts */}
-      <div
-        onClick={() => handleClick("allContacts", "All Contacts")}
-        className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition 
-          ${activeItem === "allContacts" ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
-      >
-        <img src={usericon} alt="usericon" className="w-6 h-6" />
-        <h1 className="text-[#495057] dark:text-white font-medium text-[14px]">All Contacts</h1>
-      </div>
-
-      <div className="border-b border-gray-100 h-1"></div>
-
-      {/* Calling Lists */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center px-1 text-[#495057] dark:text-white uppercase font-medium text-[14px]">
-          <h1>Calling Lists</h1>
-          <button
-            onClick={() => handleCreateList()}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500"
-          >
-            <FiPlus className="text-sm" />
-          </button>
+      <div className="px-3 py-4 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <img
+            src={mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"}
+            alt="Logo"
+            className="object-contain w-36 transition-all duration-300"
+          />
         </div>
-        <div className="flex gap-2 h-[40vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {lists.map((list: ContactList) => (
-            <div
-              key={list.id}
-              onClick={() => handleClick("list", list.name, list.id)}
-              className={`text-[#495057] dark:text-white flex justify-between items-center px-2 py-1 rounded-md cursor-pointer transition
-                ${activeItem === `list-${list.id}` ? "bg-[#FFCA06]" : "hover:bg-[#FFCA06]"}`}
+
+        {/* ✅ Updated Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex gap-2 items-center cursor-pointer text-gray-600 dark:text-slate-300 hover:text-[#FFCA06] transition-all px-2"
+        >
+          <IoIosArrowBack className="text-xl" />
+          <span className="text-[12px] font-medium">
+            Back
+          </span>
+        </button>
+
+        <div className="border-t border-gray-200 dark:border-slate-800"></div>
+
+        {/* All Contacts */}
+        <div
+          onClick={() => handleClick("allContacts", "All Contacts")}
+          className={`flex gap-2 items-center px-2 py-2 rounded-md cursor-pointer transition-all duration-200
+            ${activeItem === "allContacts" ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
+        >
+          <img src={usericon} alt="usericon" className="w-4 h-4 dark:invert" />
+          <h1 className="text-[12px] font-medium">All Contacts</h1>
+        </div>
+
+        <div className="border-t border-gray-200 dark:border-slate-800"></div>
+
+        {/* Calling Lists */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center px-2 text-gray-500 dark:text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+            <span>Calling Lists</span>
+            <button
+              onClick={() => handleCreateList()}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
             >
-              <h1 className="text-[#495057] dark:text-white font-medium text-[14px] truncate">{list.name}</h1>
-              <h1 className="border border-gray-200 dark:border-slate-600 rounded-full text-[12px] px-2 py-1.5 whitespace-nowrap">
-                {getInitials(list.name)}
-              </h1>
-            </div>
-          ))}
+              <FiPlus size={14} />
+            </button>
+          </div>
+          <div className="flex gap-1 h-[35vh] px-1 overflow-y-auto custom-scrollbar flex-col">
+            {lists.map((list: ContactList) => (
+              <div
+                key={list.id}
+                onClick={() => handleClick("list", list.name, list.id)}
+                className={`flex justify-between items-center px-2 py-2 rounded-md cursor-pointer transition-all duration-200
+                  ${activeItem === `list-${list.id}` ? "bg-[#FFCA06] font-semibold text-gray-900 shadow-sm" : "hover:bg-[#FFCA06] text-gray-700 dark:text-white"}`}
+              >
+                <h1 className="text-[12px] font-medium truncate flex-1">{list.name}</h1>
+                <div className="h-5 w-5 rounded-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 ml-2 shadow-inner">
+                  <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">
+                    {getInitials(list.name)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Folders */}
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center px-1">
-          <h1 className="text-[#495057] dark:text-white uppercase font-medium text-[14px]">Folders</h1>
-          <button
-            onClick={() => handleCreateFolder()}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500"
-          >
-            <FiPlus className="text-sm" />
-          </button>
-        </div>
-        <div className="flex gap-1 h-[30vh] px-1.5 overflow-auto custom-scrollbar flex-col">
-          {renderTree(null, 0)}
-          
-          {folders.length === 0 && (
-            <div className="text-center py-4 opacity-40 text-[12px] italic">
-              No folders found
-            </div>
-          )}
+        {/* Folders */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center px-2 text-gray-500 dark:text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+            <span>Folders</span>
+            <button
+              onClick={() => handleCreateFolder()}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
+            >
+              <FiPlus size={14} />
+            </button>
+          </div>
+          <div className="flex gap-1 h-[25vh] px-1 overflow-y-auto custom-scrollbar flex-col">
+            {renderTree(null, 0)}
+            
+            {folders.length === 0 && (
+              <div className="text-center py-4 opacity-40 text-[10px] font-bold uppercase tracking-widest italic">
+                Empty
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

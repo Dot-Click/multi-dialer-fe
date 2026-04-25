@@ -149,16 +149,16 @@ const ContactLayout = () => {
 
       {/* 🔹 Bottom Bar */}
       <div
-        className={`flex gap-7 bottom-0 fixed bg-white dark:bg-slate-800 shadow-2xl py-4 items-center transition-all duration-300
+        className={`flex gap-6 bottom-0 fixed bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 shadow-[0_-8px_30px_rgb(0,0,0,0.08)] py-3 items-center transition-all duration-300 z-[90]
           ${isMobile
             ? "left-0 pl-4 w-full"
             : isOpen
-              ? "left-72 w-[calc(100%-18rem)]"
-              : "left-20 w-[calc(100%-5rem)]"
+              ? "left-64 w-[calc(100%-16rem)] px-8"
+              : "left-20 w-[calc(100%-5rem)] px-8"
           }`}
       >
         <button
-          className={`flex items-center gap-2 ${selectedContacts.length === 0 ? "opacity-50 cursor-not-allowed text-gray-400" : ""}`}
+          className={`flex items-center gap-1.5 group ${selectedContacts.length === 0 ? "opacity-40 cursor-not-allowed" : "hover:opacity-80"}`}
           onClick={() => {
             if (selectedContacts.length > 0) {
               setShowMoveToModal(true);
@@ -168,37 +168,37 @@ const ContactLayout = () => {
           }}
           disabled={selectedContacts.length === 0}
         >
-          <img src={movetoicon} className="w-4" alt="movetoicon" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-medium">Move To</span>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
+          <img src={movetoicon} className="w-3.5 grayscale brightness-50 group-hover:grayscale-0 dark:invert" alt="movetoicon" />
+          <span className="text-[11px] text-[#495057] dark:text-slate-300 font-bold uppercase tracking-wider">Move To</span>
+          <span className="text-[10px] text-gray-400 dark:text-slate-500">
             <FaChevronUp />
           </span>
         </button>
 
         <button
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5 hover:opacity-80 group"
           onClick={() => setShowExportModal(true)}
         >
-          <TfiDownload className="text-[17px] text-[#495057] dark:text-white" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-medium">Export</span>
+          <TfiDownload className="text-[14px] text-gray-500 group-hover:text-[#495057] dark:text-slate-400" />
+          <span className="text-[11px] text-[#495057] dark:text-slate-300 font-bold uppercase tracking-wider">Export</span>
         </button>
 
-        <Link className="flex items-center gap-2" to="/admin/find-duplicate">
-          <img src={duplicatesicon} className="w-4" alt="duplicatesicon" />
-          <span className="text-[14px] text-[#495057] dark:text-white font-medium">
+        <Link className="flex items-center gap-1.5 hover:opacity-80" to="/admin/find-duplicate">
+          <img src={duplicatesicon} className="w-3.5 grayscale brightness-50 dark:invert" alt="duplicatesicon" />
+          <span className="text-[11px] text-[#495057] dark:text-slate-300 font-bold uppercase tracking-wider">
             Find Duplicates
           </span>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
+          <span className="text-[10px] text-gray-400 dark:text-slate-500">
             <FaChevronDown />
           </span>
         </Link>
 
         {/* Delete Button */}
         <button
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5 hover:opacity-80 ml-auto"
           onClick={() => setShowDeleteModal(true)}
         >
-          <span className="text-[14px] text-[#D43435] font-medium">Delete</span>
+          <span className="text-[11px] text-[#D43435] font-bold uppercase tracking-wider">Delete Selected</span>
         </button>
       </div>
 
