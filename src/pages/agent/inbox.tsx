@@ -62,9 +62,9 @@ const Inbox = () => {
 
     try {
       const res = await api.post('/calling/send-sms', {
-        to: selectedContact.phones[0]?.number || "",
+        to: selectedContact.remoteNumber || selectedContact.phones[0]?.number || "",
         message: messageText,
-        contactId: selectedContact.id
+        contactId: selectedContact.isUnknown ? undefined : selectedContact.id
       });
 
       if (res.data.success) {
@@ -143,12 +143,15 @@ const Inbox = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">{contact.fullName}</h4>
+                        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                          {contact.fullName}
+                        </h4>
                         <span className="text-[10px] text-gray-400 uppercase font-black">
                           {contact.smsLogs[0] && new Date(contact.smsLogs[0].createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium flex items-center gap-1">
+                        {contact.isUnknown && <span className="px-1 bg-gray-100 dark:bg-slate-700 rounded text-[9px]">Unknown</span>}
                         {contact.smsLogs[0]?.content || "No messages yet"}
                       </p>
                     </div>
@@ -177,8 +180,11 @@ const Inbox = () => {
                     {selectedContact.fullName.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{selectedContact.fullName}</h3>
-                    <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">{selectedContact.phones[0]?.number}</p>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                      {selectedContact.fullName}
+                      {selectedContact.isUnknown && <span className="ml-2 text-[10px] bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-gray-400">UNKNOWN NUMBER</span>}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">{selectedContact.remoteNumber || selectedContact.phones[0]?.number}</p>
                   </div>
                 </div>
               </div>
