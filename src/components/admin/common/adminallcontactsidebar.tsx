@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
 import { VscFolderOpened } from "react-icons/vsc";
 import { LuArrowUpToLine } from "react-icons/lu";
-import usericon from "@/assets/usericon.svg";
+import usericon from "@/assets/admin/usericons.png";
 import ImportContactModal from "../modals/ImportContactModal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactFolders, fetchContactLists, createContactFolder, deleteContactFolder, createContactList } from "@/store/slices/contactSlice";
