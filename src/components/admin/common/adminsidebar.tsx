@@ -9,7 +9,7 @@ import calendericon from "../../../assets/calendericon.svg";
 import dataicon from "../../../assets/dialingicon.svg";
 import billingicon from "../../../assets/admin/billingicon.png";
 import bulbicon from "../../../assets/bulbicon.svg";
-import usericon from "../../../assets/usericon.svg";
+import usericon from "../../../assets/userIcon.svg";
 // import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "../../../assets/exiticon.svg";
 import { FiMenu } from "react-icons/fi";
