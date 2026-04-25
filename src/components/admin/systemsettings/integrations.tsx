@@ -3,6 +3,7 @@ import { FiLoader, FiX } from 'react-icons/fi';
 import stanppLogo from "../../../assets/stamnp.png";
 import bombLogo from "/images/bombbomb_icon.png";
 import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
+import MyPlusLeadsIntegration from '../settings/MyPlusLeadsIntegration';
 import toast from 'react-hot-toast';
 
 interface IntegrationDef {
@@ -280,6 +281,9 @@ const Integrations: React.FC = () => {
             </div>
           );
         })}
+
+        {/* MyPlusLeads Custom Integration Card */}
+        <MyPlusLeadsIntegration />
       </div>
 
       {selectedDef && (
