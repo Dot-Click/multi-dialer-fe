@@ -96,7 +96,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
 
   const onHoldRecordings    = filterBySlot(recordings, "ON_HOLD");
   const answeringMachineRecs = filterBySlot(recordings, "ANSWERING_MACHINE");
-  const busyRecs            = filterBySlot(recordings, "IVR"); // Use IVR or fallback
+  // const busyRecs            = filterBySlot(recordings, "IVR"); // Use IVR or fallback
 
   const fallbackRecordings  = (filtered: RecordingItem[]) =>
     filtered.length > 0 ? filtered : recordings;
@@ -245,14 +245,14 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       <div className="fixed inset-0 z-9999 bg-black/30 backdrop-blur-[2px]" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 pointer-events-none">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="bg-white dark:bg-slate-900 w-full max-w-[520px] max-h-[92vh] rounded-[28px] shadow-2xl flex flex-col pointer-events-auto"
+          className="bg-white dark:bg-slate-900 w-full max-w-[800px] rounded-[24px] shadow-2xl flex flex-col pointer-events-auto overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-6 py-5 flex justify-between items-center border-b border-gray-100 dark:border-slate-800">
-            <h2 className="text-[18px] font-bold text-gray-800 dark:text-white">
+          <div className="px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-slate-800">
+            <h2 className="text-[18px] font-bold text-gray-900 dark:text-white">
               {editId ? "Update Call Setting" : "Create Call Setting"}
             </h2>
             <button
@@ -265,218 +265,165 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-
-            {/* Name */}
-            <FieldWrapper label="Name">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Main Office Line"
-                className="w-full bg-transparent text-[13px] font-semibold text-gray-700 dark:text-white outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600"
-              />
-            </FieldWrapper>
-
-            {/* Caller IDs */}
-            <FieldWrapper label="Caller IDs (Rotation List)">
-              <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar pr-1 mt-1">
-                {callerIds.length === 0 && (
-                  <p className="text-[12px] text-gray-400 dark:text-gray-500 italic">No Caller IDs available</p>
-                )}
-                {callerIds.map((cid) => (
-                  <label key={cid.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg cursor-pointer transition-colors group">
-                    <input
-                      type="checkbox"
-                      checked={selectedCallerIds.includes(cid.twillioNumber || cid.id)}
-                      onChange={(e) => {
-                        const id = cid.twillioNumber || cid.id;
-                        setSelectedCallerIds(
-                          e.target.checked
-                            ? [...selectedCallerIds, id]
-                            : selectedCallerIds.filter((v) => v !== id)
-                        );
-                      }}
-                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-yellow-500 focus:ring-yellow-500 cursor-pointer"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-[13px] font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
-                        {cid.label}
-                      </span>
-                      {cid.twillioNumber && (
-                        <span className="text-[11px] text-gray-400 dark:text-gray-500">{cid.twillioNumber}</span>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </FieldWrapper>
-
-            {/* Number of Lines */}
-            <FieldWrapper label="Max Calls per Caller ID (Rotation Threshold)">
-              <SelectInput value={noOfLines} onChange={setNoOfLines}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-                  <option key={n} value={String(n)} className="dark:bg-slate-900">
-                    {n} {n === 1 ? "call" : "calls"} per ID
-                  </option>
-                ))}
-              </SelectInput>
-            </FieldWrapper>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                Voice Recording Details
-              </span>
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-            </div>
-
-            {/* Upload new recording */}
-            <button
-              type="button"
-              onClick={() => setIsAddRecordingOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-800 text-[12px] font-bold text-gray-400 hover:border-yellow-400 hover:text-yellow-500 transition-colors"
-            >
-              <FiPlus size={14} />
-              Upload New Recording
-            </button>
-
-            {/* On-Hold Recording 1 — slot: ON_HOLD */}
-            <FieldWrapper label="On-Hold Recording 1">
-              <SelectInput value={onHoldRecording1} onChange={setOnHoldRecording1}>
-                <option value="" className="dark:bg-slate-900">None</option>
-                {fallbackRecordings(onHoldRecordings).map((r) => (
-                  <option key={r.id} value={r.id} className="dark:bg-slate-900">
-                    {r.name}
-                  </option>
-                ))}
-              </SelectInput>
-              {onHoldRecordings.length === 0 && recordings.length > 0 && (
-                <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
-                  No ON_HOLD recordings found — showing all recordings as fallback.
-                </p>
-              )}
-            </FieldWrapper>
-
-            {/* Answering Machine Recording — slot: ANSWERING_MACHINE */}
-            <FieldWrapper label="Answering Machine Recording">
-              <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
-                <option value="" className="dark:bg-slate-900">None</option>
-                {fallbackRecordings(answeringMachineRecs).map((r) => (
-                  <option key={r.id} value={r.id} className="dark:bg-slate-900">
-                    {r.name}
-                  </option>
-                ))}
-              </SelectInput>
-              {answeringMachineRecs.length === 0 && recordings.length > 0 && (
-                <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
-                  No ANSWERING_MACHINE recordings found — showing all recordings as fallback.
-                </p>
-              )}
-            </FieldWrapper>
-
-            {/* Busy / Scheduled Call back Recording */}
-            <FieldWrapper label="Busy Agent Message (Callback Scheduled)">
-              <SelectInput value={busyRecording} onChange={setBusyRecording}>
-                <option value="" className="dark:bg-slate-900">None</option>
-                {fallbackRecordings(busyRecs).map((r) => (
-                  <option key={r.id} value={r.id} className="dark:bg-slate-900">
-                    {r.name}
-                  </option>
-                ))}
-              </SelectInput>
-              {busyRecs.length === 0 && recordings.length > 0 && (
-                <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
-                  No IVR/Busy recordings found — showing all recordings as fallback.
-                </p>
-              )}
-            </FieldWrapper>
-
-            {/* Script divider */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Script</span>
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-            </div>
-
-            {/* Call Script */}
-            <FieldWrapper label="Call Script">
-              <SelectInput value={selectedScript} onChange={setSelectedScript}>
-                <option value="" className="dark:bg-slate-900">None</option>
-                {scripts.map((s) => (
-                  <option key={s.id} value={s.id} className="dark:bg-slate-900">
-                    {s.scriptName}
-                  </option>
-                ))}
-              </SelectInput>
-            </FieldWrapper>
-
-            {/* Dialer Mode */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Dialer Mode</span>
-              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
-            </div>
-
+          <div className="p-6 space-y-6">
+            
+            {/* Dialer Mode (TOP) - Compact */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setDialerMode("manual")}
-                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${dialerMode === "manual"
-                    ? "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${dialerMode === "manual"
+                    ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 shadow-sm"
                     : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
                   }`}
               >
-                <span className={`text-[13px] font-bold ${dialerMode === "manual" ? "text-yellow-700 dark:text-yellow-400" : "text-gray-500"}`}>Manual Dialer</span>
-                <span className="text-[10px] text-gray-400 text-center">Dial next number manually after each call</span>
+                <div className={`w-2.5 h-2.5 rounded-full ${dialerMode === "manual" ? "bg-yellow-500" : "bg-gray-300"}`} />
+                <div className="flex flex-col items-start">
+                  <span className={`text-[13px] font-bold ${dialerMode === "manual" ? "text-gray-900 dark:text-yellow-400" : "text-gray-500"}`}>Manual Dialer</span>
+                  <span className="text-[10px] text-gray-400">Step-by-step dialing</span>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => setDialerMode("power")}
-                className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${dialerMode === "power"
-                    ? "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${dialerMode === "power"
+                    ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 shadow-sm"
                     : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
                   }`}
               >
-                <span className={`text-[13px] font-bold ${dialerMode === "power" ? "text-yellow-700 dark:text-yellow-400" : "text-gray-500"}`}>Power Dialer</span>
-                <span className="text-[10px] text-gray-400 text-center">Automatically dials next number when call ends</span>
+                <div className={`w-2.5 h-2.5 rounded-full ${dialerMode === "power" ? "bg-yellow-500" : "bg-gray-300"}`} />
+                <div className="flex flex-col items-start">
+                  <span className={`text-[13px] font-bold ${dialerMode === "power" ? "text-gray-900 dark:text-yellow-400" : "text-gray-500"}`}>Power Dialer</span>
+                  <span className="text-[10px] text-gray-400">Automatic progression</span>
+                </div>
               </button>
             </div>
 
-            {/* Pacing — only visible in Power Dialer mode */}
-            {dialerMode === "power" && (
-              <FieldWrapper label="Pacing (Simultaneous Calls)">
-                <div className="flex items-center gap-3">
-                  <select
-                    value={pacing}
-                    onChange={(e) => setPacing(Number(e.target.value))}
-                    className="w-full bg-transparent appearance-none text-[13px] font-semibold text-gray-700 dark:text-white outline-none cursor-pointer"
-                  >
-                    {[1,2,3,4,5,6,7,8,9,10].map((n) => (
-                      <option key={n} value={n} className="dark:bg-slate-900">
-                        {n} {n === 1 ? "simultaneous call" : "simultaneous calls"}
-                      </option>
-                    ))}
-                  </select>
+            <div className="grid grid-cols-2 gap-6">
+              {/* LEFT COLUMN: Basic Settings */}
+              <div className="space-y-4">
+                <FieldWrapper label="Configuration Name">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Sales Q1"
+                    className="w-full bg-transparent text-[12px] font-bold text-gray-800 dark:text-white outline-none"
+                  />
+                </FieldWrapper>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <FieldWrapper label="Threshold">
+                    <SelectInput value={noOfLines} onChange={setNoOfLines}>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={String(n)} className="dark:bg-slate-900">
+                          {n} {n === 1 ? "Line" : "Lines"}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </FieldWrapper>
+
+                  <FieldWrapper label={dialerMode === "power" ? "Pacing" : "Call Script"}>
+                    {dialerMode === "power" ? (
+                      <SelectInput value={String(pacing)} onChange={(v) => setPacing(Number(v))}>
+                        {[1, 2, 3, 4, 5, 10].map((n) => (
+                          <option key={n} value={n} className="dark:bg-slate-900">
+                            {n}x Speed
+                          </option>
+                        ))}
+                      </SelectInput>
+                    ) : (
+                      <SelectInput value={selectedScript} onChange={setSelectedScript}>
+                        <option value="" className="dark:bg-slate-900">None</option>
+                        {scripts.map((s) => (
+                          <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                            {s.scriptName}
+                          </option>
+                        ))}
+                      </SelectInput>
+                    )}
+                  </FieldWrapper>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">
-                  How many contacts to dial at the same time. The first to answer connects; others hear hold music and are redialed automatically.
-                </p>
-              </FieldWrapper>
-            )}
+
+                {/* Additional Row for Script if Power Mode is on */}
+                {dialerMode === "power" && (
+                  <FieldWrapper label="Call Script">
+                    <SelectInput value={selectedScript} onChange={setSelectedScript}>
+                      <option value="" className="dark:bg-slate-900">None</option>
+                      {scripts.map((s) => (
+                        <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                          {s.scriptName}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </FieldWrapper>
+                )}
+
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Audio Slots</span>
+                    <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <FieldWrapper label="On-Hold">
+                      <SelectInput value={onHoldRecording1} onChange={setOnHoldRecording1}>
+                        <option value="" className="dark:bg-slate-900">None</option>
+                        {fallbackRecordings(onHoldRecordings).map((r) => (
+                          <option key={r.id} value={r.id} className="dark:bg-slate-900">{r.name}</option>
+                        ))}
+                      </SelectInput>
+                    </FieldWrapper>
+
+                    <FieldWrapper label="Drop VM">
+                      <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
+                        <option value="" className="dark:bg-slate-900">None</option>
+                        {fallbackRecordings(answeringMachineRecs).map((r) => (
+                          <option key={r.id} value={r.id} className="dark:bg-slate-900">{r.name}</option>
+                        ))}
+                      </SelectInput>
+                    </FieldWrapper>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Caller IDs */}
+              <div className="flex flex-col">
+                <FieldWrapper label="Caller ID Rotation List">
+                  <div className="space-y-0.5 h-[240px] overflow-y-auto custom-scrollbar pr-2 mt-1">
+                    {callerIds.map((cid) => (
+                      <label key={cid.id} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all group mb-0.5 ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "bg-yellow-50 dark:bg-yellow-900/10" : "hover:bg-gray-50 dark:hover:bg-slate-800/50"}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "bg-yellow-500 border-yellow-500 shadow-sm" : "border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800"}`}>
+                          {selectedCallerIds.includes(cid.twillioNumber || cid.id) && <FiPlus className="text-white rotate-45" size={12} />}
+                          <input type="checkbox" checked={selectedCallerIds.includes(cid.twillioNumber || cid.id)} onChange={(e) => {
+                              const id = cid.twillioNumber || cid.id;
+                              setSelectedCallerIds(e.target.checked ? [...selectedCallerIds, id] : selectedCallerIds.filter((v) => v !== id));
+                            }} className="hidden" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className={`text-[12px] font-bold ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "text-gray-900 dark:text-yellow-400" : "text-gray-700 dark:text-gray-200"}`}>
+                            {cid.label}
+                          </span>
+                          <span className="text-[10px] text-gray-400">{cid.twillioNumber}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </FieldWrapper>
+              </div>
+            </div>
           </div>
 
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-50 dark:border-slate-800 flex gap-3">
+          {/* Footer - Compact */}
+          <div className="px-6 py-4 bg-gray-50/50 dark:bg-slate-800/30 border-t border-gray-100 dark:border-slate-800 flex gap-3">
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-white text-[14px] font-bold py-3.5 rounded-2xl transition-all"
+              className="flex-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-white text-[13px] font-bold py-2.5 rounded-xl transition-all shadow-sm"
             >
-              Cancel
+              Discard
             </button>
-            <button
+            {/* <button
               onClick={() =>
                 navigate(role === "ADMIN" ? "/admin/contact-info" : "/contact-info", {
                   state: {
@@ -492,17 +439,17 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                   },
                 })
               }
-              className="bg-[#FECD56] hover:bg-[#F0D500] px-4 text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all"
+              className="flex-1 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white text-[13px] font-bold py-2.5 rounded-xl transition-all"
             >
-              Proceed without saving
-            </button>
+              Skip & Start
+            </button> */}
             <button
               type="button"
               onClick={handleSave}
               disabled={isLoading}
-              className="flex-1 bg-[#FECD56] hover:bg-[#F0D500] text-gray-900 text-[14px] font-extrabold py-3.5 rounded-2xl shadow-sm transition-all disabled:opacity-50"
+              className="flex-1 bg-[#FFCA06] hover:bg-[#FECD56] text-gray-900 text-[13px] font-black py-2.5 rounded-xl shadow-sm transition-all active:scale-95"
             >
-              {isLoading ? "Saving..." : editId ? "Update Setting" : "Save Setting"}
+              {isLoading ? "Saving..." : "Save & Start"}
             </button>
           </div>
         </div>
