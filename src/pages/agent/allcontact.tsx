@@ -8,7 +8,6 @@ import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
-import DialRestrictionModal from "@/components/modal/DialRestrictionModal";
 import toast from "react-hot-toast";
 
 type OutletContextType = {
@@ -22,7 +21,6 @@ const AllContact = () => {
   const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
   const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
-  const [isRestrictionModalOpen, setIsRestrictionModalOpen] = useState(false);
 
   const { activeItem } = useOutletContext<OutletContextType>();
 
@@ -145,9 +143,6 @@ const AllContact = () => {
         selectedContacts={selectedContacts}
       />
 
-      {isRestrictionModalOpen && (
-        <DialRestrictionModal onClose={() => setIsRestrictionModalOpen(false)} />
-      )}
     </section>
   );
 };
