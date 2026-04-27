@@ -89,19 +89,32 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const { data: session } = authClient.useSession();
   const role = session?.user.role;
 
-  // ── Slot-filtered recording lists ─────────────────────────────────────────
-  // Each dropdown only shows recordings uploaded with the matching slot type.
-  // Falls back to showing all recordings if none are tagged with that slot,
-  // so the UI is never empty due to a misconfigured upload.
-
   const onHoldRecordings    = filterBySlot(recordings, "ON_HOLD");
   const answeringMachineRecs = filterBySlot(recordings, "ANSWERING_MACHINE");
-  // const busyRecs            = filterBySlot(recordings, "IVR"); // Use IVR or fallback
 
   const fallbackRecordings  = (filtered: RecordingItem[]) =>
     filtered.length > 0 ? filtered : recordings;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
+  const loadSetting = (setting: any) => {
+    setEditId(setting.id);
+    setName(setting.label || "");
+    if (setting.callerId) {
+      setSelectedCallerIds(setting.callerId.split(",").map((s: string) => s.trim()));
+    } else {
+      setSelectedCallerIds([]);
+    }
+    setCountryCode(setting.countryCode || "US");
+    setNoOfLines(String(setting.numberOfLines || 1));
+    setOnHoldRecording1(setting.onHoldRecording1Id || "");
+    setOnHoldRecording2(setting.onHoldRecording2Id || "");
+    setIvrRecording(setting.ivrRecordingId || "");
+    setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
+    setBusyRecording((setting as any).busyRecordingId || "");
+    setSelectedScript(setting.callScriptId || "");
+    setDialerMode((setting as any).dialerMode || "manual");
+    setPacing((setting as any).pacing || 1);
+  };
 
   const getSelectedRecordingUrl = () => {
     if (!onHoldRecording1) return undefined;
@@ -135,42 +148,27 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   }, [callerIdsData]);
 
   useEffect(() => {
-    if (isOpen && existingSettings && existingSettings.length > 0) {
-      const setting = existingSettings[0];
-      setEditId(setting.id);
-      setName(setting.label || "");
-      if (setting.callerId) {
-        setSelectedCallerIds(setting.callerId.split(",").map((s: string) => s.trim()));
-      }
-      setCountryCode(setting.countryCode || "US");
-      setNoOfLines(String(setting.numberOfLines || 1));
-      setOnHoldRecording1(setting.onHoldRecording1Id || "");
-      setOnHoldRecording2(setting.onHoldRecording2Id || "");
-      setIvrRecording(setting.ivrRecordingId || "");
-      setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
-      setBusyRecording((setting as any).busyRecordingId || "");
-      setSelectedScript(setting.callScriptId || "");
-      setDialerMode((setting as any).dialerMode || "manual");
-      setPacing((setting as any).pacing || 1);
+    if (isOpen && existingSettings && existingSettings.length > 0 && !editId) {
+      loadSetting(existingSettings[0]);
     }
-  }, [isOpen, existingSettings]);
+  }, [isOpen, existingSettings, editId]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const resetForm = () => {
-    if (!editId) {
-      setName("");
-      setSelectedCallerIds([]);
-      setCountryCode("US");
-      setNoOfLines("1");
-      setOnHoldRecording1("");
-      setOnHoldRecording2("");
-      setIvrRecording("");
-      setAnsweringMachineRecording("");
-      setBusyRecording("");
-      setDialerMode("manual");
-      setPacing(1);
-    }
+    setEditId(null);
+    setName("");
+    setSelectedCallerIds([]);
+    setCountryCode("US");
+    setNoOfLines("1");
+    setOnHoldRecording1("");
+    setOnHoldRecording2("");
+    setIvrRecording("");
+    setAnsweringMachineRecording("");
+    setBusyRecording("");
+    setDialerMode("manual");
+    setPacing(1);
+    setSelectedScript("");
   };
 
   const handleClose = () => {
@@ -302,6 +300,27 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
             <div className="grid grid-cols-2 gap-6">
               {/* LEFT COLUMN: Basic Settings */}
               <div className="space-y-4">
+                <FieldWrapper label="Select Configuration">
+                  <SelectInput
+                    value={editId || "new"}
+                    onChange={(val) => {
+                      if (val === "new") {
+                        resetForm();
+                      } else {
+                        const setting = existingSettings?.find(s => s.id === val);
+                        if (setting) loadSetting(setting);
+                      }
+                    }}
+                  >
+                    <option value="new" className="dark:bg-slate-900">-- New Configuration --</option>
+                    {existingSettings?.map((s: any) => (
+                      <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                        {s.label}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </FieldWrapper>
+
                 <FieldWrapper label="Configuration Name">
                   <input
                     type="text"
