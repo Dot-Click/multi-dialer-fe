@@ -332,7 +332,7 @@ const ContactInfo = () => {
                                     <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar pr-1">
                                         {callerIds.map((cid) => {
                                             const status = callerIdStatus[cid];
-                                            const isCurrent = currentCallerId === cid;
+                                            // const _/isCurrent = currentCallerId === cid;
                                             const isFrozen = status?.isFrozen;
 
                                             return (
