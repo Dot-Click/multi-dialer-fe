@@ -336,14 +336,11 @@ const ContactInfo = () => {
                                             const isFrozen = status?.isFrozen;
 
                                             return (
-                                                <div key={cid} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${isCurrent
-                                                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
-                                                        : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
-                                                    }`}>
+                                                <div key={cid} className="flex items-center justify-between p-2 rounded-xl border border-transparent bg-gray-50/30 dark:bg-slate-700/20 transition-all">
                                                     <div className="flex items-center gap-2 min-w-0">
                                                         <div className={`w-2 h-2 rounded-full shrink-0 ${isFrozen ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                                                             }`} />
-                                                        <span className={`text-xs font-bold truncate ${isCurrent ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                                        <span className="text-xs font-bold truncate text-gray-600 dark:text-gray-400">
                                                             {cid}
                                                         </span>
                                                     </div>

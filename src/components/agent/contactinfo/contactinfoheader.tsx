@@ -52,6 +52,7 @@ const ContactInfoHeader = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const hasTriggeredAutoDialRef = useRef(false);
+  const shouldAutoCallRef = useRef(false);
   const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
@@ -142,6 +143,28 @@ const ContactInfoHeader = ({
     onCallStarted
   ]);
 
+  const handleNavigateWithCall = useCallback(async (direction: 'next' | 'prev') => {
+    if (isCalling) {
+      await endCall();
+    }
+
+    shouldAutoCallRef.current = true;
+
+    if (direction === 'next' && onNext) {
+      onNext();
+    } else if (direction === 'prev' && onPrev) {
+      onPrev();
+    }
+  }, [isCalling, endCall, onNext, onPrev]);
+
+  // Effect to trigger call when contact changes and shouldAutoCallRef is set
+  useEffect(() => {
+    if (shouldAutoCallRef.current && contact?.id && !isCalling) {
+      shouldAutoCallRef.current = false;
+      handleCallToggle();
+    }
+  }, [contact?.id, isCalling, handleCallToggle]);
+
   const handleOpenEventModal = (type: "TASK" | "FOLLOW_UP") => {
     setEventDefaults({
       title: `${type === "FOLLOW_UP" ? "Follow up with" : "Task for"} ${contact?.fullName || "Contact"}`,
@@ -186,19 +209,21 @@ const ContactInfoHeader = ({
             {dialerMode === "manual" && (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={onPrev}
+                  onClick={() => handleNavigateWithCall('prev')}
                   disabled={currentIndex === 0}
-                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
                   title="Previous Contact"
                 >
                   <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Prev</span>
                 </button>
                 <button
-                  onClick={onNext}
+                  onClick={() => handleNavigateWithCall('next')}
                   disabled={currentIndex >= totalContacts - 1}
-                  className="p-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
                   title="Next Contact"
                 >
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Next</span>
                   <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
                 </button>
               </div>
