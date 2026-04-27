@@ -278,6 +278,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         params: {
           To: phone,
           From: from,
+          callerId: from,
           agentId: identity || 'tester_agent',
           contactId: contactId,
           answeringMachineUrl: answeringMachineUrl || '',
