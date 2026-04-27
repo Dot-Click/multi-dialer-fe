@@ -53,6 +53,7 @@ const ContactInfoHeader = ({
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const hasTriggeredAutoDialRef = useRef(false);
   const shouldAutoCallRef = useRef(false);
+  const navigatedFromIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
@@ -149,18 +150,40 @@ const ContactInfoHeader = ({
     }
 
     shouldAutoCallRef.current = true;
+    navigatedFromIdRef.current = contact?.id || null;
 
     if (direction === 'next' && onNext) {
       onNext();
     } else if (direction === 'prev' && onPrev) {
       onPrev();
     }
-  }, [isCalling, endCall, onNext, onPrev]);
+  }, [isCalling, endCall, onNext, onPrev, contact?.id]);
+
+  const handleHangupAndLeave = async () => {
+    if (isCalling) {
+      await endCall();
+    }
+    const path = dialerMode === 'power' 
+      ? (localStorage.getItem('user_role') === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer')
+      : -1;
+    
+    if (path === -1) {
+      navigate(-1);
+    } else {
+      navigate(path as string);
+    }
+  };
 
   // Effect to trigger call when contact changes and shouldAutoCallRef is set
   useEffect(() => {
-    if (shouldAutoCallRef.current && contact?.id && !isCalling) {
+    if (
+      shouldAutoCallRef.current && 
+      contact?.id && 
+      !isCalling && 
+      contact.id !== navigatedFromIdRef.current
+    ) {
       shouldAutoCallRef.current = false;
+      navigatedFromIdRef.current = null;
       handleCallToggle();
     }
   }, [contact?.id, isCalling, handleCallToggle]);
@@ -272,20 +295,22 @@ const ContactInfoHeader = ({
 
           <button
             onClick={handleCallToggle}
-            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-6 hover:bg-[#e0e2e6] transition-all"
+            disabled={dialerMode === "manual" && isCalling}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-6 hover:bg-[#e0e2e6] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isCalling ? <FiPause className="text-xl dark:text-white" /> : <IoPlayOutline className="text-xl dark:text-white" />}
+            {isCalling && dialerMode === "power" ? (
+              <FiPause className="text-xl dark:text-white" />
+            ) : (
+              <IoPlayOutline className="text-xl dark:text-white" />
+            )}
             <span className="text-[#0E1011] dark:text-white text-sm font-semibold">
-              {isCalling ? "Pause" : "Start"}
+              {isCalling && dialerMode === "power" ? "Pause" : "Start"}
             </span>
           </button>
 
           <button
-            onClick={() => endCall()}
-            disabled={!isCalling}
-            className={`bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 transition-all ${
-              !isCalling ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100 dark:hover:bg-red-900/40"
-            }`}
+            onClick={handleHangupAndLeave}
+            className="bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
           >
             <PhoneOff className="text-xl dark:text-white" />
             <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Hang Up & Leave</span>
