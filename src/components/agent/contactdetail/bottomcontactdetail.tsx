@@ -59,16 +59,16 @@ import DetailsTab from "./detailstab";
 import QualifyTab from "./qualifytab";
 
 const BottomContactDetail = () => {
-    const [openStatus, setOpenStatus] = useState("Notes");
     const location = useLocation();
     const isContactInfo = location.pathname.includes("contact-info");
+    const [openStatus, setOpenStatus] = useState(isContactInfo ? "Details" : "Notes");
 
     const stages = [
-        { id: 1, name: "Notes" },
         ...(isContactInfo ? [
             { id: 2, name: "Details" },
             { id: 3, name: "Dominios" },
         ] : []),
+        { id: 1, name: "Notes" },
         { id: 4, name: "Activities" },
         { id: 5, name: "History" },
         { id: 6, name: "Emails" },
@@ -100,8 +100,8 @@ const BottomContactDetail = () => {
 
             {/* Content Section - Scrollable internally */}
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                {openStatus === "Notes" && (<Notes />)}
                 {openStatus === "Details" && (<DetailsTab />)}
+                {openStatus === "Notes" && (<Notes />)}
                 {openStatus === "Dominios" && (<QualifyTab />)}
                 {openStatus === "Profile" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}

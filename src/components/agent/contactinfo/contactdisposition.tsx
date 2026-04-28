@@ -74,7 +74,7 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
   const [savingGroups, setSavingGroups] = useState(false);
 
-  const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER", "DO_NOT_CALL"];
+  const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
   // Load dispositions + groups if not already loaded
   useEffect(() => {

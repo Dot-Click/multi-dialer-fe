@@ -71,11 +71,11 @@ const OutcomeRow = ({ onNext }: { onNext?: () => void }) => {
                 dispatch(removeFromQueue(currentContact.id));
             }
 
-            if (["NO_ANSWER", "BAD_NUMBER", "DNC_CONTACT", "DNC_NUMBER"].includes(upperVal)) {
+            if (["NO_ANSWER", "BAD_NUMBER", "DNC_CONTACT", "DNC_NUMBER", "DO_NOT_CALL"].includes(upperVal)) {
                 if (isCalling) await endCall();
-                if (upperVal.startsWith("DNC")) {
+                if (upperVal.startsWith("DNC") || upperVal === "DO_NOT_CALL") {
                     await api.post(`/contact/${currentContact.id}/move-to-dnc`, {
-                        phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : []
+                        phoneIds: (upperVal === "DNC_NUMBER") ? [currentContact.phones?.[0]?.id] : []
                     });
                 }
             } else if (upperVal === "VOICEMAIL") {
@@ -101,7 +101,7 @@ const OutcomeRow = ({ onNext }: { onNext?: () => void }) => {
             </div>
             
             <div className="flex items-center gap-1.5 py-0.5">
-                {dispositions.filter(d => d.isActive && SMART_VALUES.includes(d.value.toUpperCase())).map(d => {
+                {dispositions.filter(d => d.isActive).map(d => {
                     const Icon = ICON_MAP[d.icon] ?? User;
                     const isActive = selectedDisp === d.value;
                     return (
