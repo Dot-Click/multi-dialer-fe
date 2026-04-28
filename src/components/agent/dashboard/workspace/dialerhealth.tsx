@@ -5,6 +5,8 @@ const DialerHealth = () => {
     const { data: dialers, isLoading } = useDialerHealth();
     const { mutate: refresh, isPending: isRefreshing } = useRefreshDialerHealth();
 
+    console.log("dialers", dialers)
+
     if (isLoading) {
         return (
             <section className='bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] items-center justify-center rounded-[32px] w-full'>
