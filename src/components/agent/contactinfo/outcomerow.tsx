@@ -37,7 +37,6 @@ const COLOR_ACTIVE: Record<string, string> = {
     gray: "bg-gray-600 border-gray-600 text-white shadow-gray-200/50",
 };
 
-const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
 const OutcomeRow = ({ onNext }: { onNext?: () => void }) => {
     const dispatch = useAppDispatch();
