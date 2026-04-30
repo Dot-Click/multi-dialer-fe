@@ -16,6 +16,8 @@ interface DirectMailFormProps {
 
 const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
   const [sending, setSending] = useState(false);
+  const [automations, setAutomations] = useState<any[]>([]);
+  const [loadingAutomations, setLoadingAutomations] = useState(false);
   const [form, setForm] = useState({
     recipientName: contactName || "",
     address1: "",
@@ -24,7 +26,25 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
     postcode: "",
     country: "US",
     message: "",
+    automationId: "",
   });
+
+  useEffect(() => {
+    const fetchAutomations = async () => {
+      setLoadingAutomations(true);
+      try {
+        const res = await api.get("/system-settings/integration/stannp/automations");
+        if (res.data.success) {
+          setAutomations(res.data.data.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch Stannp automations", err);
+      } finally {
+        setLoadingAutomations(false);
+      }
+    };
+    fetchAutomations();
+  }, []);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -42,7 +62,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
       });
       if (res.data.success) {
         toast.success("Direct mail sent via Stannp! 📬");
-        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", postcode: "", message: "" }));
+        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", postcode: "", message: "", automationId: "" }));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to send direct mail.");
@@ -143,6 +163,30 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
             <option value="VE">Venezuela</option>
           </select>
         </div>
+
+        {/* Stannp Automation (Group) Selection */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+            Stannp Automation (Optional)
+          </label>
+          <select
+            value={form.automationId}
+            onChange={(e) => update("automationId", e.target.value)}
+            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all appearance-none cursor-pointer"
+            disabled={loadingAutomations}
+          >
+            <option value="">{loadingAutomations ? "Loading automations..." : "Standard One-off Send"}</option>
+            {automations.map((automation) => (
+              <option key={automation.id} value={automation.id}>
+                {automation.name} ({automation.recipients} recipients)
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-gray-500 mt-1">
+            Selecting an automation will trigger a triggered campaign linked to this group in Stannp.
+          </p>
+        </div>
+
 
         {/* Message */}
         <div className="sm:col-span-2">
