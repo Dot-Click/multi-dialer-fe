@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import downarrow from "@/assets/downarrow.png";
-import { signup } from "@/store/slices/authSlice";
+import { createUser } from "@/store/slices/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { generateSecurePassword } from "@/components/common/password";
 
@@ -13,7 +13,7 @@ interface AddUserModalProps {
 
 const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   const dispatch = useAppDispatch();
-  const { loading, error: apiError } = useAppSelector((state) => state.auth);
+  const { loading, error: apiError } = useAppSelector((state) => state.user);
 
   // Form states
   const [fullName, setFullName] = useState("");
@@ -48,16 +48,16 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
 
     try {
       const resultAction = await dispatch(
-        signup({
+        createUser({
           fullName,
           email,
           role: selectedRole.toUpperCase(),
-          status: selectedStatus,
+          status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
           password: generatedPassword,
         }),
       );
 
-      if (signup.fulfilled.match(resultAction)) {
+      if (createUser.fulfilled.match(resultAction)) {
         onClose();
         if (onSuccess) onSuccess();
         // Reset form
@@ -67,7 +67,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         setSelectedStatus("Select Status");
       }
     } catch (err) {
-      console.error("Signup failed:", err);
+      console.error("User creation failed:", err);
     }
   };
 
