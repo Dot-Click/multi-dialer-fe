@@ -27,11 +27,31 @@ export const getAllUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/user");
+      console.log("[userSlice] getAllUsers response:", response.data);
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.data) {
         return rejectWithValue(
           error.response.data.message || "Failed to fetch users",
+        );
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  },
+);
+
+export const createUser = createAsyncThunk(
+  "user/createUser",
+  async (userData: any, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/user", userData);
+      console.log("[userSlice] createUser response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(
+          error.response.data.message || "Failed to create user",
         );
       } else {
         return rejectWithValue(error.message);
@@ -51,9 +71,30 @@ export const userSlice = createSlice({
     });
     builder.addCase(getAllUsers.fulfilled, (state, action) => {
       state.loading = false;
-      state.users = action.payload?.data || action.payload || [];
+      // Handle response.data.data or response.data
+      const payloadData = action.payload?.data;
+      if (Array.isArray(payloadData)) {
+        state.users = payloadData;
+      } else if (Array.isArray(action.payload)) {
+        state.users = action.payload;
+      } else {
+        state.users = [];
+      }
     });
     builder.addCase(getAllUsers.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Create User
+    builder.addCase(createUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(createUser.fulfilled, (state) => {
+      state.loading = false;
+    });
+    builder.addCase(createUser.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
     });
