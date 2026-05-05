@@ -12,7 +12,7 @@ import { fetchDispositions } from '@/store/slices/dispositionSlice';
 // import { CiMail } from "react-icons/ci";
 // import { BsThreeDotsVertical } from "react-icons/bs";
 // import { IoAddOutline } from "react-icons/io5";
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, Folder } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, Folder, ExternalLink } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
@@ -55,6 +55,60 @@ const COLOR_ACTIVE: Record<string, string> = {
     gray: "bg-gray-600 border-gray-600 text-white dark:bg-slate-500 dark:border-slate-500",
     rose: "bg-rose-500 border-rose-500 text-white",
     pink: "bg-pink-500 border-pink-500 text-white",
+};
+
+const US_STATE_ABBREVIATIONS: Record<string, string> = {
+    alabama: "AL",
+    alaska: "AK",
+    arizona: "AZ",
+    arkansas: "AR",
+    california: "CA",
+    colorado: "CO",
+    connecticut: "CT",
+    delaware: "DE",
+    "district of columbia": "DC",
+    florida: "FL",
+    georgia: "GA",
+    hawaii: "HI",
+    idaho: "ID",
+    illinois: "IL",
+    indiana: "IN",
+    iowa: "IA",
+    kansas: "KS",
+    kentucky: "KY",
+    louisiana: "LA",
+    maine: "ME",
+    maryland: "MD",
+    massachusetts: "MA",
+    michigan: "MI",
+    minnesota: "MN",
+    mississippi: "MS",
+    missouri: "MO",
+    montana: "MT",
+    nebraska: "NE",
+    nevada: "NV",
+    "new hampshire": "NH",
+    "new jersey": "NJ",
+    "new mexico": "NM",
+    "new york": "NY",
+    "north carolina": "NC",
+    "north dakota": "ND",
+    ohio: "OH",
+    oklahoma: "OK",
+    oregon: "OR",
+    pennsylvania: "PA",
+    "rhode island": "RI",
+    "south carolina": "SC",
+    "south dakota": "SD",
+    tennessee: "TN",
+    texas: "TX",
+    utah: "UT",
+    vermont: "VT",
+    virginia: "VA",
+    washington: "WA",
+    "west virginia": "WV",
+    wisconsin: "WI",
+    wyoming: "WY",
 };
 
 interface DetailProps {
@@ -113,6 +167,31 @@ const Detail = ({ onNext }: DetailProps) => {
 
     if (!currentContact) return null;
 
+    const toRealtorSlug = (value: unknown) =>
+        String(value || "")
+            .trim()
+            .replace(/[^\w\s-]/g, " ")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+
+    // const realtorStreet = toRealtorSlug([currentContact.address, currentContact.address2].filter(Boolean).join(" "));
+    const realtorCity = toRealtorSlug(currentContact.city);
+    const normalizedState = String(currentContact.state || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ");
+    const realtorState = US_STATE_ABBREVIATIONS[normalizedState] || toRealtorSlug(currentContact.state).toUpperCase();
+    const realtorZip = toRealtorSlug(currentContact.zip);
+    const realtorLocation = realtorCity && realtorState ? `${realtorCity}_${realtorState}` : realtorZip;
+
+    const realtorUrl = realtorLocation
+        ? `https://www.realtor.com/realestateandhomes-search/${realtorLocation}?keywords=${encodeURIComponent(
+            [currentContact.address, currentContact.address2].filter(Boolean).join(" ").trim()
+        )}`
+        : "";
+
     // const handleFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     //     setSelectedFolderId(e.target.value);
     //     setSelectedListId('');
@@ -157,21 +236,21 @@ const Detail = ({ onNext }: DetailProps) => {
 
     async function handleSmartAction(label: string, value: string) {
         if (!currentContact?.id) { toast.error("No contact loaded"); return; }
-        
+
         setSelectedDisp(value);
         setSavingDisp(true);
         try {
             await dispatch(
-                updateContact({ 
-                    id: currentContact.id, 
-                    payload: { disposition: value, status: value } 
+                updateContact({
+                    id: currentContact.id,
+                    payload: { disposition: value, status: value }
                 })
             ).unwrap();
             setSavedDisp(value);
             toast.success(`Outcome: ${label}`);
 
             const upperVal = value.toUpperCase();
-            
+
             // Auto-remove from session queue for all outcomes EXCEPT Voicemail
             if (upperVal !== "VOICEMAIL" && onNext) {
                 dispatch(removeFromQueue(currentContact.id));
@@ -223,7 +302,7 @@ const Detail = ({ onNext }: DetailProps) => {
 
     async function handleToggleField(key: string, currentValue: boolean) {
         if (!currentContact?.id) return;
-        
+
         // Optimistic Update
         dispatch(setCurrentContactFields({ [key]: !currentValue }));
 
@@ -307,6 +386,17 @@ const Detail = ({ onNext }: DetailProps) => {
                                     <span className="text-gray-400 dark:text-gray-500 w-16">Zip code:</span> {currentContact.zip || '-'}
                                 </h1>
                             </div>
+                            <a
+                                href={realtorUrl || undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-disabled={!realtorUrl}
+                                className={`mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${realtorUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                                    }`}
+                            >
+                                <ExternalLink size={14} />
+                                Realtor
+                            </a>
                         </div>
                     </div>
 
@@ -410,50 +500,50 @@ const Detail = ({ onNext }: DetailProps) => {
                 </div>
             </div>
 
-                <div className='flex w-full flex-col lg:flex-row lg:items-center gap-8 pt-6 border-t border-gray-100 dark:border-white/5'>
-                    <div className='flex w-full items-center gap-4'>
-                        <label htmlFor="list" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>List:</label>
-                        <select
-                            id="list"
-                            value={selectedListId}
-                            onChange={handleListChange}
-                            disabled={!selectedFolderId}
-                            className='border-none py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent disabled:opacity-50 cursor-pointer'
-                        >
-                            <option value="" className="dark:bg-slate-800">Select List</option>
-                            {lists
-                                .filter(list => {
-                                    const folder = folders.find(f => f.id === selectedFolderId);
-                                    return folder ? folder.listIds.includes(list.id) : false;
-                                })
-                                .map(list => (
-                                    <option key={list.id} value={list.id} className="dark:bg-slate-800">{list.name}</option>
-                                ))
-                            }
-                        </select>
-                    </div>
-
-                    <div className='flex w-full items-center gap-4'>
-                        <label htmlFor="tags" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Tags:</label>
-                        <input
-                            type="text"
-                            id="tags"
-                            value={tagsInput}
-                            onChange={(e) => setTagsInput(e.target.value)}
-                            placeholder="Tag1, Tag2..."
-                            className='border-b border-gray-100 dark:border-white/10 py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent focus:border-[#FFCA06] transition-all'
-                        />
-                    </div>
-
-                    <div className="flex items-center">
-                        <button
-                            onClick={handleUpdateOrg}
-                            className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-8 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:bg-gray-900 dark:hover:bg-[#ffd94d] transition-all active:scale-95 whitespace-nowrap"
-                        >
-                            Update
-                        </button>
-                    </div>
+            <div className='flex w-full flex-col lg:flex-row lg:items-center gap-8 pt-6 border-t border-gray-100 dark:border-white/5'>
+                <div className='flex w-full items-center gap-4'>
+                    <label htmlFor="list" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>List:</label>
+                    <select
+                        id="list"
+                        value={selectedListId}
+                        onChange={handleListChange}
+                        disabled={!selectedFolderId}
+                        className='border-none py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent disabled:opacity-50 cursor-pointer'
+                    >
+                        <option value="" className="dark:bg-slate-800">Select List</option>
+                        {lists
+                            .filter(list => {
+                                const folder = folders.find(f => f.id === selectedFolderId);
+                                return folder ? folder.listIds.includes(list.id) : false;
+                            })
+                            .map(list => (
+                                <option key={list.id} value={list.id} className="dark:bg-slate-800">{list.name}</option>
+                            ))
+                        }
+                    </select>
                 </div>
+
+                <div className='flex w-full items-center gap-4'>
+                    <label htmlFor="tags" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Tags:</label>
+                    <input
+                        type="text"
+                        id="tags"
+                        value={tagsInput}
+                        onChange={(e) => setTagsInput(e.target.value)}
+                        placeholder="Tag1, Tag2..."
+                        className='border-b border-gray-100 dark:border-white/10 py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent focus:border-[#FFCA06] transition-all'
+                    />
+                </div>
+
+                <div className="flex items-center">
+                    <button
+                        onClick={handleUpdateOrg}
+                        className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-8 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:bg-gray-900 dark:hover:bg-[#ffd94d] transition-all active:scale-95 whitespace-nowrap"
+                    >
+                        Update
+                    </button>
+                </div>
+            </div>
 
             {/* CALL OUTCOMES */}
             <div className="flex flex-col gap-6 pt-6 border-t border-gray-100 dark:border-white/5">
@@ -473,11 +563,10 @@ const Detail = ({ onNext }: DetailProps) => {
                                 key={d.id}
                                 onClick={() => handleSmartAction(d.label, d.value)}
                                 disabled={savingDisp}
-                                className={`inline-flex items-center gap-2 px-4 py-1.5 text-sm rounded-full border font-bold transition-all duration-150 active:scale-95 ${
-                                    isActive
-                                        ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
-                                        : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
-                                }`}
+                                className={`inline-flex items-center gap-2 px-4 py-1.5 text-sm rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
+                                    ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
+                                    : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
+                                    }`}
                             >
                                 <Icon className="w-3.5 h-3.5 shrink-0 px-0" size={14} />
                                 {d.label}
@@ -491,8 +580,8 @@ const Detail = ({ onNext }: DetailProps) => {
                         {selectedDisp !== savedDisp && selectedDisp
                             ? `Selected: ${getDispLabel(selectedDisp)}`
                             : !selectedDisp
-                            ? "No disposition selected"
-                            : "Up to date"}
+                                ? "No disposition selected"
+                                : "Up to date"}
                     </p>
                     {selectedDisp !== savedDisp && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
                         <button
@@ -522,11 +611,10 @@ const Detail = ({ onNext }: DetailProps) => {
                                     setSelectedFolderId(folder.id);
                                     setSelectedListId('');
                                 }}
-                                className={`inline-flex items-center px-5 py-2 text-sm rounded-xl border font-bold transition-all duration-150 active:scale-95 ${
-                                    isActive
-                                        ? "bg-[#0E1011] dark:bg-[#FFCA06] border-[#0E1011] dark:border-[#FFCA06] text-white dark:text-gray-900 shadow-md transform -translate-y-0.5"
-                                        : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-700 dark:hover:text-gray-200"
-                                }`}
+                                className={`inline-flex items-center px-5 py-2 text-sm rounded-xl border font-bold transition-all duration-150 active:scale-95 ${isActive
+                                    ? "bg-[#0E1011] dark:bg-[#FFCA06] border-[#0E1011] dark:border-[#FFCA06] text-white dark:text-gray-900 shadow-md transform -translate-y-0.5"
+                                    : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-700 dark:hover:text-gray-200"
+                                    }`}
                             >
                                 {folder.name}
                             </button>
@@ -540,21 +628,19 @@ const Detail = ({ onNext }: DetailProps) => {
                 {QUAL_FIELDS.map(f => {
                     const val = (currentContact as any)[f.key] || false;
                     return (
-                        <div 
-                            key={f.key} 
+                        <div
+                            key={f.key}
                             onClick={() => handleToggleField(f.key, val)}
                             className="flex flex-col items-center gap-3 group cursor-pointer min-w-[70px]"
                         >
-                            <div className={`w-5 h-5 rounded flex items-center justify-center transition-all duration-200 ${
-                                val 
-                                    ? "bg-[#0E1011] dark:bg-[#FFCA06] shadow-sm transform scale-110" 
-                                    : "border-2 border-gray-200 dark:border-white/10 group-hover:border-gray-400 dark:group-hover:border-white/30"
-                            }`}>
+                            <div className={`w-5 h-5 rounded flex items-center justify-center transition-all duration-200 ${val
+                                ? "bg-[#0E1011] dark:bg-[#FFCA06] shadow-sm transform scale-110"
+                                : "border-2 border-gray-200 dark:border-white/10 group-hover:border-gray-400 dark:group-hover:border-white/30"
+                                }`}>
                                 {val && <Check size={14} className="text-white dark:text-gray-900 stroke-[3px]" />}
                             </div>
-                            <span className={`text-[11px] font-bold uppercase tracking-widest transition-colors duration-200 ${
-                                val ? "text-[#0E1011] dark:text-[#FFCA06]" : "text-[#6B7280] dark:text-gray-400"
-                            }`}>
+                            <span className={`text-[11px] font-bold uppercase tracking-widest transition-colors duration-200 ${val ? "text-[#0E1011] dark:text-[#FFCA06]" : "text-[#6B7280] dark:text-gray-400"
+                                }`}>
                                 {f.label}
                             </span>
                         </div>

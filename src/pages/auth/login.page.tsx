@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import bgImage from "@/assets/resetpass-bg.svg";
+import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -82,7 +82,11 @@ const Login: React.FC = () => {
         className="h-screen w-full bg-cover work-sans bg-center flex justify-end lg:px-40 px-5 items-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       >
-        <div className="bg-white h-[27rem] w-[25rem] lg:h-[27rem] lg:w-[25rem] rounded-[32px] flex flex-col items-center gap-3 py-[48px] px-[32px] shadow-lg">
+
+        <div className="bg-black w-full h-full bg-cover bg-center absolute top-0 left-0 opacity-50" />
+
+
+        <div className="bg-white relative z-50 h-[27rem] w-[25rem] lg:h-[27rem] lg:w-[25rem] rounded-[32px] flex flex-col items-center gap-3 py-[48px] px-[32px] shadow-lg">
           <img src={logoImage} alt="Logo" className="object-contain w-48" />
           <h1 className="text-xl lg:text-[28px] font-[500] text-black">
             Log in to your account
