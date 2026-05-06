@@ -12,7 +12,7 @@ import { fetchDispositions } from '@/store/slices/dispositionSlice';
 // import { CiMail } from "react-icons/ci";
 // import { BsThreeDotsVertical } from "react-icons/bs";
 // import { IoAddOutline } from "react-icons/io5";
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, Folder, ExternalLink } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, Folder, ExternalLink, Map } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
@@ -124,7 +124,6 @@ const Detail = ({ onNext }: DetailProps) => {
     const [phoneModal, setPhoneModal] = useState(false);
     const [editingPhone, setEditingPhone] = useState<any>(null);
     const [editingPhoneIndex, setEditingPhoneIndex] = useState<number | undefined>(undefined);
-
     const [emailModal, setEmailModal] = useState(false);
     const [editingEmail, setEditingEmail] = useState<any>(null);
     const [editingEmailIndex, setEditingEmailIndex] = useState<number | undefined>(undefined);
@@ -186,10 +185,18 @@ const Detail = ({ onNext }: DetailProps) => {
     const realtorZip = toRealtorSlug(currentContact.zip);
     const realtorLocation = realtorCity && realtorState ? `${realtorCity}_${realtorState}` : realtorZip;
 
+    const propertyAddressQuery = [currentContact.address, currentContact.city, currentContact.state, currentContact.zip]
+        .filter(Boolean)
+        .join(", ")
+        .trim();
+
     const realtorUrl = realtorLocation
         ? `https://www.realtor.com/realestateandhomes-search/${realtorLocation}?keywords=${encodeURIComponent(
             [currentContact.address, currentContact.address2].filter(Boolean).join(" ").trim()
         )}`
+        : "";
+    const googleMapsUrl = propertyAddressQuery
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddressQuery)}`
         : "";
 
     // const handleFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -351,13 +358,37 @@ const Detail = ({ onNext }: DetailProps) => {
                             <span className='text-[14px] font-normal text-[#495057] dark:text-gray-400'>(Owner)</span>
                         </div>
                     </div>
-                    <div className='flex items-center gap-8'>
+                    <div className='flex flex-wrap items-center gap-4 lg:gap-8'>
                         {stats.map((dt) => (
                             <span key={dt.id} className='flex text-[14px] gap-2 items-center'>
                                 <h1 className='text-[#6B7280] dark:text-gray-400 font-bold uppercase tracking-wider text-[11px]'>{dt.name}:</h1>
                                 <h1 className='text-[#0E1011] dark:text-white font-bold'>{dt.number}</h1>
                             </span>
                         ))}
+                        <div className="flex flex-wrap gap-3">
+                            <a
+                                href={realtorUrl || undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-disabled={!realtorUrl}
+                                className={`inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${realtorUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                                    }`}
+                            >
+                                <ExternalLink size={14} />
+                                Realtor
+                            </a>
+                            <a
+                                href={googleMapsUrl || undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-disabled={!googleMapsUrl}
+                                className={`inline-flex w-fit items-center gap-2 rounded-xl border border-[#1D85F0]/20 bg-[#1D85F0] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#176dc5] active:scale-95 dark:border-[#1D85F0]/30 dark:hover:bg-[#176dc5] ${googleMapsUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                                    }`}
+                            >
+                                <Map size={14} />
+                                Google Maps
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -386,17 +417,6 @@ const Detail = ({ onNext }: DetailProps) => {
                                     <span className="text-gray-400 dark:text-gray-500 w-16">Zip code:</span> {currentContact.zip || '-'}
                                 </h1>
                             </div>
-                            <a
-                                href={realtorUrl || undefined}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-disabled={!realtorUrl}
-                                className={`mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${realtorUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
-                                    }`}
-                            >
-                                <ExternalLink size={14} />
-                                Realtor
-                            </a>
                         </div>
                     </div>
 

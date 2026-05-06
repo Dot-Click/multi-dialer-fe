@@ -57,7 +57,6 @@ import { useLocation } from "react-router-dom";
 import Email from "./email";
 import DetailsTab from "./detailstab";
 import QualifyTab from "./qualifytab";
-import ContactMap from "./contactmap";
 
 const BottomContactDetail = () => {
     const location = useLocation();
@@ -72,7 +71,6 @@ const BottomContactDetail = () => {
         { id: 1, name: "Notes" },
         { id: 4, name: "Activities" },
         { id: 5, name: "History" },
-        { id: 13, name: "Map" },
         { id: 6, name: "Emails" },
         { id: 7, name: "SMS" },
         { id: 8, name: "Profile" },
@@ -108,7 +106,6 @@ const BottomContactDetail = () => {
                 {openStatus === "Profile" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}
                 {openStatus === "History" && (<History />)}
-                {openStatus === "Map" && (<ContactMap />)}
                 {openStatus === "Emails" && (<Email />)}
                 {openStatus === "SMS" && (<SMS />)}
                 {openStatus === "Touch Point" && (<TouchPoint />)}
