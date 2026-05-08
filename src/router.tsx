@@ -14,6 +14,8 @@ import AllContact from "@/pages/agent/allcontact";
 import ContactDetail from "@/pages/agent/contactdetail";
 import Login from "@/pages/auth/login.page";
 import AdminLogin from "@/pages/auth/adminlogin.page";
+import Signup from "@/pages/auth/signup.page";
+import PaymentSuccess from "@/pages/auth/payment-success.page";
 import AdminChangePassword from "./pages/auth/adminchangepassword.page";
 import RecoveryPassword from "@/pages/auth/recoverypassword.page";
 import ChangePassword from "@/pages/auth/changepassword.page";
@@ -69,6 +71,8 @@ const Router: React.FC = () => {
 
         {/* ✅ Public Routes (Only for Guests) */}
         <Route element={<PublicRoute />}>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/agent/login" element={<Login />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/agent/code" element={<Code />} />

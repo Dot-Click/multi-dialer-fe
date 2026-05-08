@@ -57,60 +57,6 @@ const COLOR_ACTIVE: Record<string, string> = {
     pink: "bg-pink-500 border-pink-500 text-white",
 };
 
-const US_STATE_ABBREVIATIONS: Record<string, string> = {
-    alabama: "AL",
-    alaska: "AK",
-    arizona: "AZ",
-    arkansas: "AR",
-    california: "CA",
-    colorado: "CO",
-    connecticut: "CT",
-    delaware: "DE",
-    "district of columbia": "DC",
-    florida: "FL",
-    georgia: "GA",
-    hawaii: "HI",
-    idaho: "ID",
-    illinois: "IL",
-    indiana: "IN",
-    iowa: "IA",
-    kansas: "KS",
-    kentucky: "KY",
-    louisiana: "LA",
-    maine: "ME",
-    maryland: "MD",
-    massachusetts: "MA",
-    michigan: "MI",
-    minnesota: "MN",
-    mississippi: "MS",
-    missouri: "MO",
-    montana: "MT",
-    nebraska: "NE",
-    nevada: "NV",
-    "new hampshire": "NH",
-    "new jersey": "NJ",
-    "new mexico": "NM",
-    "new york": "NY",
-    "north carolina": "NC",
-    "north dakota": "ND",
-    ohio: "OH",
-    oklahoma: "OK",
-    oregon: "OR",
-    pennsylvania: "PA",
-    "rhode island": "RI",
-    "south carolina": "SC",
-    "south dakota": "SD",
-    tennessee: "TN",
-    texas: "TX",
-    utah: "UT",
-    vermont: "VT",
-    virginia: "VA",
-    washington: "WA",
-    "west virginia": "WV",
-    wisconsin: "WI",
-    wyoming: "WY",
-};
-
 interface DetailProps {
     onNext?: () => void;
 }
@@ -127,6 +73,7 @@ const Detail = ({ onNext }: DetailProps) => {
     const [emailModal, setEmailModal] = useState(false);
     const [editingEmail, setEditingEmail] = useState<any>(null);
     const [editingEmailIndex, setEditingEmailIndex] = useState<number | undefined>(undefined);
+    const [isOpeningRealtor, setIsOpeningRealtor] = useState(false);
 
     const [selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [selectedListId, setSelectedListId] = useState<string>('');
@@ -166,35 +113,10 @@ const Detail = ({ onNext }: DetailProps) => {
 
     if (!currentContact) return null;
 
-    const toRealtorSlug = (value: unknown) =>
-        String(value || "")
-            .trim()
-            .replace(/[^\w\s-]/g, " ")
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-")
-            .replace(/^-|-$/g, "");
-
-    // const realtorStreet = toRealtorSlug([currentContact.address, currentContact.address2].filter(Boolean).join(" "));
-    const realtorCity = toRealtorSlug(currentContact.city);
-    const normalizedState = String(currentContact.state || "")
-        .trim()
-        .toLowerCase()
-        .replace(/[^\w\s]/g, " ")
-        .replace(/\s+/g, " ");
-    const realtorState = US_STATE_ABBREVIATIONS[normalizedState] || toRealtorSlug(currentContact.state).toUpperCase();
-    const realtorZip = toRealtorSlug(currentContact.zip);
-    const realtorLocation = realtorCity && realtorState ? `${realtorCity}_${realtorState}` : realtorZip;
-
     const propertyAddressQuery = [currentContact.address, currentContact.city, currentContact.state, currentContact.zip]
         .filter(Boolean)
         .join(", ")
         .trim();
-
-    const realtorUrl = realtorLocation
-        ? `https://www.realtor.com/realestateandhomes-search/${realtorLocation}?keywords=${encodeURIComponent(
-            [currentContact.address, currentContact.address2].filter(Boolean).join(" ").trim()
-        )}`
-        : "";
     const googleMapsUrl = propertyAddressQuery
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddressQuery)}`
         : "";
@@ -206,6 +128,35 @@ const Detail = ({ onNext }: DetailProps) => {
 
     const handleListChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedListId(e.target.value);
+    };
+
+    const handleOpenRealtor = async () => {
+        if (!currentContact?.id) {
+            toast.error("No contact loaded");
+            return;
+        }
+
+        if (!propertyAddressQuery) {
+            toast.error("No property address available for this contact");
+            return;
+        }
+
+        setIsOpeningRealtor(true);
+
+        try {
+            const response = await api.get(`/contact/${currentContact.id}/realtor-link`);
+            console.log(response);
+            const realtorUrl = response.data?.data?.realtorUrl;
+            if (!realtorUrl) {
+                throw new Error("No Realtor property link was returned");
+            }
+
+            window.open(realtorUrl, "_blank", "noopener,noreferrer");
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || error?.message || "Unable to open Realtor property page");
+        } finally {
+            setIsOpeningRealtor(false);
+        }
     };
 
     const handleUpdateOrg = async () => {
@@ -366,17 +317,16 @@ const Detail = ({ onNext }: DetailProps) => {
                             </span>
                         ))}
                         <div className="flex flex-wrap gap-3">
-                            <a
-                                href={realtorUrl || undefined}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-disabled={!realtorUrl}
-                                className={`inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${realtorUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                            <button
+                                type="button"
+                                onClick={handleOpenRealtor}
+                                disabled={!propertyAddressQuery || isOpeningRealtor}
+                                className={`inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
                                     }`}
                             >
                                 <ExternalLink size={14} />
-                                Realtor
-                            </a>
+                                {isOpeningRealtor ? "Opening..." : "Realtor"}
+                            </button>
                             <a
                                 href={googleMapsUrl || undefined}
                                 target="_blank"
