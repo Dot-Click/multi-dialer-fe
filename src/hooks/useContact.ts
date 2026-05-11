@@ -145,6 +145,34 @@ export const useContact = () => {
     }
   };
 
+  const createContactList = async (name: string) => {
+    setLoading(true);
+    try {
+      const response = await api.post("/contact/list", { name });
+      return response.data.data;
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Failed to create list";
+      toast.error(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createContactFolder = async (name: string) => {
+    setLoading(true);
+    try {
+      const response = await api.post("/contact/folder", { name });
+      return response.data.data;
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Failed to create folder";
+      toast.error(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
@@ -154,5 +182,7 @@ export const useContact = () => {
     getContactFolders,
     getContactGroups,
     importContacts,
+    createContactList,
+    createContactFolder,
   };
 };

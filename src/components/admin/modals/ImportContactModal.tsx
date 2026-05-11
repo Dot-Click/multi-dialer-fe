@@ -35,6 +35,10 @@ const PRIMARY_FIELDS = [
   "Name",
   "Email",
   "Phone",
+  "Property Address",
+  "Property City",
+  "Property State",
+  "Property Zip Code",
   "Last Dialed Date",
   "List",
   "Tags",
@@ -113,6 +117,10 @@ const AUTO_MAP_ALIASES: Record<string, string[]> = {
   Name:               ["name", "full name", "fullname", "contact name", "first name", "firstname"],
   Email:              ["email", "email address", "e-mail", "mail"],
   Phone:              ["phone", "phone number", "mobile", "cell", "telephone", "number"],
+  "Property Address": ["property address", "address", "street", "street address", "prop address"],
+  "Property City":    ["property city", "city", "prop city", "town"],
+  "Property State":   ["property state", "state", "st", "prop state", "province"],
+  "Property Zip Code":["property zip", "zip", "zip code", "zipcode", "postal", "postal code", "prop zip"],
   "Last Dialed Date": ["last dialed", "last called", "dialed date", "last dial"],
   List:               ["list", "calling list", "contact list"],
   Tags:               ["tags", "tag", "label", "labels"],
@@ -297,15 +305,48 @@ const Step1Upload = ({ file, setFile }: { file: File | null; setFile: (f: File |
 // ─── Step 2: List or Group Assignment ────────────────────────────────────────
 
 const Step2Assignment = ({
-  lists, folders, selectedList, setSelectedList, selectedFolder, setSelectedFolder, loading,
+  lists, folders, selectedList, setSelectedList, selectedFolder, setSelectedFolder, loading, onRefresh,
 }: {
   lists: ContactList[]; folders: ContactFolder[];
   selectedList: ContactList | null; setSelectedList: (l: ContactList | null) => void;
   selectedFolder: ContactFolder | null; setSelectedFolder: (f: ContactFolder | null) => void;
-  loading: boolean;
+  loading: boolean; onRefresh: () => void;
 }) => {
   const [listSearch, setListSearch] = useState("");
   const [folderSearch, setFolderSearch] = useState("");
+  
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+
+  const { createContactList, createContactFolder } = useContact();
+
+  const handleCreateList = async () => {
+    if (!newListName.trim()) return;
+    try {
+        const newList = await createContactList(newListName);
+        setSelectedList(newList);
+        setSelectedFolder(null);
+        setNewListName("");
+        setIsCreatingList(false);
+        onRefresh();
+        toast.success("List created successfully");
+    } catch (e) {}
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+        const newFolder = await createContactFolder(newFolderName);
+        setSelectedFolder(newFolder);
+        setSelectedList(null);
+        setNewFolderName("");
+        setIsCreatingFolder(false);
+        onRefresh();
+        toast.success("Folder created successfully");
+    } catch (e) {}
+  };
 
   const filteredLists = lists.filter((l) => l.name.toLowerCase().includes(listSearch.toLowerCase()));
   const filteredFolders = folders.filter((f) => f.name.toLowerCase().includes(folderSearch.toLowerCase()));
@@ -331,9 +372,19 @@ const Step2Assignment = ({
                 <span className="text-[13px] font-semibold text-gray-700 dark:text-slate-300">Calling Lists</span>
                 <div className="flex gap-1">
                   <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoIosSearch size={14} /></button>
-                  <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoAdd size={14} /></button>
+                  <button onClick={() => setIsCreatingList(!isCreatingList)} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoAdd size={14} /></button>
                 </div>
               </div>
+
+              {isCreatingList && (
+                <div className="flex gap-1">
+                    <input type="text" placeholder="New list name..." value={newListName} onChange={(e) => setNewListName(e.target.value)} autoFocus
+                        className="flex-1 text-[12px] px-2 py-1.5 bg-white dark:bg-slate-800 border border-[#FFCA06] rounded-lg outline-none"
+                    />
+                    <button onClick={handleCreateList} className="bg-[#FFCA06] text-black px-2 py-1 rounded-lg text-[10px] font-bold">Add</button>
+                </div>
+              )}
+
               <input type="text" placeholder="Search..." value={listSearch} onChange={(e) => setListSearch(e.target.value)}
                 className="w-full text-[12px] px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg outline-none text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
@@ -370,9 +421,19 @@ const Step2Assignment = ({
                 </div>
                 <div className="flex gap-1">
                   <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoIosSearch size={14} /></button>
-                  <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoAdd size={14} /></button>
+                  <button onClick={() => setIsCreatingFolder(!isCreatingFolder)} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-500 dark:text-slate-400"><IoAdd size={14} /></button>
                 </div>
               </div>
+
+              {isCreatingFolder && (
+                <div className="flex gap-1">
+                    <input type="text" placeholder="New folder name..." value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} autoFocus
+                        className="flex-1 text-[12px] px-2 py-1.5 bg-white dark:bg-slate-800 border border-[#FFCA06] rounded-lg outline-none"
+                    />
+                    <button onClick={handleCreateFolder} className="bg-[#FFCA06] text-black px-2 py-1 rounded-lg text-[10px] font-bold">Add</button>
+                </div>
+              )}
+
               <input type="text" placeholder="Search..." value={folderSearch} onChange={(e) => setFolderSearch(e.target.value)}
                 className="w-full text-[12px] px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg outline-none text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
@@ -736,6 +797,19 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     ];
   }, [miscFieldsData]);
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [allLists, allFolders] = await Promise.all([getContactLists(), getContactFolders()]);
+      setLists(allLists);
+      setFolders(allFolders);
+    } catch {
+      toast.error("Failed to load lists and folders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // FIX 6: Single useEffect handles both file change and misc fields load.
   // Merged the two separate useEffects to avoid the second one overwriting
   // mappings built by the first (which correctly had miscFieldId).
@@ -764,18 +838,6 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
   useEffect(() => {
     if (isOpen) {
       setStep(1);
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const [allLists, allFolders] = await Promise.all([getContactLists(), getContactFolders()]);
-          setLists(allLists);
-          setFolders(allFolders);
-        } catch {
-          toast.error("Failed to load lists and folders");
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchData();
     } else {
       setFile(null);
@@ -859,7 +921,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
           {step === 2 && (
             <Step2Assignment lists={lists} folders={folders} selectedList={selectedList}
               setSelectedList={setSelectedList} selectedFolder={selectedFolder}
-              setSelectedFolder={setSelectedFolder} loading={loading} />
+              setSelectedFolder={setSelectedFolder} loading={loading} onRefresh={fetchData} />
           )}
           {step === 3 && (
             <Step3MapFields mappings={mappings} setMappings={setMappings}

@@ -219,41 +219,46 @@ const ImportPreviewPage = () => {
               </button>
             </div>
 
-            {/* Two Columns */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Two Columns with Auto-mapping Visualization */}
+            <div className="grid grid-cols-[1fr,40px,1fr] gap-0 items-center">
+              
+              {/* Header */}
+              <div className="text-sm font-semibold text-gray-700 mb-4 px-2">Your fields (CSV)</div>
+              <div className="mb-4"></div>
+              <div className="text-sm font-semibold text-gray-700 mb-4 px-2">Multi-Dialer Fields</div>
 
-              {/* Your Fields */}
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">Your fields:</p>
-                <div className="space-y-2">
-                  {[
-                    "First Name", "Middle Name", "Last Name", "2", "3",
-                    "4", "5", "Phone 1", "Phone 2"
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
-                    >
-                      {item}
-                    </div>
-                  ))}
+              {/* Mapped Rows */}
+              {[
+                { yours: "First Name", mojo: "First Name" },
+                { yours: "Last Name", mojo: "Last Name" },
+                { yours: "Property Address", mojo: "Property Address" },
+                { yours: "Property City", mojo: "Property City" },
+                { yours: "Property State", mojo: "Property State" },
+                { yours: "Property Zip", mojo: "Property Zip Code" },
+                { yours: "Phone 1", mojo: "Phone" },
+                { yours: "Email 1", mojo: "Email" },
+              ].map((pair, i) => (
+                <div key={i} className="contents">
+                  <div className="bg-gray-50 rounded-lg px-3 py-2.5 border text-gray-700 text-sm mb-2">
+                    {pair.yours}
+                  </div>
+                  <div className="flex justify-center items-center mb-2 text-gray-400">
+                    →
+                  </div>
+                  <div className="bg-[#FFCA06]/10 rounded-lg px-3 py-2.5 border border-[#FFCA06]/30 text-gray-800 text-sm font-medium mb-2">
+                    {pair.mojo}
+                  </div>
                 </div>
-              </div>
+              ))}
 
-              {/* Mojo Fields */}
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">Mojo Fields:</p>
-                <div className="space-y-2">
-                  {[
-                    "Name", "Property Address", "Property City",
-                    "Property State", "Property Zip Code", "Phone"
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="bg-gray-50 rounded-lg px-3 py-2 border text-gray-700 text-sm"
-                    >
-                      {item}
-                    </div>
+              {/* Unmapped / Other Fields */}
+              <div className="col-span-3 mt-4 border-t pt-4">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Additional unmatched fields</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Middle Name", "Phone 2", "Notes", "Tag 1"].map((f, i) => (
+                    <span key={i} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs border">
+                      {f}
+                    </span>
                   ))}
                 </div>
               </div>

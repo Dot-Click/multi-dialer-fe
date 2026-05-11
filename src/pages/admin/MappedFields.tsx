@@ -3,12 +3,11 @@ import { FiX } from "react-icons/fi";
 
 const yourFields = [
   "First Name",
-  "Middle Name",
   "Last Name",
-  "2",
-  "3",
-  "4",
-  "5",
+  "Property Address",
+  "Property City",
+  "Property State",
+  "Property Zip",
   "Phone 1",
   "Phone 2",
 ];
