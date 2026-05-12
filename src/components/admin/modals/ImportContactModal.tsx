@@ -13,6 +13,7 @@ import {
 import { useMiscFields } from "@/hooks/useSystemSettings";
 import toast from "react-hot-toast";
 import * as xlsx from "xlsx";
+import { Loader2 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ const PRIMARY_FIELDS = [
   "Last Dialed Date",
   "List",
   "Tags",
+  "Notes",
 ];
 
 type DuplicateScope = "Entire Database" | "File Import";
@@ -116,11 +118,12 @@ const parseFileHeaders = (file: File): Promise<string[]> => {
 const AUTO_MAP_ALIASES: Record<string, string[]> = {
   Name:               ["name", "full name", "fullname", "contact name", "first name", "firstname"],
   Email:              ["email", "email address", "e-mail", "mail"],
-  Phone:              ["phone", "phone number", "mobile", "cell", "telephone", "number"],
+  Phone:              ["phone", "phone number", "mobile", "cell", "telephone", "number", "contact", "phone 1", "phone1"],
   "Property Address": ["property address", "address", "street", "street address", "prop address"],
   "Property City":    ["property city", "city", "prop city", "town"],
   "Property State":   ["property state", "state", "st", "prop state", "province"],
   "Property Zip Code":["property zip", "zip", "zip code", "zipcode", "postal", "postal code", "prop zip"],
+  Notes:              ["notes", "note", "comment", "comments", "description", "desc"],
   "Last Dialed Date": ["last dialed", "last called", "dialed date", "last dial"],
   List:               ["list", "calling list", "contact list"],
   Tags:               ["tags", "tag", "label", "labels"],
@@ -205,15 +208,16 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
 const NavButtons = ({
-  step, totalSteps, onBack, onNext, onSubmit,
+  step, totalSteps, onBack, onNext, onSubmit, submitting
 }: {
   step: number; totalSteps: number;
   onBack: () => void; onNext: () => void; onSubmit: () => void;
+  submitting: boolean;
 }) => (
   <div className="flex gap-3 px-6 py-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/60 shrink-0">
     {step > 1 && (
-      <button onClick={onBack}
-        className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 font-semibold rounded-[12px] hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors text-[14px]"
+      <button onClick={onBack} disabled={submitting}
+        className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 font-semibold rounded-[12px] hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors text-[14px] disabled:opacity-50"
       >
         ← Back
       </button>
@@ -225,10 +229,17 @@ const NavButtons = ({
         Next <LuChevronRight size={16} />
       </button>
     ) : (
-      <button onClick={onSubmit}
-        className="flex-1 px-4 py-2.5 bg-[#FFCA06] text-black font-semibold rounded-[12px] hover:bg-[#eab700] transition-colors shadow-sm text-[14px]"
+      <button onClick={onSubmit} disabled={submitting}
+        className="flex-1 px-4 py-2.5 bg-[#FFCA06] text-black font-semibold rounded-[12px] hover:bg-[#eab700] transition-colors shadow-sm text-[14px] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        Import Contacts
+        {submitting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Importing...
+          </>
+        ) : (
+          "Import Contacts"
+        )}
       </button>
     )}
   </div>
@@ -611,6 +622,19 @@ const Step3MapFields = ({
         )}
       </div>
 
+      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl">
+        <div className="flex gap-2">
+          <div className="text-blue-500 shrink-0 mt-0.5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </div>
+          <p className="text-[12px] text-blue-700 dark:text-blue-300 leading-relaxed">
+            <strong className="font-bold">Smart Phone Discovery:</strong> Our system automatically detects extra phone columns (like Phone 1, Phone 2, Mobile, or Contact) and will import them for you, even if you don't map them manually.
+          </p>
+        </div>
+      </div>
+
       {csvHeaders.length === 0 ? (
         <div className="flex items-center justify-center h-20 text-[13px] text-gray-400 dark:text-slate-500 italic">
           No CSV headers detected. Please go back and re-upload your file.
@@ -762,6 +786,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -884,6 +909,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     formData.append("dupFields",     JSON.stringify(dupFields));
     formData.append("dupHandling",   dupHandling);
 
+    setSubmitting(true);
     try {
       await importContacts(formData);
       toast.success("Contacts imported successfully!");
@@ -891,6 +917,8 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
       onClose();
     } catch {
       toast.error("Import failed. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -934,7 +962,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
           )}
         </div>
 
-        <NavButtons step={step} totalSteps={STEPS.length}
+        <NavButtons step={step} totalSteps={STEPS.length} submitting={submitting}
           onBack={() => setStep((s) => s - 1)} onNext={handleNext} onSubmit={handleSubmit} />
       </div>
     </div>,
