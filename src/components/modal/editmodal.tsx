@@ -9,6 +9,32 @@ interface EditModalProps {
   onClose: () => void;
 }
 
+const Field = ({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+}) => (
+  <div className="bg-[#F3F4F7] dark:bg-gray-700 flex flex-col gap-1 px-3 py-2 rounded-lg">
+    <label className="text-[#495057] dark:text-white font-medium text-[12px]">{label}</label>
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder ?? `Enter ${label}`}
+      className="w-full placeholder:text-sm text-sm outline-none bg-transparent dark:text-white"
+    />
+  </div>
+);
+
 const EditModal = ({ onClose }: EditModalProps) => {
   const dispatch = useAppDispatch();
   const { currentContact, isLoading } = useAppSelector((state) => state.contacts);
@@ -66,27 +92,6 @@ const EditModal = ({ onClose }: EditModalProps) => {
     }
   };
 
-  const Field = ({
-    label,
-    name,
-    placeholder,
-  }: {
-    label: string;
-    name: string;
-    placeholder?: string;
-  }) => (
-    <div className="bg-[#F3F4F7] dark:bg-gray-700 flex flex-col gap-1 px-3 py-2 rounded-lg">
-      <label className="text-[#495057] dark:text-white font-medium text-[12px]">{label}</label>
-      <input
-        type="text"
-        name={name}
-        value={(formData as any)[name]}
-        onChange={handleChange}
-        placeholder={placeholder ?? `Enter ${label}`}
-        className="w-full placeholder:text-sm text-sm outline-none bg-transparent dark:text-white"
-      />
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 overflow-y-auto">
@@ -104,7 +109,7 @@ const EditModal = ({ onClose }: EditModalProps) => {
         {/* Form */}
         <form onSubmit={handleSave} className="mt-6 space-y-5">
           {/* Full Name */}
-          <Field label="Full Name" name="fullName" placeholder="Enter full name" />
+          <Field label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter full name" />
 
           {/* Property Address */}
           <div>
@@ -112,10 +117,10 @@ const EditModal = ({ onClose }: EditModalProps) => {
               Property Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Street Address" name="address" placeholder="123 Main St" />
-              <Field label="City" name="city" placeholder="City" />
-              <Field label="State" name="state" placeholder="State" />
-              <Field label="Zip Code" name="zip" placeholder="12345" />
+              <Field label="Street Address" name="address" value={formData.address} onChange={handleChange} placeholder="123 Main St" />
+              <Field label="City" name="city" value={formData.city} onChange={handleChange} placeholder="City" />
+              <Field label="State" name="state" value={formData.state} onChange={handleChange} placeholder="State" />
+              <Field label="Zip Code" name="zip" value={formData.zip} onChange={handleChange} placeholder="12345" />
             </div>
           </div>
 
@@ -125,10 +130,10 @@ const EditModal = ({ onClose }: EditModalProps) => {
               Mailing Address
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Street Address" name="mailingAddress" placeholder="123 Main St" />
-              <Field label="City" name="mailingCity" placeholder="City" />
-              <Field label="State" name="mailingState" placeholder="State" />
-              <Field label="Zip Code" name="mailingZip" placeholder="12345" />
+              <Field label="Street Address" name="mailingAddress" value={formData.mailingAddress} onChange={handleChange} placeholder="123 Main St" />
+              <Field label="City" name="mailingCity" value={formData.mailingCity} onChange={handleChange} placeholder="City" />
+              <Field label="State" name="mailingState" value={formData.mailingState} onChange={handleChange} placeholder="State" />
+              <Field label="Zip Code" name="mailingZip" value={formData.mailingZip} onChange={handleChange} placeholder="12345" />
             </div>
           </div>
 
