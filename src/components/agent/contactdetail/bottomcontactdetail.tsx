@@ -61,19 +61,19 @@ import QualifyTab from "./qualifytab";
 const BottomContactDetail = () => {
     const location = useLocation();
     const isContactInfo = location.pathname.includes("contact-info");
-    const [openStatus, setOpenStatus] = useState(isContactInfo ? "Details" : "Notes");
+    const [openStatus, setOpenStatus] = useState(isContactInfo ? "Details" : "Profile");
 
     const stages = [
         ...(isContactInfo ? [
             { id: 2, name: "Details" },
             { id: 3, name: "Dominios" },
         ] : []),
+        { id: 8, name: "Profile" },
         { id: 1, name: "Notes" },
         { id: 4, name: "Activities" },
         { id: 5, name: "History" },
         { id: 6, name: "Emails" },
         { id: 7, name: "SMS" },
-        { id: 8, name: "Profile" },
         { id: 9, name: "Touch Point" },
         { id: 10, name: "Lead Sheet" },
         { id: 11, name: "Attachments" },

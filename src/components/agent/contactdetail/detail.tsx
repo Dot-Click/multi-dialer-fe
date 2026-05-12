@@ -12,10 +12,13 @@ import { fetchDispositions } from '@/store/slices/dispositionSlice';
 // import { CiMail } from "react-icons/ci";
 // import { BsThreeDotsVertical } from "react-icons/bs";
 // import { IoAddOutline } from "react-icons/io5";
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, ExternalLink, Map } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
+// import { TbEdit } from "react-icons/tb";
+import RealtorLogo from '@/assets/realtor.png';
+import GoogleMapsLogo from '@/assets/googlemap.png';
 // import propertyicon from "../../../assets/propertyicon.png"
 // import kiticon from "../../../assets/kiticon.png"
 // import callsicon from "../../../assets/callsicon.png"
@@ -321,22 +324,22 @@ const Detail = ({ onNext }: DetailProps) => {
                                 type="button"
                                 onClick={handleOpenRealtor}
                                 disabled={!propertyAddressQuery || isOpeningRealtor}
-                                className={`inline-flex w-fit items-center gap-2 rounded-lg bg-[#0E1011] px-3 py-1.5 text-[12px] font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
+                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 transition-all hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-slate-700 dark:hover:bg-slate-600 ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
                                     }`}
+                                title="Realtor"
                             >
-                                <ExternalLink size={13} />
-                                {isOpeningRealtor ? "Opening..." : "Realtor"}
+                                <img src={RealtorLogo} alt="Realtor" className="h-4 w-auto object-contain" />
                             </button>
                             <a
                                 href={googleMapsUrl || undefined}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-disabled={!googleMapsUrl}
-                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-[#1D85F0]/20 bg-[#1D85F0] px-3 py-1.5 text-[12px] font-bold text-white transition-all hover:bg-[#176dc5] active:scale-95 dark:border-[#1D85F0]/30 dark:hover:bg-[#176dc5] ${googleMapsUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 transition-all hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-slate-700 dark:hover:bg-slate-600 ${googleMapsUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
                                     }`}
+                                title="Google Maps"
                             >
-                                <Map size={13} />
-                                Google Maps
+                                <img src={GoogleMapsLogo} alt="Google Maps" className="h-4 w-auto object-contain" />
                             </a>
                         </div>
                     </div>
