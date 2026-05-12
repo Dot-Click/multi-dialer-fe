@@ -180,17 +180,17 @@ const ContactDetailHeader = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between md:px-6 w-full h-16">
+      <header className="bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between md:px-6 w-full h-14">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {/* Action button */}
           <div className="relative" ref={actionMenuRef}>
             <button
               onClick={() => setShowActionMenu(!showActionMenu)}
-              className="flex items-center gap-1.5 sm:gap-2 py-[12px] pr-[17px] pl-[24px] rounded-[12px] bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-[16px] font-medium text-[#0E1011] dark:text-white"
+              className="flex items-center gap-1.5 py-2 px-4 rounded-[10px] bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-[13px] font-bold text-[#0E1011] dark:text-white transition-all active:scale-95"
             >
               MENU
-              <MdKeyboardArrowDown className="text-lg" />
+              <MdKeyboardArrowDown className="text-base" />
             </button>
 
             {showActionMenu && (
@@ -226,7 +226,7 @@ const ContactDetailHeader = () => {
           {/* Take Action */}
           <button
             onClick={() => setActionModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 py-[12px] px-[24px] rounded-md bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-[16px] font-medium text-[#0E1011] dark:text-white"
+            className="hidden sm:flex items-center gap-2 py-2 px-4 rounded-[10px] bg-[#EBEDF0] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-[13px] font-bold text-[#0E1011] dark:text-white transition-all active:scale-95"
           >
             Take Action
           </button>
@@ -237,9 +237,9 @@ const ContactDetailHeader = () => {
               <button
                 key={btn.id}
                 onClick={btn.onClick}
-                className="flex items-center gap-1.5 sm:gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-[#495057] dark:text-white"
+                className="flex items-center gap-1.5 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 font-bold text-[#495057] dark:text-gray-300 text-[13px] transition-all active:scale-95"
               >
-                <span className="text-lg">{btn.icon}</span>
+                <span className="text-base">{btn.icon}</span>
                 {btn.name}
               </button>
             ))}

@@ -287,18 +287,18 @@ const Detail = ({ onNext }: DetailProps) => {
     ];
 
     return (
-        <section className='bg-white dark:bg-[#1A1F2E] flex flex-col gap-10 px-8 py-8 w-full mx-auto rounded-[28px] shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300'>
+        <section className='bg-white dark:bg-[#1A1F2E] flex flex-col gap-4 px-6 py-5 w-full mx-auto rounded-[20px] shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300'>
             <div className='flex flex-col md:flex-row md:justify-between md:items-start'>
                 <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col'>
-                        <div className='flex items-center gap-7'>
-                            <h1 className='text-[20px] md:text-[28px] text-[#0E1011] dark:text-white font-medium'>
+                        <div className='flex items-center gap-4'>
+                            <h1 className='text-[20px] md:text-[24px] text-[#0E1011] dark:text-white font-bold tracking-tight'>
                                 {currentContact.fullName || "Unnamed Contact"}
                             </h1>
-                            <span className="bg-[#F7F7F7] dark:bg-gray-700 p-2 rounded-[12px]">
+                            <span className="bg-[#F7F7F7] dark:bg-gray-700 p-1.5 rounded-[10px] hover:bg-gray-200 transition-colors cursor-pointer">
                                 <TbEdit
                                     onClick={() => setShowModal(true)}
-                                    className="w-[18px] object-contain cursor-pointer"
+                                    className="w-[16px] h-[16px] text-gray-500 dark:text-gray-300"
                                 />
                             </span>
                         </div>
@@ -309,22 +309,22 @@ const Detail = ({ onNext }: DetailProps) => {
                             <span className='text-[14px] font-normal text-[#495057] dark:text-gray-400'>(Owner)</span>
                         </div>
                     </div>
-                    <div className='flex flex-wrap items-center gap-4 lg:gap-8'>
+                    <div className='flex flex-wrap items-center gap-4 lg:gap-6'>
                         {stats.map((dt) => (
                             <span key={dt.id} className='flex text-[14px] gap-2 items-center'>
                                 <h1 className='text-[#6B7280] dark:text-gray-400 font-bold uppercase tracking-wider text-[11px]'>{dt.name}:</h1>
                                 <h1 className='text-[#0E1011] dark:text-white font-bold'>{dt.number}</h1>
                             </span>
                         ))}
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                             <button
                                 type="button"
                                 onClick={handleOpenRealtor}
                                 disabled={!propertyAddressQuery || isOpeningRealtor}
-                                className={`inline-flex w-fit items-center gap-2 rounded-xl bg-[#0E1011] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
+                                className={`inline-flex w-fit items-center gap-2 rounded-lg bg-[#0E1011] px-3 py-1.5 text-[12px] font-bold text-white transition-all hover:bg-gray-900 active:scale-95 dark:bg-[#FFCA06] dark:text-gray-900 dark:hover:bg-[#ffd94d] ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
                                     }`}
                             >
-                                <ExternalLink size={14} />
+                                <ExternalLink size={13} />
                                 {isOpeningRealtor ? "Opening..." : "Realtor"}
                             </button>
                             <a
@@ -332,10 +332,10 @@ const Detail = ({ onNext }: DetailProps) => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-disabled={!googleMapsUrl}
-                                className={`inline-flex w-fit items-center gap-2 rounded-xl border border-[#1D85F0]/20 bg-[#1D85F0] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#176dc5] active:scale-95 dark:border-[#1D85F0]/30 dark:hover:bg-[#176dc5] ${googleMapsUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
+                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-[#1D85F0]/20 bg-[#1D85F0] px-3 py-1.5 text-[12px] font-bold text-white transition-all hover:bg-[#176dc5] active:scale-95 dark:border-[#1D85F0]/30 dark:hover:bg-[#176dc5] ${googleMapsUrl ? "" : "pointer-events-none cursor-not-allowed opacity-50"
                                     }`}
                             >
-                                <Map size={14} />
+                                <Map size={13} />
                                 Google Maps
                             </a>
                         </div>
@@ -343,61 +343,39 @@ const Detail = ({ onNext }: DetailProps) => {
                 </div>
             </div>
 
-            <div className='flex lg:flex-row flex-col justify-between gap-8 items-start'>
-                <div className='flex w-full lg:w-1/3 flex-col gap-8'>
+            <div className='flex lg:flex-row flex-col justify-between gap-4 items-start'>
+                <div className='flex w-full lg:w-1/3 flex-col gap-4'>
                     <div className='flex gap-3 items-start'>
-                        <div className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-lg mt-0.5">
-                            <MapPin size={16} className="text-[#FFCA06]" />
+                        <div className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-lg">
+                            <MapPin size={14} className="text-[#FFCA06]" />
                         </div>
-                        <div className='flex flex-col gap-2'>
-                            <span>
-                                <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Property Address:</h1>
-                            </span>
-                            <div className="space-y-1.5 pl-1">
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">Address:</span> {currentContact.address || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">City:</span> {currentContact.city || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">State:</span> {currentContact.state || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">Zip code:</span> {currentContact.zip || '-'}
-                                </h1>
-                            </div>
+                        <div className='flex flex-col gap-1'>
+                            <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Property Address:</h1>
+                            <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium'>
+                                {[currentContact.address, currentContact.city, currentContact.state, currentContact.zip]
+                                    .filter(Boolean)
+                                    .join(", ") || '-'}
+                            </h1>
                         </div>
                     </div>
 
                     <div className='flex gap-3 items-start'>
-                        <div className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-lg mt-0.5">
-                            <Mail size={16} className="text-[#FFCA06]" />
+                        <div className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-lg">
+                            <Mail size={14} className="text-[#FFCA06]" />
                         </div>
-                        <div className='flex flex-col gap-2'>
-                            <span>
-                                <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Mailing Address:</h1>
-                            </span>
-                            <div className="space-y-1.5 pl-1">
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">Address:</span> {currentContact.mailingAddress || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">City:</span> {currentContact.mailingCity || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">State:</span> {currentContact.mailingState || '-'}
-                                </h1>
-                                <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium flex items-center gap-2'>
-                                    <span className="text-gray-400 dark:text-gray-500 w-16">Zip code:</span> {currentContact.mailingZip || '-'}
-                                </h1>
-                            </div>
+                        <div className='flex flex-col gap-1'>
+                            <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Mailing Address:</h1>
+                            <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium'>
+                                {[currentContact.mailingAddress, currentContact.mailingCity, currentContact.mailingState, currentContact.mailingZip]
+                                    .filter(Boolean)
+                                    .join(", ") || '-'}
+                            </h1>
                         </div>
                     </div>
                 </div>
 
                 <div className='flex w-full lg:w-1/3 flex-col gap-4'>
-                    <div className='flex justify-between items-center mb-1'>
+                    <div className='flex justify-between items-center mb-0.5'>
                         <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Phones:</h1>
                         <span
                             onClick={() => {
@@ -405,12 +383,12 @@ const Detail = ({ onNext }: DetailProps) => {
                                 setEditingPhoneIndex(undefined);
                                 setPhoneModal(true);
                             }}
-                            className='p-1.5 rounded-[8px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
+                            className='p-1 rounded-[6px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
                         >
-                            <Plus className='text-[#495057] dark:text-white shadow-sm' size={16} />
+                            <Plus className='text-[#495057] dark:text-white shadow-sm' size={14} />
                         </span>
                     </div>
-                    <div className='flex flex-col gap-3'>
+                    <div className='flex flex-col gap-1'>
                         {currentContact.phones?.map((phone: any, index: number) => (
                             <div key={index} className='flex px-2 py-2 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group'>
                                 <div className='flex gap-3 items-center'>
@@ -434,7 +412,7 @@ const Detail = ({ onNext }: DetailProps) => {
                 </div>
 
                 <div className='flex w-full lg:w-1/3 flex-col gap-4'>
-                    <div className='flex justify-between items-center mb-1'>
+                    <div className='flex justify-between items-center mb-0.5'>
                         <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>E-mails:</h1>
                         <span
                             onClick={() => {
@@ -442,12 +420,12 @@ const Detail = ({ onNext }: DetailProps) => {
                                 setEditingEmailIndex(undefined);
                                 setEmailModal(true);
                             }}
-                            className='p-1.5 rounded-[8px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
+                            className='p-1 rounded-[6px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
                         >
-                            <Plus className='text-[#495057] dark:text-white shadow-sm' size={16} />
+                            <Plus className='text-[#495057] dark:text-white shadow-sm' size={14} />
                         </span>
                     </div>
-                    <div className='flex flex-col gap-3'>
+                    <div className='flex flex-col gap-1'>
                         {currentContact.emails?.map((email: any, index: number) => (
                             <div key={index} className='flex px-2 py-2 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group'>
                                 <div className='flex gap-3 items-center'>
@@ -470,15 +448,33 @@ const Detail = ({ onNext }: DetailProps) => {
                 </div>
             </div>
 
-            <div className='flex w-full flex-col lg:flex-row lg:items-center gap-8 pt-6 border-t border-gray-100 dark:border-white/5'>
-                <div className='flex w-full items-center gap-4'>
-                    <label htmlFor="list" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>List:</label>
+            <div className='flex w-full flex-col lg:flex-row lg:items-center gap-6 pt-3 border-t border-gray-100 dark:border-white/5'>
+                <div className='flex w-full items-center gap-3'>
+                    <label htmlFor="folder" className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Folder:</label>
+                    <select
+                        id="folder"
+                        value={selectedFolderId}
+                        onChange={(e) => {
+                            setSelectedFolderId(e.target.value);
+                            setSelectedListId('');
+                        }}
+                        className='border-none py-1 px-1 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent cursor-pointer'
+                    >
+                        <option value="" className="dark:bg-slate-800">Select Folder</option>
+                        {folders.map(folder => (
+                            <option key={folder.id} value={folder.id} className="dark:bg-slate-800">{folder.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className='flex w-full items-center gap-3'>
+                    <label htmlFor="list" className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>List:</label>
                     <select
                         id="list"
                         value={selectedListId}
                         onChange={handleListChange}
                         disabled={!selectedFolderId}
-                        className='border-none py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent disabled:opacity-50 cursor-pointer'
+                        className='border-none py-1 px-1 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent disabled:opacity-50 cursor-pointer'
                     >
                         <option value="" className="dark:bg-slate-800">Select List</option>
                         {lists
@@ -493,22 +489,22 @@ const Detail = ({ onNext }: DetailProps) => {
                     </select>
                 </div>
 
-                <div className='flex w-full items-center gap-4'>
-                    <label htmlFor="tags" className='text-[12px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Tags:</label>
+                <div className='flex w-full items-center gap-3'>
+                    <label htmlFor="tags" className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Tags:</label>
                     <input
                         type="text"
                         id="tags"
                         value={tagsInput}
                         onChange={(e) => setTagsInput(e.target.value)}
                         placeholder="Tag1, Tag2..."
-                        className='border-b border-gray-100 dark:border-white/10 py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[14px] outline-none bg-transparent focus:border-[#FFCA06] transition-all'
+                        className='border-b border-gray-100 dark:border-white/10 py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent focus:border-[#FFCA06] transition-all'
                     />
                 </div>
 
                 <div className="flex items-center">
                     <button
                         onClick={handleUpdateOrg}
-                        className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-8 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg hover:bg-gray-900 dark:hover:bg-[#ffd94d] transition-all active:scale-95 whitespace-nowrap"
+                        className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-6 py-2 rounded-xl text-[13px] font-bold hover:shadow-lg hover:bg-gray-900 dark:hover:bg-[#ffd94d] transition-all active:scale-95 whitespace-nowrap"
                     >
                         Update
                     </button>
@@ -516,15 +512,15 @@ const Detail = ({ onNext }: DetailProps) => {
             </div>
 
             {/* CALL OUTCOMES */}
-            <div className="flex flex-col gap-6 pt-6 border-t border-gray-100 dark:border-white/5">
+            <div className="flex flex-col gap-3 pt-3 border-t border-gray-100 dark:border-white/5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Phone size={14} className="text-gray-400 dark:text-gray-500" />
-                        <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Call Outcomes</h1>
+                        <Phone size={13} className="text-gray-400 dark:text-gray-500" />
+                        <h1 className='text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Call Outcomes</h1>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2">
                     {smartItems.map(d => {
                         const Icon = ICON_MAP[d.icon] ?? User;
                         const isActive = selectedDisp === d.value;
@@ -533,12 +529,12 @@ const Detail = ({ onNext }: DetailProps) => {
                                 key={d.id}
                                 onClick={() => handleSmartAction(d.label, d.value)}
                                 disabled={savingDisp}
-                                className={`inline-flex items-center gap-2 px-4 py-1.5 text-sm rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
+                                className={`inline-flex items-center gap-2 px-3 py-1 text-[12px] rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
                                     ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
                                     : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                                     }`}
                             >
-                                <Icon className="w-3.5 h-3.5 shrink-0 px-0" size={14} />
+                                <Icon className="w-3 h-3 shrink-0" />
                                 {d.label}
                             </button>
                         );
@@ -565,51 +561,23 @@ const Detail = ({ onNext }: DetailProps) => {
                 </div>
             </div>
 
-            {/* FOLDERS AS PILLS */}
-            <div className="flex flex-col gap-6 pt-6 border-t border-gray-100 dark:border-white/5">
-                <div className="flex items-center gap-2">
-                    <Folder size={14} className="text-gray-400 dark:text-gray-500" />
-                    <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Folders</h1>
-                </div>
-                <div className="flex flex-wrap gap-2.5">
-                    {folders.map(folder => {
-                        const isActive = selectedFolderId === folder.id;
-                        return (
-                            <button
-                                key={folder.id}
-                                onClick={() => {
-                                    setSelectedFolderId(folder.id);
-                                    setSelectedListId('');
-                                }}
-                                className={`inline-flex items-center px-5 py-2 text-sm rounded-xl border font-bold transition-all duration-150 active:scale-95 ${isActive
-                                    ? "bg-[#0E1011] dark:bg-[#FFCA06] border-[#0E1011] dark:border-[#FFCA06] text-white dark:text-gray-900 shadow-md transform -translate-y-0.5"
-                                    : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-700 dark:hover:text-gray-200"
-                                    }`}
-                            >
-                                {folder.name}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
             {/* QUALIFICATION CHECKBOXES */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-8 border-t border-gray-100 dark:border-white/5 pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-gray-100 dark:border-white/5 pb-1">
                 {QUAL_FIELDS.map(f => {
                     const val = (currentContact as any)[f.key] || false;
                     return (
                         <div
                             key={f.key}
                             onClick={() => handleToggleField(f.key, val)}
-                            className="flex flex-col items-center gap-3 group cursor-pointer min-w-[70px]"
+                            className="flex flex-col items-center gap-2 group cursor-pointer min-w-[60px]"
                         >
-                            <div className={`w-5 h-5 rounded flex items-center justify-center transition-all duration-200 ${val
+                            <div className={`w-4 h-4 rounded flex items-center justify-center transition-all duration-200 ${val
                                 ? "bg-[#0E1011] dark:bg-[#FFCA06] shadow-sm transform scale-110"
                                 : "border-2 border-gray-200 dark:border-white/10 group-hover:border-gray-400 dark:group-hover:border-white/30"
                                 }`}>
-                                {val && <Check size={14} className="text-white dark:text-gray-900 stroke-[3px]" />}
+                                {val && <Check size={12} className="text-white dark:text-gray-900 stroke-[3px]" />}
                             </div>
-                            <span className={`text-[11px] font-bold uppercase tracking-widest transition-colors duration-200 ${val ? "text-[#0E1011] dark:text-[#FFCA06]" : "text-[#6B7280] dark:text-gray-400"
+                            <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors duration-200 ${val ? "text-[#0E1011] dark:text-[#FFCA06]" : "text-[#6B7280] dark:text-gray-400"
                                 }`}>
                                 {f.label}
                             </span>
