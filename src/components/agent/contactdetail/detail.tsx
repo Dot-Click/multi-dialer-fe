@@ -12,7 +12,7 @@ import { fetchDispositions } from '@/store/slices/dispositionSlice';
 // import { CiMail } from "react-icons/ci";
 // import { BsThreeDotsVertical } from "react-icons/bs";
 // import { IoAddOutline } from "react-icons/io5";
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, Folder, ExternalLink, Map } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, ExternalLink, Map } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
