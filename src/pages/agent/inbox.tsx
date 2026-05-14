@@ -4,6 +4,7 @@ import bombLogo from "/images/bombbomb_icon.png";
 import toast from 'react-hot-toast';
 import { FiSend, FiSearch, FiMessageSquare, FiUser } from 'react-icons/fi';
 import { useAppSelector } from '@/store/hooks';
+import FeatureLockedOverlay from '@/components/common/FeatureLockedOverlay';
 
 const Inbox = () => {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -16,7 +17,10 @@ const Inbox = () => {
   const [isFetchingVideos, setIsFetchingVideos] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const { status: a2pStatus, rejectionReason } = useAppSelector((state) => state.a2p);
+  const { session } = useAppSelector((state) => state.auth);
+  const user = session?.user;
   const isA2PApproved = a2pStatus === "APPROVED";
+  const isLocked = user?.trialStatus === "EXPIRED" && !user?.isSubscribed;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -136,7 +140,13 @@ const Inbox = () => {
         </div>
       
 
-      <div className="flex flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="flex flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm relative">
+        {isLocked && (
+          <FeatureLockedOverlay 
+            featureName="SMS Inbox" 
+            message="Your trial has expired. Upgrade to your plan to continue sending and receiving messages."
+          />
+        )}
         {/* Sidebar: Conversations List */}
         <div className="w-80 border-r border-gray-100 dark:border-slate-800 flex flex-col">
           <div className="p-4 border-b border-gray-50 dark:border-slate-800/50">
