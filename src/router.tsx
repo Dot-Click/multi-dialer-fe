@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
 import { TwilioProvider } from "@/providers/twilio.provider";
+import { A2PProvider } from "@/providers/a2p.provider";
 import DashboardLayout from "@/layouts/agent/dashboardlayout"
 import AdminDashboardLayout from "@/layouts/admin/admindashboardlayout";
 import SuperAdminDashboardLayout from "@/layouts/super-admin/superadmindashboardlayout";
@@ -84,7 +85,7 @@ const Router: React.FC = () => {
 
         {/* Protected Agent Routes */}
         <Route element={<ProtectedRoute allowedRoles={['AGENT']} />}>
-          <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
+          <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<AgentHome />} />
               <Route path="inbox" element={<Inbox />} />
@@ -105,7 +106,7 @@ const Router: React.FC = () => {
 
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-          <Route element={<TwilioProvider><Outlet /></TwilioProvider>}>
+          <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             {/* ✅ Admin Contact / Data Dialer Area */}
             <Route path="/admin" element={<AdminContact />}>
               <Route path="data-dialer" element={<AdminAllContact />} />

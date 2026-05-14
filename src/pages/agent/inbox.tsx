@@ -3,6 +3,7 @@ import api from '@/lib/axios';
 import bombLogo from "/images/bombbomb_icon.png";
 import toast from 'react-hot-toast';
 import { FiSend, FiSearch, FiMessageSquare, FiUser } from 'react-icons/fi';
+import { useAppSelector } from '@/store/hooks';
 
 const Inbox = () => {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -14,6 +15,8 @@ const Inbox = () => {
   const [bombBombVideos, setBombBombVideos] = useState<any[]>([]);
   const [isFetchingVideos, setIsFetchingVideos] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const { status: a2pStatus, rejectionReason } = useAppSelector((state) => state.a2p);
+  const isA2PApproved = a2pStatus === "APPROVED";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -106,10 +109,32 @@ const Inbox = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] w-full">
-      <div className="mb-4">
-        <h1 className="text-[28px] font-medium text-[#0E1011] dark:text-white">Inbox</h1>
-        <p className="text-sm text-gray-500">Manage your SMS conversations and video messages.</p>
-      </div>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-[28px] font-medium text-[#0E1011] dark:text-white">Inbox</h1>
+            <p className="text-sm text-gray-500">Manage your SMS conversations and video messages.</p>
+          </div>
+          
+          {/* A2P Status Badge */}
+          <div className="flex items-center gap-2">
+            {a2pStatus === 'NOT_STARTED' && (
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-[11px] font-bold rounded-full border border-yellow-200">SMS Setup Required</span>
+            )}
+            {a2pStatus === 'PENDING' && (
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[11px] font-bold rounded-full border border-blue-200">SMS Pending Approval</span>
+            )}
+            {a2pStatus === 'REJECTED' && (
+              <div className="flex flex-col items-end">
+                <span className="px-3 py-1 bg-red-100 text-red-700 text-[11px] font-bold rounded-full border border-red-200">SMS Registration Rejected</span>
+                {rejectionReason && <p className="text-[10px] text-red-500 mt-1 max-w-[200px] text-right">{rejectionReason}</p>}
+              </div>
+            )}
+            {a2pStatus === 'APPROVED' && (
+              <span className="px-3 py-1 bg-green-100 text-green-700 text-[11px] font-bold rounded-full border border-green-200">SMS Active</span>
+            )}
+          </div>
+        </div>
+      
 
       <div className="flex flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
         {/* Sidebar: Conversations List */}
@@ -212,14 +237,26 @@ const Inbox = () => {
               </div>
 
               {/* Chat Input */}
-              <div className="p-6 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800">
+              <div className="p-6 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 relative">
+                {!isA2PApproved && (
+                  <div className="absolute inset-0 z-10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center p-6">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 text-center max-w-sm">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white mb-1 italic">SMS LOCKED</p>
+                      <p className="text-[11px] text-gray-500 font-medium">
+                        Your A2P registration is currently <strong>{a2pStatus.replace('_', ' ')}</strong>. 
+                        Carrier compliance is required before sending messages.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-end gap-3">
                   <div className="flex-1 relative group">
                     <div className="flex justify-between items-center mb-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-yellow-500">Message</label>
                       <button 
                         onClick={() => setIsBombBombOpen(true)}
-                        className="flex items-center gap-1.5 px-2 py-1 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg border border-red-100 transition-all transform active:scale-95 group/bb"
+                        disabled={!isA2PApproved}
+                        className="flex items-center gap-1.5 px-2 py-1 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg border border-red-100 transition-all transform active:scale-95 group/bb disabled:opacity-50"
                       >
                         <img src={bombLogo} alt="BB" className="w-3 h-3 object-contain group-hover/bb:brightness-0 group-hover/bb:invert" />
                         <span className="text-[9px] font-black uppercase tracking-widest">Add Video</span>
@@ -228,19 +265,20 @@ const Inbox = () => {
                     <textarea 
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
+                      disabled={!isA2PApproved}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Type a message..."
-                      className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-yellow-400 transition-all resize-none min-h-[44px] max-h-32"
+                      placeholder={isA2PApproved ? "Type a message..." : "SMS is locked until approval"}
+                      className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-yellow-400 transition-all resize-none min-h-[44px] max-h-32 disabled:bg-gray-100 dark:disabled:bg-slate-800/50"
                     />
                   </div>
                   <button 
                     onClick={handleSendMessage}
-                    disabled={!messageText.trim()}
+                    disabled={!messageText.trim() || !isA2PApproved}
                     className="w-12 h-12 rounded-2xl bg-yellow-400 text-black flex items-center justify-center hover:bg-yellow-500 transition-all shadow-md disabled:opacity-50 active:scale-90 shrink-0 mb-[2px]"
                   >
                     <FiSend size={20} />
