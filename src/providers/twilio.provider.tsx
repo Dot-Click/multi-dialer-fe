@@ -150,19 +150,34 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       newDevice.on('incoming', (call: Call) => {
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
+        const isDialerBridge = call.customParameters?.get('dialerBridge') === 'true';
+
         console.log("==================================================");
         console.log("[TwilioProvider] INCOMING CALL DETECTED");
         console.log("[TwilioProvider] Call SID:", sid);
+        console.log("[TwilioProvider] Is Dialer Bridge:", isDialerBridge);
         console.log("[TwilioProvider] Device Status:", newDevice.state);
         console.log("[TwilioProvider] Call Parameters:", JSON.stringify(call.parameters));
         console.log("[TwilioProvider] Custom Parameters:", JSON.stringify(Object.fromEntries((call as any).customParameters || [])));
         console.log("==================================================");
 
-        // Check if we are already in a call
+        // For power dialer bridge calls, always accept — even if there's a stale activeCall.
+        // The bridge IS the agent's connection to the customer, it must never be rejected.
         if (activeCallRef.current && activeCallRef.current.status() !== 'closed') {
-          console.log("[TwilioProvider] REJECTING: Already has an active call:", activeCallRef.current.parameters.CallSid);
-          call.reject();
-          return;
+          if (!isDialerBridge) {
+            // Genuine unexpected inbound while on a call — reject it
+            console.log("[TwilioProvider] REJECTING: Already has an active call (not a dialer bridge):", activeCallRef.current.parameters.CallSid);
+            call.reject();
+            return;
+          }
+          // Dialer bridge: cleanly disconnect the stale call first so we don't block the accept
+          console.log("[TwilioProvider] Dialer bridge arrived with stale activeCall — disconnecting stale call before accepting bridge.");
+          try {
+            activeCallRef.current.disconnect();
+          } catch (e) {
+            console.warn("[TwilioProvider] Could not disconnect stale call:", e);
+          }
+          activeCallRef.current = null;
         }
 
         activeCallRef.current = call;
