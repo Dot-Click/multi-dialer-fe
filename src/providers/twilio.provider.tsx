@@ -173,6 +173,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           // Dialer bridge: cleanly disconnect the stale call first so we don't block the accept
           console.log("[TwilioProvider] Dialer bridge arrived with stale activeCall — disconnecting stale call before accepting bridge.");
           try {
+            // IMPORTANT: Mark as ignored so its 'disconnect' event doesn't trigger handleStopCalling
+            ignoredCallsRef.current.add(activeCallRef.current);
             activeCallRef.current.disconnect();
           } catch (e) {
             console.warn("[TwilioProvider] Could not disconnect stale call:", e);
@@ -277,7 +279,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
-    if (!device) {
+    if (!deviceRef.current) {
       toast.error('Twilio device is not ready yet.');
       return;
     }
@@ -289,7 +291,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 
     try {
-      const call = await device.connect({
+      const call = await deviceRef.current.connect({
         params: {
           To: phone,
           From: from,
