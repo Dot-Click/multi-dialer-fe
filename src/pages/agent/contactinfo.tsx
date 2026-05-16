@@ -4,14 +4,15 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchContactById, setQueue } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
+import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader';
 import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
-import ActionPanel from '@/components/agent/contactinfo/actionpanel';
-import OutcomeRow from '@/components/agent/contactinfo/outcomerow';
-import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
+import Detail from '@/components/agent/contactdetail/detail';
+import CallOutcomes from '@/components/agent/contactinfo/calloutcomes';
 import { useTwilio } from '@/providers/twilio.provider';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
+import { VscCallOutgoing } from 'react-icons/vsc';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -292,25 +293,41 @@ const ContactInfo = () => {
 
             <main className="flex-1 overflow-hidden p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-                    {/* Left Column (Main Info) - 8/12 width */}
-                    <div className="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
-                        <div className="shrink-0">
-                            <CallSection leadStatuses={leadStatuses} leadSids={leadSids} />
+                    {/* Left Column (Call Tiles) - 2/12 width */}
+                    <div className="lg:col-span-2 flex flex-col gap-4 h-full overflow-hidden">
+                        <div className="flex-1 flex flex-col gap-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-2 overflow-hidden">
+                            <div className="flex items-center gap-2 px-2 py-1 border-b border-gray-50 dark:border-slate-700/50 mb-1">
+                                <VscCallOutgoing className="text-gray-400" size={14} />
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Queue</h3>
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <CallSection leadStatuses={leadStatuses} leadSids={leadSids} onNext={handleNextContact} />
+                            </div>
                         </div>
+                        
                         <div className="shrink-0">
-                            <OutcomeRow onNext={handleNextContact} />
+                            <CallOutcomes onNext={handleNextContact} />
+                        </div>
+                    </div>
+
+                    {/* Middle Column (Contact Detail) - 7/12 width */}
+                    <div className="lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden">
+                        <div className="shrink-0">
+                            <Detail 
+                                onNext={handleNextContact} 
+                                hideOutcomes={true} 
+                                hideQualifications={true} 
+                            />
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <BottomContactDetail />
                         </div>
                     </div>
 
-                    {/* Right Column (Sidebar) - 4/12 width */}
-                    <div className="lg:col-span-4 flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
-                        <ActionPanel />
+                    {/* Right Column (Sidebar) - 3/12 width */}
+                    <div className="lg:col-span-3 flex flex-col gap-4 h-full overflow-y-auto no-scrollbar pb-10">
                         <ScriptTabs scriptId={scriptId} contactId={currentContact?.id} />
                         <ContactInfoCallSentiment />
-
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Session Health</h4>
 

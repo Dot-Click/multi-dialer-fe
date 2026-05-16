@@ -4,6 +4,7 @@ import { Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft } from 'luc
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 import { VscCallOutgoing } from "react-icons/vsc";
+import CallOutcomes from "./calloutcomes";
 
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback" | "Redialing";
 
@@ -23,7 +24,7 @@ const getStatusBadgeStyle = (status: CallStatus) => {
 
 
 
-const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string> }) => {
+const CallSection = ({ leadStatuses = {}, leadSids = {}, onNext }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string>, onNext?: () => void }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -78,18 +79,18 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
     const activeId = incomingContactId || currentContact?.id;
     if (activeId && cardRefs.current[activeId]) {
       cardRefs.current[activeId]?.scrollIntoView({
-        behavior: 'smooth', block: 'nearest', inline: 'center'
+        behavior: 'smooth', block: 'center', inline: 'nearest'
       });
     }
   }, [incomingContactId, currentContact?.id]);
 
-  if (queue.length === 0) return <div className="p-8 text-center text-gray-500">No contacts in queue</div>;
+  if (queue.length === 0) return <div className="p-8 text-center text-gray-500 font-bold uppercase tracking-widest text-[10px]">No contacts</div>;
 
   return (
-    <div className="w-full font-inter">
+    <div className="w-full h-full font-inter flex flex-col">
       <div
         ref={scrollContainerRef}
-        className="flex space-x-4 py-4 px-2 overflow-x-auto no-scrollbar scroll-smooth"
+        className="flex-1 flex flex-col gap-3 py-2 px-1 overflow-y-auto no-scrollbar scroll-smooth"
       >
         {queue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
@@ -102,56 +103,56 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
               <div
                 key={call.id || index}
                 ref={el => { cardRefs.current[call.id] = el; }}
-                className={`min-w-[260px] min-h-[95px] rounded-[20px] flex flex-col items-center justify-between p-3 shadow-xl transition-all duration-300 border-2 
+                className={`w-full min-h-[90px] rounded-[18px] flex flex-col items-center justify-between p-3 shadow-lg transition-all duration-300 border-2 shrink-0
                            ${isConnected
                     ? 'bg-white dark:bg-slate-800 border-[#10B981] shadow-[#10B981]/10'
                     : 'bg-white dark:bg-slate-800 border-[#6366F1] shadow-[#6366F1]/10'}`}
               >
                 <div className="text-center w-full">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[160px]">
+                  <div className="flex items-center justify-between mb-0.5 gap-2">
+                    <h3 className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight truncate">
                       {call.name || call.fullName || "Unknown"}
                     </h3>
                     {isConnected && (
-                      <span className="flex items-center gap-1 bg-[#10B981] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md animate-pulse">
+                      <span className="flex items-center gap-1 bg-[#10B981] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md animate-pulse shrink-0">
                         LIVE
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1">
                     <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
                   </p>
-                  <div className="flex items-center justify-center gap-1 mt-0.5">
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full 
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full 
                       ${(status === 'Ringing' || status === 'Redialing') ? 'bg-yellow-400/10 text-yellow-500'
                         : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]'
                           : 'bg-gray-500/20 text-gray-400'}`}>
                       {status}
                     </span>
                     <span className="text-gray-500 text-xs">•</span>
-                    <span className={`text-[11px] font-bold text-white tracking-wider ${(status === 'Ringing' || status === 'Redialing') ? 'animate-pulse text-yellow-400' : ''}`}>
+                    <span className={`text-[10px] font-bold text-slate-700 dark:text-slate-300 tracking-wider ${(status === 'Ringing' || status === 'Redialing') ? 'animate-pulse text-yellow-500' : ''}`}>
                       {(status === 'Ringing' || status === 'Redialing') ? `${status}...` : (isConnected || status === 'Connected') ? formatDuration(duration) : '00:00'}
                     </span>
                   </div>
                 </div>
 
                 {showControls ? (
-                  <div className="flex items-center gap-2 w-full justify-center mt-1">
-                    <button onClick={toggleMute} className={`w-8 h-8 flex justify-center items-center rounded-lg shadow-sm ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600'}`}>
-                      {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+                  <div className="flex items-center gap-1.5 w-full justify-center mt-2">
+                    <button onClick={toggleMute} className={`w-7 h-7 flex justify-center items-center rounded-lg shadow-sm transition-all ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600'}`}>
+                      {isMuted ? <MicOff size={12} /> : <Mic size={12} />}
                     </button>
-                    <button onClick={() => toggleHold(holdRecordingUrl)} className={`w-8 h-8 flex justify-center items-center rounded-lg shadow-sm ${isHold ? 'bg-[#EAB308] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600'}`}>
-                      {isHold ? <Play size={14} /> : <Pause size={14} />}
+                    <button onClick={() => toggleHold(holdRecordingUrl)} className={`w-7 h-7 flex justify-center items-center rounded-lg shadow-sm transition-all ${isHold ? 'bg-[#EAB308] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600'}`}>
+                      {isHold ? <Play size={12} /> : <Pause size={12} />}
                     </button>
-                    <button onClick={dropVoicemail} disabled={isDroppingingVoicemail} className="w-8 h-8 flex justify-center items-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 shadow-sm disabled:opacity-30">
-                      {isDroppingingVoicemail ? <Loader2 size={14} className="animate-spin" /> : <ArrowRightLeft size={14} />}
+                    <button onClick={dropVoicemail} disabled={isDroppingingVoicemail} className="w-7 h-7 flex justify-center items-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 shadow-sm disabled:opacity-30">
+                      {isDroppingingVoicemail ? <Loader2 size={12} className="animate-spin" /> : <ArrowRightLeft size={12} />}
                     </button>
-                    <button onClick={() => endCall(leadSids[call.id])} className="w-8 h-8 flex justify-center items-center rounded-lg bg-[#EF4444] text-white shadow-lg">
-                      <PhoneOff size={14} />
+                    <button onClick={() => endCall(leadSids[call.id])} className="w-7 h-7 flex justify-center items-center rounded-lg bg-[#EF4444] text-white shadow-lg">
+                      <PhoneOff size={12} />
                     </button>
                   </div>
                 ) : (
-                  <div className="text-[10px] text-gray-500 italic mt-1">Waiting...</div>
+                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Waiting...</div>
                 )}
               </div>
             );
@@ -165,21 +166,21 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
                 : status === 'Connected'
                   ? 'border-green-300 dark:border-green-700'
                   : isActive
-                    ? 'border-[#FFCA06] shadow-md'
-                    : 'border-gray-100 dark:border-slate-700 shadow-sm';
+                    ? 'border-[#FFCA06] shadow-md bg-white dark:bg-slate-800'
+                    : 'border-gray-100 dark:border-slate-700 shadow-sm bg-gray-50/50 dark:bg-slate-800/50';
 
           return (
             <div
               key={call.id || index}
               ref={el => { cardRefs.current[call.id] = el; }}
-              className={`min-w-[260px] min-h-[95px] bg-white dark:bg-slate-800 rounded-[20px] border ${cardBorderClass} flex flex-col items-center justify-center p-3 transition-all duration-200`}
+              className={`w-full min-h-[70px] rounded-[18px] border ${cardBorderClass} flex flex-col items-center justify-center p-3 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
             >
               <div className="text-center space-y-0.5 w-full">
-                <h3 className="text-[16px] font-bold text-[#374151] dark:text-white truncate">
+                <h3 className={`text-[13px] font-bold truncate ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                   {call.fullName || call.name}
                 </h3>
-                <div className="flex items-center justify-center gap-1 text-[#6B7280] dark:text-gray-400">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
+                <div className="flex items-center justify-center gap-1">
+                  <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
                     {status === 'Callback' ? 'Redialing...' : status}
                   </span>
                 </div>
@@ -190,7 +191,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
       </div>
       <style dangerouslySetInnerHTML={{
         __html: `
-        .no-scrollbar::-webkit-scrollbar { height: 6px; }
+        .no-scrollbar::-webkit-scrollbar { width: 4px; }
         .no-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .no-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
         .dark .no-scrollbar::-webkit-scrollbar-thumb { background: #334155; }

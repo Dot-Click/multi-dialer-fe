@@ -21,7 +21,7 @@ const DialerSetting = () => {
             useAnswerNotificationTone: useAnswerTone,
         }, {
             onSuccess: () => {
-                toast.success('Dialer settings updated successfully');
+                toast.success('Call settings updated successfully');
             },
             onError: (err: any) => {
                 toast.error(err.response?.data?.message || 'Failed to update settings');
@@ -42,7 +42,7 @@ const DialerSetting = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dialer Settings</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Call Settings</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure global behavior for the system dialer</p>
                 </div>
                 <button

@@ -137,7 +137,6 @@ const CallerId: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50/50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-700">
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Number & Label</th>
-                  <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Twilio SID</th>
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Country</th>
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Available To</th>
                   <th className="px-6 py-4 text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</th>
@@ -160,11 +159,6 @@ const CallerId: React.FC = () => {
                           <span className="text-[14px] font-bold text-gray-900 dark:text-white">{number.twillioNumber || number.friendlyName || number.callerId}</span>
                           <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 mt-0.5">{number.label || 'Unnamed Number'}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <span className="text-[11px] font-mono text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-slate-900 px-2 py-1 rounded">
-                          {number.twillioSid || 'N/A'}
-                        </span>
                       </td>
                       <td className="px-6 py-5">
                         <span className="text-[13px] font-semibold text-gray-700 dark:text-gray-300">{number.countryCode || 'US'}</span>

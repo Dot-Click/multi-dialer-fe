@@ -31,17 +31,17 @@ const FieldRow: FC<{ field: any; onDelete: (id: string) => void }> = ({ field, o
         return (
           <div className="flex items-center gap-4 w-full border-b border-gray-200 dark:border-slate-700 py-1">
             <div className="flex items-center gap-2">
-              <button className="bg-gray-100 dark:bg-slate-700 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">-</button>
-              <span className="font-semibold w-4 text-center dark:text-white">{field.countFrom || 0}</span>
-              <button className="bg-gray-100 dark:bg-slate-700 rounded-md px-2.5 py-1 text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">+</button>
+              <button className="bg-gray-100 dark:bg-slate-700 rounded px-1.5 py-0 text-[9px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">-</button>
+              <span className="font-semibold w-3 text-center dark:text-white text-[10px]">{field.countFrom || 0}</span>
+              <button className="bg-gray-100 dark:bg-slate-700 rounded px-1.5 py-0 text-[9px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600">+</button>
             </div>
-            <span className="text-xs text-gray-400 dark:text-gray-500">Range: {field.countFrom} - {field.countTo}</span>
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 font-medium">Range: {field.countFrom} - {field.countTo}</span>
           </div>
         )
       case "Date":
         return (
           <div className="grow border-b border-gray-200 dark:border-slate-700">
-            <input type="date" className="w-full bg-transparent py-2 focus:outline-none dark:text-white" />
+            <input type="date" className="w-full bg-transparent py-1 focus:outline-none dark:text-white text-[10px] font-bold" />
           </div>
         )
       default:
@@ -50,7 +50,7 @@ const FieldRow: FC<{ field: any; onDelete: (id: string) => void }> = ({ field, o
             <input
               type="text"
               placeholder="Enter text"
-              className="w-full bg-transparent py-2 focus:outline-none dark:text-white dark:placeholder-gray-500"
+              className="w-full bg-transparent py-1 focus:outline-none dark:text-white dark:placeholder-gray-500 text-[10px] font-bold"
             />
           </div>
         );

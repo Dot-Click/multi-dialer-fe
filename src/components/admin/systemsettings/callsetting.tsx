@@ -79,14 +79,14 @@ const NumberCard: React.FC<{ data: any }> = ({ data }) => {
 const CallSetting: React.FC = () => {
     const { data: callSettings, isLoading, isError, error } = useCallSettings();
 
-    if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading Call Settings...</div>;
+    if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading Dialer Settings...</div>;
     if (isError) return <div className="p-8 text-center text-red-500 dark:text-red-400">Error: {(error as any)?.message || 'Failed to fetch settings'}</div>;
 
     return (
         <div className="bg-white dark:bg-slate-900 min-h-screen px-4 py-5 rounded-lg">
             <div className="max-w-7xl mx-auto">
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Call Settings</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dialer Setting</h1>
                     <Link
                         to="/admin/create-setting"
                         className="w-full sm:w-auto bg-yellow-400 text-black font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-yellow-500 transition"
@@ -104,7 +104,7 @@ const CallSetting: React.FC = () => {
                 </div>
                 <div className="space-y-6">
                     {callSettings?.length === 0 ? (
-                        <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl"><p className="text-gray-500 dark:text-gray-400">No Call Settings found.</p></div>
+                        <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl"><p className="text-gray-500 dark:text-gray-400">No Dialer Settings found.</p></div>
                     ) : (
                         callSettings?.map((setting: any) => <NumberCard key={setting.id} data={setting} />)
                     )}
