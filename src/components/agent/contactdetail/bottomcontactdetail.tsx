@@ -53,10 +53,7 @@ import Activities from "@/components/agent/contactdetail/activities";
 import History from "@/components/agent/contactdetail/history";
 import LeadSheet from "@/components/agent/contactdetail/leadsheet";
 import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
-import { useLocation } from "react-router-dom";
 import Email from "./email";
-import DetailsTab from "./detailstab";
-import QualifyTab from "./qualifytab";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Profile");

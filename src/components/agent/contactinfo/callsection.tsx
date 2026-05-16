@@ -4,7 +4,6 @@ import { Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft } from 'luc
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 import { VscCallOutgoing } from "react-icons/vsc";
-import CallOutcomes from "./calloutcomes";
 
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback" | "Redialing";
 
@@ -24,7 +23,7 @@ const getStatusBadgeStyle = (status: CallStatus) => {
 
 
 
-const CallSection = ({ leadStatuses = {}, leadSids = {}, onNext }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string>, onNext?: () => void }) => {
+const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string> }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);

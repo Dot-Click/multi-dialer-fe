@@ -301,7 +301,7 @@ const ContactInfo = () => {
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Queue</h3>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <CallSection leadStatuses={leadStatuses} leadSids={leadSids} onNext={handleNextContact} />
+                                <CallSection leadStatuses={leadStatuses} leadSids={leadSids} />
                             </div>
                         </div>
                         
