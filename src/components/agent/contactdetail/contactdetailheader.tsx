@@ -102,7 +102,7 @@ const ContactDetailHeader = () => {
   const handleDelete = async () => {
     if (!currentContact) return;
     try {
-      await dispatch(deleteContact(currentContact.id)).unwrap();
+      await dispatch(deleteContact({ id: currentContact.id })).unwrap();
       toast.success("Contact deleted successfully");
       navigate("/agent/allcontact");
     } catch (error: any) {
