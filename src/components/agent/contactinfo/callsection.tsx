@@ -9,14 +9,38 @@ type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "
 
 const getStatusBadgeStyle = (status: CallStatus) => {
   switch (status) {
-    case 'Connected': return 'bg-[#E8FFF3] text-[#10B981]';
-    case 'Ringing': return 'bg-blue-50 text-blue-500 animate-pulse';
-    case 'Redialing': return 'bg-purple-50 text-purple-500 animate-pulse';
-    case 'On Hold': return 'bg-[#FEFCE8] text-[#CA8A04]';
-    case 'Callback': return 'bg-orange-50 text-orange-500 animate-pulse';
+    case 'Connected': return 'bg-[#10B981] text-white';
+    case 'Ringing': return 'bg-blue-500 text-white animate-pulse';
+    case 'Redialing': return 'bg-purple-500 text-white animate-pulse';
+    case 'On Hold': return 'bg-[#CA8A04] text-white';
+    case 'Callback': return 'bg-orange-500 text-white animate-pulse';
     case 'Hung Up':
-    case 'Disconnected': return 'bg-[#FEE2E2] text-[#EF4444]';
-    default: return 'bg-gray-100 text-gray-600';
+    case 'Disconnected': return 'bg-[#EF4444] text-white';
+    default: return 'bg-gray-500 text-white';
+  }
+};
+
+const getTileStyle = (status: CallStatus, isActive: boolean, isConnected: boolean) => {
+  if (isConnected || status === 'Connected') {
+    return 'bg-[#E8FFF3] border-[#10B981] shadow-[#10B981]/10 dark:bg-[#064E3B]/20 dark:border-[#10B981]';
+  }
+  
+  switch (status) {
+    case 'On Hold':
+      return 'bg-[#FEFCE8] border-[#EAB308] shadow-[#EAB308]/10 dark:bg-[#713F12]/20 dark:border-[#EAB308]';
+    case 'Hung Up':
+    case 'Disconnected':
+      return 'bg-[#FEF2F2] border-[#EF4444] shadow-[#EF4444]/10 dark:bg-[#7F1D1D]/20 dark:border-[#EF4444]';
+    case 'Ringing':
+    case 'Redialing':
+      return 'bg-[#EFF6FF] border-[#3B82F6] shadow-[#3B82F6]/10 dark:bg-[#1E3A8A]/20 dark:border-[#3B82F6] animate-pulse';
+    case 'Callback':
+      return 'bg-[#FFF7ED] border-[#F97316] shadow-[#F97316]/10 dark:bg-[#7C2D12]/20 dark:border-[#F97316]';
+    default:
+      if (isActive) {
+        return 'bg-white border-[#FFCA06] shadow-[#FFCA06]/20 dark:bg-slate-800 dark:border-[#FFCA06]';
+      }
+      return 'bg-white border-gray-100 dark:bg-slate-800 dark:border-slate-700';
   }
 };
 
@@ -96,16 +120,14 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
           const status = getUiStatus(isActive, call.id);
           const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');
           const showControls = isActive && (status === "Connected" || status === "On Hold");
+          const tileStyle = getTileStyle(status, isActive, isConnected);
 
           if (isActive || isConnected) {
             return (
               <div
                 key={call.id || index}
                 ref={el => { cardRefs.current[call.id] = el; }}
-                className={`w-full min-h-[90px] rounded-[18px] flex flex-col items-center justify-between p-3 shadow-lg transition-all duration-300 border-2 shrink-0
-                           ${isConnected
-                    ? 'bg-white dark:bg-slate-800 border-[#10B981] shadow-[#10B981]/10'
-                    : 'bg-white dark:bg-slate-800 border-[#6366F1] shadow-[#6366F1]/10'}`}
+                className={`w-full min-h-[90px] rounded-[18px] flex flex-col items-center justify-between p-3 shadow-lg transition-all duration-300 border-2 shrink-0 ${tileStyle}`}
               >
                 <div className="text-center w-full">
                   <div className="flex items-center justify-between mb-0.5 gap-2">
@@ -122,10 +144,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
                     <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-1">
-                    <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full 
-                      ${(status === 'Ringing' || status === 'Redialing') ? 'bg-yellow-400/10 text-yellow-500'
-                        : status === 'Connected' ? 'bg-[#10B981]/20 text-[#10B981]'
-                          : 'bg-gray-500/20 text-gray-400'}`}>
+                    <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
                       {status}
                     </span>
                     <span className="text-gray-500 text-xs">•</span>
@@ -157,22 +176,11 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
             );
           }
 
-          const cardBorderClass =
-            status === 'Disconnected' || status === 'Hung Up'
-              ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10'
-              : status === 'Callback'
-                ? 'border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/10'
-                : status === 'Connected'
-                  ? 'border-green-300 dark:border-green-700'
-                  : isActive
-                    ? 'border-[#FFCA06] shadow-md bg-white dark:bg-slate-800'
-                    : 'border-gray-100 dark:border-slate-700 shadow-sm bg-gray-50/50 dark:bg-slate-800/50';
-
           return (
             <div
               key={call.id || index}
               ref={el => { cardRefs.current[call.id] = el; }}
-              className={`w-full min-h-[70px] rounded-[18px] border ${cardBorderClass} flex flex-col items-center justify-center p-3 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
+              className={`w-full min-h-[70px] rounded-[18px] border-2 ${tileStyle} flex flex-col items-center justify-center p-3 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
             >
               <div className="text-center space-y-0.5 w-full">
                 <h3 className={`text-[13px] font-bold truncate ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
