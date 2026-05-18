@@ -27,6 +27,7 @@ export interface Contact {
   leadsheetValues?: any;
   notes: string[];
   folderId?: string | null;
+  disposition?: string | null;
   permission?: boolean;
   want?: boolean;
   why?: boolean;
@@ -152,6 +153,7 @@ export const fetchContacts = createAsyncThunk(
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
+          disposition: c.disposition || null,
         }));
       }
       return rejectWithValue("Failed to fetch contacts");
@@ -181,6 +183,7 @@ export const fetchContactsByList = createAsyncThunk(
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
           folderId: c.folderId || null,
+          disposition: c.disposition || null,
         }));
       }
       return rejectWithValue("Failed to fetch contacts for this list");
@@ -211,6 +214,7 @@ export const fetchContactsByFolder = createAsyncThunk(
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
           folderId: c.folderId || null,
+          disposition: c.disposition || null,
         }));
       }
       return rejectWithValue("Failed to fetch contacts for this folder");

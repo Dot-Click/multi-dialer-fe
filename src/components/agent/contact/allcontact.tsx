@@ -9,6 +9,8 @@ import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchContacts, fetchContactsByList, fetchContactsByFolder, type Contact } from "@/store/slices/contactSlice";
+import type { Disposition } from "@/store/slices/dispositionSlice";
+import { fetchDispositions } from "@/store/slices/dispositionSlice";
 
 interface AllContactProps {
   onSelectionChange?: (selectedContacts: Contact[]) => void;
@@ -78,6 +80,7 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
+  const { dispositions } = useAppSelector((state) => state.dispositions);
 
   const isAdmin = location.pathname.startsWith("/admin");
   const linkPath = isAdmin ? "/admin/contact-detail" : "contact-detail";
@@ -90,6 +93,8 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     } else {
       dispatch(fetchContacts());
     }
+    // Ensure dispositions are loaded for the badge column
+    dispatch(fetchDispositions());
   }, [dispatch, listId, folderId]);
 
   const filteredContacts = useMemo(() => {
@@ -192,6 +197,38 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
         );
       },
     },
+    {
+      accessorKey: "disposition",
+      header: "Disposition",
+      enableSorting: false,
+      cell: (info: any) => {
+        const value: string | null = info.getValue();
+        if (!value) return null;
+        const disp = dispositions.find((d: Disposition) => d.value === value);
+        if (!disp) return <span className="text-xs text-gray-400">{value}</span>;
+        const dotColors: Record<string, string> = {
+          red: "bg-red-500", orange: "bg-orange-500", yellow: "bg-yellow-400",
+          green: "bg-emerald-500", blue: "bg-blue-500", purple: "bg-violet-500",
+          gray: "bg-gray-400", pink: "bg-pink-500",
+        };
+        const bgColors: Record<string, string> = {
+          red: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+          orange: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+          yellow: "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+          green: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+          blue: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+          purple: "bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400",
+          gray: "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-300",
+          pink: "bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400",
+        };
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${bgColors[disp.color] ?? bgColors.gray}`}>
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColors[disp.color] ?? dotColors.gray}`} />
+            {disp.label}
+          </span>
+        );
+      },
+    },
   ];
 
   const columns = useMemo(() => {
@@ -206,6 +243,7 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
         if (vc === "Last Dialed" && col.accessorKey === "lastDialedDate") return true;
         if (vc === "List" && col.accessorKey === "list") return true;
         if (vc === "Tags" && col.accessorKey === "tags") return true;
+        if (vc === "Disposition" && col.accessorKey === "disposition") return true;
         return false;
       });
     });

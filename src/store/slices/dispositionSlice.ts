@@ -13,6 +13,7 @@ export interface Disposition {
     isSystem: boolean
     isActive: boolean
     order: number
+    targetFolderId?: string | null
 }
 
 interface DispositionState {
@@ -43,7 +44,7 @@ export const fetchDispositions = createAsyncThunk(
 
 export const createDisposition = createAsyncThunk(
     "dispositions/create",
-    async (data: Partial<Disposition>, { rejectWithValue }) => {
+    async (data: Partial<Disposition> & { autoCreateFolder?: boolean }, { rejectWithValue }) => {
         try {
             const response = await api.post("/system-settings/dispositions", data);
             if (response.data.success) return response.data.data;
@@ -87,6 +88,19 @@ export const reorderDispositions = createAsyncThunk(
             const response = await api.put("/system-settings/dispositions/reorder", { orderData });
             if (response.data.success) return response.data.data;
             return rejectWithValue(response.data.message || "Failed to reorder dispositions");
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const applyDisposition = createAsyncThunk(
+    "dispositions/apply",
+    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue }) => {
+        try {
+            const response = await api.post("/system-settings/dispositions/apply", { contactId, dispositionId, overrideFolderId, source });
+            if (response.data.success) return response.data;
+            return rejectWithValue(response.data.message || "Failed to apply disposition");
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }

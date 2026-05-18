@@ -304,7 +304,7 @@ const ContactInfo = () => {
                                 <CallSection leadStatuses={leadStatuses} leadSids={leadSids} />
                             </div>
                         </div>
-                        
+
                         <div className="shrink-0">
                             <CallOutcomes onNext={handleNextContact} />
                         </div>
@@ -313,10 +313,10 @@ const ContactInfo = () => {
                     {/* Middle Column (Contact Detail) - 7/12 width */}
                     <div className="lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden">
                         <div className="shrink-0">
-                            <Detail 
-                                onNext={handleNextContact} 
-                                hideOutcomes={true} 
-                                hideQualifications={true} 
+                            <Detail
+                                onNext={handleNextContact}
+                                hideOutcomes={true}
+                                hideQualifications={false}
                             />
                         </div>
                         <div className="flex-1 overflow-hidden">

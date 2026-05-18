@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateContact, fetchContactGroups, assignContactToGroups } from "@/store/slices/contactSlice";
-import { fetchDispositions } from "@/store/slices/dispositionSlice";
+import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionSlice";
+import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import toast from "react-hot-toast";
 import { Phone, Check, Loader2, Users, Tag } from "lucide-react";
 import { useTwilio } from "@/providers/twilio.provider";
@@ -63,11 +64,16 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
 
   const { currentContact, groups } = useAppSelector(s => s.contacts);
   const { dispositions } = useAppSelector(s => s.dispositions);
+  const { folders } = useAppSelector(s => s.contactStructure);
 
   // ── Disposition state ──
   const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
   const [savedDisp, setSavedDisp] = useState<string | null>(null);
   const [savingDisp, setSavingDisp] = useState(false);
+
+  // ── Folder popover state (for dispositions with targetFolderId) ──
+  const [pendingDisp, setPendingDisp] = useState<{ id: string; label: string; value: string; targetFolderId: string | null | undefined } | null>(null);
+  const [confirmFolderId, setConfirmFolderId] = useState<string | null>(null);
 
   // ── Group state ──
   const [savedGroupIds, setSavedGroupIds] = useState<Set<string>>(new Set());
@@ -80,6 +86,7 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
   useEffect(() => {
     if (dispositions.length === 0) dispatch(fetchDispositions());
     if (groups.length === 0) dispatch(fetchContactGroups());
+    if (folders?.length === 0) dispatch(fetchFolders());
   }, []);
 
   // Sync when contact changes (next/prev navigation)
@@ -112,55 +119,65 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
   }
 
   // ── Smart Disposition Actions (Mojo Logic) ──
-  async function handleSmartAction(label: string, value: string) {
+  async function handleSmartAction(dispObj: typeof activeDispositions[number]) {
     if (!currentContact?.id) { toast.error("No contact loaded"); return; }
-    
-    setSelectedDisp(value);
+
+    const { label, value, targetFolderId, id: dispositionId } = dispObj;
+
+    // If no folder action configured → apply immediately
+    if (!targetFolderId) {
+      setSelectedDisp(value);
+      setSavingDisp(true);
+      try {
+        await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value, status: value } }));
+        await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId, source: "CALL" }));
+        setSavedDisp(value);
+        setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
+        toast.success(`Outcome: ${label}`);
+        const upperVal = value.toUpperCase();
+        switch (upperVal) {
+          case "NO_ANSWER": case "BAD_NUMBER":
+            if (isCalling) await endCall(); if (onNext) onNext(); break;
+          case "VOICEMAIL":
+            await dropVoicemail(); if (onNext) onNext(); break;
+          case "DNC_CONTACT": case "DNC_NUMBER": case "DO_NOT_CALL":
+            if (isCalling) await endCall();
+            await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : [] });
+            if (onNext) onNext(); break;
+          default: break;
+        }
+      } finally {
+        setSavingDisp(false);
+      }
+      return;
+    }
+
+    // Has targetFolderId → show confirm row
+    setPendingDisp({ id: dispositionId, label, value, targetFolderId });
+    setConfirmFolderId(targetFolderId);
+  }
+
+  async function handleConfirmApply() {
+    if (!currentContact?.id || !pendingDisp) return;
+    const { id: dispositionId, label, value } = pendingDisp;
     setSavingDisp(true);
     try {
-      await dispatch(
-        updateContact({ 
-          id: currentContact.id, 
-          payload: { disposition: value, status: value } 
-        })
-      );
-      setSavedDisp(value);
-      
-      // Update session count locally
-      setSessionCounts(prev => ({
-        ...prev,
-        [value]: (prev[value] || 0) + 1
+      await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value, status: value } }));
+      await dispatch(applyDisposition({
+        contactId: currentContact.id,
+        dispositionId,
+        overrideFolderId: confirmFolderId || undefined,
+        source: "CALL"
       }));
-
-      toast.success(`Outcome: ${label}`);
-
-      const upperVal = value.toUpperCase();
-      switch (upperVal) {
-        case "NO_ANSWER":
-        case "BAD_NUMBER":
-          if (isCalling) await endCall();
-          if (onNext) onNext();
-          break;
-        case "VOICEMAIL":
-          await dropVoicemail();
-          if (onNext) onNext();
-          break;
-        case "DNC_CONTACT":
-        case "DNC_NUMBER":
-        case "DO_NOT_CALL":
-          if (isCalling) await endCall();
-          await api.post(`/contact/${currentContact.id}/move-to-dnc`, {
-            phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : []
-          });
-          if (onNext) onNext();
-          break;
-        case "CONTACT":
-          break;
-        default:
-          break;
-      }
+      setSelectedDisp(value);
+      setSavedDisp(value);
+      setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
+      const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
+      toast.success(`Outcome: ${label}${folderName ? ` · Moved to ${folderName}` : ""}`);
     } finally {
       setSavingDisp(false);
+      setPendingDisp(null);
+      setConfirmFolderId(null);
     }
   }
 
@@ -229,14 +246,15 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
           <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-gray-100 dark:border-slate-700">
             {smartItems.map(d => {
               const Icon = ICON_MAP[d.icon] ?? User;
+              const isPending = pendingDisp?.value === d.value;
               const isActive = selectedDisp === d.value;
               return (
                 <button
                   key={d.id}
-                  onClick={() => handleSmartAction(d.label, d.value)}
+                  onClick={() => handleSmartAction(d)}
                   disabled={savingDisp}
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full border font-medium transition-all duration-150 active:scale-95 ${
-                    isActive
+                    isActive || isPending
                       ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
                       : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                   }`}
@@ -254,13 +272,14 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
           <div className="flex flex-wrap gap-2">
             {otherItems.map(d => {
               const Icon = ICON_MAP[d.icon] ?? Tag;
+              const isPending = pendingDisp?.value === d.value;
               const isActive = selectedDisp === d.value;
               return (
                 <button
                   key={d.id}
-                  onClick={() => setSelectedDisp(prev => prev === d.value ? null : d.value)}
+                  onClick={() => handleSmartAction(d)}
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full border font-medium transition-all duration-150 active:scale-95 ${
-                    isActive
+                    isActive || isPending
                       ? (COLOR_ACTIVE[d.color] ?? COLOR_ACTIVE.gray)
                       : (COLOR_IDLE[d.color]   ?? COLOR_IDLE.gray)
                   }`}
@@ -273,6 +292,40 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
           </div>
         )}
 
+        {/* Folder Confirmation Row */}
+        {pendingDisp && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+              <Tag className="w-3.5 h-3.5 shrink-0" />
+              <span className="font-medium">Move contact to:</span>
+              <span className="font-semibold">{folders?.find(f => f.id === confirmFolderId)?.name || "(no folder)"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={confirmFolderId || ""}
+                onChange={e => setConfirmFolderId(e.target.value || null)}
+                className="h-7 px-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-800 text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="">No folder</option>
+                {folders?.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+              </select>
+              <button
+                onClick={() => { setPendingDisp(null); setConfirmFolderId(null); }}
+                className="px-3 py-1 text-xs rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApply}
+                disabled={savingDisp}
+                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              >
+                {savingDisp ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3" /> Confirm</>}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {isDispDirty && selectedDisp
@@ -281,16 +334,36 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
               ? "No disposition selected"
               : "Up to date"}
           </p>
-          <div className="flex gap-2">
-            {isDispDirty && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
-              <button
-                onClick={() => handleSmartAction(getDispLabel(selectedDisp), selectedDisp)}
-                disabled={savingDisp}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm hover:shadow active:scale-95 transition-all"
+
+          <div className="flex items-center gap-3">
+            {/* Override Folder Dropdown */}
+            {selectedDisp && (
+              <select
+                value={confirmFolderId || ""}
+                onChange={(e) => setConfirmFolderId(e.target.value || null)}
+                className="h-8 px-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-400 max-w-[140px]"
               >
-                {savingDisp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5" /> Save</>}
-              </button>
+                <option value="">Default Folder</option>
+                {folders?.map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
             )}
+
+            <div className="flex gap-2">
+              {isDispDirty && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
+                <button
+                  onClick={() => {
+                    const d = dispositions.find(x => x.value === selectedDisp);
+                    if (d) handleSmartAction(d);
+                  }}
+                  disabled={savingDisp}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm hover:shadow active:scale-95 transition-all"
+                >
+                  {savingDisp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5" /> Save</>}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

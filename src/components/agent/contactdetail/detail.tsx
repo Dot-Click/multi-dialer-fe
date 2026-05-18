@@ -8,26 +8,18 @@ import {
     setCurrentContactFields,
     removeFromQueue,
 } from '@/store/slices/contactSlice';
-import { fetchDispositions } from '@/store/slices/dispositionSlice';
-// import { CiMail } from "react-icons/ci";
-// import { BsThreeDotsVertical } from "react-icons/bs";
-// import { IoAddOutline } from "react-icons/io5";
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare } from "lucide-react";
+import { fetchDispositions, applyDisposition } from '@/store/slices/dispositionSlice';
+import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
-// import { TbEdit } from "react-icons/tb";
 import RealtorLogo from '@/assets/realtor.png';
 import GoogleMapsLogo from '@/assets/googlemap.png';
-// import propertyicon from "../../../assets/propertyicon.png"
-// import kiticon from "../../../assets/kiticon.png"
-// import callsicon from "../../../assets/callsicon.png"
-// import mobileicon from "../../../assets/mobileicon.png"
-// import doticon from "../../../assets/doticon.png"
 import toast from 'react-hot-toast'
 import { TbEdit } from "react-icons/tb";
 import { useTwilio } from "@/providers/twilio.provider";
 import api from "@/lib/axios";
+import ApplyDispositionModal from "@/components/modal/ApplyDispositionModal";
 
 
 export const ICON_MAP: Record<string, React.ElementType> = {
@@ -80,13 +72,15 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
     const [editingEmailIndex, setEditingEmailIndex] = useState<number | undefined>(undefined);
     const [isOpeningRealtor, setIsOpeningRealtor] = useState(false);
 
-    const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+    const [_selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [selectedListId, setSelectedListId] = useState<string>('');
-    const [tagsInput, setTagsInput] = useState<string>('');
+    const [_tagsInput, setTagsInput] = useState<string>('');
 
     const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
     const [savedDisp, setSavedDisp] = useState<string | null>(null);
     const [savingDisp, setSavingDisp] = useState(false);
+    const [overrideFolderId, setOverrideFolderId] = useState<string | null>(null);
+    const [showApplyModal, setShowApplyModal] = useState(false);
 
     const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
@@ -131,9 +125,21 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
     //     setSelectedListId('');
     // };
 
-    const handleListChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedListId(e.target.value);
-    };
+    async function handleListChange(listId: string) {
+        setSelectedListId(listId);
+        if (!currentContact?.id || !listId) return;
+        try {
+            await dispatch(assignContactToList({
+                contactId: currentContact.id,
+                listId,
+            })).unwrap();
+            dispatch(fetchContactLists());
+            const listName = lists.find(l => l.id === listId)?.name;
+            toast.success(`Assigned to${listName ? ` "${listName}"` : ' list'}`);
+        } catch (err: any) {
+            toast.error('Failed to assign list: ' + err);
+        }
+    }
 
     const handleOpenRealtor = async () => {
         if (!currentContact?.id) {
@@ -164,38 +170,38 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
         }
     };
 
-    const handleUpdateOrg = async () => {
-        if (!currentContact) {
-            toast.error("Contact not found");
-            return;
-        }
-        try {
-            // 1. Handle List Assignment
-            const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
-            if (selectedListId && selectedListId !== currentList?.id) {
-                await dispatch(assignContactToList({
-                    contactId: currentContact.id,
-                    listId: selectedListId,
-                })).unwrap();
-                dispatch(fetchContactLists());
-            }
+    // const handleUpdateOrg = async () => {
+    //     if (!currentContact) {
+    //         toast.error("Contact not found");
+    //         return;
+    //     }
+    //     try {
+    //         // 1. Handle List Assignment
+    //         const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
+    //         if (selectedListId && selectedListId !== currentList?.id) {
+    //             await dispatch(assignContactToList({
+    //                 contactId: currentContact.id,
+    //                 listId: selectedListId,
+    //             })).unwrap();
+    //             dispatch(fetchContactLists());
+    //         }
 
-            // 2. Handle Tags
-            const tagsArray = tagsInput
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag !== "");
-            await dispatch(updateContact({
-                id: currentContact.id,
-                payload: { tags: tagsArray },
-            })).unwrap();
+    //         // 2. Handle Tags
+    //         const tagsArray = tagsInput
+    //             .split(',')
+    //             .map(tag => tag.trim())
+    //             .filter(tag => tag !== "");
+    //         await dispatch(updateContact({
+    //             id: currentContact.id,
+    //             payload: { tags: tagsArray },
+    //         })).unwrap();
 
-            toast.success("Contact updated successfully!");
-        } catch (err: any) {
-            console.error("Failed to update contact:", err);
-            toast.error("Failed to update: " + err);
-        }
-    };
+    //         toast.success("Contact updated successfully!");
+    //     } catch (err: any) {
+    //         console.error("Failed to update contact:", err);
+    //         toast.error("Failed to update: " + err);
+    //     }
+    // };
 
     async function handleSmartAction(label: string, value: string) {
         if (!currentContact?.id) { toast.error("No contact loaded"); return; }
@@ -209,6 +215,18 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
                     payload: { disposition: value, status: value }
                 })
             ).unwrap();
+
+            // Apply Disposition Backend Action (Folder drop & Logging)
+            const dispObj = dispositions.find(d => d.value === value);
+            if (dispObj) {
+                await dispatch(applyDisposition({
+                    contactId: currentContact.id,
+                    dispositionId: dispObj.id,
+                    overrideFolderId: overrideFolderId || undefined,
+                    source: "MANUAL"
+                }));
+            }
+
             setSavedDisp(value);
             toast.success(`Outcome: ${label}`);
 
@@ -285,6 +303,7 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
 
     const activeDispositions = dispositions.filter(d => d.isActive);
     const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
+    const customDispositions = activeDispositions.filter(d => !d.isSystem);
 
     const stats = [
         { id: 1, name: "Calls", number: 0, icon: Phone },
@@ -297,7 +316,7 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
             <div className='flex flex-col md:flex-row md:justify-between md:items-start'>
                 <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col'>
-                        <div className='flex items-center gap-4'>
+                        <div className='flex items-center gap-3 flex-wrap'>
                             <h1 className='text-[20px] md:text-[24px] text-[#0E1011] dark:text-white font-bold tracking-tight'>
                                 {currentContact.fullName || "Unnamed Contact"}
                             </h1>
@@ -307,11 +326,25 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
                                     className="w-[16px] h-[16px] text-gray-500 dark:text-gray-300"
                                 />
                             </span>
+                            {/* List capsule pill */}
+                            <div className="inline-flex items-center gap-1.5 pl-2.5 pr-2 py-1 rounded-full border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:border-gray-300 dark:hover:border-slate-500 transition-colors">
+                                <List size={11} className="text-gray-400 dark:text-gray-500 shrink-0" />
+                                <select
+                                    value={selectedListId}
+                                    onChange={(e) => handleListChange(e.target.value)}
+                                    className="bg-transparent outline-none text-xs text-gray-600 dark:text-gray-300 font-semibold cursor-pointer max-w-[130px]"
+                                >
+                                    <option value="">Select List</option>
+                                    {lists.map(list => (
+                                        <option key={list.id} value={list.id} className="dark:bg-slate-800">{list.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div className='flex flex-wrap items-center gap-4 lg:gap-6'>
                         {stats.map((dt) => (
-                            <span key={dt.id} className='flex text-[14px] gap-2 items-center bg-gray-50 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm'>
+                            <span key={dt.id} className='flex text-[14px] gap-2 items-center px-2'>
                                 <dt.icon size={14} className="text-[#FFCA06]" />
                                 <div className="flex items-center gap-1.5">
                                     <h1 className='text-[#6B7280] dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]'>{dt.name}</h1>
@@ -450,68 +483,7 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
                 </div>
             </div>
 
-            <div className='flex w-full flex-col lg:flex-row lg:items-center gap-6 pt-3 border-t border-gray-100 dark:border-white/5'>
-                <div className='flex w-full items-center gap-3'>
-                    <label htmlFor="folder" className='text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Folder:</label>
-                    <select
-                        id="folder"
-                        value={selectedFolderId}
-                        onChange={(e) => {
-                            setSelectedFolderId(e.target.value);
-                            setSelectedListId('');
-                        }}
-                        className='border-none py-1 px-1 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent cursor-pointer'
-                    >
-                        <option value="" className="dark:bg-slate-800">Select Folder</option>
-                        {folders.map(folder => (
-                            <option key={folder.id} value={folder.id} className="dark:bg-slate-800">{folder.name}</option>
-                        ))}
-                    </select>
-                </div>
 
-                <div className='flex w-full items-center gap-3'>
-                    <label htmlFor="list" className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>List:</label>
-                    <select
-                        id="list"
-                        value={selectedListId}
-                        onChange={handleListChange}
-                        disabled={!selectedFolderId}
-                        className='border-none py-1 px-1 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent disabled:opacity-50 cursor-pointer'
-                    >
-                        <option value="" className="dark:bg-slate-800">Select List</option>
-                        {lists
-                            .filter(list => {
-                                const folder = folders.find(f => f.id === selectedFolderId);
-                                return folder ? folder.listIds.includes(list.id) : false;
-                            })
-                            .map(list => (
-                                <option key={list.id} value={list.id} className="dark:bg-slate-800">{list.name}</option>
-                            ))
-                        }
-                    </select>
-                </div>
-
-                <div className='flex w-full items-center gap-3'>
-                    <label htmlFor="tags" className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400 whitespace-nowrap'>Tags:</label>
-                    <input
-                        type="text"
-                        id="tags"
-                        value={tagsInput}
-                        onChange={(e) => setTagsInput(e.target.value)}
-                        placeholder="Tag1, Tag2..."
-                        className='border-b border-gray-100 dark:border-white/10 py-1 px-2 font-semibold text-[#0E1011] dark:text-white flex-1 text-[13px] outline-none bg-transparent focus:border-[#FFCA06] transition-all'
-                    />
-                </div>
-
-                <div className="flex items-center">
-                    <button
-                        onClick={handleUpdateOrg}
-                        className="bg-[#0E1011] dark:bg-[#FFCA06] text-white dark:text-[#2B3034] px-6 py-2 rounded-xl text-[13px] font-bold hover:shadow-lg hover:bg-gray-900 dark:hover:bg-[#ffd94d] transition-all active:scale-95 whitespace-nowrap"
-                    >
-                        Update
-                    </button>
-                </div>
-            </div>
 
             {/* CALL OUTCOMES */}
             {!hideOutcomes && (
@@ -552,15 +524,62 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
                                     ? "No disposition selected"
                                     : "Up to date"}
                         </p>
-                        {selectedDisp !== savedDisp && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
-                            <button
-                                onClick={() => handleSmartAction(getDispLabel(selectedDisp), selectedDisp)}
-                                disabled={savingDisp}
-                                className="inline-flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm transition-all"
-                            >
-                                {savingDisp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check size={14} /> Save Outcome</>}
-                            </button>
-                        )}
+
+                        <div className="flex items-center gap-3">
+                            {/* Override Folder Dropdown */}
+                            {selectedDisp && (
+                                <select
+                                    value={overrideFolderId || ""}
+                                    onChange={(e) => setOverrideFolderId(e.target.value || null)}
+                                    className="h-8 px-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-400 max-w-[140px]"
+                                >
+                                    <option value="">Default Folder</option>
+                                    {folders?.map(f => (
+                                        <option key={f.id} value={f.id}>{f.name}</option>
+                                    ))}
+                                </select>
+                            )}
+
+                            {selectedDisp !== savedDisp && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
+                                <button
+                                    onClick={() => handleSmartAction(getDispLabel(selectedDisp), selectedDisp)}
+                                    disabled={savingDisp}
+                                    className="inline-flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm transition-all"
+                                >
+                                    {savingDisp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check size={14} /> Save Outcome</>}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM DISPOSITIONS CREATED BY USER */}
+            {customDispositions.length > 0 && (
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-white/5 pb-1">
+                    <div className="flex items-center gap-2">
+                        <Tag size={13} className="text-gray-400 dark:text-gray-500" />
+                        <h1 className='text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Dispositions</h1>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {customDispositions.map(d => {
+                            const Icon = ICON_MAP[d.icon] ?? User;
+                            const isActive = selectedDisp === d.value;
+                            return (
+                                <button
+                                    key={d.id}
+                                    onClick={() => handleSmartAction(d.label, d.value)}
+                                    disabled={savingDisp}
+                                    className={`inline-flex items-center gap-2 px-3 py-1 text-[11px] rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
+                                        ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
+                                        : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
+                                        }`}
+                                >
+                                    <Icon className="w-3 h-3 shrink-0" />
+                                    {d.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -593,6 +612,13 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
             )}
 
             {showModal && <EditModal onClose={() => setShowModal(false)} />}
+            {showApplyModal && currentContact?.id && (
+                <ApplyDispositionModal
+                    contactId={currentContact.id}
+                    onClose={() => setShowApplyModal(false)}
+                    onSuccess={() => setSavedDisp(currentContact?.disposition ?? null)}
+                />
+            )}
             {phoneModal && (
                 <PhoneModal
                     isOpen={phoneModal}

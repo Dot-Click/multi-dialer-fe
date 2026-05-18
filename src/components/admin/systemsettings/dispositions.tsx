@@ -8,6 +8,7 @@ import {
     deleteDisposition,
 } from "@/store/slices/dispositionSlice"
 import type { Disposition, DispositionColor } from "@/store/slices/dispositionSlice"
+import { fetchFolders } from "@/store/slices/contactStructureSlice"
 import {
     Plus,
     Pencil,
@@ -16,6 +17,9 @@ import {
     Tag,
     Save,
     X,
+    FolderOpen,
+    FolderPlus,
+    FolderX,
 } from "lucide-react"
 
 const COLOR_MAP: Record<DispositionColor, { bg: string; text: string; border: string; dot: string }> = {
@@ -31,10 +35,6 @@ const COLOR_MAP: Record<DispositionColor, { bg: string; text: string; border: st
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-// function getIconComponent(key: string) {
-//     return ICON_OPTIONS.find(i => i.key === key)?.component ?? Tag
-// }
-
 function slugify(label: string) {
     return label.trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "")
 }
@@ -42,34 +42,54 @@ function slugify(label: string) {
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function DispositionBadge({ disposition }: { disposition: Disposition }) {
-    // const IconComp = getIconComponent(disposition.icon)
     const c = COLOR_MAP[disposition.color]
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${c.bg} ${c.text} ${c.border}`}>
-            {/* <IconComp className="w-3 h-3" /> */}
+            <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
             {disposition.label}
         </span>
     )
 }
 
+// ─── Form State ───────────────────────────────────────────────────────────────
+
+type FolderMode = "auto" | "existing" | "none"
+
 interface FormState {
     label: string
     color: DispositionColor
     icon: string
+    folderMode: FolderMode
+    targetFolderId?: string | null
 }
+
+// ─── Disposition Form ─────────────────────────────────────────────────────────
 
 function DispositionForm({
     initial,
+    existingFolderId,
     onSave,
     onCancel,
 }: {
-    initial?: FormState
+    initial?: Partial<FormState>
+    existingFolderId?: string | null  // the disposition's current targetFolderId (from DB)
     onSave: (data: FormState) => void
     onCancel: () => void
 }) {
-    const [form, setForm] = useState<FormState>(
-        initial ?? { label: "", color: "blue", icon: "Tag" }
-    )
+    const { folders } = useSelector((state: RootState) => state.contactStructure)
+
+    // Derive initial folderMode from existing data
+    const derivedMode: FolderMode =
+        initial?.folderMode ??
+        (existingFolderId ? "existing" : initial?.label ? "none" : "auto")
+
+    const [form, setForm] = useState<FormState>({
+        label: initial?.label ?? "",
+        color: initial?.color ?? "blue",
+        icon: initial?.icon ?? "Tag",
+        folderMode: derivedMode,
+        targetFolderId: initial?.targetFolderId ?? existingFolderId ?? null,
+    })
 
     const preview: Disposition = {
         id: "preview",
@@ -82,9 +102,19 @@ function DispositionForm({
         order: 0,
     }
 
+    const currentFolder = folders?.find(f => f.id === existingFolderId)
+
+    function handleFolderMode(mode: FolderMode) {
+        setForm(f => ({
+            ...f,
+            folderMode: mode,
+            targetFolderId: mode === "existing" ? (existingFolderId ?? null) : null,
+        }))
+    }
+
     return (
         <div className="bg-[#F8F9FA] dark:bg-slate-700 rounded-xl p-5 border border-[#E9ECEF] dark:border-slate-600">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Label */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
@@ -104,47 +134,131 @@ function DispositionForm({
                     <label className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
                         Color
                     </label>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap items-center h-9">
                         {(Object.keys(COLOR_MAP) as DispositionColor[]).map(col => (
                             <button
                                 key={col}
                                 onClick={() => setForm(f => ({ ...f, color: col }))}
                                 className={`w-6 h-6 rounded-full ${COLOR_MAP[col].dot} transition-all ${form.color === col
-                                        ? "ring-2 ring-offset-2 ring-[#FFCA06] scale-110"
-                                        : "hover:scale-110"
+                                    ? "ring-2 ring-offset-2 ring-[#FFCA06] scale-110"
+                                    : "hover:scale-110"
                                     }`}
                                 title={col}
                             />
                         ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Icon */}
-                {/* <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
-                        Icon
+            {/* ── Folder Action ── */}
+            <div className="mt-5 pt-4 border-t border-[#E9ECEF] dark:border-slate-600">
+                <div className="mb-2">
+                    <p className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
+                        Folder Action
+                    </p>
+                    <p className="text-xs text-[#ADB5BD] dark:text-gray-500 mt-0.5">
+                        When this disposition is applied to a contact, they will be moved to the linked folder.
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-3">
+                    {/* Option A: Auto-create */}
+                    <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.folderMode === "auto"
+                        ? "border-[#FFCA06] bg-yellow-50/60 dark:bg-yellow-900/10"
+                        : "border-[#DEE2E6] dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}>
+                        <input
+                            type="radio"
+                            name="folderMode"
+                            checked={form.folderMode === "auto"}
+                            onChange={() => handleFolderMode("auto")}
+                            className="mt-0.5 accent-[#FFCA06]"
+                        />
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <FolderPlus className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+                                <span className="text-sm font-medium text-[#212529] dark:text-white">
+                                    Auto-create a folder named after this disposition
+                                </span>
+                            </div>
+                            {form.folderMode === "auto" && (
+                                <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-1">
+                                    {existingFolderId && currentFolder
+                                        ? <>Currently linked to: <span className="font-semibold text-gray-700 dark:text-gray-200">{currentFolder.name}</span></>
+                                        : form.label.trim()
+                                            ? <>A folder named <span className="font-semibold text-gray-700 dark:text-gray-200">"{form.label.trim()}"</span> will be created automatically.</>
+                                            : "Enter a label first — the folder name will match it."
+                                    }
+                                </p>
+                            )}
+                        </div>
                     </label>
-                    <div className="flex gap-1.5 flex-wrap">
-                        {ICON_OPTIONS.map(({ key, component: Icon }) => (
-                            <button
-                                key={key}
-                                onClick={() => setForm(f => ({ ...f, icon: key }))}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                                    form.icon === key
-                                        ? "bg-[#FFCA06] text-black"
-                                        : "bg-white dark:bg-slate-800 text-[#6C757D] dark:text-gray-400 hover:bg-[#FFF3CD]"
-                                } border border-[#DEE2E6] dark:border-slate-600`}
-                                title={key}
-                            >
-                                <Icon className="w-3.5 h-3.5" />
-                            </button>
-                        ))}
-                    </div>
-                </div> */}
+
+                    {/* Option B: Link existing */}
+                    <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.folderMode === "existing"
+                        ? "border-blue-400 bg-blue-50/60 dark:bg-blue-900/10"
+                        : "border-[#DEE2E6] dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}>
+                        <input
+                            type="radio"
+                            name="folderMode"
+                            checked={form.folderMode === "existing"}
+                            onChange={() => handleFolderMode("existing")}
+                            className="mt-0.5 accent-blue-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <FolderOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                <span className="text-sm font-medium text-[#212529] dark:text-white">
+                                    Link to an existing folder
+                                </span>
+                            </div>
+                            {form.folderMode === "existing" && (
+                                <div className="mt-2">
+                                    <select
+                                        value={form.targetFolderId || ""}
+                                        onChange={e => setForm(f => ({ ...f, targetFolderId: e.target.value || null }))}
+                                        className="w-full h-8 px-2 rounded-lg border border-[#DEE2E6] dark:border-slate-500 bg-white dark:bg-slate-800 text-sm text-[#212529] dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    >
+                                        <option value="">Search folders...</option>
+                                        {folders?.map(folder => (
+                                            <option key={folder.id} value={folder.id}>
+                                                {folder.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    </label>
+
+                    {/* Option C: None */}
+                    <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.folderMode === "none"
+                        ? "border-gray-400 bg-gray-50/60 dark:bg-gray-700/20"
+                        : "border-[#DEE2E6] dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}>
+                        <input
+                            type="radio"
+                            name="folderMode"
+                            checked={form.folderMode === "none"}
+                            onChange={() => handleFolderMode("none")}
+                            className="mt-0.5 accent-gray-500"
+                        />
+                        <div className="flex items-center gap-2">
+                            <FolderX className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <span className="text-sm font-medium text-[#212529] dark:text-white">
+                                No folder action
+                            </span>
+                            <span className="text-xs text-[#ADB5BD] dark:text-gray-500">
+                                — contact stays wherever it is
+                            </span>
+                        </div>
+                    </label>
+                </div>
             </div>
 
             {/* Preview + Actions */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#DEE2E6] dark:border-slate-600">
+            <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#DEE2E6] dark:border-slate-600">
                 <div className="flex items-center gap-2 text-sm text-[#6C757D] dark:text-gray-400">
                     <span className="text-xs font-medium">Preview:</span>
                     <DispositionBadge disposition={preview} />
@@ -174,16 +288,18 @@ function DispositionForm({
 export default function DispositionSettings() {
     const dispatch = useDispatch<AppDispatch>()
     const { dispositions } = useSelector((state: RootState) => state.dispositions)
-    
+    const { folders } = useSelector((state: RootState) => state.contactStructure)
+
     const [showAddForm, setShowAddForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
 
     useEffect(() => {
         dispatch(fetchDispositions())
+        dispatch(fetchFolders())
     }, [dispatch])
 
     function handleAdd(data: FormState) {
-        dispatch(createDisposition({
+        const payload: any = {
             label: data.label,
             value: slugify(data.label),
             color: data.color,
@@ -191,15 +307,43 @@ export default function DispositionSettings() {
             isSystem: false,
             isActive: true,
             order: dispositions.length + 1,
-        }))
+        }
+
+        if (data.folderMode === "auto") {
+            payload.autoCreateFolder = true
+        } else if (data.folderMode === "existing") {
+            payload.targetFolderId = data.targetFolderId || null
+        } else {
+            payload.targetFolderId = null
+        }
+
+        dispatch(createDisposition(payload))
         setShowAddForm(false)
     }
 
     function handleEdit(id: string, data: FormState) {
-        dispatch(updateDisposition({
-            id,
-            data: { label: data.label, color: data.color, icon: data.icon }
-        }))
+        const existing = dispositions.find(d => d.id === id)
+        const updatePayload: any = {
+            label: data.label,
+            color: data.color,
+            icon: data.icon,
+        }
+
+        if (data.folderMode === "auto") {
+            // If already linked, keep existing folder — no new folder created on edit
+            if (existing?.targetFolderId) {
+                updatePayload.targetFolderId = existing.targetFolderId
+            } else {
+                // No existing folder → signal backend to auto-create
+                updatePayload.autoCreateFolder = true
+            }
+        } else if (data.folderMode === "existing") {
+            updatePayload.targetFolderId = data.targetFolderId || null
+        } else {
+            updatePayload.targetFolderId = null
+        }
+
+        dispatch(updateDisposition({ id, data: updatePayload }))
         setEditingId(null)
     }
 
@@ -210,10 +354,7 @@ export default function DispositionSettings() {
     function handleToggleActive(id: string) {
         const disp = dispositions.find(d => d.id === id)
         if (disp) {
-            dispatch(updateDisposition({
-                id,
-                data: { isActive: !disp.isActive }
-            }))
+            dispatch(updateDisposition({ id, data: { isActive: !disp.isActive } }))
         }
     }
 
@@ -249,11 +390,11 @@ export default function DispositionSettings() {
                 />
             )}
 
-            {/* System Dispositions */}
+            {/* System Dispositions — Call Outcomes */}
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
-                        System Dispositions
+                        CALL OUTCOMES
                     </span>
                     <span className="text-xs text-[#ADB5BD] dark:text-gray-500">(cannot be deleted)</span>
                 </div>
@@ -263,6 +404,7 @@ export default function DispositionSettings() {
                         <DispositionRow
                             key={disp.id}
                             disposition={disp}
+                            folders={folders}
                             isEditing={editingId === disp.id}
                             isLast={idx === systemDispositions.length - 1}
                             onEdit={() => setEditingId(disp.id)}
@@ -278,7 +420,7 @@ export default function DispositionSettings() {
             {/* Custom Dispositions */}
             <div className="flex flex-col gap-3">
                 <span className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
-                    Custom Dispositions
+                    DISPOSITIONS
                 </span>
 
                 {customDispositions.length === 0 ? (
@@ -298,6 +440,7 @@ export default function DispositionSettings() {
                             <DispositionRow
                                 key={disp.id}
                                 disposition={disp}
+                                folders={folders}
                                 isEditing={editingId === disp.id}
                                 isLast={idx === customDispositions.length - 1}
                                 onEdit={() => setEditingId(disp.id)}
@@ -318,6 +461,7 @@ export default function DispositionSettings() {
 
 function DispositionRow({
     disposition,
+    folders,
     isEditing,
     isLast,
     onEdit,
@@ -327,6 +471,7 @@ function DispositionRow({
     onDelete,
 }: {
     disposition: Disposition
+    folders: any[]
     isEditing: boolean
     isLast: boolean
     onEdit: () => void
@@ -335,7 +480,7 @@ function DispositionRow({
     onToggle: () => void
     onDelete: (() => void) | null
 }) {
-    // const IconComp = getIconComponent(disposition.icon)
+    const linkedFolder = folders?.find(f => f.id === disposition.targetFolderId)
 
     return (
         <div className={`${!isLast ? "border-b border-[#F1F3F5] dark:border-slate-700" : ""}`}>
@@ -343,12 +488,10 @@ function DispositionRow({
                 {/* Drag handle */}
                 <GripVertical className="w-4 h-4 text-[#CED4DA] dark:text-gray-600 cursor-grab flex-shrink-0" />
 
-                {/* Icon */}
-                {/* <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${COLOR_MAP[disposition.color].bg} ${COLOR_MAP[disposition.color].text}`}>
-                    <IconComp className="w-4 h-4" />
-                </div> */}
+                {/* Color dot */}
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${COLOR_MAP[disposition.color]?.dot ?? "bg-gray-400"}`} />
 
-                {/* Label + value */}
+                {/* Label + badges */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-[#212529] dark:text-white truncate">
@@ -360,6 +503,12 @@ function DispositionRow({
                         {disposition.isSystem && (
                             <span className="text-[10px] font-medium text-[#6C757D] dark:text-gray-400 bg-[#F1F3F5] dark:bg-slate-700 px-1.5 py-0.5 rounded uppercase tracking-wide">
                                 System
+                            </span>
+                        )}
+                        {linkedFolder && (
+                            <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <FolderOpen className="w-3 h-3" />
+                                {linkedFolder.name}
                             </span>
                         )}
                     </div>
@@ -400,7 +549,14 @@ function DispositionRow({
             {isEditing && (
                 <div className="px-4 pb-4">
                     <DispositionForm
-                        initial={{ label: disposition.label, color: disposition.color, icon: disposition.icon }}
+                        initial={{
+                            label: disposition.label,
+                            color: disposition.color,
+                            icon: disposition.icon,
+                            folderMode: disposition.targetFolderId ? "existing" : "none",
+                            targetFolderId: disposition.targetFolderId,
+                        }}
+                        existingFolderId={disposition.targetFolderId}
                         onSave={onSaveEdit}
                         onCancel={onCancelEdit}
                     />
