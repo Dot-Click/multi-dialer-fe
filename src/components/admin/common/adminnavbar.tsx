@@ -30,6 +30,12 @@ const AdminNavbar = () => {
 
   const user = data?.user
 
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.image]);
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -215,12 +221,29 @@ const AdminNavbar = () => {
 
       {/* Avatar with Dropdown */}
       <div className="relative" ref={dropdownRef}>
-        <div
-          className="bg-gray-600 text-lg flex justify-center items-center text-gray-200 cursor-pointer rounded-full w-10"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-        >
-          <img src={user?.image || "/avatar.png"} alt="Avatar" className="w-10 rounded-full" />
-        </div>
+        {user?.image && !imgError ? (
+          <div
+            className="w-10 h-10 cursor-pointer rounded-full overflow-hidden select-none transition-all duration-200 hover:scale-[1.04] active:scale-95 shadow-sm border border-gray-200 dark:border-slate-700"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            <img
+              src={user.image}
+              alt={user.name || "User Avatar"}
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          </div>
+        ) : (
+          <div
+            className="w-10 h-10 bg-[#FFCA06] text-black font-extrabold text-base flex justify-center items-center cursor-pointer rounded-full select-none transition-all duration-200 hover:scale-[1.04] active:scale-95 shadow-sm border border-yellow-500/20"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {(user?.name || user?.email || "U")
+              .trim()
+              .charAt(0)
+              .toUpperCase()}
+          </div>
+        )}
 
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded shadow-md z-10">
