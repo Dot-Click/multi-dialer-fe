@@ -95,7 +95,7 @@ const SubscriptionTable = () => {
     const username = item.user?.fullName || "";
     const matchesSearch =
       username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.zohooCustomerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.stripeCustomerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.id.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesPlan =
@@ -158,7 +158,7 @@ const SubscriptionTable = () => {
                 {[
                   "Username",
                   "Plan",
-                  "Customer ID",
+                  "Stripe Customer ID",
                   "Agents",
                   "Status",
                   "Billing Cycle",
@@ -189,7 +189,7 @@ const SubscriptionTable = () => {
                     {row.plan}
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
-                    {row.zohooCustomerId || "N/A"}
+                    {row.stripeCustomerId || "N/A"}
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                     {row.usersCount}

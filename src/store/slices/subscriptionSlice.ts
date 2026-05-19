@@ -8,7 +8,7 @@ export interface Subscription {
     status: string;
     startDate: string;
     endDate: string | null;
-    zohooCustomerId: string;
+    stripeCustomerId: string;
     usersCount: number;
     billingCycle: string;
     createdAt: string;
@@ -24,63 +24,15 @@ export interface Subscription {
     };
 }
 
-export interface ZohoPlan {
-    plan_code: string;
-    plan_id: string;
+export interface Plan {
     name: string;
-    product_name: string;
-    billing_mode: string;
-    description: string;
-    status: string;
-    status_formatted: string;
-    product_id: string;
-    tax_id: string;
-    tax_name: string;
-    tax_percentage: number;
-    tax_type: string;
-    trial_period: number;
-    setup_fee: number;
-    setup_fee_account_id: string;
-    setup_fee_account_name: string;
-    account_id: string;
-    account: string;
-    recurring_price: number;
-    pricing_scheme: string;
-    pricing_scheme_formatted: string;
-    price_brackets: Array<{ price: number }>;
-    unit: string;
-    interval: number;
-    interval_unit: string;
-    interval_unit_formatted: string;
-    is_usage_enabled: boolean;
-    billing_cycles: number;
-    product_type: string;
-    show_in_widget: boolean;
-    store_description: string;
-    store_markup_description: string;
-    feature_details: {
-        features: any[];
-    };
-    url: string;
-    image_id: string;
-    shipping_interval: number;
-    shipping_interval_unit: string;
-    group_name: string;
-    internal_name: string;
-    is_free_plan: boolean;
-    created_time: string;
-    created_time_formatted: string;
-    created_at: string;
-    created_at_formatted: string;
-    updated_time: string;
-    updated_time_formatted: string;
-    addons: any[];
-    custom_fields: any[];
+    priceId: string;
 }
 
 interface SubscriptionState {
     subscriptions: Subscription[];
-    plans: ZohoPlan[];
+    plans: Plan[];
+    billingPortalUrl: string | null;
     loading: boolean;
     error: string | null;
 }
@@ -88,6 +40,7 @@ interface SubscriptionState {
 const initialState: SubscriptionState = {
     subscriptions: [],
     plans: [],
+    billingPortalUrl: null,
     loading: false,
     error: null,
 };
@@ -96,7 +49,7 @@ export const fetchSubscriptions = createAsyncThunk(
     'subscriptions/fetchList',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/subscriptions/list');
+            const response = await api.get('/billing/subscriptions');
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -116,7 +69,7 @@ export const getAllSubscriptions = createAsyncThunk(
     'subscriptions/fetchAll',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/subscriptions/all');
+            const response = await api.get('/billing/subscriptions');
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -136,7 +89,7 @@ export const fetchToken = createAsyncThunk(
     'subscriptions/fetchToken',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/subscriptions/auth');
+            const response = await api.get('/billing/auth');
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -156,7 +109,7 @@ export const fetchPlans = createAsyncThunk(
     'subscriptions/fetchPlans',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/subscriptions/billings');
+            const response = await api.get('/billing/plans');
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -174,9 +127,9 @@ export const fetchPlans = createAsyncThunk(
 
 export const createSubscription = createAsyncThunk(
     'subscriptions/creates',
-    async (plan_code: string, { rejectWithValue }) => {
+    async (priceId: string, { rejectWithValue }) => {
         try {
-            const response = await api.post('/subscriptions', { plan_code });
+            const response = await api.post('/billing', { priceId });
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -185,6 +138,26 @@ export const createSubscription = createAsyncThunk(
         } catch (error: any) {
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data.message || 'Failed to create subscription');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const fetchBillingPortalUrl = createAsyncThunk(
+    'subscriptions/fetchBillingPortalUrl',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/billing/portal');
+            if (response.data.success) {
+                return response.data.data.url;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch billing portal URL');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to fetch billing portal URL');
             } else {
                 return rejectWithValue(error.message);
             }
@@ -242,6 +215,18 @@ export const subscriptionSlice = createSlice({
                 state.subscriptions = action.payload;
             })
             .addCase(getAllSubscriptions.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchBillingPortalUrl.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchBillingPortalUrl.fulfilled, (state, action) => {
+                state.loading = false;
+                state.billingPortalUrl = action.payload;
+            })
+            .addCase(fetchBillingPortalUrl.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

@@ -39,7 +39,7 @@ import AdminLibrary from "@/pages/admin/library";
 import AdminReportAnalytics from "@/pages/admin/reportanalytics";
 import AdminUserManagment from "@/components/admin/user-managment/useermanagement"
 import Billing from "@/pages/admin/billing";
-import Upgrade from "@/pages/admin/upgrade";
+
 import LeadStore from "@/pages/admin/leadstore";
 import Compliance from "@/pages/admin/compliance";
 import AdminFindDuplicate from "@/pages/admin/adminfindduplicate";
@@ -129,7 +129,7 @@ const Router: React.FC = () => {
               <Route path="create-setting" element={<AdminCreateCallSetting />} />
               <Route path="action-plan" element={<AdminActionPlan />} />
               <Route path="billing" element={<Billing />} />
-              <Route path="upgrade" element={<Upgrade />} />
+
               <Route path="lead-store" element={<LeadStore />} />
               <Route path="compliance" element={<Compliance />} />
               <Route path="add-setting" element={<AddSettingPage />} />

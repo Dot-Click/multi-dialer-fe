@@ -30,7 +30,7 @@ const FeatureLockedOverlay: React.FC<FeatureLockedOverlayProps> = ({
         
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => navigate('/admin/upgrade')}
+            onClick={() => navigate('/admin/billing')}
             className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-orange-500/20 active:scale-95"
           >
             Upgrade Now

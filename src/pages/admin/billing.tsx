@@ -1,5 +1,4 @@
 import {
-  ArrowUp,
   Users,
   Calendar,
   ChevronLeft,
@@ -20,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Box } from "@/components/ui/box";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchSubscriptions } from "@/store/slices/subscriptionSlice";
 import { format, addMonths, addYears } from "date-fns";
@@ -30,6 +29,7 @@ import api from "@/lib/axios";
 const Billing = () => {
   // const navigate = useNavigate()
   const dispatch = useAppDispatch();
+  const [billingLoading, setBillingLoading] = useState(false);
   const { subscriptions, loading, error } = useAppSelector(
     (state) => state.subscriptions,
   );
@@ -99,14 +99,20 @@ const Billing = () => {
     return total.toString();
   };
 
-  const handleZohoOAuthFlow = async () => {
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
     try {
-      // navigate('/admin/upgrade')
-      const res = await api.post("/subscriptions/update-card-link");
-      // console.log(res)
-      window.location.href = res.data.data.hostedpage.url;
-    } catch {
-      toast.error("Failed to fetch token");
+      const res = await api.get("/billing/portal");
+      if (res.data.success && res.data.data.url) {
+        window.location.href = res.data.data.url;
+      } else {
+        toast.error(res.data.message || "Failed to retrieve billing portal URL");
+      }
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || "Failed to connect to billing portal";
+      toast.error(errMsg);
+    } finally {
+      setBillingLoading(false);
     }
   };
 
@@ -131,11 +137,16 @@ const Billing = () => {
               : "No Plan"}
           </Badge>
           <Button
-            onClick={handleZohoOAuthFlow}
+            onClick={handleManageBilling}
+            disabled={billingLoading}
             className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:text-black rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
           >
-            <ArrowUp className="size-4" />
-            Upgrade
+            {billingLoading ? (
+              <Loader2 className="size-4 animate-spin mr-2" />
+            ) : (
+              <CreditCard className="size-4 mr-2" />
+            )}
+            Manage Billing
           </Button>
         </div>
 

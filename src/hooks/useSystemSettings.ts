@@ -765,7 +765,7 @@ export const useAuditLogs = () => {
 };
 export interface Integration {
   id: string;
-  provider: "TWILIO" | "GOOGLE_MAPS" | "REALTOR_DOT_COM" | "BOMB_BOMB" | "GMAIL" | "STANPP_DOT_COM" | "MY_PLUS_LEADS" | "ZAPIER" | "ZOHO";
+  provider: "TWILIO" | "GOOGLE_MAPS" | "REALTOR_DOT_COM" | "BOMB_BOMB" | "GMAIL" | "STANPP_DOT_COM" | "MY_PLUS_LEADS" | "ZAPIER";
   status: "CONNECTED" | "FAILED" | "PROCESSING" | "NEED_SETUP";
   credentials: any;
   errorMessage?: string;
