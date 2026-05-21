@@ -25,8 +25,19 @@ export interface Subscription {
 }
 
 export interface Plan {
+    id: string;
+    plan: string;
     name: string;
+    displayName: string;
+    monthlyAmount: number;
+    yearlyAmount: number;
     priceId: string;
+    monthlyStripePriceId?: string;
+    yearlyStripePriceId?: string;
+    stripeProductId?: string;
+    features: Array<{ text: string; enabled: boolean }>;
+    isActive: boolean;
+    isPopular: boolean;
 }
 
 interface SubscriptionState {
@@ -145,6 +156,38 @@ export const createSubscription = createAsyncThunk(
     }
 );
 
+export const updatePlanTier = createAsyncThunk(
+    'subscriptions/updatePlanTier',
+    async (
+        payload: {
+            plan: string;
+            displayName: string;
+            monthlyAmount: number;
+            yearlyAmount: number;
+            features: Array<{ text: string; enabled: boolean }>;
+            isActive: boolean;
+            isPopular: boolean;
+        },
+        { rejectWithValue },
+    ) => {
+        try {
+            const { plan, ...body } = payload;
+            const response = await api.put(`/billing/plans/${plan}`, body);
+            if (response.data.success) {
+                return response.data.data;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to update plan');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to update plan');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    },
+);
+
 export const fetchBillingPortalUrl = createAsyncThunk(
     'subscriptions/fetchBillingPortalUrl',
     async (_, { rejectWithValue }) => {
@@ -203,6 +246,28 @@ export const subscriptionSlice = createSlice({
                 state.loading = false;
             })
             .addCase(createSubscription.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(updatePlanTier.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updatePlanTier.fulfilled, (state, action) => {
+                state.loading = false;
+                const updated = action.payload;
+                const index = state.plans.findIndex((plan) => {
+                    const currentProductId = plan.stripeProductId || plan.id;
+                    const updatedProductId = updated.stripeProductId || updated.id;
+                    return currentProductId === updatedProductId;
+                });
+                if (index >= 0) {
+                    state.plans[index] = updated;
+                } else {
+                    state.plans.push(updated);
+                }
+            })
+            .addCase(updatePlanTier.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             })
