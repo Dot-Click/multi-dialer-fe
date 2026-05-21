@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { useTwilio } from "@/providers/twilio.provider";
 import { updateContact } from "@/store/slices/contactSlice";
 import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionSlice";
 import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import { Phone, User, Check, Loader2, Tag } from "lucide-react";
-import api from "@/lib/axios";
 import toast from "react-hot-toast";
 import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/detail";
 
@@ -15,9 +13,8 @@ interface CallOutcomesProps {
 
 const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
-const CallOutcomes = ({ onNext }: CallOutcomesProps) => {
+const CallOutcomes = ({}: CallOutcomesProps) => {
     const dispatch = useAppDispatch();
-    const { endCall, dropVoicemail, isCalling } = useTwilio();
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
     const { folders } = useAppSelector(s => s.contactStructure);
@@ -48,29 +45,13 @@ const CallOutcomes = ({ onNext }: CallOutcomesProps) => {
 
     async function applyImmediate(id: string, label: string, value: string) {
         if (!currentContact?.id) return;
-        const upperVal = value.toUpperCase();
         setSelectedDisp(value);
         setSavingDisp(true);
         try {
             await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
             await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
             setSavedDisp(value);
-            toast.success(`Outcome set: ${label}`);
-
-            switch (upperVal) {
-                case "NO_ANSWER": case "BAD_NUMBER":
-                    if (isCalling) await endCall(); if (onNext) onNext(); break;
-                case "VOICEMAIL":
-                    await dropVoicemail(); if (onNext) onNext(); break;
-                case "DNC_CONTACT": case "DNC_NUMBER":
-                    if (isCalling) await endCall();
-                    await api.post(`/contact/${currentContact.id}/move-to-dnc`, {
-                        phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : []
-                    });
-                    if (onNext) onNext(); break;
-                default:
-                    if (isCalling) await endCall(); if (onNext) onNext(); break;
-            }
+            toast.success(`Disposition set: ${label}`);
         } catch (err: any) {
             toast.error("Failed to update disposition: " + err);
         } finally {
@@ -104,7 +85,7 @@ const CallOutcomes = ({ onNext }: CallOutcomesProps) => {
             setSelectedDisp(pendingDisp.value);
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
-            toast.success(`Outcome: ${pendingDisp.label}${folderName ? ` · Moved to ${folderName}` : ""}`);
+            toast.success(`Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`);
         } catch (err: any) {
             toast.error("Failed: " + err);
         } finally {

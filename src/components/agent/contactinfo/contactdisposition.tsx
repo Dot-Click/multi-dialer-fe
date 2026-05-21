@@ -7,8 +7,6 @@ import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionS
 import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import toast from "react-hot-toast";
 import { Phone, Check, Loader2, Users, Tag } from "lucide-react";
-import { useTwilio } from "@/providers/twilio.provider";
-import api from "@/lib/axios";
 
 // ─── Icon + color maps (same as DispositionSettings) ─────────────────────────
 
@@ -58,9 +56,8 @@ interface ContactDispositionProps {
   onNext?: () => void;
 }
 
-const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
+const ContactDisposition = ({}: ContactDispositionProps) => {
   const dispatch = useAppDispatch();
-  const { endCall, dropVoicemail, isCalling } = useTwilio();
 
   const { currentContact, groups } = useAppSelector(s => s.contacts);
   const { dispositions } = useAppSelector(s => s.dispositions);
@@ -129,23 +126,11 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
       setSelectedDisp(value);
       setSavingDisp(true);
       try {
-        await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value, status: value } }));
+        await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } }));
         await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId, source: "CALL" }));
         setSavedDisp(value);
         setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
-        toast.success(`Outcome: ${label}`);
-        const upperVal = value.toUpperCase();
-        switch (upperVal) {
-          case "NO_ANSWER": case "BAD_NUMBER":
-            if (isCalling) await endCall(); if (onNext) onNext(); break;
-          case "VOICEMAIL":
-            await dropVoicemail(); if (onNext) onNext(); break;
-          case "DNC_CONTACT": case "DNC_NUMBER": case "DO_NOT_CALL":
-            if (isCalling) await endCall();
-            await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : [] });
-            if (onNext) onNext(); break;
-          default: break;
-        }
+        toast.success(`Disposition: ${label}`);
       } finally {
         setSavingDisp(false);
       }
@@ -162,7 +147,7 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
     const { id: dispositionId, label, value } = pendingDisp;
     setSavingDisp(true);
     try {
-      await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value, status: value } }));
+      await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } }));
       await dispatch(applyDisposition({
         contactId: currentContact.id,
         dispositionId,
@@ -173,7 +158,7 @@ const ContactDisposition = ({ onNext }: ContactDispositionProps) => {
       setSavedDisp(value);
       setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
       const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
-      toast.success(`Outcome: ${label}${folderName ? ` · Moved to ${folderName}` : ""}`);
+      toast.success(`Disposition: ${label}${folderName ? ` - Moved to ${folderName}` : ""}`);
     } finally {
       setSavingDisp(false);
       setPendingDisp(null);

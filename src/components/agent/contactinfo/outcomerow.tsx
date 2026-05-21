@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useEffect, useState } from 'react';
-import { updateContact, removeFromQueue } from '@/store/slices/contactSlice';
+import { updateContact } from '@/store/slices/contactSlice';
 import { fetchDispositions } from '@/store/slices/dispositionSlice';
 import { 
     Phone, User, CheckCircle2, XCircle, PhoneOff, 
@@ -8,8 +8,6 @@ import {
     Snowflake, Clock, Ban, ThumbsDown, Tag 
 } from "lucide-react";
 import toast from 'react-hot-toast';
-import api from '@/lib/axios';
-import { useTwilio } from '@/providers/twilio.provider';
 
 const ICON_MAP: Record<string, React.ElementType> = {
     CheckCircle2, XCircle, Phone, PhoneOff, PhoneMissed,
@@ -38,11 +36,10 @@ const COLOR_ACTIVE: Record<string, string> = {
 };
 
 
-const OutcomeRow = ({ onNext }: { onNext?: () => void }) => {
+const OutcomeRow = ({}: { onNext?: () => void }) => {
     const dispatch = useAppDispatch();
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
-    const { endCall, dropVoicemail, isCalling } = useTwilio();
 
     const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
     const [savingDisp, setSavingDisp] = useState(false);
@@ -62,27 +59,8 @@ const OutcomeRow = ({ onNext }: { onNext?: () => void }) => {
         setSelectedDisp(value);
         setSavingDisp(true);
         try {
-            await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value, status: value } })).unwrap();
-            toast.success(`Outcome: ${label}`);
-            
-            const upperVal = value.toUpperCase();
-            if (upperVal !== "VOICEMAIL" && onNext) {
-                dispatch(removeFromQueue(currentContact.id));
-            }
-
-            if (["NO_ANSWER", "BAD_NUMBER", "DNC_CONTACT", "DNC_NUMBER", "DO_NOT_CALL"].includes(upperVal)) {
-                if (isCalling) await endCall();
-                if (upperVal.startsWith("DNC") || upperVal === "DO_NOT_CALL") {
-                    await api.post(`/contact/${currentContact.id}/move-to-dnc`, {
-                        phoneIds: (upperVal === "DNC_NUMBER") ? [currentContact.phones?.[0]?.id] : []
-                    });
-                }
-            } else if (upperVal === "VOICEMAIL") {
-                await dropVoicemail();
-                if (onNext) onNext();
-            } else {
-                if (isCalling) await endCall();
-            }
+            await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+            toast.success(`Disposition: ${label}`);
         } catch (err: any) {
             toast.error("Failed: " + err);
         } finally {

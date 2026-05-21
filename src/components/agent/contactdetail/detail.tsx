@@ -6,7 +6,6 @@ import {
     updateContact,
     assignContactToList,
     setCurrentContactFields,
-    removeFromQueue,
 } from '@/store/slices/contactSlice';
 import { fetchDispositions, applyDisposition } from '@/store/slices/dispositionSlice';
 import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List } from "lucide-react";
@@ -17,7 +16,6 @@ import RealtorLogo from '@/assets/realtor.png';
 import GoogleMapsLogo from '@/assets/googlemap.png';
 import toast from 'react-hot-toast'
 import { TbEdit } from "react-icons/tb";
-import { useTwilio } from "@/providers/twilio.provider";
 import api from "@/lib/axios";
 import ApplyDispositionModal from "@/components/modal/ApplyDispositionModal";
 
@@ -58,9 +56,8 @@ interface DetailProps {
     hideQualifications?: boolean;
 }
 
-const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: DetailProps) => {
+const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProps) => {
     const dispatch = useAppDispatch();
-    const { endCall, dropVoicemail, isCalling } = useTwilio();
     const { currentContact, folders, lists } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
     const [showModal, setShowModal] = useState(false);
@@ -212,7 +209,7 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
             await dispatch(
                 updateContact({
                     id: currentContact.id,
-                    payload: { disposition: value, status: value }
+                    payload: { disposition: value }
                 })
             ).unwrap();
 
@@ -228,40 +225,7 @@ const Detail = ({ onNext, hideOutcomes = false, hideQualifications = false }: De
             }
 
             setSavedDisp(value);
-            toast.success(`Outcome: ${label}`);
-
-            const upperVal = value.toUpperCase();
-
-            // Auto-remove from session queue for all outcomes EXCEPT Voicemail
-            if (upperVal !== "VOICEMAIL" && onNext) {
-                dispatch(removeFromQueue(currentContact.id));
-                // When we remove from the queue, the next contact automatically 
-                // becomes the 'current' one at the same index, so we don't call onNext().
-            }
-
-            switch (upperVal) {
-                case "NO_ANSWER":
-                case "BAD_NUMBER":
-                    if (isCalling) await endCall();
-                    if (onNext) onNext();
-                    break;
-                case "VOICEMAIL":
-                    await dropVoicemail();
-                    if (onNext) onNext();
-                    break;
-                case "DNC_CONTACT":
-                case "DNC_NUMBER":
-                    if (isCalling) await endCall();
-                    await api.post(`/contact/${currentContact.id}/move-to-dnc`, {
-                        phoneIds: upperVal === "DNC_NUMBER" ? [currentContact.phones?.[0]?.id] : []
-                    });
-                    if (onNext) onNext();
-                    break;
-                default:
-                    if (isCalling) await endCall();
-                    if (onNext) onNext();
-                    break;
-            }
+            toast.success(`Disposition: ${label}`);
         } catch (err: any) {
             toast.error("Failed to update disposition: " + err);
         } finally {
