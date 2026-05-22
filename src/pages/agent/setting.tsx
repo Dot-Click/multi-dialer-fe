@@ -5,6 +5,7 @@ import { authClient } from '../../lib/auth-client';
 import api from '../../lib/axios';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import A2PRegistrationPanel from '@/components/common/A2PRegistrationPanel';
 
 const Setting = () => {
   const [activeTab, setActiveTab] = useState('personal');
@@ -94,6 +95,7 @@ const Setting = () => {
 
   const tabs = [
     { id: "personal", label: "Personal Info & Notification" },
+    { id: "sms-compliance", label: "SMS Registration" },
     { id: "caller-id", label: "Caller ID & Campaigns" },
     { id: "dialer", label: "Dialer Settings" },
     { id: "touch-points", label: "Touch Points" },
@@ -473,6 +475,8 @@ const Setting = () => {
               </div>
             </>
           )}
+
+          {activeTab === "sms-compliance" && <A2PRegistrationPanel />}
 
           {activeTab === 'caller-id' && (
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
