@@ -12,6 +12,7 @@ export interface MyPlusLeadsConfig {
   autoSync: boolean;
   status: string;
   lastSyncAt: string | null;
+  errorMessage?: string | null;
 }
 
 export const useMyPlusLeads = () => {
@@ -49,10 +50,25 @@ export const useMyPlusLeads = () => {
     },
   });
 
+  const syncNow = useMutation({
+    mutationFn: async () => {
+      const response = await api.post(`/integrations/myplusleads/sync`);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myPlusLeadsConfig"] });
+      toast.success("MyPlusLeads sync complete");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to sync MyPlusLeads");
+    },
+  });
+
   return {
     config: data,
     isLoading,
     updateConfig,
     disconnect,
+    syncNow,
   };
 };

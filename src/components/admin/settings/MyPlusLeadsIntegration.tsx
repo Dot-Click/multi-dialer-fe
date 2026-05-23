@@ -5,7 +5,7 @@ import myplusLogo from "@/assets/myplus.png";
 import { useEffect, useState } from "react";
 
 const MyPlusLeadsIntegration = () => {
-  const { config, isLoading, updateConfig, disconnect } = useMyPlusLeads();
+  const { config, isLoading, updateConfig, disconnect, syncNow } = useMyPlusLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [copied, setCopied] = useState(false);
@@ -155,17 +155,27 @@ const MyPlusLeadsIntegration = () => {
                   </span>
                 </div>
                 {isConnected && (
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Are you sure you want to disconnect MyPlusLeads?")) {
-                        disconnect.mutate();
-                        setIsModalOpen(false);
-                      }
-                    }}
-                    className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
-                  >
-                    <FiTrash2 size={12} /> Disconnect
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => syncNow.mutate()}
+                      disabled={syncNow.isPending}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black transition-all hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <FiRefreshCw size={12} className={syncNow.isPending ? "animate-spin" : ""} />
+                      {syncNow.isPending ? "Syncing" : "Sync Now"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to disconnect MyPlusLeads?")) {
+                          disconnect.mutate();
+                          setIsModalOpen(false);
+                        }
+                      }}
+                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                    >
+                      <FiTrash2 size={12} /> Disconnect
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
