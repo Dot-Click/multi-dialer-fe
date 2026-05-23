@@ -152,16 +152,23 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
         setIsOpeningRealtor(true);
 
         try {
+            console.log("[Realtor] Fetching realtor link for contact:", currentContact.id);
             const response = await api.get(`/contact/${currentContact.id}/realtor-link`);
-            console.log(response);
+            console.log("[Realtor] Response:", response);
+            
             const realtorUrl = response.data?.data?.realtorUrl;
             if (!realtorUrl) {
                 throw new Error("No Realtor property link was returned");
             }
 
+            console.log("[Realtor] Opening URL:", realtorUrl);
             window.open(realtorUrl, "_blank", "noopener,noreferrer");
+            toast.success("Realtor page opened");
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || error?.message || "Unable to open Realtor property page");
+            console.error("[Realtor] Error:", error);
+            const errorMessage = error?.response?.data?.message || error?.message || "Unable to open Realtor property page";
+            console.error("[Realtor] Error message:", errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsOpeningRealtor(false);
         }
@@ -387,7 +394,7 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
                             <Plus className='text-[#495057] dark:text-white shadow-sm' size={14} />
                         </span>
                     </div>
-                    <div className='flex flex-col gap-1'>
+                    <div className='flex flex-col gap-1 max-h-[80px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent'>
                         {currentContact.phones?.map((phone: any, index: number) => (
                             <div key={index} className='flex px-2 py-2 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group'>
                                 <div className='flex gap-3 items-center'>
