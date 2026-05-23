@@ -8,7 +8,7 @@ import {
     setCurrentContactFields,
 } from '@/store/slices/contactSlice';
 import { fetchDispositions, applyDisposition } from '@/store/slices/dispositionSlice';
-import { MapPin, Mail, Phone, Plus, MoreVertical, Loader2, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
@@ -56,7 +56,7 @@ interface DetailProps {
     hideQualifications?: boolean;
 }
 
-const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProps) => {
+const Detail = ({ hideQualifications = false }: DetailProps) => {
     const dispatch = useAppDispatch();
     const { currentContact, folders, lists } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
@@ -74,12 +74,12 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
     const [_tagsInput, setTagsInput] = useState<string>('');
 
     const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
-    const [savedDisp, setSavedDisp] = useState<string | null>(null);
+    const [_savedDisp, setSavedDisp] = useState<string | null>(null);
     const [savingDisp, setSavingDisp] = useState(false);
-    const [overrideFolderId, setOverrideFolderId] = useState<string | null>(null);
+    const [overrideFolderId, _setOverrideFolderId] = useState<string | null>(null);
     const [showApplyModal, setShowApplyModal] = useState(false);
 
-    const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
+    // const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
     useEffect(() => {
         dispatch(fetchContactFolders());
@@ -240,9 +240,9 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
         }
     }
 
-    function getDispLabel(value: string) {
-        return dispositions.find(d => d.value === value)?.label ?? value;
-    }
+    // function getDispLabel(value: string) {
+    //     return dispositions.find(d => d.value === value)?.label ?? value;
+    // }
 
     const QUAL_FIELDS = [
         { label: "Permission", key: "permission" as const },
@@ -273,7 +273,7 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
     }
 
     const activeDispositions = dispositions.filter(d => d.isActive);
-    const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
+    // const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
     const customDispositions = activeDispositions.filter(d => !d.isSystem);
 
     const stats = [
@@ -456,74 +456,7 @@ const Detail = ({ hideOutcomes = false, hideQualifications = false }: DetailProp
 
 
 
-            {/* CALL OUTCOMES */}
-            {!hideOutcomes && (
-                <div className="flex flex-col gap-3 pt-3 border-t border-gray-100 dark:border-white/5">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Phone size={13} className="text-gray-400 dark:text-gray-500" />
-                            <h1 className='text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Call Outcomes</h1>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                        {smartItems.map(d => {
-                            const Icon = ICON_MAP[d.icon] ?? User;
-                            const isActive = selectedDisp === d.value;
-                            return (
-                                <button
-                                    key={d.id}
-                                    onClick={() => handleSmartAction(d.label, d.value)}
-                                    disabled={savingDisp}
-                                    className={`inline-flex items-center gap-2 px-3 py-1 text-[12px] rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
-                                        ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
-                                        : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
-                                        }`}
-                                >
-                                    <Icon className="w-3 h-3 shrink-0" />
-                                    {d.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2">
-                        <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-                            {selectedDisp !== savedDisp && selectedDisp
-                                ? `Selected: ${getDispLabel(selectedDisp)}`
-                                : !selectedDisp
-                                    ? "No disposition selected"
-                                    : "Up to date"}
-                        </p>
-
-                        <div className="flex items-center gap-3">
-                            {/* Override Folder Dropdown */}
-                            {selectedDisp && (
-                                <select
-                                    value={overrideFolderId || ""}
-                                    onChange={(e) => setOverrideFolderId(e.target.value || null)}
-                                    className="h-8 px-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-400 max-w-[140px]"
-                                >
-                                    <option value="">Default Folder</option>
-                                    {folders?.map(f => (
-                                        <option key={f.id} value={f.id}>{f.name}</option>
-                                    ))}
-                                </select>
-                            )}
-
-                            {selectedDisp !== savedDisp && selectedDisp && !SMART_VALUES.includes(selectedDisp.toUpperCase()) && (
-                                <button
-                                    onClick={() => handleSmartAction(getDispLabel(selectedDisp), selectedDisp)}
-                                    disabled={savingDisp}
-                                    className="inline-flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 shadow-sm transition-all"
-                                >
-                                    {savingDisp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check size={14} /> Save Outcome</>}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+        
 
             {/* CUSTOM DISPOSITIONS CREATED BY USER */}
             {customDispositions.length > 0 && (
