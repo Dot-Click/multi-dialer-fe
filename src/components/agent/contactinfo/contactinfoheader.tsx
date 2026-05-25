@@ -61,7 +61,7 @@ const ContactInfoHeader = ({
     category: "TASK" | "FOLLOW_UP" | "APPOINTMENT";
   }>({ title: "", color: "#FFCA06", category: "TASK" });
 
-  const { isCalling, startCall, endCall } = useTwilio();
+  const { isCalling, startCall, endCall, isPostCall } = useTwilio();
   const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
   const handleCallToggle = useCallback(async () => {
@@ -233,18 +233,18 @@ const ContactInfoHeader = ({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleNavigateWithCall('prev')}
-                  disabled={currentIndex === 0}
+                  disabled={currentIndex === 0 || isPostCall}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
-                  title="Previous Contact"
+                  title={isPostCall ? "Complete disposition first" : "Previous Contact"}
                 >
                   <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />
                   <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Prev</span>
                 </button>
                 <button
                   onClick={() => handleNavigateWithCall('next')}
-                  disabled={currentIndex >= totalContacts - 1}
+                  disabled={currentIndex >= totalContacts - 1 || isPostCall}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
-                  title="Next Contact"
+                  title={isPostCall ? "Complete disposition first" : "Next Contact"}
                 >
                   <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Next</span>
                   <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#FFCA06] transition-colors" />

@@ -7,6 +7,19 @@ import { VscCallOutgoing } from "react-icons/vsc";
 
 type CallStatus = "Connected" | "On Hold" | "Hung Up" | "Queued" | "Ringing" | "Disconnected" | "Callback" | "Redialing";
 
+const STATUS_PRIORITY: Record<string, number> = {
+  'connected': 1,
+  'in-progress': 1,
+  'answered': 1,
+  'on-hold': 1,
+  'dialing': 2,
+  'ringing': 2,
+  'initiated': 2,
+  'redialing': 3,
+  'queued': 4,
+  'pending': 4,
+};
+
 const getStatusBadgeStyle = (status: CallStatus) => {
   switch (status) {
     case 'Connected': return 'bg-[#10B981] text-white';
@@ -69,6 +82,34 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
     isCalling
   } = useTwilio();
 
+  const activeSortId = incomingContactId || currentContact?.id;
+
+  const getSortStatus = (leadId: string) => {
+    if (activeSortId === leadId) {
+      switch (callStatus) {
+        case 'connected':
+        case 'on-hold':
+          return 'connected';
+        case 'ringing':
+          return 'dialing';
+        case 'idle':
+          return 'pending';
+        case 'disconnected':
+          return 'disconnected';
+        default:
+          return 'pending';
+      }
+    }
+
+    return leadStatuses[leadId]?.toLowerCase() ?? 'pending';
+  };
+
+  const sortedQueue = [...queue].sort((a, b) => {
+    const aPriority = STATUS_PRIORITY[getSortStatus(a.id)] ?? 5;
+    const bPriority = STATUS_PRIORITY[getSortStatus(b.id)] ?? 5;
+    return aPriority - bPriority;
+  });
+
   useEffect(() => {
     if (!isCalling) resetCallStatus();
   }, [currentContact?.id, resetCallStatus, isCalling]);
@@ -115,7 +156,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
         ref={scrollContainerRef}
         className="flex-1 flex flex-col gap-3 py-2 px-1 overflow-y-auto no-scrollbar scroll-smooth"
       >
-        {queue.map((call, index) => {
+        {sortedQueue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
           const status = getUiStatus(isActive, call.id);
           const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');

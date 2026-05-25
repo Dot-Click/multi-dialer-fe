@@ -5,6 +5,7 @@ import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionS
 import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import { Phone, User, Check, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTwilio } from "@/providers/twilio.provider";
 import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/detail";
 
 interface CallOutcomesProps {
@@ -18,6 +19,7 @@ const CallOutcomes = ({}: CallOutcomesProps) => {
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
     const { folders } = useAppSelector(s => s.contactStructure);
+    const { isPostCall } = useTwilio();
 
     const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
     const [_, setSavedDisp] = useState<string | null>(null);
@@ -103,6 +105,15 @@ const CallOutcomes = ({}: CallOutcomesProps) => {
                 <Phone size={12} className="text-gray-400 dark:text-gray-500" />
                 <h1 className='text-[10px] font-black uppercase tracking-widest text-gray-400'>Outcomes</h1>
             </div>
+
+            {/* Post-Call Banner */}
+            {isPostCall && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3 mb-2">
+                    <p className="text-center text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase tracking-wide">
+                        📞 Call Ended — Select a disposition to continue
+                    </p>
+                </div>
+            )}
 
             <div className="grid grid-cols-2 gap-1.5 px-1">
                 {smartItems.map(d => {

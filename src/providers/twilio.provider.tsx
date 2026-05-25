@@ -28,6 +28,8 @@ interface TwilioContextType {
   dropVoicemail: () => Promise<void>;
   isDroppingingVoicemail: boolean;
   incomingContactId: string | null;
+  isPostCall: boolean;
+  setIsPostCall: (value: boolean) => void;
 }
 
 const TwilioContext = createContext<TwilioContextType | undefined>(undefined);
@@ -50,6 +52,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
   const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
   const [incomingContactId, setIncomingContactId] = useState<string | null>(null);
+  const [isPostCall, setIsPostCall] = useState(false);
 
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
@@ -86,6 +89,25 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     holdAudio.pause();
     holdAudio.currentTime = 0;
     ignoredCallsRef.current.clear();
+  }, [holdAudio]);
+
+  const handleCallDisconnected = useCallback(() => {
+    // Enter post-call state instead of fully stopping
+    setIsCalling(false);
+    setCallStatus('disconnected');
+    setAppStatus('Post-Call — Select Disposition');
+    setActiveCall(null);
+    setActiveCallSid(null);
+    setCustomerCallSid(null);
+    setIsMuted(false);
+    setIsHold(false);
+    setDuration(0);
+    activeCallRef.current = null;
+    holdAudio.pause();
+    holdAudio.currentTime = 0;
+    ignoredCallsRef.current.clear();
+    // Enter post-call state — agent must apply disposition before moving on
+    setIsPostCall(true);
   }, [holdAudio]);
 
   const fetchVoiceToken = useCallback(async () => {
@@ -199,14 +221,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (ignoredCallsRef.current.has(call)) return;
           if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
-            setCallStatus('disconnected');
-            setActiveCall(null);
-            setActiveCallSid(null);
-            setCustomerCallSid(null);
-            setIsMuted(false);
-            setDuration(0);
-            setIncomingContactId(null);
-            activeCallRef.current = null;
+            handleCallDisconnected();
           }
         });
 
@@ -318,8 +333,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         call.on('disconnect', () => {
           if (ignoredCallsRef.current.has(call)) return;
           if (!isHoldRef.current) {
-            setCallStatus('disconnected');
-            handleStopCalling();
+            handleCallDisconnected();
           }
         });
 
@@ -570,7 +584,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setAnsweringMachineUrl,
       dropVoicemail,
       isDroppingingVoicemail,
-      incomingContactId
+      incomingContactId,
+      isPostCall,
+      setIsPostCall
     }}>
       {children}
     </TwilioContext.Provider>
