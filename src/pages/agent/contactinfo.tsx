@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchContactById, setQueue } from '@/store/slices/contactSlice';
+import { fetchContactById, setQueue, updateContact } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
@@ -23,10 +23,40 @@ interface CallerIdStatus {
     secondsRemaining: number;
 }
 
+interface DialTarget {
+    contactIndex: number;
+    phoneIndex: number;
+}
+
+interface ContactPhone {
+    id?: string;
+    number: string;
+    type?: string;
+    isPrimary?: boolean;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOTAL_DAILY_LIMIT = 25;
 const POLL_INTERVAL_MS = 30_000;
+
+const getContactPhones = (contact: any): ContactPhone[] => {
+    if (Array.isArray(contact?.phones) && contact.phones.length > 0) {
+        return contact.phones.filter((phone: any) => Boolean(phone?.number));
+    }
+
+    if (contact?.phone) {
+        return [{ number: contact.phone, type: "MOBILE", isPrimary: true }];
+    }
+
+    return [];
+};
+
+const getInitialPhoneIndex = (contact: any) => {
+    const phones = getContactPhones(contact);
+    const primaryIndex = phones.findIndex((phone) => phone.isPrimary);
+    return primaryIndex >= 0 ? primaryIndex : 0;
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -38,9 +68,10 @@ const ContactInfo = () => {
     const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, incomingContactId } = useTwilio();
+    const { setAnsweringMachineUrl, incomingContactId, startCall, isCalling, setIsPostCall } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
     const [callerIds, setCallerIds] = useState<string[]>([]);
     const [currentCallerId, setCurrentCallerId] = useState<string | null>(null);
     const [dailyCallsCount, setDailyCallsCount] = useState(0);
@@ -56,6 +87,8 @@ const ContactInfo = () => {
     const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isAutoDialingRef = useRef(isAutoDialing);
     const emptyCountRef = useRef(0);
+    const previousContactIdRef = useRef<string | null>(null);
+    const [pendingDialTarget, setPendingDialTarget] = useState<DialTarget | null>(null);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
@@ -151,6 +184,73 @@ const ContactInfo = () => {
         if (first) setCurrentCallerId(first);
     }, [callerIds, callerIdStatus, currentCallerId]);
 
+    const _unusedRotateCallerId = useCallback((): string | null => {
+        if (dailyCallsCount >= TOTAL_DAILY_LIMIT) {
+            toast.error(`Daily limit reached!`);
+            return null;
+        }
+        const now = Date.now();
+        if (currentCallerId) {
+            const s = callerIdStatus[currentCallerId];
+            if (!s?.isFrozen && (s?.callCount ?? 0) < maxCallsPerId) return currentCallerId;
+        }
+        const startIdx = currentCallerId ? (callerIds.indexOf(currentCallerId) + 1) % callerIds.length : 0;
+        for (let i = 0; i < callerIds.length; i++) {
+            const idx = (startIdx + i) % callerIds.length;
+            const cid = callerIds[idx];
+            const s = callerIdStatus[cid];
+            if (!s?.isFrozen || (s.unfreezeAt && now >= s.unfreezeAt)) {
+                setCurrentCallerId(cid);
+                return cid;
+            }
+        }
+        return null;
+    }, [callerIds, currentCallerId, callerIdStatus, dailyCallsCount, maxCallsPerId]);
+
+    const _unusedOnCallStarted = useCallback(async (fromNumber: string) => {
+        setDailyCallsCount((prev) => prev + 1);
+        setCallerIdStatus((prev) => {
+            const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
+            const newCount = current.callCount + 1;
+            const willFreeze = newCount >= maxCallsPerId;
+            return { ...prev, [fromNumber]: { ...current, callCount: newCount, isFrozen: willFreeze, secondsRemaining: willFreeze ? 1200 : 0 } };
+        });
+        try {
+            const { data } = await api.post('/system-settings/caller-id/use', { callerNumber: fromNumber, maxCallsPerCid: maxCallsPerId });
+            if (data.success) {
+                const res = data.data;
+                setCallerIdStatus(prev => ({ ...prev, [fromNumber]: { ...prev[fromNumber], ...res } }));
+                if (res.rotated) {
+                    toast(`Caller ID ${fromNumber} on cooldown.`);
+                    const next = _unusedRotateCallerId();
+                    if (next && next !== fromNumber) setCurrentCallerId(next);
+                }
+            }
+        } catch (err) { console.error(err); }
+    }, [maxCallsPerId, _unusedRotateCallerId]);
+
+    useEffect(() => {
+        if (!currentContact?.id) {
+            previousContactIdRef.current = null;
+            setCurrentPhoneIndex(0);
+            return;
+        }
+
+        if (previousContactIdRef.current !== currentContact.id) {
+            previousContactIdRef.current = currentContact.id;
+            setCurrentPhoneIndex(getInitialPhoneIndex(currentContact));
+            return;
+        }
+
+        const phones = getContactPhones(currentContact);
+        if (phones.length === 0) {
+            setCurrentPhoneIndex(0);
+            return;
+        }
+
+        setCurrentPhoneIndex((prev) => Math.min(prev, phones.length - 1));
+    }, [currentContact?.id, currentContact?.phones?.length]);
+
     // ─── Queue nav ────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -159,6 +259,146 @@ const ContactInfo = () => {
 
     const handleNextContact = () => { if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); };
     const handlePreviousContact = () => { if (currentIndex > 0) setCurrentIndex((p) => p - 1); };
+
+    const getNextContactTarget = useCallback((fromIndex: number): DialTarget | null => {
+        const nextIndex = fromIndex + 1;
+        if (nextIndex >= queue.length) return null;
+        return {
+            contactIndex: nextIndex,
+            phoneIndex: getInitialPhoneIndex(queue[nextIndex]),
+        };
+    }, [queue]);
+
+    const syncQueuedContact = useCallback((updatedContact: any) => {
+        dispatch(setQueue(queue.map((contact: any) => (
+            contact.id === updatedContact.id
+                ? {
+                    ...contact,
+                    ...updatedContact,
+                    phone: updatedContact.phones?.[0]?.number || updatedContact.phone || "-",
+                }
+                : contact
+        ))));
+    }, [dispatch, queue]);
+
+    const continueDialer = useCallback((target: DialTarget | null) => {
+        setIsPostCall(false);
+
+        if (!target) {
+            setPendingDialTarget(null);
+            toast("No more numbers to dial in this session.");
+            return;
+        }
+
+        setCurrentIndex(target.contactIndex);
+        setCurrentPhoneIndex(target.phoneIndex);
+
+        if (dialerMode === "power") {
+            setPendingDialTarget(null);
+            return;
+        }
+
+        setPendingDialTarget(target);
+    }, [dialerMode, setIsPostCall]);
+
+    const moveCurrentPhoneToDnc = useCallback(async (contact: any, phoneIndex: number) => {
+        const phones = getContactPhones(contact);
+        const activePhone = phones[phoneIndex];
+        if (!activePhone) {
+            return { remainingPhones: phones };
+        }
+
+        if (activePhone.id) {
+            await api.post(`/contact/${contact.id}/move-to-dnc`, { phoneIds: [activePhone.id] });
+        }
+
+        const remainingPhones = phones.filter((_, index) => index !== phoneIndex);
+        const updatedContact = await dispatch(updateContact({
+            id: contact.id,
+            payload: { phones: remainingPhones },
+        })).unwrap();
+
+        syncQueuedContact(updatedContact);
+        return { remainingPhones };
+    }, [dispatch, syncQueuedContact]);
+
+    const handleOutcomeSelected = useCallback(async (outcomeValue: string) => {
+        if (!currentContact?.id) return;
+
+        const normalizedValue = outcomeValue.toUpperCase();
+        const phones = getContactPhones(currentContact);
+        const nextContactTarget = getNextContactTarget(currentIndex);
+
+        if (normalizedValue === "CONTACT") {
+            continueDialer(nextContactTarget);
+            return;
+        }
+
+        if (normalizedValue === "NO_ANSWER" || normalizedValue === "VOICEMAIL") {
+            if (phones[currentPhoneIndex + 1]) {
+                continueDialer({ contactIndex: currentIndex, phoneIndex: currentPhoneIndex + 1 });
+                return;
+            }
+
+            continueDialer(nextContactTarget);
+            return;
+        }
+
+        if (normalizedValue === "BAD_NUMBER" || normalizedValue === "DNC_NUMBER") {
+            const { remainingPhones } = await moveCurrentPhoneToDnc(currentContact, currentPhoneIndex);
+
+            if (remainingPhones[currentPhoneIndex]) {
+                continueDialer({ contactIndex: currentIndex, phoneIndex: currentPhoneIndex });
+                return;
+            }
+
+            continueDialer(nextContactTarget);
+            return;
+        }
+
+        if (normalizedValue === "DNC_CONTACT") {
+            await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: [] });
+            continueDialer(nextContactTarget);
+            return;
+        }
+
+        continueDialer(nextContactTarget);
+    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, getNextContactTarget, moveCurrentPhoneToDnc]);
+
+    useEffect(() => {
+        if (!pendingDialTarget || dialerMode === "power" || isCalling) return;
+
+        const targetContact = queue[pendingDialTarget.contactIndex];
+        if (!targetContact || currentContact?.id !== targetContact.id) return;
+
+        const targetPhone =
+            getContactPhones(currentContact)[pendingDialTarget.phoneIndex]?.number ||
+            getContactPhones(targetContact)[pendingDialTarget.phoneIndex]?.number ||
+            "";
+
+        if (!targetPhone) {
+            setPendingDialTarget(null);
+            toast.error("No phone number available for the selected contact.");
+            return;
+        }
+
+        const fromNumber = _unusedRotateCallerId();
+        if (!fromNumber) {
+            setPendingDialTarget(null);
+            return;
+        }
+
+        setPendingDialTarget(null);
+
+        void (async () => {
+            try {
+                await startCall(targetPhone, fromNumber, targetContact.id);
+                await _unusedOnCallStarted(fromNumber);
+            } catch {
+                // startCall already reports any dial failure
+            }
+        })();
+    }, [currentContact, dialerMode, isCalling, pendingDialTarget, queue, startCall, _unusedOnCallStarted, _unusedRotateCallerId]);
 
     // ─── Power Dialer Logic ───────────────────────────────────────────────────
 
@@ -271,17 +511,21 @@ const ContactInfo = () => {
 
     // ─── Render ───────────────────────────────────────────────────────────────
 
+    void rotateCallerId;
+    void onCallStarted;
+
     return (
         <div className="bg-gray-100 dark:bg-slate-900 h-screen overflow-hidden flex flex-col">
             <ContactInfoHeader
                 contact={currentContact}
+                dialPhoneNumber={getContactPhones(currentContact)[currentPhoneIndex]?.number || ""}
                 onNext={handleNextContact}
                 onPrev={handlePreviousContact}
                 currentIndex={currentIndex}
                 totalContacts={queue.length}
                 callerId={currentCallerId}
-                onPickNextCallerId={rotateCallerId}
-                onCallStarted={onCallStarted}
+                onPickNextCallerId={_unusedRotateCallerId}
+                onCallStarted={_unusedOnCallStarted}
                 dailyCount={dailyCallsCount}
                 dailyLimit={TOTAL_DAILY_LIMIT}
                 onholdUrl={settingsInfo?.find((s: any) => s.type === 'General Recording')?.url}
@@ -306,7 +550,7 @@ const ContactInfo = () => {
                         </div>
 
                         <div className="shrink-0">
-                            <CallOutcomes onNext={handleNextContact} />
+                            <CallOutcomes onOutcomeSelected={handleOutcomeSelected} />
                         </div>
                     </div>
 

@@ -9,12 +9,12 @@ import { useTwilio } from "@/providers/twilio.provider";
 import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/detail";
 
 interface CallOutcomesProps {
-    onNext?: () => void;
+    onOutcomeSelected?: (value: string) => Promise<void> | void;
 }
 
 const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
-const CallOutcomes = ({}: CallOutcomesProps) => {
+const CallOutcomes = ({ onOutcomeSelected }: CallOutcomesProps) => {
     const dispatch = useAppDispatch();
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
@@ -54,6 +54,13 @@ const CallOutcomes = ({}: CallOutcomesProps) => {
             await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
             setSavedDisp(value);
             toast.success(`Disposition set: ${label}`);
+            if (onOutcomeSelected) {
+                try {
+                    await onOutcomeSelected(value);
+                } catch (err: any) {
+                    toast.error(err?.message || "Failed to continue the dialer.");
+                }
+            }
         } catch (err: any) {
             toast.error("Failed to update disposition: " + err);
         } finally {
@@ -88,6 +95,13 @@ const CallOutcomes = ({}: CallOutcomesProps) => {
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
             toast.success(`Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`);
+            if (onOutcomeSelected) {
+                try {
+                    await onOutcomeSelected(pendingDisp.value);
+                } catch (err: any) {
+                    toast.error(err?.message || "Failed to continue the dialer.");
+                }
+            }
         } catch (err: any) {
             toast.error("Failed: " + err);
         } finally {

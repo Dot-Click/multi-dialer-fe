@@ -299,6 +299,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
+    setIsPostCall(false);
     setIsCalling(true);
     setAppStatus('Dialing...');
     setCallStatus('ringing');

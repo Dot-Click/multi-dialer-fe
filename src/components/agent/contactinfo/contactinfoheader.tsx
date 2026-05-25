@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 interface ContactInfoHeaderProps {
   settingsInfo?: any;
   contact?: any;
+  dialPhoneNumber?: string;
   onNext?: () => void;
   onPrev?: () => void;
   currentIndex?: number;
@@ -36,6 +37,7 @@ interface ContactInfoHeaderProps {
 
 const ContactInfoHeader = ({
   contact,
+  dialPhoneNumber,
   onNext,
   onPrev,
   currentIndex = 0,
@@ -67,6 +69,11 @@ const ContactInfoHeader = ({
   const handleCallToggle = useCallback(async () => {
     if (isRegulatoryLoading) {
       toast("Syncing compliance settings...", { icon: '⏳' });
+      return;
+    }
+
+    if (isPostCall) {
+      toast("Select a call outcome to continue.");
       return;
     }
 
@@ -118,6 +125,7 @@ const ContactInfoHeader = ({
     if (!fromNumber) return; // All on cooldown or daily limit reached
 
     const phone =
+      dialPhoneNumber ||
       contact?.phones?.find((p: any) => p.isPrimary)?.number ||
       contact?.phones?.[0]?.number ||
       "";
@@ -139,9 +147,11 @@ const ContactInfoHeader = ({
     onStartSimultaneousDialer,
     onPickNextCallerId,
     callerId,
+    dialPhoneNumber,
     contact,
     startCall,
-    onCallStarted
+    onCallStarted,
+    isPostCall
   ]);
 
   const handleNavigateWithCall = useCallback(async (direction: 'next' | 'prev') => {
@@ -358,18 +368,18 @@ const ContactInfoHeader = ({
 
           <div className="flex gap-2">
             <button
-              onClick={onPrev}
-              disabled={currentIndex === 0}
-              className={`flex-1 bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+              onClick={() => handleNavigateWithCall('prev')}
+              disabled={currentIndex === 0 || isPostCall}
+              className={`flex-1 bg-[#EBEDF0] dark:bg-slate-700 text-[#0E1011] dark:text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex === 0 || isPostCall ? "opacity-50 cursor-not-allowed" : ""
                 }`}
             >
               <span className="font-medium">Previous</span>
             </button>
 
             <button
-              onClick={onNext}
-              disabled={currentIndex >= totalContacts - 1}
-              className={`flex-1 bg-[#0E1011] dark:bg-slate-900 text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex >= totalContacts - 1 ? "opacity-50 cursor-not-allowed" : ""
+              onClick={() => handleNavigateWithCall('next')}
+              disabled={currentIndex >= totalContacts - 1 || isPostCall}
+              className={`flex-1 bg-[#0E1011] dark:bg-slate-900 text-white rounded-[12px] flex items-center justify-center gap-2 py-3 px-4 ${currentIndex >= totalContacts - 1 || isPostCall ? "opacity-50 cursor-not-allowed" : ""
                 }`}
             >
               <HiPlus className="text-2xl" />
