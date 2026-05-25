@@ -133,7 +133,7 @@ const AdminAllContact = () => {
     const isLocked = session?.user?.trialStatus === "EXPIRED" && !session?.user?.isSubscribed;
 
     return (
-        <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all relative">
+        <section className="pr-7 flex flex-col h-screen w-full sm:px-6 py-4 lg:py-1 transition-all relative overflow-hidden">
             {isLocked && (
                 <FeatureLockedOverlay 
                     featureName="Data & Dialer" 
@@ -141,103 +141,106 @@ const AdminAllContact = () => {
                 />
             )}
 
-            {/* Breadcrumb + Heading */}
-            <div className="flex flex-col">
-                {getBreadcrumb() && (
-                    <span className="text-sm text-[#6c757d] dark:text-slate-400 font-medium mb-1">
-                        {getBreadcrumb()}
-                    </span>
-                )}
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    {/* Heading + Assigned To */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <h1 className="text-[24px] sm:text-[28px] font-medium text-[#0E1011] dark:text-white">
-                            {renderHeading()}
-                        </h1>
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 pb-2 -mx-4 sm:-mx-6 md:-mx-10 lg:-mx-3 px-4 sm:px-6 md:px-10 lg:px-3 pt-2 flex-shrink-0">
+                {/* Breadcrumb + Heading */}
+                <div className="flex flex-col">
+                    {getBreadcrumb() && (
+                        <span className="text-sm text-[#6c757d] dark:text-slate-400 font-medium mb-1">
+                            {getBreadcrumb()}
+                        </span>
+                    )}
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                        {/* Heading + Assigned To */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <h1 className="text-[24px] sm:text-[28px] font-medium text-[#0E1011] dark:text-white">
+                                {renderHeading()}
+                            </h1>
 
-                        {activeItem.type === "list" && (
-                            <div className="flex items-center gap-2 text-[#495057] dark:text-slate-400">
-                                <span className="text-sm font-medium">
-                                    Assigned to
-                                </span>
-                                <span className="text-sm font-semibold text-[#0E1011] dark:text-white">
-                                    {getAssignedToText()}
-                                </span>
-                                <button
-                                    onClick={() => setIsAssignModalOpen(true)}
-                                    className="text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-white transition-colors"
-                                >
-                                    <FiEdit className="text-base" />
-                                </button>
+                            {activeItem.type === "list" && (
+                                <div className="flex items-center gap-2 text-[#495057] dark:text-slate-400">
+                                    <span className="text-sm font-medium">
+                                        Assigned to
+                                    </span>
+                                    <span className="text-sm font-semibold text-[#0E1011] dark:text-white">
+                                        {getAssignedToText()}
+                                    </span>
+                                    <button
+                                        onClick={() => setIsAssignModalOpen(true)}
+                                        className="text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                                    >
+                                        <FiEdit className="text-base" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Manage Columns + New Contact Buttons */}
+                        <div className="flex items-center gap-5">
+                            <Link
+                                to="/admin/create-contact"
+                                className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
+                            >
+                                <IoAdd className="text-xl" />
+                                <span className="text-sm font-medium">New Contact</span>
+                            </Link>
+                            <div
+                                className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
+                                onClick={() => setShowColumnsModal(true)}
+                            >
+                                <GrSplits className="text-base" />
+                                <span className="text-sm font-medium">Manage Columns</span>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Manage Columns + New Contact Buttons */}
-                    <div className="flex items-center gap-5">
-                        <Link
-                            to="/admin/create-contact"
-                            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
-                        >
-                            <IoAdd className="text-xl" />
-                            <span className="text-sm font-medium">New Contact</span>
-                        </Link>
-                        <div
-                            className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
-                            onClick={() => setShowColumnsModal(true)}
-                        >
-                            <GrSplits className="text-base" />
-                            <span className="text-sm font-medium">Manage Columns</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Search + Filter + Dial button */}
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
-                {/* Search + Filter */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="bg-white dark:bg-slate-800 flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] dark:border-slate-600 py-1.5 px-4">
-                        <input
-                            type="search"
-                            placeholder="Search by name, email, phone number..."
-                            className="w-full placeholder:text-sm text-sm outline-none bg-transparent text-gray-800 dark:text-white dark:placeholder-slate-500"
-                            value={contactSearchTerm}
-                            onChange={(e) => setContactSearchTerm(e.target.value)}
-                        />
-                        <IoIosSearch className="text-2xl text-gray-500 dark:text-slate-400 shrink-0" />
+                {/* Search + Filter + Dial button */}
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full mt-3">
+                    {/* Search + Filter */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="bg-white dark:bg-slate-800 flex items-center justify-between w-full sm:w-[40vw] rounded-full border border-[#D8DCE1] dark:border-slate-600 py-1.5 px-4">
+                            <input
+                                type="search"
+                                placeholder="Search by name, email, phone number..."
+                                className="w-full placeholder:text-sm text-sm outline-none bg-transparent text-gray-800 dark:text-white dark:placeholder-slate-500"
+                                value={contactSearchTerm}
+                                onChange={(e) => setContactSearchTerm(e.target.value)}
+                            />
+                            <IoIosSearch className="text-2xl text-gray-500 dark:text-slate-400 shrink-0" />
+                        </div>
+
+                        <button
+                            onClick={() => setIsFilterOpen(true)}
+                            className="bg-[#2B3034] dark:bg-slate-700 hover:bg-[#3a4045] dark:hover:bg-slate-600 text-lg text-white p-2 rounded-full shrink-0 transition-colors"
+                        >
+                            <IoFilter />
+                        </button>
                     </div>
 
+                    {/* Dial Button */}
                     <button
-                        onClick={() => setIsFilterOpen(true)}
-                        className="bg-[#2B3034] dark:bg-slate-700 hover:bg-[#3a4045] dark:hover:bg-slate-600 text-lg text-white p-2 rounded-full shrink-0 transition-colors"
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            if (selectedContacts.length > 0) {
+                                setIsDialSettingOpen(true);
+                            } else {
+                                toast.error("Please select at least one contact to start dialing.");
+                            }
+                        }}
+                        className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
                     >
-                        <IoFilter />
+                        <MdOutlineCall className="text-base" />
+                        <span>Dial Selected ({selectedContacts.length})</span>
                     </button>
                 </div>
-
-                {/* Dial Button */}
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        if (selectedContacts.length > 0) {
-                            setIsDialSettingOpen(true);
-                        } else {
-                            toast.error("Please select at least one contact to start dialing.");
-                        }
-                    }}
-                    className={`flex gap-2 justify-center items-center bg-[#FFCA06] rounded-lg px-4 py-2 text-sm font-semibold text-[#2B3034] shadow-sm hover:bg-[#ffcf29] transition-all`}
-                >
-                    <MdOutlineCall className="text-base" />
-                    <span>Dial Selected ({selectedContacts.length})</span>
-                </button>
             </div>
 
             {/* Table / Contact List */}
-            <div className="flex-1 sm:-ml-10 mt-2">
+            <div className="flex-1 overflow-hidden">
                 <AllContactComponent
                     onSelectionChange={setSelectedContacts}
                     listId={activeItem.type === "list" ? activeItem.id : undefined}

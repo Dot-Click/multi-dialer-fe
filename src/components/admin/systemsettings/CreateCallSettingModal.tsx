@@ -85,6 +85,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [selectedScript, setSelectedScript] = useState("");
   const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
   const [pacing, setPacing] = useState(1); // Power Dialer: simultaneous calls
+  const [amdEnabled, setAmdEnabled] = useState(false);
 
   const { data: session } = authClient.useSession();
   const role = session?.user.role;
@@ -114,6 +115,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
     setSelectedScript(setting.callScriptId || "");
     setDialerMode((setting as any).dialerMode || "manual");
     setPacing((setting as any).pacing || 1);
+    setAmdEnabled((setting as any).amdEnabled ?? false);
   };
 
   const getSelectedRecordingUrl = () => {
@@ -169,6 +171,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
     setDialerMode("manual");
     setPacing(1);
     setSelectedScript("");
+    setAmdEnabled(false);
   };
 
   const handleClose = () => {
@@ -200,6 +203,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         busyRecordingId: busyRecording || undefined,
         callScriptId: selectedScript || undefined,
         dialerMode,
+        amdEnabled,
       };
 
       if (editId) {
@@ -404,6 +408,38 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     </FieldWrapper>
                   </div>
                 </div>
+
+                {/* AMD Toggle */}
+                <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                        Skip on Machine
+                      </p>
+                      <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-0.5">
+                        Voicemail Detection
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAmdEnabled(!amdEnabled)}
+                      className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                        amdEnabled ? "bg-yellow-400" : "bg-gray-300 dark:bg-slate-600"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                          amdEnabled ? "translate-x-5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  {amdEnabled && !answeringMachineRecording && (
+                    <p className="text-[10px] text-blue-500 dark:text-blue-400 mt-2">
+                      Machine calls will be skipped automatically.
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* RIGHT COLUMN: Caller IDs */}
@@ -442,26 +478,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
             >
               Discard
             </button>
-            {/* <button
-              onClick={() =>
-                navigate(role === "ADMIN" ? "/admin/contact-info" : "/contact-info", {
-                  state: {
-                    contacts: selectedContacts,
-                    callerIds: selectedCallerIds,
-                    numberOfLines: parseInt(noOfLines),
-                    selectedScript: selectedScript || undefined,
-                    holdRecordingUrl: getSelectedRecordingUrl(),
-                    answeringMachineRecordingUrl: getAnsweringMachineUrl(),
-                    busyRecordingUrl: getBusyRecordingUrl(),
-                    dialerMode,
-                    pacing: dialerMode === "power" ? pacing : undefined,
-                  },
-                })
-              }
-              className="flex-1 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white text-[13px] font-bold py-2.5 rounded-xl transition-all"
-            >
-              Skip & Start
-            </button> */}
+   
             <button
               type="button"
               onClick={handleSave}

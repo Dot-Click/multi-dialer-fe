@@ -81,7 +81,7 @@ const TableComponent: FC<
         <Table
           className={cn("overflow-hidden text-[13px]", isLoading && "min-h-[50vh]")}
         >
-          <TableHeader className="bg-slate-50 dark:bg-slate-800/50 text-slate-700 font-semibold text-[13px]">
+          <TableHeader className="bg-slate-50 sticky top-0 z-10 dark:bg-slate-800/50 text-slate-700 font-semibold text-[13px]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}

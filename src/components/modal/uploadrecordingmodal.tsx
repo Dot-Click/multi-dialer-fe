@@ -24,7 +24,7 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
 
   const maxFileSizeMap: Record<string, string> = {
     voiceMail: "20 MB max",
-    onHold: "750 KB max",
+    onHold: "5 MB max",
     callBack: "750 KB max",
     emailVideo: "20 MB max",
   };
@@ -57,11 +57,15 @@ const UploadRecordingModal: React.FC<UploadRecordingModalProps> = ({ onClose, on
     formData.append("mediaType", typeMap[selectedType]);
     formData.append("file", selectedFile);
 
-    const result = await createMediaCenterItem(formData);
-    if (result) {
-      toast.success("Recording uploaded successfully");
-      onSuccess?.();
-      onClose();
+    try {
+      const result = await createMediaCenterItem(formData);
+      if (result) {
+        toast.success("Recording uploaded successfully");
+        onSuccess?.();
+        onClose();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload recording");
     }
   };
 

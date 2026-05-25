@@ -27,6 +27,8 @@ export interface DialerSettings {
   useAnswerNotificationTone: boolean;
   voicemailMode: string;
   systemSettingId: string;
+  amdEnabled?: boolean;
+  answeringMachineRecordingId?: string;
 }
 
 export interface CallSettings {
@@ -51,6 +53,7 @@ export interface CallSettings {
   callScriptId?: string;
   sendEmail: boolean;
   sendText: boolean;
+  amdEnabled?: boolean;
 }
 
 export interface LeadSheetQuestion {

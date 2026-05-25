@@ -55,10 +55,17 @@ export const useMediaCenter = () => {
             });
             return response.data.data;
         } catch (err: any) {
-            const message = err.response?.data?.message || 'Failed to upload media center item';
+            const errData = err.response?.data;
+            // Extract the most descriptive message available
+            let message = 'Failed to upload media center item';
+            if (errData?.message) {
+                message = errData.message;
+            } else if (errData?.errors?.[0]?.message) {
+                message = errData.errors[0].message;
+            }
             setError(message);
             console.error(err);
-            return null;
+            throw new Error(message);
         } finally {
             setLoading(false);
         }

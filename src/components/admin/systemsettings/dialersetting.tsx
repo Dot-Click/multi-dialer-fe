@@ -1,6 +1,6 @@
 import { useDialerSettings } from '@/hooks/useSystemSettings';
 import { useEffect, useState } from 'react';
-import { Loader2, Radio, BellRing, Info, Save } from 'lucide-react';
+import { Loader2, Radio, BellRing, Info, Save, PhoneOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 
@@ -9,11 +9,13 @@ const DialerSetting = () => {
     const { data: dialerSettings, isLoading, updateDialerSettings } = useDialerSettings();
     const [voicemailMode, setVoicemailMode] = useState('auto');
     const [useAnswerTone, setUseAnswerTone] = useState(false);
+    const [amdEnabled, setAmdEnabled] = useState(false);
 
     useEffect(() => {
         if (dialerSettings) {
             setVoicemailMode(dialerSettings.voicemailMode || 'auto');
             setUseAnswerTone(dialerSettings.useAnswerNotificationTone || false);
+            setAmdEnabled(dialerSettings.amdEnabled ?? false);
         }
     }, [dialerSettings]);
 
@@ -21,6 +23,7 @@ const DialerSetting = () => {
         updateDialerSettings.mutate({
             voicemailMode,
             useAnswerNotificationTone: useAnswerTone,
+            amdEnabled,
         }, {
             onSuccess: () => {
                 toast.success('Call settings updated successfully');
@@ -154,6 +157,47 @@ const DialerSetting = () => {
                     <p className="text-gray-600 dark:text-gray-400 mt-6 max-w-2xl">
                         When enabled, a discrete beep will sound for the agent the moment a system detects a live person on the line.
                     </p>
+                </div>
+
+                {/* Voicemail Detection Card */}
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                <PhoneOff className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Voicemail Detection (Skip on Machine)</h2>
+                                <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    <Info className="w-4 h-4" />
+                                    <span>Applies to both power dialer and manual calls</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setAmdEnabled(!amdEnabled)}
+                            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 ${
+                                amdEnabled ? 'bg-yellow-400' : 'bg-gray-200 dark:bg-slate-700'
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md ${
+                                    amdEnabled ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
+                    <p className="text-gray-600 dark:text-gray-400 mt-6 max-w-2xl">
+                        When enabled, calls answered by a machine will be skipped and the dialer will move to the next contact.
+                    </p>
+
+                    {amdEnabled && !dialerSettings?.answeringMachineRecordingId && (
+                        <div className="mt-4 flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-sm text-blue-700 dark:text-blue-300">
+                            <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                            <span>Voicemail drop is disabled. Machine-answered calls will be skipped automatically.</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

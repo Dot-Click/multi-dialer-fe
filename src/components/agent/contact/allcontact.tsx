@@ -259,8 +259,8 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
   };
 
   return (
-    <Box className="mt-3 m-2 w-full h-full">
-      <main>
+    <Box className="mt-3 w-full h-full flex flex-col">
+      <main className="flex-1 overflow-hidden flex flex-col">
         {isLoading ? (
           <ContactTableSkeleton />
         ) : error ? (
@@ -268,14 +268,18 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
             <span className="text-red-500 dark:text-red-400 text-sm">{error}</span>
           </div>
         ) : (
-          <TableProvider data={filteredContacts} columns={columns}>
-            {({ selectedRows }) => (
-              <>
-                <SelectionHandler selectedRows={selectedRows} />
-                <TableComponent />
-              </>
-            )}
-          </TableProvider>
+          <div className="flex-1 overflow-hidden flex flex-col pb-20">
+            <TableProvider data={filteredContacts} columns={columns}>
+              {({ selectedRows }) => (
+                <>
+                  <SelectionHandler selectedRows={selectedRows} />
+                  <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <TableComponent />
+                  </div>
+                </>
+              )}
+            </TableProvider>
+          </div>
         )}
       </main>
     </Box>
