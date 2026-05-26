@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchContactById, setQueue, updateContact } from '@/store/slices/contactSlice';
+import { fetchContactById, setCurrentContact, setQueue, updateContact } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
@@ -68,7 +68,7 @@ const ContactInfo = () => {
     const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, incomingContactId, startCall, isCalling, setIsPostCall, isPostCall } = useTwilio();
+    const { setAnsweringMachineUrl, incomingContactId, startCall, endCall, isCalling, setIsPostCall, isPostCall } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
@@ -255,7 +255,10 @@ const ContactInfo = () => {
     // ─── Queue nav ────────────────────────────────────────────────────────────
 
     useEffect(() => {
-        if (queue.length > 0 && queue[currentIndex]) dispatch(fetchContactById(queue[currentIndex].id));
+        if (queue.length > 0 && queue[currentIndex]) {
+            dispatch(setCurrentContact(queue[currentIndex]));
+            dispatch(fetchContactById(queue[currentIndex].id));
+        }
     }, [currentIndex, queue, dispatch]);
 
     // Reset isPostCall when contact index changes
@@ -351,6 +354,10 @@ const ContactInfo = () => {
         const phones = getContactPhones(currentContact);
         const nextContactTarget = getNextContactTarget(currentIndex);
 
+        if (isCalling) {
+            await endCall();
+        }
+
         if (normalizedValue === "CONTACT") {
             continueDialer(nextContactTarget);
             return;
@@ -385,7 +392,7 @@ const ContactInfo = () => {
         }
 
         continueDialer(nextContactTarget);
-    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, getNextContactTarget, moveCurrentPhoneToDnc]);
+    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, endCall, getNextContactTarget, isCalling, moveCurrentPhoneToDnc]);
 
     useEffect(() => {
         if (!pendingDialTarget || dialerMode === "power" || isCalling) return;
