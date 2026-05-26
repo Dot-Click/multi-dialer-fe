@@ -206,15 +206,32 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         amdEnabled,
       };
 
+      console.log("[CreateCallSetting] Saving payload:", payload);
+
       if (editId) {
+        console.log("[CreateCallSetting] Updating existing setting:", editId);
         await updateCallSettings.mutateAsync({ id: editId, data: payload as any });
         toast.success("Call Setting updated successfully!");
       } else {
+        console.log("[CreateCallSetting] Creating new setting");
         await createCallSettings.mutateAsync(payload as any);
         toast.success("Call Setting created successfully!");
       }
 
       const destination = role === "ADMIN" ? "/admin/contact-info" : "/contact-info";
+      console.log("[CreateCallSetting] Navigating to:", destination);
+      console.log("[CreateCallSetting] Navigation state:", {
+        contacts: selectedContacts,
+        callerIds: selectedCallerIds,
+        numberOfLines: parseInt(noOfLines),
+        selectedScript: selectedScript || undefined,
+        holdRecordingUrl: getSelectedRecordingUrl(),
+        answeringMachineRecordingUrl: getAnsweringMachineUrl(),
+        busyRecordingUrl: getBusyRecordingUrl(),
+        dialerMode,
+        pacing: dialerMode === "power" ? pacing : undefined,
+      });
+
       navigate(destination, {
         state: {
           contacts: selectedContacts,
@@ -229,8 +246,15 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         },
       });
 
+      console.log("[CreateCallSetting] Navigation called, closing modal");
       handleClose();
     } catch (err: any) {
+      console.error("[CreateCallSetting] Error saving:", err);
+      console.error("[CreateCallSetting] Error details:", {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status,
+      });
       toast.error(err?.response?.data?.message || err?.message || "Failed to save Call Setting.");
     } finally {
       setIsLoading(false);
