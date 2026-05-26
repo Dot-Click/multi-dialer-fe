@@ -360,7 +360,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                 </FieldWrapper>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <FieldWrapper label="Rotation Lines">
+                  <FieldWrapper label="DIALS PER CALLER ID">
                     <SelectInput value={noOfLines} onChange={setNoOfLines}>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <option key={n} value={String(n)} className="dark:bg-slate-900">
@@ -370,7 +370,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     </SelectInput>
                   </FieldWrapper>
 
-                  <FieldWrapper label={dialerMode === "power" ? "Outbound Calling" : "Call Script"}>
+                  <FieldWrapper label={dialerMode === "power" ? "NUMBER OF LINES" : "Call Script"}>
                     {dialerMode === "power" ? (
                       <SelectInput value={String(pacing)} onChange={(v) => setPacing(Number(v))}>
                         {[1, 2, 3, 4, 5, 10].map((n) => (

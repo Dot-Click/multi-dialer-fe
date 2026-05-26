@@ -109,6 +109,10 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
     const bPriority = STATUS_PRIORITY[getSortStatus(b.id)] ?? 5;
     return aPriority - bPriority;
   });
+  const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === currentContact?.id), 0);
+  const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
+  const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
+  const visibleQueue = sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
     if (!isCalling) resetCallStatus();
@@ -156,7 +160,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
         ref={scrollContainerRef}
         className="flex-1 flex flex-col gap-3 py-2 px-1 overflow-y-auto no-scrollbar scroll-smooth"
       >
-        {sortedQueue.map((call, index) => {
+        {visibleQueue.map((call, index) => {
           const isActive = currentContact?.id === call.id;
           const status = getUiStatus(isActive, call.id);
           const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');

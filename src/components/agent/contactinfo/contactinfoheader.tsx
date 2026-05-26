@@ -54,8 +54,6 @@ const ContactInfoHeader = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
   const hasTriggeredAutoDialRef = useRef(false);
-  const shouldAutoCallRef = useRef(false);
-  const navigatedFromIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
     title: string;
@@ -157,17 +155,15 @@ const ContactInfoHeader = ({
   const handleNavigateWithCall = useCallback(async (direction: 'next' | 'prev') => {
     if (isCalling) {
       await endCall();
+      
     }
-
-    shouldAutoCallRef.current = true;
-    navigatedFromIdRef.current = contact?.id || null;
 
     if (direction === 'next' && onNext) {
       onNext();
     } else if (direction === 'prev' && onPrev) {
       onPrev();
     }
-  }, [isCalling, endCall, onNext, onPrev, contact?.id]);
+  }, [isCalling, endCall, onNext, onPrev]);
 
   const handleHangupAndLeave = async () => {
     if (isCalling) {
@@ -183,20 +179,6 @@ const ContactInfoHeader = ({
       navigate(path as string);
     }
   };
-
-  // Effect to trigger call when contact changes and shouldAutoCallRef is set
-  useEffect(() => {
-    if (
-      shouldAutoCallRef.current && 
-      contact?.id && 
-      !isCalling && 
-      contact.id !== navigatedFromIdRef.current
-    ) {
-      shouldAutoCallRef.current = false;
-      navigatedFromIdRef.current = null;
-      handleCallToggle();
-    }
-  }, [contact?.id, isCalling, handleCallToggle]);
 
   const handleOpenEventModal = (type: "TASK" | "FOLLOW_UP") => {
     setEventDefaults({
