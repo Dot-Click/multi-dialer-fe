@@ -576,7 +576,10 @@ const ContactInfo = () => {
                         </div>
 
                         <div className="shrink-0">
-                            <CallOutcomes onOutcomeSelected={handleOutcomeSelected} />
+                            <CallOutcomes
+                                onOutcomeSelected={handleOutcomeSelected}
+                                isPowerDialer={dialerMode === "power" && isAutoDialing}
+                            />
                         </div>
                     </div>
 

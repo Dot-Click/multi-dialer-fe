@@ -7,14 +7,16 @@ import { Phone, User, Check, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTwilio } from "@/providers/twilio.provider";
 import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/detail";
+import api from "@/lib/axios";
 
 interface CallOutcomesProps {
     onOutcomeSelected?: (value: string) => Promise<void> | void;
+    isPowerDialer?: boolean;
 }
 
 const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
-const CallOutcomes = ({ onOutcomeSelected }: CallOutcomesProps) => {
+const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomesProps) => {
     const dispatch = useAppDispatch();
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
@@ -45,6 +47,20 @@ const CallOutcomes = ({ onOutcomeSelected }: CallOutcomesProps) => {
     const activeDispositions = dispositions.filter(d => d.isActive);
     const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
 
+    function getErrorMessage(err: unknown) {
+        return err instanceof Error ? err.message : undefined;
+    }
+
+    async function continueAfterDisposition(value: string) {
+        if (onOutcomeSelected) {
+            await onOutcomeSelected(value);
+        }
+
+        if (isPowerDialer) {
+            await api.post('/calling/agent-ready');
+        }
+    }
+
     async function applyImmediate(id: string, label: string, value: string) {
         if (!currentContact?.id) return;
         setSelectedDisp(value);
@@ -54,12 +70,10 @@ const CallOutcomes = ({ onOutcomeSelected }: CallOutcomesProps) => {
             await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
             setSavedDisp(value);
             toast.success(`Disposition set: ${label}`);
-            if (onOutcomeSelected) {
-                try {
-                    await onOutcomeSelected(value);
-                } catch (err: any) {
-                    toast.error(err?.message || "Failed to continue the dialer.");
-                }
+            try {
+                await continueAfterDisposition(value);
+            } catch (err: unknown) {
+                toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
             }
         } catch (err: any) {
             toast.error("Failed to update disposition: " + err);
@@ -95,12 +109,10 @@ const CallOutcomes = ({ onOutcomeSelected }: CallOutcomesProps) => {
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
             toast.success(`Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`);
-            if (onOutcomeSelected) {
-                try {
-                    await onOutcomeSelected(pendingDisp.value);
-                } catch (err: any) {
-                    toast.error(err?.message || "Failed to continue the dialer.");
-                }
+            try {
+                await continueAfterDisposition(pendingDisp.value);
+            } catch (err: unknown) {
+                toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
             }
         } catch (err: any) {
             toast.error("Failed: " + err);
