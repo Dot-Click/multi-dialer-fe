@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { IoClose } from "react-icons/io5";
 import { FiUploadCloud, FiCheckCircle } from "react-icons/fi";
@@ -31,15 +31,153 @@ interface FieldMapping {
   miscFieldId?: string;   // MiscField.id from DB — used as the key in miscMappings payload
 }
 
+interface SlingvoFieldMapping {
+  slingvoKey: string;   // e.g. "phone_1", "fullName", "address"
+  label: string;        // display label e.g. "Phone 1 (Primary)"
+  csvHeader: string;    // selected CSV column, or "" for "Do not import"
+}
+
+interface MiscFieldOption {
+  id: string;
+  fieldName?: string;
+}
+
+const BASE_SLINGVO_GROUPS: { title: string; fields: { key: string; label: string }[] }[] = [
+  {
+    title: "Name",
+    fields: [
+      { key: "fullName",  label: "Full Name" },
+      { key: "firstName", label: "First Name" },
+      { key: "lastName",  label: "Last Name" },
+    ],
+  },
+  {
+    title: "Property Address",
+    fields: [
+      { key: "address",  label: "Property Address" },
+      { key: "address2", label: "Property Address 2" },
+      { key: "city",     label: "Property City" },
+      { key: "state",    label: "Property State" },
+      { key: "zip",      label: "Property Zip" },
+    ],
+  },
+  {
+    title: "Mailing Address",
+    fields: [
+      { key: "mailingAddress",  label: "Mailing Address" },
+      { key: "mailingAddress2", label: "Mailing Address 2" },
+      { key: "mailingCity",     label: "Mailing City" },
+      { key: "mailingState",    label: "Mailing State" },
+      { key: "mailingZip",      label: "Mailing Zip" },
+    ],
+  },
+  {
+    title: "Other",
+    fields: [
+      { key: "tags",          label: "Tags" },
+      { key: "notes",         label: "Notes" },
+      { key: "source",        label: "Source" },
+      { key: "lastDialedDate",label: "Last Dialed Date" },
+    ],
+  },
+];
+
+const INITIAL_PHONE_COUNT = 6;
+const INITIAL_EMAIL_COUNT = 4;
+
+// ─── Reversed auto-suggest: given a Slingvo key, find best CSV header ─────────
+
+function autoSuggestCsvHeader(slingvoKey: string, csvHeaders: string[], usedHeaders: Set<string>): string {
+  const aliasMap: Record<string, string[]> = {
+    fullName:        ["full name", "fullname", "full_name", "name", "contact name"],
+    firstName:       ["first name", "firstname", "first_name", "fname"],
+    lastName:        ["last name", "lastname", "last_name", "lname"],
+    address:         ["property address", "address", "street", "street address", "prop address"],
+    address2:        ["property address 2", "address 2", "address2"],
+    city:            ["property city", "city", "prop city", "town"],
+    state:           ["property state", "state", "st", "prop state", "province"],
+    zip:             ["property zip", "zip", "zip code", "zipcode", "postal", "postal code", "prop zip"],
+    mailingAddress:  ["mailing address", "mailing street", "mail address", "mailing addr"],
+    mailingAddress2: ["mailing address 2", "mailing address2", "mailing addr 2"],
+    mailingCity:     ["mailing city", "mail city"],
+    mailingState:    ["mailing state", "mail state"],
+    mailingZip:      ["mailing zip", "mailing zip code", "mail zip", "mailing postal"],
+    phone_1:         ["phone 1", "phone1", "primary phone", "phone", "phone number", "telephone"],
+    phone_2:         ["phone 2", "phone2"],
+    phone_3:         ["phone 3", "phone3", "mobile", "cell", "basic contact 1 phone", "basic contact 2 phone"],
+    phone_4:         ["phone 4", "phone4", "mobile", "cell", "basic contact 1 phone", "basic contact 2 phone"],
+    phone_5:         ["phone 5", "phone5", "mobile", "cell", "basic contact 1 phone", "basic contact 2 phone"],
+    phone_6:         ["phone 6", "phone6", "mobile", "cell", "basic contact 1 phone", "basic contact 2 phone"],
+    email_1:         ["email 1", "email1", "email", "primary email", "e-mail", "email address"],
+    email_2:         ["email 2", "email2", "secondary email"],
+    email_3:         ["email 3", "email3"],
+    email_4:         ["email 4", "email4"],
+    tags:            ["tags", "tag", "label", "labels"],
+    notes:           ["notes", "note", "comment", "comments", "description", "desc"],
+    source:          ["source"],
+    lastDialedDate:  ["last dialed", "last called", "dialed date", "last dial"],
+  };
+
+  const aliases = aliasMap[slingvoKey] || [];
+  for (const csvHeader of csvHeaders) {
+    if (usedHeaders.has(csvHeader)) continue;
+    const normalized = csvHeader.toLowerCase().trim();
+    if (aliases.some(alias => normalized === alias || normalized.includes(alias))) {
+      return csvHeader;
+    }
+  }
+  return "";
+}
+
+// Build initial SlingvoFieldMapping list from CSV headers
+function buildInitialSlingvoMappings(csvHeaders: string[], phoneCount: number, emailCount: number): SlingvoFieldMapping[] {
+  const usedHeaders = new Set<string>();
+  const result: SlingvoFieldMapping[] = [];
+
+  const addField = (key: string, label: string) => {
+    const suggested = autoSuggestCsvHeader(key, csvHeaders, usedHeaders);
+    if (suggested) usedHeaders.add(suggested);
+    result.push({ slingvoKey: key, label, csvHeader: suggested });
+  };
+
+  BASE_SLINGVO_GROUPS.filter((group) => group.title !== "Other").forEach((group) => {
+    group.fields.forEach((field) => addField(field.key, field.label));
+  });
+
+  for (let i = 1; i <= phoneCount; i++) {
+    addField(`phone_${i}`, i === 1 ? "Phone 1 (Primary)" : `Phone ${i}`);
+  }
+
+  for (let i = 1; i <= emailCount; i++) {
+    addField(`email_${i}`, i === 1 ? "Email 1 (Primary)" : `Email ${i}`);
+  }
+
+  BASE_SLINGVO_GROUPS.find((group) => group.title === "Other")?.fields.forEach((field) => {
+    addField(field.key, field.label);
+  });
+
+  return result;
+}
+
 // Primary system fields — fixed, never dynamic
 const PRIMARY_FIELDS = [
+  "First Name",
+  "Last Name",
   "Name",
   "Email",
+  "Email 2",
+  "Email 3",
+  "Email 4",
   "Phone",
   "Property Address",
   "Property City",
   "Property State",
   "Property Zip Code",
+  "Mailing Address",
+  "Mailing Address 2",
+  "Mailing City",
+  "Mailing State",
+  "Mailing Zip",
   "Last Dialed Date",
   "List",
   "Tags",
@@ -85,7 +223,7 @@ const parseFileHeaders = (file: File): Promise<string[]> => {
           const workbook = xlsx.read(data, { type: "array" });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const allRows = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+          const allRows = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
           
           // Find the first row that actually contains some content
           const headerRow = allRows.find(row => 
@@ -97,7 +235,11 @@ const parseFileHeaders = (file: File): Promise<string[]> => {
             return;
           }
 
-          resolve(headerRow.map(h => h?.toString().trim()).filter(Boolean));
+          resolve(
+            headerRow
+              .map(h => h?.toString().trim())
+              .filter((h): h is string => !!h)
+          );
         } catch {
           reject(new Error("Failed to parse Excel headers"));
         }
@@ -116,17 +258,27 @@ const parseFileHeaders = (file: File): Promise<string[]> => {
 // Auto-mapping only applies to fixed PRIMARY_FIELDS.
 
 const AUTO_MAP_ALIASES: Record<string, string[]> = {
-  Name:               ["name", "full name", "fullname", "contact name", "first name", "firstname"],
-  Email:              ["email", "email address", "e-mail", "mail"],
-  Phone:              ["phone", "phone number", "mobile", "cell", "telephone", "number", "contact", "phone 1", "phone1"],
-  "Property Address": ["property address", "address", "street", "street address", "prop address"],
-  "Property City":    ["property city", "city", "prop city", "town"],
-  "Property State":   ["property state", "state", "st", "prop state", "province"],
-  "Property Zip Code":["property zip", "zip", "zip code", "zipcode", "postal", "postal code", "prop zip"],
-  Notes:              ["notes", "note", "comment", "comments", "description", "desc"],
-  "Last Dialed Date": ["last dialed", "last called", "dialed date", "last dial"],
-  List:               ["list", "calling list", "contact list"],
-  Tags:               ["tags", "tag", "label", "labels"],
+  "First Name":        ["first name", "firstname", "first_name", "fname"],
+  "Last Name":         ["last name", "lastname", "last_name", "lname"],
+  Name:                ["name", "full name", "fullname", "full_name", "contact name"],
+  Email:               ["email", "email address", "e-mail", "mail", "email 1", "email1", "primary email"],
+  "Email 2":           ["email 2", "email2", "secondary email"],
+  "Email 3":           ["email 3", "email3"],
+  "Email 4":           ["email 4", "email4"],
+  Phone:               ["phone", "phone number", "mobile", "cell", "telephone", "number", "contact", "phone 1", "phone1"],
+  "Property Address":  ["property address", "address", "street", "street address", "prop address"],
+  "Property City":     ["property city", "city", "prop city", "town"],
+  "Property State":    ["property state", "state", "st", "prop state", "province"],
+  "Property Zip Code": ["property zip", "zip", "zip code", "zipcode", "postal", "postal code", "prop zip"],
+  "Mailing Address":   ["mailing address", "mailing street", "mail address", "mailing addr"],
+  "Mailing Address 2": ["mailing address 2", "mailing address2", "mailing addr 2", "mail address 2"],
+  "Mailing City":      ["mailing city", "mail city"],
+  "Mailing State":     ["mailing state", "mail state"],
+  "Mailing Zip":       ["mailing zip", "mailing zip code", "mail zip", "mailing postal"],
+  Notes:               ["notes", "note", "comment", "comments", "description", "desc"],
+  "Last Dialed Date":  ["last dialed", "last called", "dialed date", "last dial"],
+  List:                ["list", "calling list", "contact list"],
+  Tags:                ["tags", "tag", "label", "labels"],
 };
 
 const autoMapHeaders = (
@@ -343,7 +495,9 @@ const Step2Assignment = ({
         setIsCreatingList(false);
         onRefresh();
         toast.success("List created successfully");
-    } catch (e) {}
+    } catch {
+      toast.error("Failed to create list");
+    }
   };
 
   const handleCreateFolder = async () => {
@@ -356,7 +510,9 @@ const Step2Assignment = ({
         setIsCreatingFolder(false);
         onRefresh();
         toast.success("Folder created successfully");
-    } catch (e) {}
+    } catch {
+      toast.error("Failed to create folder");
+    }
   };
 
   const filteredLists = lists.filter((l) => l.name.toLowerCase().includes(listSearch.toLowerCase()));
@@ -533,7 +689,7 @@ const HeaderDropdown = ({
             <div onClick={() => { onChange(""); setOpen(false); setSearch(""); }}
               className="px-3 py-2 text-[12px] text-gray-400 dark:text-slate-500 italic cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 border-b border-gray-50 dark:border-slate-700/50"
             >
-              — None —
+              Do not import
             </div>
             {filtered.length === 0 ? (
               <p className="px-3 py-3 text-[12px] text-gray-400 dark:text-slate-500 italic text-center">No headers found</p>
@@ -562,49 +718,113 @@ const MappingRow = ({
   systemField: string; csvHeader: string;
   onChange: (val: string) => void; csvHeaders: string[];
 }) => (
-  <div className="flex items-center gap-2 py-2 border-b border-gray-50 dark:border-slate-700/50 last:border-0">
-    <HeaderDropdown value={csvHeader} onChange={onChange} csvHeaders={csvHeaders} placeholder="CSV column header..." />
-    <div className="flex items-center shrink-0 text-gray-300 dark:text-slate-600">
-      <div className="w-2 h-px bg-current" />
-      <div className="w-2 h-px bg-current" />
-      <LuChevronRight size={14} className="text-gray-400 dark:text-slate-500" />
-    </div>
-    <div className="flex-1">
-      <div className={`px-3 py-1.5 text-[13px] rounded-lg font-medium truncate border
-        ${csvHeader
-          ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300"
-          : "bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300"
-        }`}
-      >
+  <div className="grid grid-cols-2 gap-3 items-center py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
+    <div className="flex items-center gap-2 min-w-0">
+      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${csvHeader ? "bg-green-400" : "bg-gray-300 dark:bg-slate-600"}`} />
+      <span className="text-[13px] font-medium text-gray-700 dark:text-slate-300 truncate">
         {systemField}
-      </div>
+      </span>
     </div>
+    <HeaderDropdown value={csvHeader} onChange={onChange} csvHeaders={csvHeaders} placeholder="Do not import" />
   </div>
 );
 
 // ─── Step 3: Map Your Fields ──────────────────────────────────────────────────
 
 const Step3MapFields = ({
-  mappings, setMappings, csvHeaders, miscFieldsLoading,
+  slingvoMappings, setSlingvoMappings, mappings, setMappings, csvHeaders, phoneCount, setPhoneCount, emailCount, setEmailCount, miscFieldsLoading,
 }: {
+  slingvoMappings: SlingvoFieldMapping[];
+  setSlingvoMappings: (m: SlingvoFieldMapping[]) => void;
   mappings: FieldMapping[];
   setMappings: (m: FieldMapping[]) => void;
   csvHeaders: string[];
+  phoneCount: number;
+  setPhoneCount: (n: number) => void;
+  emailCount: number;
+  setEmailCount: (n: number) => void;
   miscFieldsLoading: boolean;
 }) => {
-  // FIX 3: update by miscFieldId for misc rows, by systemField for primary rows
-  // This prevents keying collisions if a misc fieldName happens to match a primary field name
-  const update = (mapping: FieldMapping, csvHeader: string) =>
-    setMappings(
-      mappings.map((m) => {
-        if (m.isMisc && mapping.isMisc) return m.miscFieldId === mapping.miscFieldId ? { ...m, csvHeader } : m;
-        return m.systemField === mapping.systemField ? { ...m, csvHeader } : m;
-      })
-    );
-
-  const primaryMappings = mappings.filter((m) => !m.isMisc);
   const miscMappings = mappings.filter((m) => m.isMisc);
-  const mappedCount = mappings.filter((m) => m.csvHeader).length;
+  const mappedCount =
+    slingvoMappings.filter(m => m.csvHeader !== "").length +
+    miscMappings.filter(m => m.csvHeader !== "").length;
+
+  const updateMapping = (slingvoKey: string, csvHeader: string) => {
+    setSlingvoMappings(slingvoMappings.map(m =>
+      m.slingvoKey === slingvoKey ? { ...m, csvHeader } : m
+    ));
+  };
+
+  const updateMiscMapping = (mapping: FieldMapping, csvHeader: string) => {
+    setMappings(mappings.map((m) =>
+      m.miscFieldId === mapping.miscFieldId ? { ...m, csvHeader } : m
+    ));
+  };
+
+  const addPhone = () => {
+    const newCount = phoneCount + 1;
+    setPhoneCount(newCount);
+    setSlingvoMappings([
+      ...slingvoMappings,
+      { slingvoKey: `phone_${newCount}`, label: `Phone ${newCount}`, csvHeader: "" },
+    ]);
+  };
+
+  const addEmail = () => {
+    const newCount = emailCount + 1;
+    setEmailCount(newCount);
+    setSlingvoMappings([
+      ...slingvoMappings,
+      { slingvoKey: `email_${newCount}`, label: `Email ${newCount}`, csvHeader: "" },
+    ]);
+  };
+
+  // Group mappings for display
+  const nameFields      = slingvoMappings.filter(m => ["fullName","firstName","lastName"].includes(m.slingvoKey));
+  const propAddrFields  = slingvoMappings.filter(m => ["address","address2","city","state","zip"].includes(m.slingvoKey));
+  const mailAddrFields  = slingvoMappings.filter(m => ["mailingAddress","mailingAddress2","mailingCity","mailingState","mailingZip"].includes(m.slingvoKey));
+  const phoneFields     = slingvoMappings.filter(m => m.slingvoKey.startsWith("phone_"));
+  const emailFields     = slingvoMappings.filter(m => m.slingvoKey.startsWith("email_"));
+  const otherFields     = slingvoMappings.filter(m => ["tags","notes","source","lastDialedDate"].includes(m.slingvoKey));
+
+  const FieldRow = ({ mapping }: { mapping: SlingvoFieldMapping }) => (
+    <div className="grid grid-cols-2 gap-3 items-center py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
+      {/* Left: Slingvo field label */}
+      <div className="flex items-center gap-2 min-w-0">
+        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${mapping.csvHeader ? "bg-green-400" : "bg-gray-300 dark:bg-slate-600"}`} />
+        <span className="text-[13px] font-medium text-gray-700 dark:text-slate-300 truncate">
+          {mapping.label}
+        </span>
+      </div>
+      {/* Right: CSV column dropdown */}
+      <select
+        value={mapping.csvHeader}
+        onChange={(e) => updateMapping(mapping.slingvoKey, e.target.value)}
+        className={`w-full text-[12px] px-2.5 py-1.5 rounded-lg border outline-none transition-colors cursor-pointer
+          ${mapping.csvHeader
+            ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300 font-medium"
+            : "bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500"
+          }`}
+      >
+        <option value="" className="dark:bg-slate-800 text-gray-500">Do not import</option>
+        {csvHeaders.map(h => (
+          <option key={h} value={h} className="dark:bg-slate-800 text-gray-800 dark:text-slate-200">{h}</option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const GroupSection = ({ title, fields, extra }: { title: string; fields: SlingvoFieldMapping[]; extra?: React.ReactNode }) => (
+    <div className="space-y-0.5">
+      <div className="flex items-center gap-2 px-3 py-1.5">
+        <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">{title}</span>
+        <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700" />
+      </div>
+      {fields.map(m => <FieldRow key={m.slingvoKey} mapping={m} />)}
+      {extra}
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-4">
@@ -612,75 +832,87 @@ const Step3MapFields = ({
         <div>
           <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1">Step 3: Map Your Fields</h3>
           <p className="text-[13px] text-gray-500 dark:text-slate-400">
-            Select your CSV column header from the dropdown on the left and match it to the system field on the right.
+            For each Slingvo field, pick the matching column from your file. Set to "Do not import" to skip.
           </p>
         </div>
         {mappedCount > 0 && (
-          <div className="shrink-0 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <span className="text-[11px] font-semibold text-green-700 dark:text-green-400">{mappedCount} auto-mapped</span>
+          <div className="shrink-0 px-2.5 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-full">
+            <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400">{mappedCount} mapped</span>
           </div>
         )}
       </div>
 
-      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl">
-        <div className="flex gap-2">
-          <div className="text-blue-500 shrink-0 mt-0.5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-          </div>
-          <p className="text-[12px] text-blue-700 dark:text-blue-300 leading-relaxed">
-            <strong className="font-bold">Smart Phone Discovery:</strong> Our system automatically detects extra phone columns (like Phone 1, Phone 2, Mobile, or Contact) and will import them for you, even if you don't map them manually.
-          </p>
-        </div>
+      {/* Column headers */}
+      <div className="grid grid-cols-2 gap-3 px-3 py-2 bg-gray-50 dark:bg-slate-800 rounded-lg sticky top-0 z-10">
+        <span className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Slingvo Field</span>
+        <span className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">CSV Column</span>
       </div>
 
       {csvHeaders.length === 0 ? (
-        <div className="flex items-center justify-center h-20 text-[13px] text-gray-400 dark:text-slate-500 italic">
-          No CSV headers detected. Please go back and re-upload your file.
+        <div className="text-center py-8 text-[13px] text-gray-400 dark:text-slate-500 italic">
+          No CSV columns detected. Please go back and upload a file.
         </div>
       ) : (
-        <>
-          <div className="flex items-center gap-2 px-1">
-            <div className="flex-1 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Your CSV Column</div>
-            <div className="w-8" />
-            <div className="flex-1 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">System Field</div>
-          </div>
-
-          {/* Primary Fields */}
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">Primary Fields</p>
-            <div className="bg-white dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-xl px-3 py-1">
-              {primaryMappings.map((m) => (
-                <MappingRow key={m.systemField} systemField={m.systemField} csvHeader={m.csvHeader}
-                  onChange={(val) => update(m, val)} csvHeaders={csvHeaders} />
-              ))}
-            </div>
-          </div>
-
-          {/* Misc Fields */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">Miscellaneous Fields</p>
+        <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+          <GroupSection title="Name" fields={nameFields} />
+          <GroupSection title="Property Address" fields={propAddrFields} />
+          <GroupSection title="Mailing Address" fields={mailAddrFields} />
+          <GroupSection
+            title="Phones"
+            fields={phoneFields}
+            extra={
+              <div className="px-3 pt-1">
+                <button
+                  type="button"
+                  onClick={addPhone}
+                  className="flex items-center gap-1.5 text-[12px] font-semibold text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
+                >
+                  <IoAdd size={14} /> Add Phone
+                </button>
+              </div>
+            }
+          />
+          <GroupSection
+            title="Emails"
+            fields={emailFields}
+            extra={
+              <div className="px-3 pt-1">
+                <button
+                  type="button"
+                  onClick={addEmail}
+                  className="flex items-center gap-1.5 text-[12px] font-semibold text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
+                >
+                  <IoAdd size={14} /> Add Email
+                </button>
+              </div>
+            }
+          />
+          <GroupSection title="Other" fields={otherFields} />
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Miscellaneous Fields</span>
               {miscFieldsLoading && (
                 <span className="text-[10px] text-gray-400 dark:text-slate-500 italic animate-pulse">Loading...</span>
               )}
+              <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700" />
             </div>
             {miscMappings.length === 0 && !miscFieldsLoading ? (
               <p className="text-[12px] text-gray-400 dark:text-slate-500 italic px-3 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-700">
-                No miscellaneous fields configured. Add them in System Settings → Misc Fields.
+                No miscellaneous fields configured. Add them in System Settings - Misc Fields.
               </p>
             ) : (
-              <div className="bg-white dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-xl px-3 py-1">
-                {/* FIX 4: key by miscFieldId (stable DB id) not systemField (display name that could change) */}
-                {miscMappings.map((m) => (
-                  <MappingRow key={m.miscFieldId} systemField={m.systemField} csvHeader={m.csvHeader}
-                    onChange={(val) => update(m, val)} csvHeaders={csvHeaders} />
-                ))}
-              </div>
+              miscMappings.map((m) => (
+                <MappingRow
+                  key={m.miscFieldId}
+                  systemField={m.systemField}
+                  csvHeader={m.csvHeader}
+                  onChange={(val) => updateMiscMapping(m, val)}
+                  csvHeaders={csvHeaders}
+                />
+              ))
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -782,7 +1014,9 @@ const Step4Duplicates = ({
 
 const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { getContactLists, getContactFolders, importContacts } = useContact();
-  const { data: miscFieldsData = [], isLoading: miscFieldsLoading } = useMiscFields();
+  const { data: miscFieldsRawData, isLoading: miscFieldsLoading } = useMiscFields();
+  const miscFieldsData = useMemo(() => miscFieldsRawData || [], [miscFieldsRawData]);
+  const contactFetchersRef = useRef({ getContactLists, getContactFolders });
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -797,10 +1031,17 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
   const [selectedFolder, setSelectedFolder] = useState<ContactFolder | null>(null);
 
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
+  const [slingvoMappings, setSlingvoMappings] = useState<SlingvoFieldMapping[]>([]);
+  const [phoneCount, setPhoneCount] = useState(INITIAL_PHONE_COUNT);
+  const [emailCount, setEmailCount] = useState(INITIAL_EMAIL_COUNT);
 
   const [dupScope, setDupScope] = useState<DuplicateScope[]>(["Entire Database", "File Import"]);
   const [dupFields, setDupFields] = useState<DuplicateCheckField[]>(["Phone"]);
   const [dupHandling, setDupHandling] = useState<DuplicateHandling>("Keep Old");
+
+  useEffect(() => {
+    contactFetchersRef.current = { getContactLists, getContactFolders };
+  }, [getContactFolders, getContactLists]);
 
   // FIX 5: allSystemFields now carries miscFieldId correctly on every misc entry
   const allSystemFields = useMemo((): FieldMapping[] => {
@@ -811,9 +1052,9 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
         isMisc: false,
         miscFieldId: undefined,
       })),
-      ...miscFieldsData
-        .filter((f: any) => !!f.fieldName)
-        .map((f: any) => ({
+      ...(miscFieldsData as MiscFieldOption[])
+        .filter((f): f is MiscFieldOption & { fieldName: string } => !!f.fieldName)
+        .map((f) => ({
           systemField: f.fieldName,  // shown in UI
           csvHeader: "",
           isMisc: true,
@@ -822,9 +1063,10 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     ];
   }, [miscFieldsData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      const { getContactLists, getContactFolders } = contactFetchersRef.current;
       const [allLists, allFolders] = await Promise.all([getContactLists(), getContactFolders()]);
       setLists(allLists);
       setFolders(allFolders);
@@ -833,15 +1075,15 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // FIX 6: Single useEffect handles both file change and misc fields load.
   // Merged the two separate useEffects to avoid the second one overwriting
   // mappings built by the first (which correctly had miscFieldId).
   useEffect(() => {
     if (!file) {
-      // No file — just build empty mappings from current allSystemFields
       setMappings(allSystemFields.map((f) => ({ ...f, csvHeader: "" })));
+      setSlingvoMappings(buildInitialSlingvoMappings([], INITIAL_PHONE_COUNT, INITIAL_EMAIL_COUNT));
       setCsvHeaders([]);
       return;
     }
@@ -849,6 +1091,9 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     parseFileHeaders(file)
       .then((headers) => {
         setCsvHeaders(headers);
+        // Build Slingvo-field-first mappings with auto-suggestions
+        setSlingvoMappings(buildInitialSlingvoMappings(headers, INITIAL_PHONE_COUNT, INITIAL_EMAIL_COUNT));
+        // Keep existing mappings for misc fields
         const autoMapped = autoMapHeaders(headers, allSystemFields.map((f) => f.systemField));
         setMappings(
           allSystemFields.map((f) => ({
@@ -858,23 +1103,30 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
         );
       })
       .catch(() => toast.error("Could not read file headers"));
-  }, [file, allSystemFields]); // allSystemFields covers both file change and misc fields load
+  }, [file, allSystemFields]);
 
   useEffect(() => {
     if (isOpen) {
       setStep(1);
       fetchData();
-    } else {
+    }
+  }, [fetchData, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
       setFile(null);
       setCsvHeaders([]);
       setSelectedList(null);
       setSelectedFolder(null);
       setMappings(allSystemFields.map((f) => ({ ...f, csvHeader: "" })));
+      setSlingvoMappings(buildInitialSlingvoMappings([], INITIAL_PHONE_COUNT, INITIAL_EMAIL_COUNT));
+      setPhoneCount(INITIAL_PHONE_COUNT);
+      setEmailCount(INITIAL_EMAIL_COUNT);
       setDupScope(["Entire Database", "File Import"]);
       setDupFields(["Phone"]);
       setDupHandling("Keep Old");
     }
-  }, [isOpen]);
+  }, [allSystemFields, isOpen]);
 
   const handleNext = () => {
     if (step === 1 && !file) { toast.error("Please upload a file first"); return; }
@@ -890,20 +1142,20 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
     if (selectedList)   formData.append("contactListId",   selectedList.id);
     if (selectedFolder) formData.append("contactFolderId", selectedFolder.id);
 
-    // Primary fields — keyed by system field name e.g. { "Name": "full_name" }
-    const primaryMappings: Record<string, string> = {};
-    mappings
-      .filter((m) => !m.isMisc && m.csvHeader.trim())
-      .forEach((m) => { primaryMappings[m.systemField] = m.csvHeader.trim(); });
+    // Build fieldMappings: { slingvoKey: csvColumnHeader }
+    // e.g. { "fullName": "Full Name", "phone_1": "Phone 1", "email_1": "Email" }
+    const fieldMappings: Record<string, string> = {};
+    slingvoMappings
+      .filter(m => m.slingvoKey && m.csvHeader)
+      .forEach(m => { fieldMappings[m.slingvoKey] = m.csvHeader; });
 
-    // FIX 7: Misc fields — keyed by MiscField.id e.g. { "3ccbf011-...": "dob_col" }
-    // m.miscFieldId is now always set because allSystemFields carries it correctly
+    // Misc fields — still keyed by MiscField.id
     const miscMappings: Record<string, string> = {};
     mappings
       .filter((m) => m.isMisc && m.miscFieldId && m.csvHeader.trim())
       .forEach((m) => { miscMappings[m.miscFieldId!] = m.csvHeader.trim(); });
 
-    formData.append("fieldMappings", JSON.stringify(primaryMappings));
+    formData.append("fieldMappings", JSON.stringify(fieldMappings));
     formData.append("miscMappings",  JSON.stringify(miscMappings));
     formData.append("dupScope",      JSON.stringify(dupScope));
     formData.append("dupFields",     JSON.stringify(dupFields));
@@ -926,7 +1178,7 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
 
   return createPortal(
     // FIX 8: z-1000 → z-[1000] (valid Tailwind arbitrary value)
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 w-full max-w-[640px] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{ maxHeight: "90vh" }}
@@ -952,8 +1204,18 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
               setSelectedFolder={setSelectedFolder} loading={loading} onRefresh={fetchData} />
           )}
           {step === 3 && (
-            <Step3MapFields mappings={mappings} setMappings={setMappings}
-              csvHeaders={csvHeaders} miscFieldsLoading={miscFieldsLoading} />
+            <Step3MapFields
+              slingvoMappings={slingvoMappings}
+              setSlingvoMappings={setSlingvoMappings}
+              mappings={mappings}
+              setMappings={setMappings}
+              csvHeaders={csvHeaders}
+              phoneCount={phoneCount}
+              setPhoneCount={setPhoneCount}
+              emailCount={emailCount}
+              setEmailCount={setEmailCount}
+              miscFieldsLoading={miscFieldsLoading}
+            />
           )}
           {step === 4 && (
             <Step4Duplicates dupScope={dupScope} setDupScope={setDupScope}

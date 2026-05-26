@@ -3,6 +3,7 @@ import { FiX, FiChevronDown, FiPlus } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import AddRecordingModal from "@/components/modal/addrecordingmodal";
 import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
+import { useMediaCenter, type MediaCenterItem, type MediaType } from "@/hooks/useMediaCenter";
 import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
@@ -44,8 +45,8 @@ const SelectInput = ({
 // Matches the RecordingSlot enum from the Prisma schema:
 // ON_HOLD | IVR | ANSWERING_MACHINE | VOICEMAIL | GENERAL
 
-const filterBySlot = (recordings: RecordingItem[], slot: string): RecordingItem[] =>
-  recordings.filter((r) => (r as any).slot === slot);
+const filterAudioByType = (media: MediaCenterItem[], mediaType: MediaType): MediaCenterItem[] =>
+  media.filter((item) => item.fileCategory === "audio" && item.mediaType === mediaType);
 
 // ── Modal ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const { data: existingSettings, createCallSettings, updateCallSettings } = useCallSettings();
   const { data: callerIdsData } = useCallerIds();
   const { getRecordings } = useRecordings();
+  const { getMediaCenterItems } = useMediaCenter();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -77,6 +79,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isAddRecordingOpen, setIsAddRecordingOpen] = useState(false);
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
+  const [mediaCenterItems, setMediaCenterItems] = useState<MediaCenterItem[]>([]);
   const [callerIds, setCallerIds] = useState<CallerId[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -90,11 +93,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const { data: session } = authClient.useSession();
   const role = session?.user.role;
 
-  const onHoldRecordings    = filterBySlot(recordings, "ON_HOLD");
-  const answeringMachineRecs = filterBySlot(recordings, "ANSWERING_MACHINE");
+  const onHoldMedia = filterAudioByType(mediaCenterItems, "ON_HOLD");
+  const voiceMailMedia = filterAudioByType(mediaCenterItems, "VOICE_MAIL");
 
-  const fallbackRecordings  = (filtered: RecordingItem[]) =>
-    filtered.length > 0 ? filtered : recordings;
+  const isLegacyRecordingId = (id: string) => recordings.some((r) => r.id === id);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const loadSetting = (setting: any) => {
@@ -120,18 +122,24 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
 
   const getSelectedRecordingUrl = () => {
     if (!onHoldRecording1) return undefined;
+    const media = mediaCenterItems.find((item) => item.id === onHoldRecording1);
+    if (media?.fileUrl) return media.fileUrl;
     const rec = recordings.find((r) => r.id === onHoldRecording1);
     return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
   };
 
   const getAnsweringMachineUrl = () => {
     if (!answeringMachineRecording) return undefined;
+    const media = mediaCenterItems.find((item) => item.id === answeringMachineRecording);
+    if (media?.fileUrl) return media.fileUrl;
     const rec = recordings.find((r) => r.id === answeringMachineRecording);
     return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
   };
 
   const getBusyRecordingUrl = () => {
     if (!busyRecording) return undefined;
+    const media = mediaCenterItems.find((item) => item.id === busyRecording);
+    if (media?.fileUrl) return media.fileUrl;
     const rec = recordings.find((r) => r.id === busyRecording);
     return rec ? ((rec as any).fileUrl || (rec as any).url) : undefined;
   };
@@ -141,6 +149,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       getRecordings().then(setRecordings);
+      getMediaCenterItems().then(setMediaCenterItems);
       getScripts().then(setScripts);
     }
   }, [isOpen]);
@@ -196,11 +205,11 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         callerId: selectedCallerIds.join(","),
         countryCode,
         numberOfLines: parseInt(noOfLines),
-        onHoldRecording1Id: onHoldRecording1 || undefined,
-        onHoldRecording2Id: onHoldRecording2 || undefined,
-        ivrRecordingId: ivrRecording || undefined,
-        answeringMachineRecordingId: answeringMachineRecording || undefined,
-        busyRecordingId: busyRecording || undefined,
+        onHoldRecording1Id: onHoldRecording1 && isLegacyRecordingId(onHoldRecording1) ? onHoldRecording1 : undefined,
+        onHoldRecording2Id: onHoldRecording2 && isLegacyRecordingId(onHoldRecording2) ? onHoldRecording2 : undefined,
+        ivrRecordingId: ivrRecording && isLegacyRecordingId(ivrRecording) ? ivrRecording : undefined,
+        answeringMachineRecordingId: answeringMachineRecording && isLegacyRecordingId(answeringMachineRecording) ? answeringMachineRecording : undefined,
+        busyRecordingId: busyRecording && isLegacyRecordingId(busyRecording) ? busyRecording : undefined,
         callScriptId: selectedScript || undefined,
         dialerMode,
         amdEnabled,
@@ -260,8 +269,6 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       setIsLoading(false);
     }
   };
-
-  console.log(recordings)
 
   if (!isOpen) return null;
 
@@ -416,8 +423,8 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     <FieldWrapper label="On-Hold">
                       <SelectInput value={onHoldRecording1} onChange={setOnHoldRecording1}>
                         <option value="" className="dark:bg-slate-900">None</option>
-                        {fallbackRecordings(onHoldRecordings).map((r) => (
-                          <option key={r.id} value={r.id} className="dark:bg-slate-900">{r.name}</option>
+                        {onHoldMedia.map((item) => (
+                          <option key={item.id} value={item.id} className="dark:bg-slate-900">{item.templateName}</option>
                         ))}
                       </SelectInput>
                     </FieldWrapper>
@@ -425,8 +432,8 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     <FieldWrapper label="Drop VM">
                       <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
                         <option value="" className="dark:bg-slate-900">None</option>
-                        {fallbackRecordings(answeringMachineRecs).map((r) => (
-                          <option key={r.id} value={r.id} className="dark:bg-slate-900">{r.name}</option>
+                        {voiceMailMedia.map((item) => (
+                          <option key={item.id} value={item.id} className="dark:bg-slate-900">{item.templateName}</option>
                         ))}
                       </SelectInput>
                     </FieldWrapper>
