@@ -118,10 +118,7 @@ const Detail = ({ hideQualifications = false }: DetailProps) => {
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyAddressQuery)}`
         : "";
 
-    // const handleFolderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    //     setSelectedFolderId(e.target.value);
-    //     setSelectedListId('');
-    // };
+   
 
     async function handleListChange(listId: string) {
         setSelectedListId(listId);
@@ -285,6 +282,7 @@ const Detail = ({ hideQualifications = false }: DetailProps) => {
 
     return (
         <section className='bg-white dark:bg-[#1A1F2E] flex flex-col gap-4 px-6 py-5 w-full mx-auto rounded-[20px] shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300'>
+  
             <div className='flex flex-col md:flex-row md:justify-between md:items-start'>
                 <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
                     <div className='flex flex-col'>
@@ -453,11 +451,7 @@ const Detail = ({ hideQualifications = false }: DetailProps) => {
                         ))}
                     </div>
                 </div>
-            </div>
-
-
-
-        
+            </div>        
 
             {/* CUSTOM DISPOSITIONS CREATED BY USER */}
             {customDispositions.length > 0 && (

@@ -166,6 +166,9 @@ const ContactInfoHeader = ({
   }, [isCalling, endCall, onNext, onPrev]);
 
   const handleHangupAndLeave = async () => {
+    if (dialerMode === 'power' && onStopSimultaneousDialer) {
+      await onStopSimultaneousDialer();
+    }
     if (isCalling) {
       await endCall();
     }
