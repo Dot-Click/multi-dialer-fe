@@ -18,6 +18,7 @@ import toast from 'react-hot-toast'
 import { TbEdit } from "react-icons/tb";
 import api from "@/lib/axios";
 import ApplyDispositionModal from "@/components/modal/ApplyDispositionModal";
+import { normalizeTags } from "@/utils/contact";
 
 
 export const ICON_MAP: Record<string, React.ElementType> = {
@@ -92,7 +93,7 @@ const Detail = ({ hideQualifications = false }: DetailProps) => {
             const d = currentContact.disposition ?? null;
             setSelectedDisp(d);
             setSavedDisp(d);
-            setTagsInput(currentContact.tags?.join(", ") || "");
+            setTagsInput(normalizeTags(currentContact.tags).join(", "));
 
             if (lists.length > 0) {
                 const currentList = lists.find(l => l.contactIds.includes(currentContact.id));

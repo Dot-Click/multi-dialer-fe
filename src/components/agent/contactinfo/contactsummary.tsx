@@ -1,5 +1,6 @@
 import { useAppSelector } from '@/store/hooks';
 import { MapPin, Phone, User } from 'lucide-react';
+import { normalizeTags } from '@/utils/contact';
 
 const ContactSummary = () => {
     const { currentContact } = useAppSelector((state) => state.contacts);
@@ -8,6 +9,7 @@ const ContactSummary = () => {
 
     const primaryPhone = currentContact.phones?.find((p: any) => p.isPrimary)?.number || currentContact.phones?.[0]?.number || 'N/A';
     const primaryEmail = currentContact.emails?.find((e: any) => e.isPrimary)?.email || currentContact.emails?.[0]?.email || 'N/A';
+    const tags = normalizeTags(currentContact.tags);
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl px-6 py-3 shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-between gap-6 overflow-hidden">
@@ -41,11 +43,12 @@ const ContactSummary = () => {
                 <div className="flex flex-col items-end">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Tags</span>
                     <div className="flex gap-1 mt-0.5">
-                        {currentContact.tags?.slice(0, 2).map((tag: string, i: number) => (
+                        {tags.slice(0, 2).map((tag: string, i: number) => (
                             <span key={i} className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-[10px] font-bold rounded-md text-gray-600 dark:text-gray-300">
                                 {tag}
                             </span>
-                        )) || <span className="text-gray-400 italic text-[11px]">No tags</span>}
+                        ))}
+                        {tags.length === 0 && <span className="text-gray-400 italic text-[11px]">No tags</span>}
                     </div>
                 </div>
             </div>

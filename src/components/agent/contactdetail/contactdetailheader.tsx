@@ -16,6 +16,7 @@ import AddEventForm from "@/components/modal/addeventmodal";
 import TakeActionModal from "@/components/modal/takeactionmodal";
 import DncSelectionModal from "@/components/modal/dncselectionmodal";
 import api from "@/lib/axios";
+import { normalizeTags } from "@/utils/contact";
 
 const ContactDetailHeader = () => {
   const dispatch = useAppDispatch();
@@ -74,7 +75,7 @@ const ContactDetailHeader = () => {
 
     const allPhones = currentContact.phones?.map((p: any) => p.number).join("; ") || "-";
     const allEmails = currentContact.emails?.map((e: any) => e.email).join("; ") || "-";
-    const allTags = currentContact.tags?.join("; ") || "-";
+    const allTags = normalizeTags(currentContact.tags).join("; ") || "-";
 
     const exportData = [{
       fullName: currentContact.fullName || "-",

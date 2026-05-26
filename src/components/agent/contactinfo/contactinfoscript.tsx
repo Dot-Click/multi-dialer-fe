@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { getHistory } from "@/store/slices/callingSlice";
 import dayjs from "dayjs";
+import { normalizeTags } from "@/utils/contact";
 
 const ContactInfoScript = () => {
   const [activeTab, setActiveTab] = useState('Lead Sheet');
@@ -81,7 +82,7 @@ const ContactInfoScript = () => {
         <div className="space-y-3">
           <label className="text-[13px] font-bold text-[#6b7280] dark:text-gray-400 block">Tags</label>
           <div className="flex flex-wrap gap-2">
-            {(currentContact.tags || []).length > 0 ? currentContact.tags.map((tag: any) => (
+            {normalizeTags(currentContact.tags).length > 0 ? normalizeTags(currentContact.tags).map((tag: string) => (
               <span key={tag} className="px-3 py-1 border border-gray-200 dark:border-slate-600 rounded-full text-[12px] font-semibold text-[#4b5563] dark:text-gray-300">{tag}</span>
             )) : <span className="text-gray-400 dark:text-gray-500 text-xs italic">No tags</span>}
           </div>

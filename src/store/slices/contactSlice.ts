@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
+import { normalizeTags } from "@/utils/contact";
 
 export interface Contact {
   id: string;
@@ -149,7 +150,7 @@ export const fetchContacts = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          tags: normalizeTags(c.tags).join(", ") || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -178,7 +179,7 @@ export const fetchContactsByList = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          tags: normalizeTags(c.tags).join(", ") || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -209,7 +210,7 @@ export const fetchContactsByFolder = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          tags: normalizeTags(c.tags).join(", ") || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -900,7 +901,7 @@ export const fetchDuplicateContacts = createAsyncThunk(
           phone: c.phones?.[0]?.number || "-",
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
-          tags: c.tags?.length > 0 ? c.tags.join(", ") : "-",
+          tags: normalizeTags(c.tags).join(", ") || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -1010,10 +1011,7 @@ export const contactSlice = createSlice({
           phone: action.payload.phones?.[0]?.number || "-",
           email: action.payload.emails?.[0]?.email || "-",
           list: action.payload.source || "-",
-          tags:
-            action.payload.tags?.length > 0
-              ? action.payload.tags.join(", ")
-              : "-",
+          tags: normalizeTags(action.payload.tags).join(", ") || "-",
           notes: action.payload.notes || [],
         };
         state.contacts.unshift(newContact);
@@ -1042,10 +1040,7 @@ export const contactSlice = createSlice({
             phone: action.payload.phones?.[0]?.number || "-",
             email: action.payload.emails?.[0]?.email || "-",
             list: action.payload.source || "-",
-            tags:
-              action.payload.tags?.length > 0
-                ? action.payload.tags.join(", ")
-                : "-",
+            tags: normalizeTags(action.payload.tags).join(", ") || "-",
             notes: action.payload.notes || [],
           };
         }
