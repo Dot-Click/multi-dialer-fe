@@ -68,7 +68,7 @@ const ContactInfo = () => {
     const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, incomingContactId, startCall, isCalling, setIsPostCall } = useTwilio();
+    const { setAnsweringMachineUrl, incomingContactId, startCall, isCalling, setIsPostCall, isPostCall } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
@@ -89,6 +89,7 @@ const ContactInfo = () => {
     const emptyCountRef = useRef(0);
     const previousContactIdRef = useRef<string | null>(null);
     const [pendingDialTarget, setPendingDialTarget] = useState<DialTarget | null>(null);
+    const [pendingContactId, setPendingContactId] = useState<string | null>(null);
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
@@ -295,6 +296,16 @@ const ContactInfo = () => {
     const continueDialer = useCallback((target: DialTarget | null) => {
         setIsPostCall(false);
 
+        if (pendingContactId) {
+            const foundIdx = queue.findIndex((c: { id?: string }) => c.id === pendingContactId);
+            if (foundIdx !== -1) {
+                setCurrentIndex(foundIdx);
+            }
+            setPendingContactId(null);
+            setPendingDialTarget(null);
+            return;
+        }
+
         if (!target) {
             setPendingDialTarget(null);
             toast("No more numbers to dial in this session.");
@@ -310,7 +321,7 @@ const ContactInfo = () => {
         }
 
         setPendingDialTarget(target);
-    }, [dialerMode, setIsPostCall]);
+    }, [dialerMode, pendingContactId, queue, setIsPostCall]);
 
     const moveCurrentPhoneToDnc = useCallback(async (contact: any, phoneIndex: number) => {
         const phones = getContactPhones(contact);
@@ -415,13 +426,17 @@ const ContactInfo = () => {
 
     useEffect(() => {
         if (incomingContactId && queue.length > 0) {
-            const foundIdx = queue.findIndex(c => (c as any).id === incomingContactId);
-            if (foundIdx !== -1 && foundIdx !== currentIndex) {
-                toast(`Connected to ${queue[foundIdx].name || queue[foundIdx].fullName || "Contact"}!`, { icon: '📞' });
-                setCurrentIndex(foundIdx);
+            if (isPostCall) {
+                setPendingContactId(incomingContactId);
+            } else {
+                const foundIdx = queue.findIndex((c: { id?: string }) => c.id === incomingContactId);
+                if (foundIdx !== -1 && foundIdx !== currentIndex) {
+                    toast(`Connected to ${queue[foundIdx].name || queue[foundIdx].fullName || "Contact"}!`, { icon: '📞' });
+                    setCurrentIndex(foundIdx);
+                }
             }
         }
-    }, [incomingContactId, queue]);
+    }, [incomingContactId, queue, isPostCall, currentIndex]);
 
     const startSimultaneousDialing = async () => {
         if (isAutoDialingRef.current || !currentCallerId) return;
