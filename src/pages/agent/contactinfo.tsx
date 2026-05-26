@@ -257,8 +257,19 @@ const ContactInfo = () => {
         if (queue.length > 0 && queue[currentIndex]) dispatch(fetchContactById(queue[currentIndex].id));
     }, [currentIndex, queue, dispatch]);
 
-    const handleNextContact = () => { if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); };
-    const handlePreviousContact = () => { if (currentIndex > 0) setCurrentIndex((p) => p - 1); };
+    // Reset isPostCall when contact index changes
+    useEffect(() => {
+        setIsPostCall(false);
+    }, [currentIndex, setIsPostCall]);
+
+    const handleNextContact = () => { 
+        setIsPostCall(false);
+        if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); 
+    };
+    const handlePreviousContact = () => { 
+        setIsPostCall(false);
+        if (currentIndex > 0) setCurrentIndex((p) => p - 1); 
+    };
 
     const getNextContactTarget = useCallback((fromIndex: number): DialTarget | null => {
         const nextIndex = fromIndex + 1;
