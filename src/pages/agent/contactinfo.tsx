@@ -37,7 +37,7 @@ interface ContactPhone {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOTAL_DAILY_LIMIT = 25;
+const TOTAL_DAILY_LIMIT = 1000;
 const POLL_INTERVAL_MS = 30_000;
 
 const getContactPhones = (contact: any): ContactPhone[] => {
