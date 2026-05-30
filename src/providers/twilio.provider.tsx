@@ -328,14 +328,23 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (call) {
         activeCallRef.current = call;
         setActiveCall(call);
-        const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
-        setActiveCallSid(sid);
 
-        call.on('ringing', () => setCallStatus('ringing'));
+        const syncRealCallSid = () => {
+          const realSid = call.parameters?.CallSid;
+          if (realSid?.startsWith('CA')) {
+            setActiveCallSid(realSid);
+          }
+        };
+
+        syncRealCallSid();
+
+        call.on('ringing', () => {
+          setCallStatus('ringing');
+          syncRealCallSid();
+        });
 
         call.on('accept', () => {
-          const finalSid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
-          setActiveCallSid(finalSid);
+          syncRealCallSid();
         });
 
         call.on('disconnect', () => {

@@ -6,6 +6,7 @@ import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
 import ContactInfoHeader from '@/components/agent/contactinfo/contactinfoheader';
+import SessionSummaryModal, { type SessionSummaryStats } from '@/components/agent/SessionSummaryModal';
 import BottomContactDetail from '@/components/agent/contactdetail/bottomcontactdetail';
 import Detail from '@/components/agent/contactdetail/detail';
 import CallOutcomes from '@/components/agent/contactinfo/calloutcomes';
@@ -39,6 +40,14 @@ interface ContactPhone {
 
 const TOTAL_DAILY_LIMIT = 1000;
 const POLL_INTERVAL_MS = 30_000;
+const EMPTY_SESSION_STATS: SessionSummaryStats = {
+    totalDialed: 0,
+    connected: 0,
+    noAnswer: 0,
+    voicemail: 0,
+    badNumber: 0,
+    dnc: 0,
+};
 
 const getContactPhones = (contact: any): ContactPhone[] => {
     if (Array.isArray(contact?.phones) && contact.phones.length > 0) {
@@ -86,6 +95,31 @@ const expandContactsIntoPhoneCards = (contacts: any[]) =>
         }));
     });
 
+const hydrateContactsWithPhones = async (contacts: any[]) => {
+    return Promise.all(contacts.map(async (contact) => {
+        if (Array.isArray(contact?.phones) && contact.phones.length > 0) {
+            return contact;
+        }
+
+        try {
+            const { data } = await api.get(`/contact/${contact.id}`);
+            if (data.success) {
+                return {
+                    ...contact,
+                    ...data.data,
+                    name: contact.name || data.data.fullName,
+                    phone: data.data.phones?.[0]?.number || contact.phone,
+                    phones: data.data.phones || [],
+                };
+            }
+        } catch (err) {
+            console.warn(`[ContactInfo] Failed to hydrate phones for contact ${contact.id}`, err);
+        }
+
+        return contact;
+    }));
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ContactInfo = () => {
@@ -118,6 +152,13 @@ const ContactInfo = () => {
     const previousContactIdRef = useRef<string | null>(null);
     const [pendingDialTarget, setPendingDialTarget] = useState<DialTarget | null>(null);
     const [pendingContactId, setPendingContactId] = useState<string | null>(null);
+    const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+    const [sessionStats, setSessionStats] = useState(EMPTY_SESSION_STATS);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+    const [showSessionSummary, setShowSessionSummary] = useState(false);
+    const [sessionDurationMs, setSessionDurationMs] = useState(0);
+    const activeSessionIdRef = useRef<string | null>(null);
+    const unresolvedDialAttemptsRef = useRef(0);
     const currentQueueEntry = queue[currentIndex];
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
@@ -138,6 +179,70 @@ const ContactInfo = () => {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
         pollTimerRef.current = setInterval(() => fetchCooldownStatus(numbers), POLL_INTERVAL_MS);
     }, [fetchCooldownStatus]);
+
+    const ensureSessionStarted = useCallback(async () => {
+        setSessionStartTime((current) => current || new Date());
+
+        if (activeSessionIdRef.current) {
+            return activeSessionIdRef.current;
+        }
+
+        try {
+            const { data } = await api.post('/calling/session/start', {
+                type: dialerMode === "power" ? "POWER" : "C2C",
+            });
+            const sessionId = data?.data?.id || data?.id;
+            if (sessionId) {
+                activeSessionIdRef.current = sessionId;
+                setActiveSessionId(sessionId);
+            }
+            return sessionId || null;
+        } catch (err) {
+            console.warn('[ContactInfo] Failed to start calling session:', err);
+            return null;
+        }
+    }, [dialerMode]);
+
+    const incrementSessionDialed = useCallback(() => {
+        unresolvedDialAttemptsRef.current += 1;
+        setSessionStats((prev) => ({
+            ...prev,
+            totalDialed: prev.totalDialed + 1,
+        }));
+    }, []);
+
+    const incrementSessionOutcome = useCallback((outcomeValue: string) => {
+        const normalizedValue = outcomeValue.toUpperCase();
+        const isTrackedOutcome = ["CONTACT", "NO_ANSWER", "VOICEMAIL", "BAD_NUMBER", "DNC_CONTACT", "DNC_NUMBER"].includes(normalizedValue);
+        const shouldCountDialed = unresolvedDialAttemptsRef.current <= 0;
+
+        if (!isTrackedOutcome) return;
+
+        if (unresolvedDialAttemptsRef.current > 0) {
+            unresolvedDialAttemptsRef.current -= 1;
+        }
+
+        setSessionStats((prev) => {
+            const totalDialed = shouldCountDialed ? prev.totalDialed + 1 : prev.totalDialed;
+
+            if (normalizedValue === "CONTACT") {
+                return { ...prev, totalDialed, connected: prev.connected + 1 };
+            }
+            if (normalizedValue === "NO_ANSWER") {
+                return { ...prev, totalDialed, noAnswer: prev.noAnswer + 1 };
+            }
+            if (normalizedValue === "VOICEMAIL") {
+                return { ...prev, totalDialed, voicemail: prev.voicemail + 1 };
+            }
+            if (normalizedValue === "BAD_NUMBER") {
+                return { ...prev, totalDialed, badNumber: prev.badNumber + 1 };
+            }
+            if (normalizedValue === "DNC_CONTACT" || normalizedValue === "DNC_NUMBER") {
+                return { ...prev, totalDialed, dnc: prev.dnc + 1 };
+            }
+            return prev;
+        });
+    }, []);
 
     useEffect(() => {
         let statusPoll: any;
@@ -190,8 +295,11 @@ const ContactInfo = () => {
         if (amUrl) setAnsweringMachineUrl(amUrl);
         if (location.state?.selectedScript) setScriptId(location.state.selectedScript);
         if (selectedContacts?.length > 0) {
-            dispatch(setQueue(expandContactsIntoPhoneCards(selectedContacts)));
-            setCurrentIndex(0);
+            void (async () => {
+                const contactsWithPhones = await hydrateContactsWithPhones(selectedContacts);
+                dispatch(setQueue(expandContactsIntoPhoneCards(contactsWithPhones)));
+                setCurrentIndex(0);
+            })();
         }
 
         const ids: string[] =
@@ -241,7 +349,9 @@ const ContactInfo = () => {
     }, [callerIds, currentCallerId, callerIdStatus, dailyCallsCount, maxCallsPerId]);
 
     const _unusedOnCallStarted = useCallback(async (fromNumber: string) => {
+        await ensureSessionStarted();
         setDailyCallsCount((prev) => prev + 1);
+        incrementSessionDialed();
         setCallerIdStatus((prev) => {
             const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
             const newCount = current.callCount + 1;
@@ -260,7 +370,7 @@ const ContactInfo = () => {
                 }
             }
         } catch (err) { console.error(err); }
-    }, [maxCallsPerId, _unusedRotateCallerId]);
+    }, [ensureSessionStarted, incrementSessionDialed, maxCallsPerId, _unusedRotateCallerId]);
 
     useEffect(() => {
         if (!currentContact?.id) {
@@ -398,6 +508,7 @@ const ContactInfo = () => {
         if (!currentContact?.id) return;
 
         const normalizedValue = outcomeValue.toUpperCase();
+        incrementSessionOutcome(normalizedValue);
         const nextContactTarget = getNextContactTarget(currentIndex);
         const activeEntry = queue[currentIndex];
         const activeContactId = getQueueContactId(activeEntry) || currentContact.id;
@@ -454,7 +565,7 @@ const ContactInfo = () => {
         }
 
         continueDialer(nextContactTarget);
-    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, dialerMode, dispatch, endCall, getNextContactTarget, isCalling, moveCurrentPhoneToDnc, queue]);
+    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, dialerMode, dispatch, endCall, getNextContactTarget, incrementSessionOutcome, isCalling, moveCurrentPhoneToDnc, queue]);
 
     useEffect(() => {
         if (!pendingDialTarget || dialerMode === "power" || isCalling) return;
@@ -514,6 +625,7 @@ const ContactInfo = () => {
         isAutoDialingRef.current = true;
         toast.loading("Starting simultaneous dialer...", { id: "powerDialer" })
         try {
+            await ensureSessionStarted();
             const leadsPayload = queue.slice(currentIndex).map((c: any, idx: number) => ({
                 fullName: c.name || c.fullName,
                 phone: c.phone,
@@ -535,16 +647,55 @@ const ContactInfo = () => {
         }
     }
 
-    const stopSimultaneousDialing = async () => {
+    const stopSimultaneousDialing = useCallback(async () => {
         try {
             await api.post('/calling/stop-dialing');
             toast.success("Power Dialer Stopped");
             setIsAutoDialing(false);
             isAutoDialingRef.current = false;
-        } catch (e) {
+        } catch {
             toast.error("Failed to stop dialer");
         }
-    }
+    }, []);
+
+    const handleHangupAndLeave = useCallback(async () => {
+        const endedAt = new Date();
+        const startedAt = sessionStartTime || endedAt;
+        const sessionId = activeSessionIdRef.current || activeSessionId;
+
+        if (sessionId) {
+            try {
+                await api.post(`/calling/session/${sessionId}/end`);
+            } catch (err) {
+                console.warn('[ContactInfo] Failed to end calling session:', err);
+            }
+        }
+
+        setSessionDurationMs(endedAt.getTime() - startedAt.getTime());
+        setShowSessionSummary(true);
+    }, [activeSessionId, sessionStartTime]);
+
+    const closeSessionAndLeave = useCallback(async () => {
+        setShowSessionSummary(false);
+
+        if (dialerMode === 'power') {
+            await stopSimultaneousDialing();
+        }
+
+        if (isCalling) {
+            await endCall();
+        }
+
+        const path = dialerMode === 'power'
+            ? (localStorage.getItem('user_role') === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer')
+            : -1;
+
+        if (path === -1) {
+            navigate(-1);
+        } else {
+            navigate(path as string);
+        }
+    }, [dialerMode, endCall, isCalling, navigate, stopSimultaneousDialing]);
 
     useEffect(() => {
         const handleUnload = () => {
@@ -589,7 +740,9 @@ const ContactInfo = () => {
     }, [callerIds, currentCallerId, callerIdStatus, dailyCallsCount, maxCallsPerId]);
 
     const onCallStarted = useCallback(async (fromNumber: string) => {
+        await ensureSessionStarted();
         setDailyCallsCount((prev) => prev + 1);
+        incrementSessionDialed();
         setCallerIdStatus((prev) => {
             const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
             const newCount = current.callCount + 1;
@@ -608,7 +761,7 @@ const ContactInfo = () => {
                 }
             }
         } catch (err) { console.error(err); }
-    }, [maxCallsPerId, rotateCallerId]);
+    }, [ensureSessionStarted, incrementSessionDialed, maxCallsPerId, rotateCallerId]);
 
     // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -634,6 +787,7 @@ const ContactInfo = () => {
                 autoDial={isAutoDialing}
                 onStartSimultaneousDialer={startSimultaneousDialing}
                 onStopSimultaneousDialer={stopSimultaneousDialing}
+                onHangupAndLeave={handleHangupAndLeave}
             />
 
             <main className="flex-1 overflow-hidden p-4">
@@ -740,6 +894,12 @@ const ContactInfo = () => {
                     </div>
                 </div>
             </main>
+            <SessionSummaryModal
+                open={showSessionSummary}
+                durationMs={sessionDurationMs}
+                stats={sessionStats}
+                onClose={closeSessionAndLeave}
+            />
         </div>
     );
 };

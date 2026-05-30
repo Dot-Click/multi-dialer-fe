@@ -33,6 +33,7 @@ interface ContactInfoHeaderProps {
   dialerMode?: string;
   onStartSimultaneousDialer?: () => void;
   onStopSimultaneousDialer?: () => void;
+  onHangupAndLeave?: () => void;
 }
 
 const ContactInfoHeader = ({
@@ -50,6 +51,7 @@ const ContactInfoHeader = ({
   dialerMode,
   onStartSimultaneousDialer,
   onStopSimultaneousDialer,
+  onHangupAndLeave,
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
@@ -167,6 +169,11 @@ const ContactInfoHeader = ({
   }, [isCalling, endCall, onNext, onPrev]);
 
   const handleHangupAndLeave = async () => {
+    if (onHangupAndLeave) {
+      onHangupAndLeave();
+      return;
+    }
+
     if (dialerMode === 'power' && onStopSimultaneousDialer) {
       await onStopSimultaneousDialer();
     }
