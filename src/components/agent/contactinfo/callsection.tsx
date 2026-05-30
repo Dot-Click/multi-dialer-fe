@@ -60,7 +60,17 @@ const getTileStyle = (status: CallStatus, isActive: boolean, isConnected: boolea
 
 
 
-const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Record<string, string>, leadSids?: Record<string, string> }) => {
+const CallSection = ({
+  leadStatuses = {},
+  leadSids = {},
+  activeQueueCardId,
+  onSelectQueueCard,
+}: {
+  leadStatuses?: Record<string, string>,
+  leadSids?: Record<string, string>,
+  activeQueueCardId?: string,
+  onSelectQueueCard?: (queueCardId: string) => void,
+}) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +79,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
 
   const {
     incomingContactId,
+    incomingQueueCardId,
     callStatus,
     resetCallStatus,
     toggleHold,
@@ -82,7 +93,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
     isCalling
   } = useTwilio();
 
-  const activeSortId = incomingContactId || currentContact?.id;
+  const activeSortId = incomingQueueCardId || activeQueueCardId || incomingContactId || currentContact?.id;
 
   const getSortStatus = (leadId: string) => {
     if (activeSortId === leadId) {
@@ -109,7 +120,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
     const bPriority = STATUS_PRIORITY[getSortStatus(b.id)] ?? 5;
     return aPriority - bPriority;
   });
-  const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === currentContact?.id), 0);
+  const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === activeSortId || call.contactId === activeSortId), 0);
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
   const visibleQueue = sortedQueue.filter((call) => visibleIds.has(call.id));
@@ -144,13 +155,13 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
   };
 
   useEffect(() => {
-    const activeId = incomingContactId || currentContact?.id;
+    const activeId = incomingQueueCardId || activeQueueCardId || incomingContactId || currentContact?.id;
     if (activeId && cardRefs.current[activeId]) {
       cardRefs.current[activeId]?.scrollIntoView({
         behavior: 'smooth', block: 'center', inline: 'nearest'
       });
     }
-  }, [incomingContactId, currentContact?.id]);
+  }, [incomingContactId, incomingQueueCardId, activeQueueCardId, currentContact?.id]);
 
   if (queue.length === 0) return <div className="p-8 text-center text-gray-500 font-bold uppercase tracking-widest text-[10px]">No contacts</div>;
 
@@ -161,9 +172,9 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
         className="flex-1 flex flex-col gap-3 py-2 px-1 overflow-y-auto no-scrollbar scroll-smooth"
       >
         {visibleQueue.map((call, index) => {
-          const isActive = currentContact?.id === call.id;
+          const isActive = activeQueueCardId ? activeQueueCardId === call.id : currentContact?.id === call.id;
           const status = getUiStatus(isActive, call.id);
-          const isConnected = (status === "Connected" || status === "On Hold") && (incomingContactId === call.id || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');
+          const isConnected = (status === "Connected" || status === "On Hold") && (incomingQueueCardId === call.id || incomingContactId === call.contactId || leadStatuses[call.id] === 'in-progress' || leadStatuses[call.id] === 'answered');
           const showControls = isActive && (status === "Connected" || status === "On Hold");
           const tileStyle = getTileStyle(status, isActive, isConnected);
 
@@ -171,6 +182,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
             return (
               <div
                 key={call.id || index}
+                onClick={() => call.id && onSelectQueueCard?.(call.id)}
                 ref={el => { cardRefs.current[call.id] = el; }}
                 className={`w-full min-h-[90px] rounded-[18px] flex flex-col items-center justify-between p-3 shadow-lg transition-all duration-300 border-2 shrink-0 ${tileStyle}`}
               >
@@ -188,6 +200,11 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1">
                     <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
                   </p>
+                  {call.totalPhones > 1 && (
+                    <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 text-left">
+                      {call.phoneLabel || `Phone ${(call.phoneIndex ?? 0) + 1}`} of {call.totalPhones}
+                    </p>
+                  )}
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
                       {status}
@@ -224,6 +241,7 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
           return (
             <div
               key={call.id || index}
+              onClick={() => call.id && onSelectQueueCard?.(call.id)}
               ref={el => { cardRefs.current[call.id] = el; }}
               className={`w-full min-h-[70px] rounded-[18px] border-2 ${tileStyle} flex flex-col items-center justify-center p-3 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
             >
@@ -231,6 +249,14 @@ const CallSection = ({ leadStatuses = {}, leadSids = {} }: { leadStatuses?: Reco
                 <h3 className={`text-[13px] font-bold truncate ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                   {call.fullName || call.name}
                 </h3>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 truncate">
+                  <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
+                </p>
+                {call.totalPhones > 1 && (
+                  <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500">
+                    {call.phoneLabel || `Phone ${(call.phoneIndex ?? 0) + 1}`} of {call.totalPhones}
+                  </p>
+                )}
                 <div className="flex items-center justify-center gap-1">
                   <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
                     {status === 'Callback' ? 'Redialing...' : status}

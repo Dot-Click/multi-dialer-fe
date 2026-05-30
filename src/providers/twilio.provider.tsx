@@ -28,6 +28,7 @@ interface TwilioContextType {
   dropVoicemail: () => Promise<void>;
   isDroppingingVoicemail: boolean;
   incomingContactId: string | null;
+  incomingQueueCardId: string | null;
   isPostCall: boolean;
   setIsPostCall: (value: boolean) => void;
 }
@@ -52,6 +53,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [answeringMachineUrl, setAnsweringMachineUrl] = useState<string | null>(null);
   const [isDroppingingVoicemail, setIsDroppingVoicemail] = useState(false);
   const [incomingContactId, setIncomingContactId] = useState<string | null>(null);
+  const [incomingQueueCardId, setIncomingQueueCardId] = useState<string | null>(null);
   const [isPostCall, setIsPostCall] = useState(false);
 
   // 🚨 ALL REFS AT THE TOP LEVEL
@@ -85,6 +87,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCallDisposition(null);
     setDuration(0);
     setIncomingContactId(null);
+    setIncomingQueueCardId(null);
     activeCallRef.current = null;
     holdAudio.pause();
     holdAudio.currentTime = 0;
@@ -243,6 +246,10 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const contactIdParam = call.customParameters?.get('contactId');
         if (contactIdParam) {
            setIncomingContactId(contactIdParam);
+        }
+        const queueCardIdParam = call.customParameters?.get('queueCardId');
+        if (queueCardIdParam) {
+           setIncomingQueueCardId(queueCardIdParam);
         }
 
         call.mute(isMuted);
@@ -586,6 +593,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       dropVoicemail,
       isDroppingingVoicemail,
       incomingContactId,
+      incomingQueueCardId,
       isPostCall,
       setIsPostCall
     }}>

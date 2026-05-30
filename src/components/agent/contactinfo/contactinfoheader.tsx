@@ -122,11 +122,12 @@ const ContactInfoHeader = ({
 
     if (!fromNumber) return; // All on cooldown or daily limit reached
 
-    const phone =
-      dialPhoneNumber ||
-      contact?.phones?.find((p: any) => p.isPrimary)?.number ||
-      contact?.phones?.[0]?.number ||
-      "";
+    const phone = dialPhoneNumber || "";
+
+    if (!phone) {
+      toast.error("No phone number available for the selected card.");
+      return;
+    }
 
     try {
       await startCall(phone, fromNumber, contact?.id);

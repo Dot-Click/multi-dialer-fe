@@ -58,6 +58,34 @@ const getInitialPhoneIndex = (contact: any) => {
     return primaryIndex >= 0 ? primaryIndex : 0;
 };
 
+const getQueueContactId = (entry: any) => entry?.contactId || entry?.id;
+
+const expandContactsIntoPhoneCards = (contacts: any[]) =>
+    contacts.flatMap((contact) => {
+        const phones = getContactPhones(contact);
+
+        if (phones.length === 0) {
+            return [{
+                ...contact,
+                contactId: contact.id,
+                phone: contact.phone,
+                phoneLabel: "Phone 1",
+                phoneIndex: 0,
+                totalPhones: 1,
+            }];
+        }
+
+        return phones.map((phone, index) => ({
+            ...contact,
+            id: `${contact.id}_phone_${index}`,
+            contactId: contact.id,
+            phone: phone.number,
+            phoneLabel: `Phone ${index + 1}`,
+            phoneIndex: index,
+            totalPhones: phones.length,
+        }));
+    });
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ContactInfo = () => {
@@ -68,7 +96,7 @@ const ContactInfo = () => {
     const { role } = useAppSelector((state) => state.auth);
     const settingsInfo = location.state?.settingsInfo;
 
-    const { setAnsweringMachineUrl, incomingContactId, startCall, endCall, isCalling, setIsPostCall, isPostCall } = useTwilio();
+    const { setAnsweringMachineUrl, incomingContactId, incomingQueueCardId, startCall, endCall, isCalling, setIsPostCall, isPostCall } = useTwilio();
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
@@ -90,6 +118,7 @@ const ContactInfo = () => {
     const previousContactIdRef = useRef<string | null>(null);
     const [pendingDialTarget, setPendingDialTarget] = useState<DialTarget | null>(null);
     const [pendingContactId, setPendingContactId] = useState<string | null>(null);
+    const currentQueueEntry = queue[currentIndex];
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
@@ -160,7 +189,10 @@ const ContactInfo = () => {
 
         if (amUrl) setAnsweringMachineUrl(amUrl);
         if (location.state?.selectedScript) setScriptId(location.state.selectedScript);
-        if (selectedContacts?.length > 0) { dispatch(setQueue(selectedContacts)); setCurrentIndex(0); }
+        if (selectedContacts?.length > 0) {
+            dispatch(setQueue(expandContactsIntoPhoneCards(selectedContacts)));
+            setCurrentIndex(0);
+        }
 
         const ids: string[] =
             Array.isArray(incomingCallerIds) && incomingCallerIds.length > 0
@@ -237,6 +269,12 @@ const ContactInfo = () => {
             return;
         }
 
+        if (typeof currentQueueEntry?.phoneIndex === "number") {
+            previousContactIdRef.current = currentQueueEntry.id;
+            setCurrentPhoneIndex(currentQueueEntry.phoneIndex);
+            return;
+        }
+
         if (previousContactIdRef.current !== currentContact.id) {
             previousContactIdRef.current = currentContact.id;
             setCurrentPhoneIndex(getInitialPhoneIndex(currentContact));
@@ -250,14 +288,17 @@ const ContactInfo = () => {
         }
 
         setCurrentPhoneIndex((prev) => Math.min(prev, phones.length - 1));
-    }, [currentContact?.id, currentContact?.phones?.length]);
+    }, [currentContact?.id, currentContact?.phones?.length, currentQueueEntry?.id, currentQueueEntry?.phoneIndex, dialerMode]);
 
     // ─── Queue nav ────────────────────────────────────────────────────────────
 
     useEffect(() => {
         if (queue.length > 0 && queue[currentIndex]) {
-            dispatch(setCurrentContact(queue[currentIndex]));
-            dispatch(fetchContactById(queue[currentIndex].id));
+            const activeEntry = queue[currentIndex];
+            const contactId = getQueueContactId(activeEntry);
+            setCurrentPhoneIndex(activeEntry.phoneIndex ?? getInitialPhoneIndex(activeEntry));
+            dispatch(setCurrentContact({ ...activeEntry, id: contactId, queueCardId: activeEntry.id }));
+            dispatch(fetchContactById(contactId));
         }
     }, [currentIndex, queue, dispatch]);
 
@@ -280,17 +321,22 @@ const ContactInfo = () => {
         if (nextIndex >= queue.length) return null;
         return {
             contactIndex: nextIndex,
-            phoneIndex: getInitialPhoneIndex(queue[nextIndex]),
+            phoneIndex: queue[nextIndex]?.phoneIndex ?? getInitialPhoneIndex(queue[nextIndex]),
         };
     }, [queue]);
 
     const syncQueuedContact = useCallback((updatedContact: any) => {
         dispatch(setQueue(queue.map((contact: any) => (
-            contact.id === updatedContact.id
+            getQueueContactId(contact) === updatedContact.id
                 ? {
                     ...contact,
                     ...updatedContact,
-                    phone: updatedContact.phones?.[0]?.number || updatedContact.phone || "-",
+                    id: contact.id,
+                    contactId: getQueueContactId(contact),
+                    phone: contact.phone || updatedContact.phones?.[0]?.number || updatedContact.phone || "-",
+                    phoneLabel: contact.phoneLabel,
+                    phoneIndex: contact.phoneIndex,
+                    totalPhones: contact.totalPhones,
                 }
                 : contact
         ))));
@@ -300,9 +346,10 @@ const ContactInfo = () => {
         setIsPostCall(false);
 
         if (pendingContactId) {
-            const foundIdx = queue.findIndex((c: { id?: string }) => c.id === pendingContactId);
+            const foundIdx = queue.findIndex((c: { id?: string; contactId?: string }) => c.id === pendingContactId || c.contactId === pendingContactId);
             if (foundIdx !== -1) {
                 setCurrentIndex(foundIdx);
+                setCurrentPhoneIndex(queue[foundIdx].phoneIndex ?? getInitialPhoneIndex(queue[foundIdx]));
             }
             setPendingContactId(null);
             setPendingDialTarget(null);
@@ -351,35 +398,50 @@ const ContactInfo = () => {
         if (!currentContact?.id) return;
 
         const normalizedValue = outcomeValue.toUpperCase();
-        const phones = getContactPhones(currentContact);
         const nextContactTarget = getNextContactTarget(currentIndex);
+        const activeEntry = queue[currentIndex];
+        const activeContactId = getQueueContactId(activeEntry) || currentContact.id;
 
         if (isCalling) {
             await endCall();
         }
 
         if (normalizedValue === "CONTACT") {
-            continueDialer(nextContactTarget);
+            const filteredQueue = queue.filter((entry: any) => (
+                getQueueContactId(entry) !== activeContactId || entry.id === activeEntry?.id
+            ));
+            const activeIndexAfterFilter = filteredQueue.findIndex((entry: any) => entry.id === activeEntry?.id);
+            const nextIndex = activeIndexAfterFilter >= 0 ? activeIndexAfterFilter + 1 : currentIndex;
+
+            if (dialerMode === "power") {
+                dispatch(setQueue(filteredQueue));
+                await api.post('/calling/queue/remove-contact', {
+                    contactId: activeContactId,
+                    exceptQueueCardId: activeEntry?.id,
+                }).catch(() => undefined);
+
+                continueDialer(nextIndex < filteredQueue.length ? {
+                    contactIndex: nextIndex,
+                    phoneIndex: filteredQueue[nextIndex]?.phoneIndex ?? getInitialPhoneIndex(filteredQueue[nextIndex]),
+                } : null);
+                return;
+            }
+
+            dispatch(setQueue(filteredQueue));
+            continueDialer(nextIndex < filteredQueue.length ? {
+                contactIndex: nextIndex,
+                phoneIndex: filteredQueue[nextIndex]?.phoneIndex ?? getInitialPhoneIndex(filteredQueue[nextIndex]),
+            } : null);
             return;
         }
 
         if (normalizedValue === "NO_ANSWER" || normalizedValue === "VOICEMAIL") {
-            if (phones[currentPhoneIndex + 1]) {
-                continueDialer({ contactIndex: currentIndex, phoneIndex: currentPhoneIndex + 1 });
-                return;
-            }
-
             continueDialer(nextContactTarget);
             return;
         }
 
         if (normalizedValue === "BAD_NUMBER" || normalizedValue === "DNC_NUMBER") {
-            const { remainingPhones } = await moveCurrentPhoneToDnc(currentContact, currentPhoneIndex);
-
-            if (remainingPhones[currentPhoneIndex]) {
-                continueDialer({ contactIndex: currentIndex, phoneIndex: currentPhoneIndex });
-                return;
-            }
+            await moveCurrentPhoneToDnc(currentContact, currentPhoneIndex);
 
             continueDialer(nextContactTarget);
             return;
@@ -392,7 +454,7 @@ const ContactInfo = () => {
         }
 
         continueDialer(nextContactTarget);
-    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, endCall, getNextContactTarget, isCalling, moveCurrentPhoneToDnc]);
+    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, dialerMode, dispatch, endCall, getNextContactTarget, isCalling, moveCurrentPhoneToDnc, queue]);
 
     useEffect(() => {
         if (!pendingDialTarget || dialerMode === "power" || isCalling) return;
@@ -432,18 +494,20 @@ const ContactInfo = () => {
     // ─── Power Dialer Logic ───────────────────────────────────────────────────
 
     useEffect(() => {
-        if (incomingContactId && queue.length > 0) {
+        const incomingId = incomingQueueCardId || incomingContactId;
+        if (incomingId && queue.length > 0) {
             if (isPostCall) {
-                setPendingContactId(incomingContactId);
+                setPendingContactId(incomingId);
             } else {
-                const foundIdx = queue.findIndex((c: { id?: string }) => c.id === incomingContactId);
+                const foundIdx = queue.findIndex((c: { id?: string; contactId?: string }) => c.id === incomingId || c.contactId === incomingId);
                 if (foundIdx !== -1 && foundIdx !== currentIndex) {
                     toast(`Connected to ${queue[foundIdx].name || queue[foundIdx].fullName || "Contact"}!`, { icon: '📞' });
                     setCurrentIndex(foundIdx);
+                    setCurrentPhoneIndex(queue[foundIdx].phoneIndex ?? getInitialPhoneIndex(queue[foundIdx]));
                 }
             }
         }
-    }, [incomingContactId, queue, isPostCall, currentIndex]);
+    }, [incomingContactId, incomingQueueCardId, queue, isPostCall, currentIndex]);
 
     const startSimultaneousDialing = async () => {
         if (isAutoDialingRef.current || !currentCallerId) return;
@@ -452,10 +516,14 @@ const ContactInfo = () => {
         try {
             const leadsPayload = queue.slice(currentIndex).map((c: any, idx: number) => ({
                 fullName: c.name || c.fullName,
-                phone: c.phones?.find((p: any) => p.isPrimary)?.number || c.phones?.[0]?.number || c.phone,
+                phone: c.phone,
                 email: c.emails?.[0]?.email || c.email,
                 priority: queue.length - idx,
-                id: c.id
+                id: c.id,
+                contactId: getQueueContactId(c),
+                phoneIndex: c.phoneIndex ?? 0,
+                phoneLabel: c.phoneLabel,
+                totalPhones: c.totalPhones ?? 1,
             }));
             await api.post('/calling/leads', { leads: leadsPayload, callerIds, pacing });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
@@ -551,7 +619,7 @@ const ContactInfo = () => {
         <div className="bg-gray-100 dark:bg-slate-900 h-screen overflow-hidden flex flex-col">
             <ContactInfoHeader
                 contact={currentContact}
-                dialPhoneNumber={getContactPhones(currentContact)[currentPhoneIndex]?.number || ""}
+                dialPhoneNumber={currentQueueEntry?.phone || ""}
                 onNext={handleNextContact}
                 onPrev={handlePreviousContact}
                 currentIndex={currentIndex}
@@ -578,7 +646,18 @@ const ContactInfo = () => {
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Queue</h3>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <CallSection leadStatuses={leadStatuses} leadSids={leadSids} />
+                                <CallSection
+                                    leadStatuses={leadStatuses}
+                                    leadSids={leadSids}
+                                    activeQueueCardId={currentQueueEntry?.id}
+                                    onSelectQueueCard={(queueCardId) => {
+                                        const foundIdx = queue.findIndex((entry: any) => entry.id === queueCardId);
+                                        if (foundIdx >= 0) {
+                                            setCurrentIndex(foundIdx);
+                                            setCurrentPhoneIndex(queue[foundIdx].phoneIndex ?? getInitialPhoneIndex(queue[foundIdx]));
+                                        }
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -597,6 +676,7 @@ const ContactInfo = () => {
                                 onNext={handleNextContact}
                                 hideOutcomes={true}
                                 hideQualifications={false}
+                                activePhoneIndex={currentPhoneIndex}
                             />
                         </div>
                         <div className="flex-1 overflow-hidden">

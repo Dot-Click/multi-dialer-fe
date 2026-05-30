@@ -55,9 +55,10 @@ interface DetailProps {
     onNext?: () => void;
     hideOutcomes?: boolean;
     hideQualifications?: boolean;
+    activePhoneIndex?: number;
 }
 
-const Detail = ({ hideQualifications = false }: DetailProps) => {
+const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) => {
     const dispatch = useAppDispatch();
     const { currentContact, folders, lists } = useAppSelector((state) => state.contacts);
     const { dispositions } = useAppSelector(s => s.dispositions);
@@ -395,10 +396,22 @@ const Detail = ({ hideQualifications = false }: DetailProps) => {
                     </div>
                     <div className='flex flex-col gap-1 max-h-[80px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent'>
                         {currentContact.phones?.map((phone: any, index: number) => (
-                            <div key={index} className='flex px-2 py-2 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group'>
+                            <div
+                                key={index}
+                                className={`flex px-2 py-2 justify-between border-b items-center gap-2 group rounded-lg transition-colors ${
+                                    activePhoneIndex === index
+                                        ? "border-blue-100 bg-blue-50 dark:border-blue-900/60 dark:bg-blue-900/20"
+                                        : "border-gray-50 dark:border-white/5"
+                                }`}
+                            >
                                 <div className='flex gap-3 items-center'>
                                     <Phone size={14} className="text-[#1D85F0]" />
                                     <span className='text-[#1D85F0] font-bold text-[14px] tracking-tight'>{phone.number}</span>
+                                    {activePhoneIndex === index && (
+                                        <span className="text-[9px] font-black uppercase tracking-wide text-blue-600 dark:text-blue-300">
+                                            Dialing
+                                        </span>
+                                    )}
                                 </div>
                                 <div>
                                     <MoreVertical
