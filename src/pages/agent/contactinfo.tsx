@@ -161,6 +161,7 @@ const ContactInfo = () => {
     const unresolvedDialAttemptsRef = useRef(0);
     const currentQueueEntry = queue[currentIndex];
 
+
     // ─── Backend sync ─────────────────────────────────────────────────────────
 
     const fetchCooldownStatus = useCallback(async (numbers: string[]) => {
@@ -417,13 +418,13 @@ const ContactInfo = () => {
         setIsPostCall(false);
     }, [currentIndex, setIsPostCall]);
 
-    const handleNextContact = () => { 
+    const handleNextContact = () => {
         setIsPostCall(false);
-        if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1); 
+        if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1);
     };
-    const handlePreviousContact = () => { 
+    const handlePreviousContact = () => {
         setIsPostCall(false);
-        if (currentIndex > 0) setCurrentIndex((p) => p - 1); 
+        if (currentIndex > 0) setCurrentIndex((p) => p - 1);
     };
 
     const getNextContactTarget = useCallback((fromIndex: number): DialTarget | null => {
@@ -761,9 +762,9 @@ const ContactInfo = () => {
 
             <main className="flex-1 overflow-hidden p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-                    {/* Left Column (Call Tiles) - 2/12 width */}
-                    <div className="lg:col-span-2 flex flex-col gap-4 h-full overflow-hidden">
-                        <div className="flex-1 flex flex-col gap-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-2 overflow-hidden">
+                    {/* Left Column (Call Tiles) - 3/12 width */}
+                    <div className="lg:col-span-3 flex flex-col gap-4 h-full overflow-hidden">
+                        <div className="h-[calc(100vh-20rem)] min-h-[360px] flex flex-col gap-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-2 overflow-hidden">
                             <div className="flex items-center gap-2 px-2 py-1 border-b border-gray-50 dark:border-slate-700/50 mb-1">
                                 <VscCallOutgoing className="text-gray-400" size={14} />
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Queue</h3>
@@ -773,6 +774,7 @@ const ContactInfo = () => {
                                     leadStatuses={leadStatuses}
                                     leadSids={leadSids}
                                     activeQueueCardId={currentQueueEntry?.id}
+                                    dialerMode={dialerMode}
                                     onSelectQueueCard={(queueCardId) => {
                                         const foundIdx = queue.findIndex((entry: any) => entry.id === queueCardId);
                                         if (foundIdx >= 0) {
@@ -793,7 +795,7 @@ const ContactInfo = () => {
                     </div>
 
                     {/* Middle Column (Contact Detail) - 7/12 width */}
-                    <div className="lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden">
+                    <div className="lg:col-span-6 flex flex-col gap-4 h-full overflow-hidden">
                         <div className="shrink-0">
                             <Detail
                                 onNext={handleNextContact}

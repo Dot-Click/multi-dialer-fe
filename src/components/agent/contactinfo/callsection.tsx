@@ -37,7 +37,7 @@ const getTileStyle = (status: CallStatus, isActive: boolean, isConnected: boolea
   if (isConnected || status === 'Connected') {
     return 'bg-[#E8FFF3] border-[#10B981] shadow-[#10B981]/10 dark:bg-[#064E3B]/20 dark:border-[#10B981]';
   }
-  
+
   switch (status) {
     case 'On Hold':
       return 'bg-[#FEFCE8] border-[#EAB308] shadow-[#EAB308]/10 dark:bg-[#713F12]/20 dark:border-[#EAB308]';
@@ -65,17 +65,20 @@ const CallSection = ({
   leadSids = {},
   activeQueueCardId,
   onSelectQueueCard,
+  dialerMode,
 }: {
   leadStatuses?: Record<string, string>,
   leadSids?: Record<string, string>,
   activeQueueCardId?: string,
   onSelectQueueCard?: (queueCardId: string) => void,
+  dialerMode?: string,
 }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const holdRecordingUrl = location.state?.holdRecordingUrl;
+  const isPowerDialer = dialerMode === "power";
 
   const {
     incomingContactId,
@@ -123,7 +126,7 @@ const CallSection = ({
   const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === activeSortId || call.contactId === activeSortId), 0);
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
-  const visibleQueue = sortedQueue.filter((call) => visibleIds.has(call.id));
+  const visibleQueue = isPowerDialer ? sortedQueue : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
     if (!isCalling) resetCallStatus();
@@ -169,7 +172,8 @@ const CallSection = ({
     <div className="w-full h-full font-inter flex flex-col">
       <div
         ref={scrollContainerRef}
-        className="flex-1 flex flex-col gap-3 py-2 px-1 overflow-y-auto no-scrollbar scroll-smooth"
+        className={`flex-1 py-1 px-1 overflow-y-auto no-scrollbar scroll-smooth ${isPowerDialer ? "grid grid-cols-2 gap-2 content-start" : "flex flex-col gap-3"
+          }`}
       >
         {visibleQueue.map((call, index) => {
           const isActive = activeQueueCardId ? activeQueueCardId === call.id : currentContact?.id === call.id;
@@ -184,11 +188,11 @@ const CallSection = ({
                 key={call.id || index}
                 onClick={() => call.id && onSelectQueueCard?.(call.id)}
                 ref={el => { cardRefs.current[call.id] = el; }}
-                className={`w-full min-h-[90px] rounded-[18px] flex flex-col items-center justify-between p-3 shadow-lg transition-all duration-300 border-2 shrink-0 ${tileStyle}`}
+                className={`w-full min-w-0 min-h-[110px] rounded-[18px] flex flex-col items-center justify-between p-2 shadow-lg transition-all duration-300 border-2 shrink-0 ${tileStyle}`}
               >
                 <div className="text-center w-full">
-                  <div className="flex items-center justify-between mb-0.5 gap-2">
-                    <h3 className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight truncate">
+                  <div className="flex items-center justify-between mb-0 gap-2">
+                    <h3 className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight truncate whitespace-nowrap overflow-hidden">
                       {call.name || call.fullName || "Unknown"}
                     </h3>
                     {isConnected && (
@@ -197,15 +201,15 @@ const CallSection = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1 truncate whitespace-nowrap overflow-hidden">
                     <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
                   </p>
                   {call.totalPhones > 1 && (
-                    <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 text-left">
+                    <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 text-left mt-0.5">
                       {call.phoneLabel || `Phone ${(call.phoneIndex ?? 0) + 1}`} of {call.totalPhones}
                     </p>
                   )}
-                  <div className="flex items-center justify-center gap-1 mt-1">
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
                     <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusBadgeStyle(status)}`}>
                       {status}
                     </span>
@@ -217,7 +221,7 @@ const CallSection = ({
                 </div>
 
                 {showControls ? (
-                  <div className="flex items-center gap-1.5 w-full justify-center mt-2">
+                  <div className="flex items-center gap-1.5 w-full justify-center mt-1">
                     <button onClick={toggleMute} className={`w-7 h-7 flex justify-center items-center rounded-lg shadow-sm transition-all ${isMuted ? 'bg-[#EF4444] text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600'}`}>
                       {isMuted ? <MicOff size={12} /> : <Mic size={12} />}
                     </button>
@@ -243,13 +247,13 @@ const CallSection = ({
               key={call.id || index}
               onClick={() => call.id && onSelectQueueCard?.(call.id)}
               ref={el => { cardRefs.current[call.id] = el; }}
-              className={`w-full min-h-[70px] rounded-[18px] border-2 ${tileStyle} flex flex-col items-center justify-center p-3 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
+              className={`w-full min-w-0 min-h-[82px] rounded-[18px] border-2 ${tileStyle} flex flex-col items-center justify-center p-2 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]`}
             >
               <div className="text-center space-y-0.5 w-full">
-                <h3 className={`text-[13px] font-bold truncate ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                <h3 className={`text-[12px] font-bold truncate whitespace-nowrap overflow-hidden ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                   {call.fullName || call.name}
                 </h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 truncate">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 truncate whitespace-nowrap overflow-hidden">
                   <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
                 </p>
                 {call.totalPhones > 1 && (

@@ -73,7 +73,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             <div className="bg-white dark:bg-slate-800 w-full max-w-[500px] rounded-4xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border dark:border-slate-700">
                 {/* Header */}
                 <div className="px-8 pt-8 pb-2 flex justify-between items-center">
-                    <h2 className="text-[20px] font-bold text-gray-900 dark:text-white">Add CallScout Number</h2>
+                    <h2 className="text-[20px] font-bold text-gray-900 dark:text-white">Add Number</h2>
                     <button onClick={onClose} className="p-1.5 bg-gray-100 dark:bg-slate-700 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <FiX size={20} />
                     </button>

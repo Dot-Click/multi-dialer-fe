@@ -8,6 +8,7 @@ import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemS
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
 import { useScript, type ScriptData } from "@/hooks/useScript";
+import { useAppSelector } from "@/store/hooks";
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -91,7 +92,8 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [amdEnabled, setAmdEnabled] = useState(false);
 
   const { data: session } = authClient.useSession();
-  const role = session?.user.role;
+  const appRole = useAppSelector((state) => state.auth.role);
+  const role = appRole || session?.user?.role;
 
   const onHoldMedia = filterAudioByType(mediaCenterItems, "ON_HOLD");
   const voiceMailMedia = filterAudioByType(mediaCenterItems, "VOICE_MAIL");

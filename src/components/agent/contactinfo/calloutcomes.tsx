@@ -151,7 +151,7 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
                             key={d.id}
                             onClick={() => handleClick(d)}
                             disabled={savingDisp}
-                            className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-[9px] rounded-full border font-black tracking-wide transition-all duration-150 active:scale-95 ${isActive || isPending
+                            className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[9px] rounded-full border font-black tracking-wide transition-all duration-150 active:scale-95 ${isActive || isPending
                                 ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
                                 : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                                 }`}

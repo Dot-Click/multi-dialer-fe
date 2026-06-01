@@ -11,11 +11,28 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
+import api from "@/lib/axios";
+
+type ManagedUser = {
+  id: string;
+  fullName?: string | null;
+  name?: string | null;
+  email?: string;
+  role?: string | null;
+  status?: string | null;
+  lastLogin?: string | null;
+  createdById?: string | null;
+};
+
+const ROLE_FILTERS = ["All Roles", "Admin", "Agent"];
+const ROLE_OPTIONS = ["Admin", "Agent"];
 
 export default function Page() {
   const [openFilter, setOpenFilter] = useState(false);
-  const [openAddUser, setOpenAddUser] = useState(false);
+  const [openUserModal, setOpenUserModal] = useState(false);
   const [openRoleDropdown, setOpenRoleDropdown] = useState<number | null>(null);
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
 
   // Form State
   const [fullName, setFullName] = useState("");
@@ -24,13 +41,10 @@ export default function Page() {
   const [role, setRole] = useState("Agent");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ManagedUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-  // const session = authClient.useSession()
   const { session } = useAppSelector((state) => state.auth);
-
-  console.log("SESSION:-", session);
 
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
@@ -38,17 +52,21 @@ export default function Page() {
       const { data, error } = await authClient.admin.listUsers({
         query: { limit: 20 },
       });
+
       if (error) {
         toast.error(error.message || "Failed to fetch users");
-      } else if (data) {
-        // Filter users created by the logged-in admin
-        const filteredUsers =
-          data.users?.filter((u: any) => u.createdById === session?.user?.id) ||
-          [];
-        setUsers(filteredUsers);
+        return;
       }
+
+      const filteredUsers =
+        data.users?.filter(
+          (u: ManagedUser) => u.createdById === session?.user?.id,
+        ) || [];
+
+      setUsers(filteredUsers);
     } catch (err: any) {
       console.error("Fetch Users Error:", err);
+      toast.error(err.message || "Failed to fetch users");
     } finally {
       setIsLoadingUsers(false);
     }
@@ -60,56 +78,79 @@ export default function Page() {
     }
   }, [session?.user?.id]);
 
-  const handleAddUser = async (e: React.FormEvent) => {
+  const closeModal = () => {
+    setOpenUserModal(false);
+    setEditingUser(null);
+    setFullName("");
+    setEmail("");
+    setPassword("");
+    setRole("Agent");
+  };
+
+  const openCreateModal = () => {
+    setEditingUser(null);
+    setFullName("");
+    setEmail("");
+    setPassword("");
+    setRole("Agent");
+    setOpenActionMenu(null);
+    setOpenRoleDropdown(null);
+    setOpenUserModal(true);
+  };
+
+  const openEditModal = (user: ManagedUser) => {
+    setEditingUser(user);
+    setFullName(user.fullName || user.name || "");
+    setEmail(user.email || "");
+    const normalizedRole = user.role?.toUpperCase();
+    setRole(normalizedRole === "ADMIN" ? "Admin" : "Agent");
+    setPassword("");
+    setOpenActionMenu(null);
+    setOpenRoleDropdown(null);
+    setOpenUserModal(true);
+  };
+
+  const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
-      toast.error("Please fill in all fields");
+
+    const isEditing = Boolean(editingUser);
+    if (!fullName || !email || (!isEditing && !password)) {
+      toast.error(
+        isEditing ? "Please fill in all required fields" : "Please fill in all fields",
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await authClient.admin.createUser(
-        {
+      if (isEditing && editingUser) {
+        await api.put(`/user/${editingUser.id}`, {
+          fullName,
+          email,
+          role: role.toUpperCase(),
+          ...(password ? { password } : {}),
+        });
+        toast.success("User updated successfully");
+      } else {
+        const result = await authClient.admin.createUser({
           name: fullName,
           email,
           password,
           data: {
-            role,
+            role: role.toUpperCase(),
             createdById: session?.user?.id,
           },
-        },
-        {
-          onSuccess: () => {
-            toast.success("User created successfully");
-            console.log("USERS:-", users);
-            setOpenAddUser(false);
-            setFullName("");
-            setEmail("");
-            setPassword("");
-            setRole("Agent");
-            fetchUsers();
-          },
-          onError: (error) => {
-            toast.error(error.error.message || "Failed to create user");
-            console.log(error);
-          },
-        },
-      );
+        });
 
-      // if (error) {
-      //   toast.error(error.message || "Failed to create user");
-      //   // console.error("Create User Error:", error);
-      //   console.log(error)
-      // } else {
-      //   toast.success("User created successfully");
-      //   setOpenAddUser(false);
-      //   setFullName("");
-      //   setEmail("");
-      //   setPassword("");
-      //   setRole("Agent");
-      //   fetchUsers();
-      // }
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to create user");
+        }
+
+        toast.success("User created successfully");
+      }
+
+      closeModal();
+      fetchUsers();
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     } finally {
@@ -117,7 +158,16 @@ export default function Page() {
     }
   };
 
-  const roles = ["All Roles", "Owner", "Admin", "Agent"];
+  const handleUpdateUserRole = async (user: ManagedUser, nextRole: string) => {
+    try {
+      await api.put(`/user/${user.id}`, { role: nextRole });
+      toast.success(`Role updated to ${nextRole}`);
+      setOpenRoleDropdown(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Failed to update role");
+    }
+  };
 
   return (
     <div className="pr-8">
@@ -128,7 +178,7 @@ export default function Page() {
         </h1>
 
         <button
-          onClick={() => setOpenAddUser(true)}
+          onClick={openCreateModal}
           className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 dark:text-black px-4 py-2 rounded-lg font-medium transition"
         >
           <Plus size={18} />
@@ -147,7 +197,6 @@ export default function Page() {
           />
         </div>
 
-        {/* FILTER ICON → OPENS MODAL */}
         <button
           onClick={() => setOpenFilter(true)}
           className="p-2 border dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition"
@@ -171,99 +220,113 @@ export default function Page() {
             No users found.
           </div>
         ) : (
-          users.map((user) => (
-            <div
-              key={user.id}
-              className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-            >
-              {/* LEFT SIDE */}
-              <div className="flex-1">
-                {/* NAME + BADGE + LAST LOGIN */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
-                  {/* Name + Badge */}
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {user.fullName || user.name || "Unnamed User"}
-                    </p>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                        user.status === "Active" ||
-                        user.status === "ACTIVE" ||
-                        !user.status
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-gray-800 text-white dark:bg-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {user.status || "ACTIVE"}
-                    </span>
-                  </div>
+          users.map((user, idx) => {
+            const currentRole = (user.role || "AGENT").toUpperCase();
 
-                  {/* Last Login */}
-                  <div className="flex flex-col leading-tight mt-2 sm:mt-0">
-                    <p className="text-[10px] uppercase font-bold text-gray-400">
-                      Last login
-                    </p>
-                    <p className="text-sm font-semibold dark:text-gray-300">
-                      {user.lastLogin
-                        ? new Date(user.lastLogin).toLocaleDateString()
-                        : "Never"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {user.email}
-                </p>
-              </div>
-
-              {/* RIGHT SIDE */}
-              <div className="relative flex items-center justify-end gap-4 md:gap-6 min-w-[140px]">
-                {/* ROLE DROPDOWN */}
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() =>
-                      setOpenRoleDropdown(
-                        user.id === openRoleDropdown ? null : user.id,
-                      )
-                    }
-                    className="flex items-center gap-2 border dark:border-slate-700 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition text-sm font-medium dark:text-white"
-                  >
-                    {user.role || "AGENT"}{" "}
-                    <ChevronDown size={14} className="text-gray-400" />
-                  </button>
-
-                  {/* DROPDOWN MENU */}
-                  {openRoleDropdown === user.id && (
-                    <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg shadow-xl w-40 z-20 overflow-hidden">
-                      {["OWNER", "ADMIN", "AGENT"].map((r) => (
-                        <button
-                          key={r}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors border-b dark:border-slate-700 last:border-none dark:text-white"
-                        >
-                          {r}
-                        </button>
-                      ))}
+            return (
+              <div
+                key={user.id}
+                className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+              >
+                {/* LEFT SIDE */}
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {user.fullName || user.name || "Unnamed User"}
+                      </p>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                          user.status === "Active" ||
+                          user.status === "ACTIVE" ||
+                          !user.status
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-gray-800 text-white dark:bg-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {user.status || "ACTIVE"}
+                      </span>
                     </div>
-                  )}
 
-                  <button className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition">
-                    <MoreHorizontal size={20} className="text-gray-400" />
-                  </button>
+                    <div className="flex flex-col leading-tight mt-2 sm:mt-0">
+                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                        Last login
+                      </p>
+                      <p className="text-sm font-semibold dark:text-gray-300">
+                        {user.lastLogin
+                          ? new Date(user.lastLogin).toLocaleDateString()
+                          : "Never"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {user.email}
+                  </p>
+                </div>
+
+                {/* RIGHT SIDE */}
+                <div className="relative flex items-center justify-end gap-4 md:gap-6 min-w-[140px]">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => {
+                        setOpenRoleDropdown(
+                          openRoleDropdown === idx ? null : idx,
+                        );
+                        setOpenActionMenu(null);
+                      }}
+                      className="flex items-center gap-2 border dark:border-slate-700 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition text-sm font-medium dark:text-white"
+                    >
+                      {currentRole}{" "}
+                      <ChevronDown size={14} className="text-gray-400" />
+                    </button>
+
+                    {openRoleDropdown === idx && (
+                      <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg shadow-xl w-40 z-20 overflow-hidden">
+                        {ROLE_OPTIONS.map((r) => (
+                          <button
+                            key={r}
+                            onClick={() => handleUpdateUserRole(user, r.toUpperCase())}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors border-b dark:border-slate-700 last:border-none dark:text-white"
+                          >
+                            {r.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setOpenActionMenu(openActionMenu === user.id ? null : user.id);
+                        setOpenRoleDropdown(null);
+                      }}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition relative"
+                    >
+                      <MoreHorizontal size={20} className="text-gray-400" />
+                    </button>
+
+                    {openActionMenu === user.id && (
+                      <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg shadow-xl w-44 z-20 overflow-hidden">
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors dark:text-white"
+                        >
+                          Edit User
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
-      {/* ===========================
-          FILTER MODAL POPUP
-      ============================ */}
+      {/* FILTER MODAL POPUP */}
       {openFilter && (
         <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-30">
           <div className="bg-white dark:bg-slate-800 w-80 sm:w-96 rounded-lg shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* HEADER */}
             <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
               <h2 className="text-lg font-semibold dark:text-white">Filter</h2>
               <button
@@ -274,12 +337,10 @@ export default function Page() {
               </button>
             </div>
 
-            {/* CONTENT */}
             <div className="p-4 overflow-y-auto">
-              {/* ROLE */}
               <h3 className="font-medium mb-2 dark:text-gray-200">Role</h3>
               <div className="space-y-2 mb-4">
-                {roles.map((r) => (
+                {ROLE_FILTERS.map((r) => (
                   <label
                     key={r}
                     className="flex items-center gap-2 dark:text-gray-300"
@@ -294,7 +355,6 @@ export default function Page() {
                 ))}
               </div>
 
-              {/* STATUS */}
               <h3 className="font-medium mb-2 dark:text-gray-200">Status</h3>
               <div className="space-y-2 mb-2">
                 {["All Statuses", "Active", "Deactivated"].map((s) => (
@@ -313,7 +373,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* FOOTER BUTTONS */}
             <div className="flex justify-between p-4 border-t dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
               <button
                 onClick={() => setOpenFilter(false)}
@@ -329,28 +388,23 @@ export default function Page() {
         </div>
       )}
 
-      {/* ===========================
-          ADD USER MODAL POPUP
-      ============================ */}
-      {openAddUser && (
+      {/* ADD / EDIT USER MODAL */}
+      {openUserModal && (
         <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-30">
           <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl max-h-[95vh] overflow-hidden flex flex-col p-6 animate-fadeIn">
-            {/* HEADER */}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold dark:text-white">
-                Add User
+                {editingUser ? "Edit User" : "Add User"}
               </h2>
               <button
-                onClick={() => setOpenAddUser(false)}
+                onClick={closeModal}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-gray-300 dark:hover:text-white rounded-full transition"
               >
                 <X size={22} />
               </button>
             </div>
 
-            {/* FORM */}
-            <form onSubmit={handleAddUser} className="space-y-4">
-              {/* FULL NAME */}
+            <form onSubmit={handleSubmitUser} className="space-y-4">
               <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
                 <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
                   Full Name
@@ -365,7 +419,6 @@ export default function Page() {
                 />
               </div>
 
-              {/* EMAIL */}
               <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
                 <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
                   Email Address
@@ -380,22 +433,22 @@ export default function Page() {
                 />
               </div>
 
-              {/* PASSWORD */}
-              <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
-                <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
-                  Temporary Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-transparent border-none outline-none text-sm dark:text-white dark:placeholder-gray-400 py-1"
-                  required
-                />
-              </div>
+              {!editingUser && (
+                <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                    Temporary Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter temporary password"
+                    className="w-full bg-transparent border-none outline-none text-sm dark:text-white dark:placeholder-gray-400 py-1"
+                    required
+                  />
+                </div>
+              )}
 
-              {/* ROLE */}
               <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
                 <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
                   User Role
@@ -405,17 +458,18 @@ export default function Page() {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full bg-transparent border-none outline-none text-sm dark:text-white [&>option]:dark:bg-slate-800 py-1 cursor-pointer appearance-none"
                 >
-                  <option value="Owner">Owner</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Agent">Agent</option>
+                  {ROLE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* FOOTER BUTTONS */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setOpenAddUser(false)}
+                  onClick={closeModal}
                   className="flex-1 py-3 rounded-xl bg-gray-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 font-semibold hover:bg-gray-300 transition"
                 >
                   Cancel
@@ -428,10 +482,10 @@ export default function Page() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="animate-spin" size={18} />
-                      Adding...
+                      {editingUser ? "Updating..." : "Adding..."}
                     </>
                   ) : (
-                    "Add User"
+                    editingUser ? "Update User" : "Add User"
                   )}
                 </button>
               </div>
