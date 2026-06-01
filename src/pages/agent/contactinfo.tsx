@@ -510,40 +510,9 @@ const ContactInfo = () => {
         const normalizedValue = outcomeValue.toUpperCase();
         incrementSessionOutcome(normalizedValue);
         const nextContactTarget = getNextContactTarget(currentIndex);
-        const activeEntry = queue[currentIndex];
-        const activeContactId = getQueueContactId(activeEntry) || currentContact.id;
 
         if (isCalling) {
             await endCall();
-        }
-
-        if (normalizedValue === "CONTACT") {
-            const filteredQueue = queue.filter((entry: any) => (
-                getQueueContactId(entry) !== activeContactId || entry.id === activeEntry?.id
-            ));
-            const activeIndexAfterFilter = filteredQueue.findIndex((entry: any) => entry.id === activeEntry?.id);
-            const nextIndex = activeIndexAfterFilter >= 0 ? activeIndexAfterFilter + 1 : currentIndex;
-
-            if (dialerMode === "power") {
-                dispatch(setQueue(filteredQueue));
-                await api.post('/calling/queue/remove-contact', {
-                    contactId: activeContactId,
-                    exceptQueueCardId: activeEntry?.id,
-                }).catch(() => undefined);
-
-                continueDialer(nextIndex < filteredQueue.length ? {
-                    contactIndex: nextIndex,
-                    phoneIndex: filteredQueue[nextIndex]?.phoneIndex ?? getInitialPhoneIndex(filteredQueue[nextIndex]),
-                } : null);
-                return;
-            }
-
-            dispatch(setQueue(filteredQueue));
-            continueDialer(nextIndex < filteredQueue.length ? {
-                contactIndex: nextIndex,
-                phoneIndex: filteredQueue[nextIndex]?.phoneIndex ?? getInitialPhoneIndex(filteredQueue[nextIndex]),
-            } : null);
-            return;
         }
 
         if (normalizedValue === "NO_ANSWER" || normalizedValue === "VOICEMAIL") {
