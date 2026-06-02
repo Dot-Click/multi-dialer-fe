@@ -1,42 +1,41 @@
-import { useEffect, useState, useCallback, useRef } from "react";
 import { useDialerHealth, useRefreshDialerHealth } from "@/hooks/useWorkspace";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, RefreshCw } from "lucide-react";
-import api from "@/lib/axios";
 import { FreezeCountdown, isCurrentlyFrozen } from "@/components/agent/common/FreezeCountdown";
-
-interface FreezeStatus {
-    isFrozen: boolean;
-    unfreezeAt: number | null;
-    secondsRemaining: number;
-    callCount: number;
-}
+import api from "@/lib/axios";
+import type { CallerId } from "@/hooks/useSystemSettings";
 
 const DialerHealth = () => {
     const { data: dialers, isLoading } = useDialerHealth();
     const { mutate: refresh, isPending: isRefreshing } = useRefreshDialerHealth();
 
-    const [freezeStatus, setFreezeStatus] = useState<Record<string, FreezeStatus>>({});
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // Poll caller IDs every 15 s so freeze state stays current on the dashboard.
+    // We use a local query (not the shared useCallerIds hook) so the refetchInterval
+    // only applies while this component is mounted.
+    const { data: callerIds } = useQuery<CallerId[]>({
+        queryKey: ["caller-ids-health-widget"],
+        queryFn: async () => {
+            const response = await api.get("/system-settings/caller-id");
+            return response.data.data || response.data;
+        },
+        refetchInterval: 15_000,
+    });
 
-    const fetchFreezeStatus = useCallback(async (numbers: string[]) => {
-        if (numbers.length === 0) return;
-        try {
-            const { data } = await api.get("/system-settings/caller-id/status", {
-                params: { numbers: numbers.join(",") },
-            });
-            if (data.success) setFreezeStatus(data.data);
-        } catch {
-            // non-critical — widget degrades gracefully
-        }
-    }, []);
+    // Build a lookup map: twillioNumber → { isFrozen, unfreezeAt }
+    const freezeMap = new Map<string, { isFrozen: boolean; unfreezeAt: string | null }>();
+    for (const cid of callerIds ?? []) {
+        if (!cid.twillioNumber) continue;
+        const isFrozen = !!cid.frozenAt && !!cid.unfreezeAt &&
+            isCurrentlyFrozen(cid.unfreezeAt);
+        freezeMap.set(cid.twillioNumber, {
+            isFrozen,
+            unfreezeAt: isFrozen ? (cid.unfreezeAt ?? null) : null,
+        });
+    }
 
-    useEffect(() => {
-        if (!dialers || dialers.length === 0) return;
-        const numbers = dialers.map((d) => d.contact).filter(Boolean);
-        fetchFreezeStatus(numbers);
-        pollRef.current = setInterval(() => fetchFreezeStatus(numbers), 15_000);
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }, [dialers, fetchFreezeStatus]);
+    const frozenCount = dialers
+        ? dialers.filter((d) => freezeMap.get(d.contact)?.isFrozen ?? false).length
+        : 0;
 
     if (isLoading) {
         return (
@@ -45,15 +44,6 @@ const DialerHealth = () => {
             </section>
         );
     }
-
-    const frozenCount = dialers
-        ? dialers.filter((d) => {
-            const fs = freezeStatus[d.contact];
-            const backendFrozen = fs?.isFrozen ?? false;
-            const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
-            return backendFrozen && !clientExpired;
-        }).length
-        : 0;
 
     return (
         <section className="bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-6 rounded-[32px] px-6 py-6 w-full overflow-hidden">
@@ -103,16 +93,9 @@ const DialerHealth = () => {
             <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
                 {dialers && dialers.length > 0 ? (
                     dialers.map((dial) => {
-                        const fs = freezeStatus[dial.contact];
-                        const backendFrozen = fs?.isFrozen ?? false;
-                        const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
-                        const isFrozen = backendFrozen && !clientExpired;
-                        const countdownTarget: number | null =
-                            fs?.unfreezeAt
-                                ? fs.unfreezeAt
-                                : fs?.secondsRemaining
-                                    ? Date.now() + fs.secondsRemaining * 1000
-                                    : null;
+                        const freeze = freezeMap.get(dial.contact);
+                        const isFrozen = freeze?.isFrozen ?? false;
+                        const unfreezeAt = freeze?.unfreezeAt ?? null;
 
                         const isUnhealthy = dial.health === "unhealthy";
                         const score = dial.score || 100;
@@ -140,15 +123,15 @@ const DialerHealth = () => {
                                         </span>
                                     </div>
 
-                                    {/* Status badge — Frozen takes precedence over CLEAN/SPAM */}
+                                    {/* Badge — Frozen takes precedence over CLEAN/SPAM */}
                                     {isFrozen ? (
                                         <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
                                             <div className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
                                                 Frozen
                                             </div>
-                                            {countdownTarget && (
+                                            {unfreezeAt && (
                                                 <FreezeCountdown
-                                                    unfreezeAt={countdownTarget}
+                                                    unfreezeAt={unfreezeAt}
                                                     className="text-[10px] font-black tabular-nums text-orange-500 dark:text-orange-400"
                                                 />
                                             )}
@@ -178,14 +161,14 @@ const DialerHealth = () => {
                                     </div>
                                 </div>
 
-                                {/* Frozen overlay bar at bottom */}
+                                {/* Frozen status bar */}
                                 {isFrozen && (
                                     <div className="mt-2.5 flex items-center gap-1.5 text-[10px] font-bold text-orange-500 uppercase tracking-wider">
                                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                                         Usage limit reached — available in{" "}
-                                        {countdownTarget && (
+                                        {unfreezeAt && (
                                             <FreezeCountdown
-                                                unfreezeAt={countdownTarget}
+                                                unfreezeAt={unfreezeAt}
                                                 className="font-black tabular-nums"
                                             />
                                         )}
