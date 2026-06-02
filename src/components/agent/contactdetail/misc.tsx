@@ -110,64 +110,6 @@ function DescriptionField({ value: initial, onSave }: { value: string; onSave: (
   );
 }
 
-// ─── Description / Agent Remarks inline fields ────────────────────────────────
-
-interface ContactTextFieldProps {
-  label: string;
-  icon: React.ElementType;
-  hint: string;
-  value: string;
-  placeholder: string;
-  onSave: (val: string) => Promise<void>;
-}
-
-function ContactTextField({ label, icon: Icon, hint, value: initial, placeholder, onSave }: ContactTextFieldProps) {
-  const [draft, setDraft] = useState(initial);
-  const [saving, setSaving] = useState(false);
-
-  // sync if contact switches
-  useEffect(() => { setDraft(initial); }, [initial]);
-
-  const dirty = draft !== initial;
-
-  async function handleSave() {
-    if (!dirty) return;
-    setSaving(true);
-    try { await onSave(draft); } finally { setSaving(false); }
-  }
-
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <div className="flex items-center gap-1.5">
-        <Icon className="w-3.5 h-3.5 text-[#FFCA06]" />
-        <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 select-none">
-          {label}
-        </label>
-        <span className="ml-auto text-[10px] text-gray-400 dark:text-gray-500 italic">{hint}</span>
-      </div>
-      <div className="border-b border-gray-200 dark:border-slate-600 pb-1 flex items-end gap-2">
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={placeholder}
-          rows={3}
-          className="flex-1 text-sm font-medium text-gray-900 dark:text-white outline-none py-0.5 bg-transparent placeholder:text-gray-300 dark:placeholder:text-gray-600 resize-y leading-relaxed focus:border-b focus:border-[#FFCA06] select-text"
-        />
-        {dirty && (
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="shrink-0 mb-1 text-[10px] font-bold text-[#FFCA06] hover:text-yellow-500 disabled:opacity-50 uppercase tracking-wider transition-colors"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main Misc / Profile component ───────────────────────────────────────────
 
 const Misc = () => {
