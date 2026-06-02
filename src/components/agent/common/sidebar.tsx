@@ -90,13 +90,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between">
             {/* Logo only shows when sidebar is OPEN */}
             {isOpen && (
-              <img
-                src={
-                  mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"
-                }
-                alt="Logo"
-                className="object-contain w-36 transition-all duration-300"
-              />
+              <NavLink to="/" title="Home">
+                <img
+                  src={
+                    mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"
+                  }
+                  alt="Logo"
+                  className="object-contain w-36 transition-all duration-300 hover:opacity-80"
+                />
+              </NavLink>
             )}
 
             {/* Toggle Button */}
