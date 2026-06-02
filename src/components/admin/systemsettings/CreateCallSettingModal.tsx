@@ -512,9 +512,9 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                       const fs = freezeStatus[number];
                       // Client-side timestamp check so the row unfreezes the instant
                       // the countdown hits 0, without waiting for the next poll.
-                      const isFrozen = fs?.unfreezeAt
-                        ? isCurrentlyFrozen(fs.unfreezeAt)
-                        : (fs?.isFrozen ?? false);
+                      const backendFrozen = fs?.isFrozen ?? false;
+                      const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
+                      const isFrozen = backendFrozen && !clientExpired;
                       const isSelected = selectedCallerIds.includes(number);
 
                       return (

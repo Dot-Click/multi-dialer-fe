@@ -41,6 +41,7 @@ interface ContactPhone {
 
 const TOTAL_DAILY_LIMIT = 1000;
 const POLL_INTERVAL_MS = 30_000;
+const FREEZE_DURATION_MS = 20 * 60 * 1000; // 20 minutes, must match backend COOLDOWN_MS
 const EMPTY_SESSION_STATS: SessionSummaryStats = {
     totalDialed: 0,
     connected: 0,
@@ -362,7 +363,17 @@ const ContactInfo = () => {
             const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
             const newCount = current.callCount + 1;
             const willFreeze = newCount >= maxCallsPerId;
-            return { ...prev, [fromNumber]: { ...current, callCount: newCount, isFrozen: willFreeze, secondsRemaining: willFreeze ? 1200 : 0 } };
+            // Always set a fresh unfreezeAt so the widget can immediately
+            // evaluate isCurrentlyFrozen correctly. Spreading ...current would
+            // carry over a stale past timestamp from a previous freeze, causing
+            // isCurrentlyFrozen to return false and the row to flash as unfrozen.
+            return { ...prev, [fromNumber]: {
+                ...current,
+                callCount: newCount,
+                isFrozen: willFreeze,
+                unfreezeAt: willFreeze ? Date.now() + FREEZE_DURATION_MS : null,
+                secondsRemaining: willFreeze ? FREEZE_DURATION_MS / 1000 : 0,
+            } };
         });
         try {
             const { data } = await api.post('/system-settings/caller-id/use', { callerNumber: fromNumber, maxCallsPerCid: maxCallsPerId });
@@ -722,7 +733,17 @@ const ContactInfo = () => {
             const current = prev[fromNumber] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
             const newCount = current.callCount + 1;
             const willFreeze = newCount >= maxCallsPerId;
-            return { ...prev, [fromNumber]: { ...current, callCount: newCount, isFrozen: willFreeze, secondsRemaining: willFreeze ? 1200 : 0 } };
+            // Always set a fresh unfreezeAt so the widget can immediately
+            // evaluate isCurrentlyFrozen correctly. Spreading ...current would
+            // carry over a stale past timestamp from a previous freeze, causing
+            // isCurrentlyFrozen to return false and the row to flash as unfrozen.
+            return { ...prev, [fromNumber]: {
+                ...current,
+                callCount: newCount,
+                isFrozen: willFreeze,
+                unfreezeAt: willFreeze ? Date.now() + FREEZE_DURATION_MS : null,
+                secondsRemaining: willFreeze ? FREEZE_DURATION_MS / 1000 : 0,
+            } };
         });
         try {
             const { data } = await api.post('/system-settings/caller-id/use', { callerNumber: fromNumber, maxCallsPerCid: maxCallsPerId });
@@ -843,23 +864,22 @@ const ContactInfo = () => {
                                         {callerIds.map((cid) => {
                                             const status = callerIdStatus[cid];
 
-                                            // Freeze state: prefer timestamp-based check (precise, real-time),
-                                            // fall back to isFrozen flag from poll (e.g. immediately after
-                                            // an optimistic update before unfreezeAt arrives from the server).
-                                            const isFrozen = status?.unfreezeAt
-                                                ? isCurrentlyFrozen(status.unfreezeAt)
-                                                : (status?.isFrozen ?? false);
+                                            // isFrozen: backend flag is the primary truth.
+                                            // isCurrentlyFrozen is only used as a client-side
+                                            // "countdown has expired" signal between polls — it
+                                            // NEVER overrides a false from the backend.
+                                            const backendFrozen = status?.isFrozen ?? false;
+                                            const clientExpired = status?.unfreezeAt
+                                                ? !isCurrentlyFrozen(status.unfreezeAt)
+                                                : false;
+                                            const isFrozen = backendFrozen && !clientExpired;
 
-                                            // Countdown source: use unfreezeAt timestamp when available
-                                            // (ticks live every second). Fall back to secondsRemaining
-                                            // offset from now to seed the timer until the next poll
-                                            // arrives with the real unfreezeAt.
+                                            // Countdown: unfreezeAt is now always a fresh UTC epoch-ms
+                                            // (set by optimistic update or poll). No stale fallback needed.
                                             const countdownTarget: number | null =
-                                                status?.unfreezeAt
+                                                isFrozen && status?.unfreezeAt
                                                     ? (status.unfreezeAt as number)
-                                                    : status?.secondsRemaining
-                                                        ? Date.now() + status.secondsRemaining * 1000
-                                                        : null;
+                                                    : null;
 
                                             return (
                                                 <div

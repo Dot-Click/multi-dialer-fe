@@ -49,7 +49,9 @@ const DialerHealth = () => {
     const frozenCount = dialers
         ? dialers.filter((d) => {
             const fs = freezeStatus[d.contact];
-            return fs?.unfreezeAt ? isCurrentlyFrozen(fs.unfreezeAt) : (fs?.isFrozen ?? false);
+            const backendFrozen = fs?.isFrozen ?? false;
+            const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
+            return backendFrozen && !clientExpired;
         }).length
         : 0;
 
@@ -102,9 +104,9 @@ const DialerHealth = () => {
                 {dialers && dialers.length > 0 ? (
                     dialers.map((dial) => {
                         const fs = freezeStatus[dial.contact];
-                        const isFrozen = fs?.unfreezeAt
-                            ? isCurrentlyFrozen(fs.unfreezeAt)
-                            : (fs?.isFrozen ?? false);
+                        const backendFrozen = fs?.isFrozen ?? false;
+                        const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
+                        const isFrozen = backendFrozen && !clientExpired;
                         const countdownTarget: number | null =
                             fs?.unfreezeAt
                                 ? fs.unfreezeAt
