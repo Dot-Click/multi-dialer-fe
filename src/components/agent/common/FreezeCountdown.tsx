@@ -3,31 +3,53 @@ import { useEffect, useState } from "react";
 /**
  * Live countdown to a freeze-expiry timestamp.
  *
- * Props:
- *   unfreezeAt  — ISO string or epoch-ms number when the freeze expires.
- *                 Pass null/undefined when the number is not frozen.
- *   onExpired   — optional callback fired the moment the countdown reaches 0.
+ * All time arithmetic is done in UTC epoch-milliseconds so the comparison
+ * is timezone-independent:
  *
- * Renders nothing when the number is not frozen (or has already unfrozen).
- * Ticks every second — no page-refresh needed.
+ *   • Date.now()   — always returns UTC epoch-ms regardless of local timezone
+ *   • toUtcMs()    — converts any input to UTC epoch-ms:
+ *       - number   → treated directly as UTC epoch-ms (what the status API sends)
+ *       - string   → parsed as ISO 8601; if the string has no timezone designator
+ *                    (no Z / no +HH:MM) we append "Z" before parsing so it is
+ *                    always interpreted as UTC, never as local time.
  */
 
-interface FreezeCountdownProps {
-  unfreezeAt: string | number | null | undefined;
-  onExpired?: () => void;
-  className?: string;
+// ─── UTC helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Convert any freeze timestamp to UTC epoch-milliseconds.
+ * Safe against strings without a timezone designator.
+ */
+function toUtcMs(unfreezeAt: string | number): number {
+  if (typeof unfreezeAt === "number") return unfreezeAt; // already UTC epoch-ms
+
+  const s = unfreezeAt.trim();
+  // If the string already carries timezone info (ends with Z or ±HH:MM / ±HHMM) use as-is.
+  // Otherwise append "Z" to force UTC interpretation — never local time.
+  const hasTimezone = /Z$|[+-]\d{2}:?\d{2}$/.test(s);
+  return new Date(hasTimezone ? s : s + "Z").getTime();
 }
 
+/**
+ * Seconds remaining until the freeze expires.
+ * Returns 0 (not negative) if already expired.
+ */
 function secondsLeft(unfreezeAt: string | number): number {
-  const target =
-    typeof unfreezeAt === "number" ? unfreezeAt : new Date(unfreezeAt).getTime();
-  return Math.max(0, Math.ceil((target - Date.now()) / 1000));
+  return Math.max(0, Math.ceil((toUtcMs(unfreezeAt) - Date.now()) / 1000));
 }
 
 function fmt(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = secs % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface FreezeCountdownProps {
+  unfreezeAt: string | number | null | undefined;
+  onExpired?: () => void;
+  className?: string;
 }
 
 export function FreezeCountdown({
@@ -45,7 +67,6 @@ export function FreezeCountdown({
       return;
     }
 
-    // Sync immediately in case the prop changed
     const initial = secondsLeft(unfreezeAt);
     setRemaining(initial);
     if (initial <= 0) {
@@ -70,12 +91,15 @@ export function FreezeCountdown({
   return <span className={className}>{fmt(remaining)}</span>;
 }
 
-/** Returns true if the given unfreezeAt is still in the future (client-side check). */
+// ─── Utility ──────────────────────────────────────────────────────────────────
+
+/**
+ * Returns true if the given unfreezeAt timestamp is still in the future.
+ * Comparison is always in UTC epoch-ms — timezone-safe.
+ */
 export function isCurrentlyFrozen(
   unfreezeAt: string | number | null | undefined
 ): boolean {
   if (!unfreezeAt) return false;
-  const target =
-    typeof unfreezeAt === "number" ? unfreezeAt : new Date(unfreezeAt).getTime();
-  return target > Date.now();
+  return toUtcMs(unfreezeAt) > Date.now(); // both sides are UTC epoch-ms
 }

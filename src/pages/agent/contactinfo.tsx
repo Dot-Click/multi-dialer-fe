@@ -837,46 +837,70 @@ const ContactInfo = () => {
                                 <div className="space-y-2">
                                     <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Caller ID Rotation</h5>
                                     <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar pr-1">
+                                        {callerIds.length === 0 && (
+                                            <p className="text-[10px] text-gray-400 italic px-1">No caller IDs in this session.</p>
+                                        )}
                                         {callerIds.map((cid) => {
                                             const status = callerIdStatus[cid];
-                                            // Use client-side timestamp check so the row unfreezes
-                                            // the instant the countdown hits 0 — no poll needed.
+
+                                            // Freeze state: prefer timestamp-based check (precise, real-time),
+                                            // fall back to isFrozen flag from poll (e.g. immediately after
+                                            // an optimistic update before unfreezeAt arrives from the server).
                                             const isFrozen = status?.unfreezeAt
                                                 ? isCurrentlyFrozen(status.unfreezeAt)
                                                 : (status?.isFrozen ?? false);
+
+                                            // Countdown source: use unfreezeAt timestamp when available
+                                            // (ticks live every second). Fall back to secondsRemaining
+                                            // offset from now to seed the timer until the next poll
+                                            // arrives with the real unfreezeAt.
+                                            const countdownTarget: number | null =
+                                                status?.unfreezeAt
+                                                    ? (status.unfreezeAt as number)
+                                                    : status?.secondsRemaining
+                                                        ? Date.now() + status.secondsRemaining * 1000
+                                                        : null;
 
                                             return (
                                                 <div
                                                     key={cid}
                                                     className={`flex items-center justify-between p-2 rounded-xl border transition-all duration-300
                                                         ${isFrozen
-                                                            ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700/50'
+                                                            ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-600/60'
                                                             : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${
                                                             isFrozen
-                                                                ? 'bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.6)]'
+                                                                ? 'bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.7)]'
                                                                 : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]'
                                                         }`} />
-                                                        <span className={`text-xs font-bold truncate ${isFrozen ? 'text-orange-700 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                                                        <span className={`text-xs font-bold truncate transition-colors duration-300 ${
+                                                            isFrozen
+                                                                ? 'text-orange-700 dark:text-orange-300'
+                                                                : 'text-gray-600 dark:text-gray-300'
+                                                        }`}>
                                                             {cid}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex flex-col items-end shrink-0 gap-0.5">
-                                                        <span className="text-[9px] font-black text-gray-400 uppercase">
-                                                            {status?.callCount || 0} / {maxCallsPerId}
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase tabular-nums">
+                                                            {status?.callCount ?? 0} / {maxCallsPerId}
                                                         </span>
-                                                        {isFrozen && (
+                                                        {isFrozen ? (
                                                             <span className="flex items-center gap-1 text-[9px] font-bold text-orange-500 uppercase">
                                                                 Frozen
-                                                                <FreezeCountdown
-                                                                    unfreezeAt={status?.unfreezeAt}
-                                                                    className="font-black tabular-nums"
-                                                                />
+                                                                {countdownTarget && (
+                                                                    <FreezeCountdown
+                                                                        unfreezeAt={countdownTarget}
+                                                                        className="font-black tabular-nums"
+                                                                    />
+                                                                )}
                                                             </span>
+                                                        ) : (
+                                                            <span className="text-[9px] font-bold text-emerald-500 uppercase">Active</span>
                                                         )}
                                                     </div>
                                                 </div>

@@ -522,13 +522,13 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                           key={cid.id}
                           className={`flex items-center gap-2 p-2 rounded-lg transition-all group mb-0.5
                             ${isFrozen
-                              ? 'bg-orange-50 dark:bg-orange-900/15 border border-orange-200 dark:border-orange-700/40 cursor-not-allowed opacity-80'
+                              ? 'bg-orange-50 dark:bg-orange-900/15 border border-orange-200 dark:border-orange-700/40 cursor-not-allowed opacity-75'
                               : isSelected
                                 ? 'bg-yellow-50 dark:bg-yellow-900/10 border border-transparent cursor-pointer'
                                 : 'hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent cursor-pointer'
                             }`}
                         >
-                          {/* Checkbox — hidden for frozen numbers */}
+                          {/* Checkbox — disabled for frozen numbers */}
                           <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0
                             ${isFrozen
                               ? 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-600'
