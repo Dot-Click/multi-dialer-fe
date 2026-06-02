@@ -18,6 +18,7 @@ interface TwilioContextType {
   toggleMute: () => void;
   toggleSpeaker: () => void;
   toggleHold: (customHoldUrl?: string) => Promise<void>;
+  sendDtmf: (digit: string) => void;
   transcriptionLogs: any[];
   callStatus: 'idle' | 'ringing' | 'connected' | 'on-hold' | 'disconnected';
   callDisposition: string | null;
@@ -376,6 +377,16 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const sendDtmf = useCallback((digit: string) => {
+    if (activeCall && callStatus === 'connected') {
+      try {
+        activeCall.sendDigits(digit);
+      } catch (e) {
+        console.warn('[TwilioProvider] sendDigits failed:', e);
+      }
+    }
+  }, [activeCall, callStatus]);
+
   const dropVoicemail = async () => {
     if (!activeCallSid || !answeringMachineUrl) {
       toast.error('No voicemail recording configured');
@@ -593,6 +604,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <TwilioContext.Provider value={{
       device, activeCall, isCalling, appStatus, activeCallSid,
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
+      sendDtmf,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
       callDisposition,
       duration,

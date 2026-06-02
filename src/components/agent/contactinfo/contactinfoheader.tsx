@@ -3,7 +3,7 @@
 // so ContactInfo doesn't need to re-read stale state.
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { PhoneOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { PhoneOff, ChevronLeft, ChevronRight, Grid3x3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IoPlayOutline, IoArrowBack } from "react-icons/io5";
 import { HiPlus } from "react-icons/hi";
@@ -13,6 +13,76 @@ import { useTwilio } from "@/providers/twilio.provider";
 import AddEventForm from "@/components/modal/addeventmodal";
 import { useRegulatorySettings } from "@/hooks/useSystemSettings";
 import toast from "react-hot-toast";
+
+// ─── DTMF Keypad ─────────────────────────────────────────────────────────────
+const DTMF_KEYS = [
+  { label: "1", sub: "" },
+  { label: "2", sub: "ABC" },
+  { label: "3", sub: "DEF" },
+  { label: "4", sub: "GHI" },
+  { label: "5", sub: "JKL" },
+  { label: "6", sub: "MNO" },
+  { label: "7", sub: "PQRS" },
+  { label: "8", sub: "TUV" },
+  { label: "9", sub: "WXYZ" },
+  { label: "*", sub: "" },
+  { label: "0", sub: "+" },
+  { label: "#", sub: "" },
+];
+
+interface KeypadDropdownProps {
+  onClose: () => void;
+}
+
+const KeypadDropdown = ({ onClose }: KeypadDropdownProps) => {
+  const { sendDtmf } = useTwilio();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
+
+  const handleKey = (digit: string) => {
+    sendDtmf(digit);
+  };
+
+  return (
+    <div
+      ref={panelRef}
+      className="absolute top-full mt-2 right-0 z-[1100] w-52 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 p-3 animate-in fade-in slide-in-from-top-2 duration-150"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center mb-2">
+        DTMF Keypad
+      </p>
+      <div className="grid grid-cols-3 gap-1.5">
+        {DTMF_KEYS.map(({ label, sub }) => (
+          <button
+            key={label}
+            onClick={() => handleKey(label)}
+            className="flex flex-col items-center justify-center rounded-xl bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 active:scale-95 border border-gray-100 dark:border-slate-600 transition-all py-2.5"
+          >
+            <span className="text-base font-semibold leading-none text-gray-900 dark:text-white">
+              {label}
+            </span>
+            {sub && (
+              <span className="text-[8px] font-medium tracking-widest mt-0.5 text-gray-400 dark:text-gray-500">
+                {sub}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface ContactInfoHeaderProps {
   settingsInfo?: any;
@@ -55,6 +125,8 @@ const ContactInfoHeader = ({
 }: ContactInfoHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventModalOpen, setEventModalOpen] = useState(false);
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
+  const keypadButtonRef = useRef<HTMLDivElement>(null);
   const hasTriggeredAutoDialRef = useRef(false);
   const navigate = useNavigate();
   const [eventDefaults, setEventDefaults] = useState<{
@@ -63,7 +135,7 @@ const ContactInfoHeader = ({
     category: "TASK" | "FOLLOW_UP" | "APPOINTMENT";
   }>({ title: "", color: "#FFCA06", category: "TASK" });
 
-  const { isCalling, startCall, endCall, isPostCall } = useTwilio();
+  const { isCalling, startCall, endCall, isPostCall, callStatus } = useTwilio();
   const { data: regulatory, isLoading: isRegulatoryLoading } = useRegulatorySettings();
 
   const handleCallToggle = useCallback(async () => {
@@ -310,6 +382,23 @@ const ContactInfoHeader = ({
               {isCalling && dialerMode === "power" ? "Pause" : "Start"}
             </span>
           </button>
+
+          {/* Keypad button — only visible when call is connected */}
+          {callStatus === "connected" && (
+            <div className="relative" ref={keypadButtonRef}>
+              <button
+                onClick={() => setIsKeypadOpen((prev) => !prev)}
+                title="DTMF Keypad"
+                className={`bg-[#EBEDF0] dark:bg-slate-700 rounded-[12px] flex items-center gap-2 py-2.5 px-4 hover:bg-[#e0e2e6] transition-all ${isKeypadOpen ? "ring-2 ring-yellow-400" : ""}`}
+              >
+                <Grid3x3 className="w-4 h-4 dark:text-white" />
+                <span className="text-[#0E1011] dark:text-white text-sm font-semibold">Keypad</span>
+              </button>
+              {isKeypadOpen && (
+                <KeypadDropdown onClose={() => setIsKeypadOpen(false)} />
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleHangupAndLeave}
