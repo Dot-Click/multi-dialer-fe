@@ -20,6 +20,11 @@ export interface CallerId {
 
   agentIds?: string[];
   agents?: { id: string; fullName: string; email: string }[];
+
+  // Freeze state — returned by GET /system-settings/caller-id
+  callCount?: number;
+  frozenAt?: string | null;
+  unfreezeAt?: string | null;
 }
 
 export interface DialerSettings {

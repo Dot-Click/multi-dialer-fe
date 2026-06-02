@@ -14,6 +14,7 @@ import { useTwilio } from '@/providers/twilio.provider';
 import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { VscCallOutgoing } from 'react-icons/vsc';
+import { FreezeCountdown, isCurrentlyFrozen } from '@/components/agent/common/FreezeCountdown';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,9 @@ const getContactPhones = (contact: any): ContactPhone[] => {
 
 const getInitialPhoneIndex = (contact: any) => {
     const phones = getContactPhones(contact);
+    // Prefer best number, fall back to primary, then first
+    const bestIndex = phones.findIndex((phone: any) => phone.isBestNumber);
+    if (bestIndex >= 0) return bestIndex;
     const primaryIndex = phones.findIndex((phone) => phone.isPrimary);
     return primaryIndex >= 0 ? primaryIndex : 0;
 };
@@ -92,6 +96,7 @@ const expandContactsIntoPhoneCards = (contacts: any[]) =>
             phoneLabel: `Phone ${index + 1}`,
             phoneIndex: index,
             totalPhones: phones.length,
+            isBestNumber: !!(phone as any).isBestNumber,
         }));
     });
 
@@ -834,24 +839,43 @@ const ContactInfo = () => {
                                     <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar pr-1">
                                         {callerIds.map((cid) => {
                                             const status = callerIdStatus[cid];
-                                            const isFrozen = status?.isFrozen;
+                                            // Use client-side timestamp check so the row unfreezes
+                                            // the instant the countdown hits 0 — no poll needed.
+                                            const isFrozen = status?.unfreezeAt
+                                                ? isCurrentlyFrozen(status.unfreezeAt)
+                                                : (status?.isFrozen ?? false);
 
                                             return (
-                                                <div key={cid} className="flex items-center justify-between p-2 rounded-xl border border-transparent bg-gray-50/30 dark:bg-slate-700/20 transition-all">
+                                                <div
+                                                    key={cid}
+                                                    className={`flex items-center justify-between p-2 rounded-xl border transition-all duration-300
+                                                        ${isFrozen
+                                                            ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700/50'
+                                                            : 'bg-gray-50/30 dark:bg-slate-700/20 border-transparent'
+                                                        }`}
+                                                >
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${isFrozen ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                                                            }`} />
-                                                        <span className="text-xs font-bold truncate text-gray-600 dark:text-gray-400">
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                                                            isFrozen
+                                                                ? 'bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.6)]'
+                                                                : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+                                                        }`} />
+                                                        <span className={`text-xs font-bold truncate ${isFrozen ? 'text-orange-700 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400'}`}>
                                                             {cid}
                                                         </span>
                                                     </div>
-                                                    <div className="flex flex-col items-end shrink-0">
+
+                                                    <div className="flex flex-col items-end shrink-0 gap-0.5">
                                                         <span className="text-[9px] font-black text-gray-400 uppercase">
                                                             {status?.callCount || 0} / {maxCallsPerId}
                                                         </span>
                                                         {isFrozen && (
-                                                            <span className="text-[8px] font-bold text-red-500 uppercase animate-pulse">
-                                                                Frozen {Math.ceil((status.secondsRemaining || 0) / 60)}m
+                                                            <span className="flex items-center gap-1 text-[9px] font-bold text-orange-500 uppercase">
+                                                                Frozen
+                                                                <FreezeCountdown
+                                                                    unfreezeAt={status?.unfreezeAt}
+                                                                    className="font-black tabular-nums"
+                                                                />
                                                             </span>
                                                         )}
                                                     </div>

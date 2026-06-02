@@ -22,11 +22,13 @@ export interface Contact {
   mailingZip?: string;
   source?: string;
   tags?: any;
-  phones?: { number: string; type: string; isPrimary?: boolean }[];
+  phones?: { number: string; type: string; isPrimary?: boolean; isBestNumber?: boolean }[];
   emails?: { email: string; isPrimary: boolean }[];
   miscValues?: any;
   leadsheetValues?: any;
   notes: string[];
+  description?: string | null;
+  agentRemarks?: string | null;
   folderId?: string | null;
   disposition?: string | null;
   permission?: boolean;
@@ -942,6 +944,9 @@ export const contactSlice = createSlice({
         state.currentContact = { ...state.currentContact, ...action.payload };
       }
     },
+    removeContactById: (state, action: { payload: string }) => {
+      state.contacts = state.contacts.filter((c) => c.id !== action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1286,7 +1291,7 @@ export const contactSlice = createSlice({
   },
 });
 
-export const { setQueue, setCurrentContact, setCurrentContactFields, removeFromQueue } = contactSlice.actions;
+export const { setQueue, setCurrentContact, setCurrentContactFields, removeFromQueue, removeContactById } = contactSlice.actions;
 
 export default contactSlice.reducer;
 

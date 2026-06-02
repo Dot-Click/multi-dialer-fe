@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
     fetchContactFolders,
@@ -8,10 +9,272 @@ import {
     setCurrentContactFields,
 } from '@/store/slices/contactSlice';
 import { fetchDispositions, applyDisposition } from '@/store/slices/dispositionSlice';
-import { MapPin, Mail, Phone, Plus, MoreVertical, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, User, Check, Flame, Thermometer, Snowflake, Clock, Ban, ThumbsDown, Tag, CheckCircle2, XCircle, PhoneOff, PhoneMissed, PhoneIncoming, MessageSquare, List, Star, Pencil, Copy, Trash2 } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
+
+// ─── Row action menu — portal-based to escape overflow:hidden/scroll clips ────
+
+const MENU_WIDTH = 168; // px — wide enough for all labels without wrapping
+const MENU_ITEM_H = 32; // px per item (approx)
+const GAP = 4;          // px between button and menu
+
+interface RowAction {
+    label: string;
+    icon: React.ElementType;
+    onClick: () => void;
+    danger?: boolean;
+    highlight?: boolean;
+}
+
+function RowMenu({ actions }: { actions: RowAction[] }) {
+    const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const place = useCallback(() => {
+        if (!btnRef.current) return;
+        const r = btnRef.current.getBoundingClientRect();
+        const menuH = actions.length * MENU_ITEM_H + 8;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        // Horizontal: prefer aligning right edge of menu with right edge of button;
+        // flip left if that would overflow the viewport right edge.
+        let left = r.right - MENU_WIDTH;
+        if (left < 8) left = r.left;                      // would clip left edge
+        if (left + MENU_WIDTH > vw - 8) left = vw - MENU_WIDTH - 8;
+
+        // Vertical: prefer below button; flip above if not enough room.
+        let top = r.bottom + GAP;
+        if (top + menuH > vh - 8) top = r.top - menuH - GAP;
+        if (top < 8) top = r.bottom + GAP; // last resort: below anyway
+
+        setPos({ top, left });
+    }, [actions.length]);
+
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!open) place();
+        setOpen(p => !p);
+    };
+
+    useEffect(() => {
+        if (!open) return;
+        const close = (e: MouseEvent) => {
+            if (
+                menuRef.current && !menuRef.current.contains(e.target as Node) &&
+                btnRef.current && !btnRef.current.contains(e.target as Node)
+            ) setOpen(false);
+        };
+        // Re-position on scroll/resize while open
+        const rePos = () => { place(); };
+        document.addEventListener('mousedown', close);
+        window.addEventListener('scroll', rePos, true);
+        window.addEventListener('resize', rePos);
+        return () => {
+            document.removeEventListener('mousedown', close);
+            window.removeEventListener('scroll', rePos, true);
+            window.removeEventListener('resize', rePos);
+        };
+    }, [open, place]);
+
+    const menu = open ? (
+        <div
+            ref={menuRef}
+            style={{ position: 'fixed', top: pos.top, left: pos.left, width: MENU_WIDTH, zIndex: 9999 }}
+            className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl shadow-2xl py-1 overflow-hidden"
+        >
+            {actions.map((a) => {
+                const Icon = a.icon;
+                return (
+                    <button
+                        key={a.label}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setOpen(false); a.onClick(); }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors
+                            ${a.danger
+                                ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                : a.highlight
+                                    ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5'
+                            }`}
+                    >
+                        <Icon size={13} className="shrink-0" />
+                        {a.label}
+                    </button>
+                );
+            })}
+        </div>
+    ) : null;
+
+    return (
+        <div className="shrink-0">
+            <button
+                ref={btnRef}
+                type="button"
+                onClick={handleOpen}
+                className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
+            >
+                <MoreVertical size={14} />
+            </button>
+            {typeof document !== 'undefined' && createPortal(menu, document.body)}
+        </div>
+    );
+}
+
+// ─── Phone list ───────────────────────────────────────────────────────────────
+
+interface PhoneListProps {
+    contact: any;
+    activePhoneIndex?: number;
+    onEdit: (phone: any, index: number) => void;
+    onAdd: () => void;
+    dispatch: ReturnType<typeof useAppDispatch>;
+}
+
+function PhoneList({ contact, activePhoneIndex, onEdit, dispatch }: PhoneListProps) {
+    // Local state for instant optimistic updates — syncs from Redux whenever
+    // the parent contact prop changes (e.g. after a different contact is loaded).
+    const [phones, setPhones] = useState<any[]>(contact.phones || []);
+
+    useEffect(() => {
+        setPhones(contact.phones || []);
+    }, [contact.phones]);
+
+    async function save(optimistic: any[]) {
+        const prev = phones;
+        setPhones(optimistic); // apply immediately
+        try {
+            await dispatch(updateContact({ id: contact.id, payload: { phones: optimistic } })).unwrap();
+        } catch {
+            setPhones(prev); // roll back on error
+            const evt = new CustomEvent('contact-action-toast', { detail: '⚠ Failed to save phone changes' });
+            window.dispatchEvent(evt);
+        }
+    }
+
+    async function handleDelete(index: number) {
+        await save(phones.filter((_, i) => i !== index));
+    }
+
+    async function handleCopy(number: string) {
+        await navigator.clipboard.writeText(number);
+        const evt = new CustomEvent('contact-action-toast', { detail: `Copied ${number}` });
+        window.dispatchEvent(evt);
+    }
+
+    async function handleBestNumber(index: number) {
+        const alreadyBest = !!phones[index]?.isBestNumber;
+        const updated = phones.map((p, i) => ({ ...p, isBestNumber: !alreadyBest && i === index }));
+        await save(updated);
+        const number = phones[index]?.number ?? '';
+        const msg = alreadyBest ? `Best number cleared` : `${number} marked as Best Number`;
+        const evt = new CustomEvent('contact-action-toast', { detail: msg });
+        window.dispatchEvent(evt);
+    }
+
+    return (
+        <div className="flex flex-col gap-1 max-h-[110px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            {phones.map((phone: any, index: number) => {
+                const isBest = !!phone.isBestNumber;
+                const isActive = activePhoneIndex === index;
+                return (
+                    <div
+                        key={index}
+                        className={`flex px-2 py-1.5 justify-between items-center gap-2 group rounded-lg transition-all duration-150 border
+                            ${isBest
+                                ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/25'
+                                : isActive
+                                    ? 'border-blue-100 bg-blue-50 dark:border-blue-900/60 dark:bg-blue-900/20'
+                                    : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10'
+                            }`}
+                    >
+                        <div className="flex gap-2.5 items-center min-w-0">
+                            <Phone size={13} className={isBest ? 'text-emerald-500 shrink-0' : 'text-[#1D85F0] shrink-0'} />
+                            <span className={`font-bold text-[13px] tracking-tight truncate ${isBest ? 'text-emerald-700 dark:text-emerald-300' : 'text-[#1D85F0]'}`}>
+                                {phone.number}
+                            </span>
+                            {isBest && (
+                                <span className="flex items-center gap-1 shrink-0 text-[9px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded-full">
+                                    <Star size={8} className="fill-emerald-500 text-emerald-500" /> Best
+                                </span>
+                            )}
+                            {isActive && !isBest && (
+                                <span className="text-[9px] font-black uppercase tracking-wide text-blue-600 dark:text-blue-300 shrink-0">Dialing</span>
+                            )}
+                        </div>
+                        <RowMenu actions={[
+                            { label: 'Edit',                              icon: Pencil, onClick: () => onEdit(phone, index) },
+                            { label: 'Copy',                              icon: Copy,   onClick: () => handleCopy(phone.number) },
+                            { label: isBest ? 'Unmark Best' : 'Best Number', icon: Star, highlight: !isBest, onClick: () => handleBestNumber(index) },
+                            { label: 'Delete',                            icon: Trash2, danger: true, onClick: () => handleDelete(index) },
+                        ]} />
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+// ─── Email list ───────────────────────────────────────────────────────────────
+
+interface EmailListProps {
+    contact: any;
+    onEdit: (email: any, index: number) => void;
+    onAdd: () => void;
+    dispatch: ReturnType<typeof useAppDispatch>;
+}
+
+function EmailList({ contact, onEdit, dispatch }: EmailListProps) {
+    const [emails, setEmails] = useState<any[]>(contact.emails || []);
+
+    useEffect(() => {
+        setEmails(contact.emails || []);
+    }, [contact.emails]);
+
+    async function save(optimistic: any[]) {
+        const prev = emails;
+        setEmails(optimistic);
+        try {
+            await dispatch(updateContact({ id: contact.id, payload: { emails: optimistic } })).unwrap();
+        } catch {
+            setEmails(prev);
+        }
+    }
+
+    async function handleDelete(index: number) {
+        await save(emails.filter((_, i) => i !== index));
+    }
+
+    async function handleCopy(email: string) {
+        await navigator.clipboard.writeText(email);
+        const evt = new CustomEvent('contact-action-toast', { detail: `Copied ${email}` });
+        window.dispatchEvent(evt);
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+            {emails.map((emailObj: any, index: number) => (
+                <div
+                    key={index}
+                    className="flex px-2 py-1.5 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group hover:border-gray-100 dark:hover:border-white/10 rounded-lg transition-colors"
+                >
+                    <div className="flex gap-2.5 items-center min-w-0">
+                        <span className="text-[#1D85F0] font-bold text-[13px] tracking-tight truncate">{emailObj.email}</span>
+                    </div>
+                    <RowMenu actions={[
+                        { label: 'Edit',   icon: Pencil, onClick: () => onEdit(emailObj, index) },
+                        { label: 'Copy',   icon: Copy,   onClick: () => handleCopy(emailObj.email) },
+                        { label: 'Delete', icon: Trash2, danger: true, onClick: () => handleDelete(index) },
+                    ]} />
+                </div>
+            ))}
+        </div>
+    );
+}
 import RealtorLogo from '@/assets/realtor.png';
 import GoogleMapsLogo from '@/assets/googlemap.png';
 import toast from 'react-hot-toast'
@@ -20,6 +283,44 @@ import api from "@/lib/axios";
 import ApplyDispositionModal from "@/components/modal/ApplyDispositionModal";
 import { normalizeTags } from "@/utils/contact";
 
+
+// ─── Truncated address with read-more popup ───────────────────────────────────
+const ADDR_TRUNCATE = 40;
+function TruncatedAddress({ text, label }: { text: string; label: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const isTruncated = text.length > ADDR_TRUNCATE;
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [open]);
+
+    if (!isTruncated) {
+        return <span className="text-[15px] text-gray-700 dark:text-gray-100 font-medium leading-snug">{text || "—"}</span>;
+    }
+
+    return (
+        <div className="relative" ref={ref}>
+            <button onClick={() => setOpen(p => !p)} className="text-left flex items-center gap-1 group">
+                <span className="text-[15px] text-gray-700 dark:text-gray-100 font-medium leading-snug">
+                    {text.slice(0, ADDR_TRUNCATE)}…
+                </span>
+                <span className="text-[10px] font-bold text-[#FFCA06] uppercase tracking-wide whitespace-nowrap">more</span>
+            </button>
+            {open && (
+                <div className="absolute z-50 left-0 top-full mt-1 w-72 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400 mb-2">{label}</p>
+                    <p className="text-sm text-gray-800 dark:text-white leading-relaxed select-text break-words">{text}</p>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export const ICON_MAP: Record<string, React.ElementType> = {
     CheckCircle2, XCircle, Phone, PhoneOff, PhoneMissed,
@@ -88,6 +389,16 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         dispatch(fetchContactLists());
         dispatch(fetchDispositions());
     }, [dispatch]);
+
+    // Listen for copy-to-clipboard toasts fired from PhoneList/EmailList
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const msg = (e as CustomEvent).detail;
+            if (msg) toast.success(msg);
+        };
+        window.addEventListener('contact-action-toast', handler);
+        return () => window.removeEventListener('contact-action-toast', handler);
+    }, []);
 
     useEffect(() => {
         if (currentContact) {
@@ -357,11 +668,10 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                             <MapPin size={14} className="text-[#FFCA06]" />
                         </div>
                         <div className='flex flex-col gap-1'>
-                            <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium'>
-                                {[currentContact.address, currentContact.city, currentContact.state, currentContact.zip]
-                                    .filter(Boolean)
-                                    .join(", ") || '-'}
-                            </h1>
+                            <TruncatedAddress
+                                label="Property Address"
+                                text={[currentContact.address, currentContact.city, currentContact.state, currentContact.zip].filter(Boolean).join(", ") || "—"}
+                            />
                         </div>
                     </div>
 
@@ -370,99 +680,49 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                             <Mail size={14} className="text-[#FFCA06]" />
                         </div>
                         <div className='flex flex-col gap-1'>
-                            {/* <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Mailing Address:</h1> */}
-                            <h1 className='text-[#495057] dark:text-gray-300 text-[14px] font-medium'>
-                                {[currentContact.mailingAddress, currentContact.mailingCity, currentContact.mailingState, currentContact.mailingZip]
-                                    .filter(Boolean)
-                                    .join(", ") || '-'}
-                            </h1>
+                            <TruncatedAddress
+                                label="Mailing Address"
+                                text={[currentContact.mailingAddress, currentContact.mailingCity, currentContact.mailingState, currentContact.mailingZip].filter(Boolean).join(", ") || "—"}
+                            />
                         </div>
                     </div>
                 </div>
 
-                <div className='flex w-full lg:w-1/3 flex-col gap-4'>
-                    <div className='flex justify-between items-center mb-0.5'>
+                <div className='flex w-full lg:w-1/3 flex-col gap-3'>
+                    <div className='flex justify-between items-center'>
                         <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Phones:</h1>
                         <span
-                            onClick={() => {
-                                setEditingPhone(null);
-                                setEditingPhoneIndex(undefined);
-                                setPhoneModal(true);
-                            }}
+                            onClick={() => { setEditingPhone(null); setEditingPhoneIndex(undefined); setPhoneModal(true); }}
                             className='p-1 rounded-[6px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
                         >
                             <Plus className='text-[#495057] dark:text-white shadow-sm' size={14} />
                         </span>
                     </div>
-                    <div className='flex flex-col gap-1 max-h-[80px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent'>
-                        {currentContact.phones?.map((phone: any, index: number) => (
-                            <div
-                                key={index}
-                                className={`flex px-2 py-2 justify-between border-b items-center gap-2 group rounded-lg transition-colors ${
-                                    activePhoneIndex === index
-                                        ? "border-blue-100 bg-blue-50 dark:border-blue-900/60 dark:bg-blue-900/20"
-                                        : "border-gray-50 dark:border-white/5"
-                                }`}
-                            >
-                                <div className='flex gap-3 items-center'>
-                                    <Phone size={14} className="text-[#1D85F0]" />
-                                    <span className='text-[#1D85F0] font-bold text-[14px] tracking-tight'>{phone.number}</span>
-                                    {activePhoneIndex === index && (
-                                        <span className="text-[9px] font-black uppercase tracking-wide text-blue-600 dark:text-blue-300">
-                                            Dialing
-                                        </span>
-                                    )}
-                                </div>
-                                <div>
-                                    <MoreVertical
-                                        onClick={() => {
-                                            setEditingPhone(phone);
-                                            setEditingPhoneIndex(index);
-                                            setPhoneModal(true);
-                                        }}
-                                        className='text-gray-400 dark:text-gray-500 text-[15px] cursor-pointer hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100'
-                                        size={14}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <PhoneList
+                        contact={currentContact}
+                        activePhoneIndex={activePhoneIndex}
+                        onEdit={(phone, index) => { setEditingPhone(phone); setEditingPhoneIndex(index); setPhoneModal(true); }}
+                        onAdd={() => { setEditingPhone(null); setEditingPhoneIndex(undefined); setPhoneModal(true); }}
+                        dispatch={dispatch}
+                    />
                 </div>
 
-                <div className='flex w-full lg:w-1/3 flex-col gap-4'>
-                    <div className='flex justify-between items-center mb-0.5'>
+                <div className='flex w-full lg:w-1/3 flex-col gap-3'>
+                    <div className='flex justify-between items-center'>
                         <h1 className='text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>E-mails:</h1>
                         <span
-                            onClick={() => {
-                                setEditingEmail(null);
-                                setEditingEmailIndex(undefined);
-                                setEmailModal(true);
-                            }}
+                            onClick={() => { setEditingEmail(null); setEditingEmailIndex(undefined); setEmailModal(true); }}
                             className='p-1 rounded-[6px] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors'
                         >
                             <Plus className='text-[#495057] dark:text-white shadow-sm' size={14} />
                         </span>
                     </div>
-                    <div className='flex flex-col gap-1'>
-                        {currentContact.emails?.map((email: any, index: number) => (
-                            <div key={index} className='flex px-2 py-2 justify-between border-b border-gray-50 dark:border-white/5 items-center gap-2 group'>
-                                <div className='flex gap-3 items-center'>
-                                    <span className='text-[#1D85F0] font-bold text-[14px] tracking-tight'>{email.email}</span>
-                                </div>
-                                <div>
-                                    <MoreVertical
-                                        onClick={() => {
-                                            setEditingEmail(email);
-                                            setEditingEmailIndex(index);
-                                            setEmailModal(true);
-                                        }}
-                                        className='text-gray-400 dark:text-gray-500 text-[15px] cursor-pointer hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100'
-                                        size={14}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <EmailList
+                        contact={currentContact}
+                        onEdit={(email, index) => { setEditingEmail(email); setEditingEmailIndex(index); setEmailModal(true); }}
+                        onAdd={() => { setEditingEmail(null); setEditingEmailIndex(undefined); setEmailModal(true); }}
+                        dispatch={dispatch}
+                    />
                 </div>
             </div>        
 

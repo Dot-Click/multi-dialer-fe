@@ -1,6 +1,6 @@
 import { useAppSelector } from "@/store/hooks";
 import { useEffect, useRef } from "react";
-import { Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft } from 'lucide-react';
+import { Loader2, Mic, MicOff, Pause, Play, PhoneOff, ArrowRightLeft, Star } from 'lucide-react';
 import { useTwilio } from "@/providers/twilio.provider";
 import { useLocation } from "react-router-dom";
 import { VscCallOutgoing } from "react-icons/vsc";
@@ -201,8 +201,11 @@ const CallSection = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-left flex items-center gap-1 truncate whitespace-nowrap overflow-hidden">
-                    <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
+                  <p className={`text-[10px] text-left flex items-center gap-1 truncate whitespace-nowrap overflow-hidden font-semibold
+                    ${call.isBestNumber ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <VscCallOutgoing className={call.isBestNumber ? 'text-emerald-500' : 'text-[#10B981]'} />
+                    {call.phone}
+                    {call.isBestNumber && <Star size={8} className="fill-emerald-500 text-emerald-500 shrink-0" />}
                   </p>
                   {call.totalPhones > 1 && (
                     <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 text-left mt-0.5">
@@ -253,8 +256,11 @@ const CallSection = ({
                 <h3 className={`text-[12px] font-bold truncate whitespace-nowrap overflow-hidden ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                   {call.fullName || call.name}
                 </h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 truncate whitespace-nowrap overflow-hidden">
-                  <VscCallOutgoing className="text-[#10B981]" /> {call.phone}
+                <p className={`text-[10px] flex items-center justify-center gap-1 truncate whitespace-nowrap overflow-hidden font-semibold
+                  ${call.isBestNumber ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <VscCallOutgoing className={call.isBestNumber ? 'text-emerald-500' : 'text-[#10B981]'} />
+                  {call.phone}
+                  {call.isBestNumber && <Star size={8} className="fill-emerald-500 text-emerald-500 shrink-0" />}
                 </p>
                 {call.totalPhones > 1 && (
                   <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500">

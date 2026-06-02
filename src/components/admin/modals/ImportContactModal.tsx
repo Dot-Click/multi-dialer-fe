@@ -75,7 +75,7 @@ const BASE_SLINGVO_GROUPS: { title: string; fields: { key: string; label: string
     title: "Other",
     fields: [
       { key: "tags",          label: "Tags" },
-      { key: "notes",         label: "Notes" },
+      { key: "description",   label: "Description (imported notes/CRM)" },
       { key: "source",        label: "Source" },
       { key: "lastDialedDate",label: "Last Dialed Date" },
     ],
@@ -113,7 +113,7 @@ function autoSuggestCsvHeader(slingvoKey: string, csvHeaders: string[], usedHead
     email_3:         ["email 3", "email3"],
     email_4:         ["email 4", "email4"],
     tags:            ["tags", "tag", "label", "labels"],
-    notes:           ["notes", "note", "comment", "comments", "description", "desc"],
+    description:     ["description", "desc", "notes", "note", "comment", "comments", "remarks"],
     source:          ["source"],
     lastDialedDate:  ["last dialed", "last called", "dialed date", "last dial"],
   };
@@ -275,7 +275,7 @@ const AUTO_MAP_ALIASES: Record<string, string[]> = {
   "Mailing City":      ["mailing city", "mail city"],
   "Mailing State":     ["mailing state", "mail state"],
   "Mailing Zip":       ["mailing zip", "mailing zip code", "mail zip", "mailing postal"],
-  Notes:               ["notes", "note", "comment", "comments", "description", "desc"],
+  "Description (imported notes/CRM)": ["description", "desc", "notes", "note", "comment", "comments", "remarks"],
   "Last Dialed Date":  ["last dialed", "last called", "dialed date", "last dial"],
   List:                ["list", "calling list", "contact list"],
   Tags:                ["tags", "tag", "label", "labels"],
@@ -786,7 +786,7 @@ const Step3MapFields = ({
   const mailAddrFields  = slingvoMappings.filter(m => ["mailingAddress","mailingAddress2","mailingCity","mailingState","mailingZip"].includes(m.slingvoKey));
   const phoneFields     = slingvoMappings.filter(m => m.slingvoKey.startsWith("phone_"));
   const emailFields     = slingvoMappings.filter(m => m.slingvoKey.startsWith("email_"));
-  const otherFields     = slingvoMappings.filter(m => ["tags","notes","source","lastDialedDate"].includes(m.slingvoKey));
+  const otherFields     = slingvoMappings.filter(m => ["tags","description","source","lastDialedDate"].includes(m.slingvoKey));
 
   const FieldRow = ({ mapping }: { mapping: SlingvoFieldMapping }) => (
     <div className="grid grid-cols-2 gap-3 items-center py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">

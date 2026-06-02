@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { MapPin, Mail, Phone, Plus, MoreVertical } from "lucide-react";
+import { MapPin, Mail, Phone, Plus, MoreVertical, Star } from "lucide-react";
 import PhoneModal from '@/components/modal/phonemodal';
 import EmailModal from '@/components/modal/emailmodal';
 import { TbEdit } from "react-icons/tb";
@@ -81,20 +81,35 @@ const DetailsTab = () => {
                             </button>
                         </div>
                         <div className="space-y-2">
-                            {currentContact.phones?.map((phone: any, index: number) => (
-                                <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl group border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 transition-all">
-                                    <div className="flex items-center gap-3">
-                                        <Phone size={12} className="text-blue-500" />
-                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{phone.number}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => { setEditingPhone(phone); setEditingPhoneIndex(index); setPhoneModal(true); }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                            {currentContact.phones?.map((phone: any, index: number) => {
+                                const isBest = !!phone.isBestNumber;
+                                return (
+                                    <div key={index} className={`flex justify-between items-center py-2 px-3 rounded-xl group border transition-all
+                                        ${isBest
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+                                            : 'bg-gray-50 dark:bg-slate-700/50 border-transparent hover:border-blue-200 dark:hover:border-blue-900/50'
+                                        }`}
                                     >
-                                        <MoreVertical size={14} className="text-gray-400" />
-                                    </button>
-                                </div>
-                            ))}
+                                        <div className="flex items-center gap-3">
+                                            <Phone size={12} className={isBest ? 'text-emerald-500' : 'text-blue-500'} />
+                                            <span className={`text-sm font-bold ${isBest ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-700 dark:text-gray-200'}`}>
+                                                {phone.number}
+                                            </span>
+                                            {isBest && (
+                                                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded-full">
+                                                    <Star size={8} className="fill-emerald-500 text-emerald-500" /> Best
+                                                </span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => { setEditingPhone(phone); setEditingPhoneIndex(index); setPhoneModal(true); }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                        >
+                                            <MoreVertical size={14} className="text-gray-400" />
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 

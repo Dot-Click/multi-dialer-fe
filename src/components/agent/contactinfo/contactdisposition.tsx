@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateContact, fetchContactGroups, assignContactToGroups } from "@/store/slices/contactSlice";
+import { updateContact, fetchContactGroups, assignContactToGroups, removeContactById } from "@/store/slices/contactSlice";
 import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionSlice";
 import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import toast from "react-hot-toast";
@@ -128,6 +128,7 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
       try {
         await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } }));
         await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId, source: "CALL" }));
+        dispatch(removeContactById(currentContact.id));
         setSavedDisp(value);
         setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
         toast.success(`Disposition: ${label}`);
@@ -154,6 +155,7 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
         overrideFolderId: confirmFolderId || undefined,
         source: "CALL"
       }));
+      dispatch(removeContactById(currentContact.id));
       setSelectedDisp(value);
       setSavedDisp(value);
       setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));

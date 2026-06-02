@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FiX, FiChevronDown, FiPlus } from "react-icons/fi";
+import { FreezeCountdown, isCurrentlyFrozen } from "@/components/agent/common/FreezeCountdown";
+import api from "@/lib/axios";
 import { toast } from "react-hot-toast";
 import AddRecordingModal from "@/components/modal/addrecordingmodal";
 import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
@@ -83,6 +85,9 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [mediaCenterItems, setMediaCenterItems] = useState<MediaCenterItem[]>([]);
   const [callerIds, setCallerIds] = useState<CallerId[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
+  // Freeze status map: twillioNumber → { isFrozen, unfreezeAt, secondsRemaining }
+  const [freezeStatus, setFreezeStatus] = useState<Record<string, { isFrozen: boolean; unfreezeAt: string | null; secondsRemaining: number }>>({});
+  const pollFreezeRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { getScripts } = useScript();
   const [scripts, setScripts] = useState<ScriptData[]>([]);
@@ -159,6 +164,29 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   useEffect(() => {
     if (callerIdsData) setCallerIds(callerIdsData as CallerId[]);
   }, [callerIdsData]);
+
+  // ── Freeze status polling while modal is open ────────────────────────────
+  const fetchFreezeStatus = useCallback(async (ids: CallerId[]) => {
+    const numbers = ids.map((c) => c.twillioNumber).filter(Boolean) as string[];
+    if (numbers.length === 0) return;
+    try {
+      const { data } = await api.get('/system-settings/caller-id/status', {
+        params: { numbers: numbers.join(',') },
+      });
+      if (data.success) setFreezeStatus(data.data);
+    } catch {
+      // non-critical — UI degrades gracefully
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || callerIds.length === 0) return;
+    fetchFreezeStatus(callerIds);
+    pollFreezeRef.current = setInterval(() => fetchFreezeStatus(callerIds), 15_000);
+    return () => {
+      if (pollFreezeRef.current) clearInterval(pollFreezeRef.current);
+    };
+  }, [isOpen, callerIds, fetchFreezeStatus]);
 
   useEffect(() => {
     if (isOpen && existingSettings && existingSettings.length > 0 && !editId) {
@@ -479,23 +507,85 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
               <div className="flex flex-col">
                 <FieldWrapper label="Caller ID Rotation List">
                   <div className="space-y-0.5 h-[240px] overflow-y-auto custom-scrollbar pr-2 mt-1">
-                    {callerIds.map((cid) => (
-                      <label key={cid.id} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all group mb-0.5 ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "bg-yellow-50 dark:bg-yellow-900/10" : "hover:bg-gray-50 dark:hover:bg-slate-800/50"}`}>
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "bg-yellow-500 border-yellow-500 shadow-sm" : "border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800"}`}>
-                          {selectedCallerIds.includes(cid.twillioNumber || cid.id) && <FiPlus className="text-white rotate-45" size={12} />}
-                          <input type="checkbox" checked={selectedCallerIds.includes(cid.twillioNumber || cid.id)} onChange={(e) => {
-                              const id = cid.twillioNumber || cid.id;
-                              setSelectedCallerIds(e.target.checked ? [...selectedCallerIds, id] : selectedCallerIds.filter((v) => v !== id));
-                            }} className="hidden" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className={`text-[12px] font-bold ${selectedCallerIds.includes(cid.twillioNumber || cid.id) ? "text-gray-900 dark:text-yellow-400" : "text-gray-700 dark:text-gray-200"}`}>
-                            {cid.label}
-                          </span>
-                          <span className="text-[10px] text-gray-400">{cid.twillioNumber}</span>
-                        </div>
-                      </label>
-                    ))}
+                    {callerIds.map((cid) => {
+                      const number = cid.twillioNumber || cid.id;
+                      const fs = freezeStatus[number];
+                      // Client-side timestamp check so the row unfreezes the instant
+                      // the countdown hits 0, without waiting for the next poll.
+                      const isFrozen = fs?.unfreezeAt
+                        ? isCurrentlyFrozen(fs.unfreezeAt)
+                        : (fs?.isFrozen ?? false);
+                      const isSelected = selectedCallerIds.includes(number);
+
+                      return (
+                        <label
+                          key={cid.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg transition-all group mb-0.5
+                            ${isFrozen
+                              ? 'bg-orange-50 dark:bg-orange-900/15 border border-orange-200 dark:border-orange-700/40 cursor-not-allowed opacity-80'
+                              : isSelected
+                                ? 'bg-yellow-50 dark:bg-yellow-900/10 border border-transparent cursor-pointer'
+                                : 'hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent cursor-pointer'
+                            }`}
+                        >
+                          {/* Checkbox — hidden for frozen numbers */}
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0
+                            ${isFrozen
+                              ? 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-600'
+                              : isSelected
+                                ? 'bg-yellow-500 border-yellow-500 shadow-sm'
+                                : 'border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800'
+                            }`}
+                          >
+                            {isSelected && !isFrozen && <FiPlus className="text-white rotate-45" size={12} />}
+                            <input
+                              type="checkbox"
+                              checked={isSelected && !isFrozen}
+                              disabled={isFrozen}
+                              onChange={(e) => {
+                                if (isFrozen) return;
+                                setSelectedCallerIds(
+                                  e.target.checked
+                                    ? [...selectedCallerIds, number]
+                                    : selectedCallerIds.filter((v) => v !== number)
+                                );
+                              }}
+                              className="hidden"
+                            />
+                          </div>
+
+                          {/* Label + number */}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className={`text-[12px] font-bold truncate
+                              ${isFrozen
+                                ? 'text-orange-700 dark:text-orange-300'
+                                : isSelected
+                                  ? 'text-gray-900 dark:text-yellow-400'
+                                  : 'text-gray-700 dark:text-gray-200'
+                              }`}
+                            >
+                              {cid.label || number}
+                            </span>
+                            <span className={`text-[10px] ${isFrozen ? 'text-orange-400' : 'text-gray-400'}`}>
+                              {cid.twillioNumber}
+                            </span>
+                          </div>
+
+                          {/* Frozen badge + countdown */}
+                          {isFrozen && (
+                            <div className="flex flex-col items-end shrink-0 gap-0.5">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-orange-500 bg-orange-100 dark:bg-orange-900/40 px-1.5 py-0.5 rounded-full">
+                                Frozen
+                              </span>
+                              <FreezeCountdown
+                                unfreezeAt={fs?.unfreezeAt}
+                                className="text-[9px] font-black tabular-nums text-orange-500"
+                              />
+                            </div>
+                          )}
+                        </label>
+                      );
+                    })}
                   </div>
                 </FieldWrapper>
               </div>
