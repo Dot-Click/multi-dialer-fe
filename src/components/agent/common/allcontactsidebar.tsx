@@ -268,7 +268,8 @@ const AllContactSidebar: React.FC<AllContactSidebarProps> = ({ onSelectItem }) =
           <img
             src={mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"}
             alt="Logo"
-            className="object-contain w-36 transition-all duration-300"
+            onClick={() => navigate("/")}
+            className="object-contain w-36 transition-all duration-300 cursor-pointer hover:opacity-80"
           />
         </div>
 

@@ -269,7 +269,8 @@ const AdminAllContactSidebar: React.FC<AllContactSidebarProps> = ({
             src={mode === "dark" ? "/images/darkLogo.png" : "/images/logo.png"}
             alt="Logo"
             loading="lazy"
-            className="object-contain w-36 transition-all duration-300"
+            onClick={() => navigate("/admin")}
+            className="object-contain w-36 transition-all duration-300 cursor-pointer hover:opacity-80"
           />
         </div>
       </div>
