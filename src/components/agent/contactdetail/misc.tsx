@@ -75,6 +75,41 @@ function ExpandPopup({ value, fieldName }: { value: string; fieldName: string })
   );
 }
 
+// ─── Compact inline-save textarea for Description ────────────────────────────
+
+function DescriptionField({ value: initial, onSave }: { value: string; onSave: (v: string) => Promise<void> }) {
+  const [draft, setDraft] = useState(initial);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setDraft(initial); }, [initial]);
+  const dirty = draft !== initial;
+  async function handleSave() {
+    if (!dirty) return;
+    setSaving(true);
+    try { await onSave(draft); } finally { setSaving(false); }
+  }
+  return (
+    <div className="border-b border-gray-200 dark:border-slate-600 pb-1 flex items-end gap-2">
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder="Contact description from import or external CRM…"
+        rows={3}
+        className="flex-1 text-sm font-medium text-gray-900 dark:text-white outline-none py-0.5 bg-transparent placeholder:text-gray-300 dark:placeholder:text-gray-600 resize-y leading-relaxed select-text"
+      />
+      {dirty && (
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="shrink-0 mb-1 text-[10px] font-bold text-[#FFCA06] hover:text-yellow-500 disabled:opacity-50 uppercase tracking-wider transition-colors"
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Description / Agent Remarks inline fields ────────────────────────────────
 
 interface ContactTextFieldProps {
@@ -181,7 +216,13 @@ const Misc = () => {
     );
   }
 
-  const fields = sortByPriority(miscFields || []);
+  // Filter out any admin-created misc field named "notes" — Description
+  // replaces it and is rendered separately below.
+  const fields = sortByPriority(
+    (miscFields || []).filter(
+      (f: any) => f.fieldName?.toLowerCase().trim() !== "notes"
+    )
+  );
   const half = Math.ceil(fields.length / 2);
   const leftFields = fields.slice(0, half);
   const rightFields = fields.slice(half);
@@ -238,32 +279,38 @@ const Misc = () => {
   return (
     <div className="w-full flex flex-col gap-8">
 
-      {/* ── Description (top of Profile — imported field) ────────────────── */}
-      {currentContact && (
-        <div className="w-full pb-6 border-b border-gray-100 dark:border-slate-700">
-          <ContactTextField
-            label="Description"
-            icon={FileText}
-            hint="From imports / CRM"
-            value={currentContact.description ?? ""}
-            placeholder="Contact description from import or external CRM…"
-            onSave={async (val) => {
-              await dispatch(updateContact({ id: currentContact.id, payload: { description: val } })).unwrap();
-              toast.success("Description saved");
-            }}
-          />
-        </div>
-      )}
+      {/* ── All fields: Description first (full-width), then custom misc ─── */}
+      <div className="w-full flex flex-col gap-5">
 
-      {/* ── Custom misc fields ────────────────────────────────────────────── */}
-      {fields.length === 0 ? (
-        <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-6">No custom profile fields configured.</p>
-      ) : (
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
-          <div className="flex flex-col gap-5">{leftFields.map(renderField)}</div>
-          <div className="flex flex-col gap-5">{rightFields.map(renderField)}</div>
-        </div>
-      )}
+        {/* Description — single full-width field, same style as misc fields */}
+        {currentContact && (
+          <div className="flex flex-col gap-1 w-full">
+            <div className="flex items-center gap-1.5">
+              <FileText className="w-3 h-3 text-[#FFCA06]" />
+              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 select-none">
+                Description
+              </label>
+              <span className="ml-auto text-[10px] text-gray-400 dark:text-gray-500 italic">From imports / CRM</span>
+            </div>
+            <DescriptionField
+              value={currentContact.description ?? ""}
+              onSave={async (val) => {
+                await dispatch(updateContact({ id: currentContact.id, payload: { description: val } })).unwrap();
+                toast.success("Description saved");
+              }}
+            />
+          </div>
+        )}
+
+        {/* Custom misc fields — 2-column grid */}
+        {fields.length > 0 && (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
+            <div className="flex flex-col gap-5">{leftFields.map(renderField)}</div>
+            <div className="flex flex-col gap-5">{rightFields.map(renderField)}</div>
+          </div>
+        )}
+
+      </div>
 
       <div className="flex justify-end">
         <button
