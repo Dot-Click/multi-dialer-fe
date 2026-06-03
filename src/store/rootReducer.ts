@@ -14,6 +14,7 @@ import reportsReducer from "./slices/reportsSlice";
 import companySettingReducer from "./slices/companySettingSlice";
 import dispositionReducer from "./slices/dispositionSlice";
 import a2pReducer from "./slices/a2pSlice";
+import contactAnalysisReducer from "./slices/contactAnalysisSlice";
 
 const rootReducer = combineReducers({
   example: exampleReducer,
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
   companySetting: companySettingReducer,
   dispositions: dispositionReducer,
   a2p: a2pReducer,
+  contactAnalysis: contactAnalysisReducer,
 });
 
 export default rootReducer;

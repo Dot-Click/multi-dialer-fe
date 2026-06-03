@@ -148,6 +148,7 @@ const ContactInfo = () => {
     const [isAutoDialing, setIsAutoDialing] = useState(false);
     const maxCallsPerId = location.state?.numberOfLines || 5;
     const pacing: number | undefined = location.state?.pacing;
+    const listId: string | undefined = location.state?.listId;
 
     const [callerIdStatus, setCallerIdStatus] = useState<Record<string, CallerIdStatus>>({});
     const [leadStatuses, setLeadStatuses] = useState<Record<string, string>>({});
@@ -306,6 +307,12 @@ const ContactInfo = () => {
                 const contactsWithPhones = await hydrateContactsWithPhones(selectedContacts);
                 dispatch(setQueue(expandContactsIntoPhoneCards(contactsWithPhones)));
                 setCurrentIndex(0);
+                // Save the very first contact as the resume position immediately.
+                // This means even an abandoned session (no calls made, no Next clicked)
+                // leaves a breadcrumb so Resume knows where to start next time.
+                if (listId && selectedContacts[0]?.id) {
+                    api.post('/calling/dial-session', { listId, lastContactId: selectedContacts[0].id }).catch(() => {});
+                }
             })();
         }
 
@@ -436,6 +443,17 @@ const ContactInfo = () => {
 
     const handleNextContact = () => {
         setIsPostCall(false);
+        // Save the NEXT contact as the resume position.
+        // "Next" means: if I come back, start from this one — not the one I just finished.
+        if (listId) {
+            const nextEntry = queue[currentIndex + 1];
+            if (nextEntry) {
+                const nextContactId = (nextEntry as any).contactId || nextEntry.id;
+                if (nextContactId) {
+                    api.post('/calling/dial-session', { listId, lastContactId: nextContactId }).catch(() => {});
+                }
+            }
+        }
         if (currentIndex < queue.length - 1) setCurrentIndex((p) => p + 1);
     };
     const handlePreviousContact = () => {

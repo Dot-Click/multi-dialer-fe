@@ -53,16 +53,36 @@ const filterAudioByType = (media: MediaCenterItem[], mediaType: MediaType): Medi
 
 // ── Modal ────────────────────────────────────────────────────────────────────
 
+// ── Dial filter types ─────────────────────────────────────────────────────────
+
+type StartMode = 'resume' | 'top';
+type NeverDialedWindow = 'ever' | 'today' | '24h' | '2d' | '5d';
+type StatusChangedWindow = '7d' | '14d' | '30d';
+
+interface DialFilters {
+  startMode: StartMode;
+  neverDialedEnabled: boolean;
+  neverDialedWindow: NeverDialedWindow;
+  neverContacted: boolean;
+  statusChangedEnabled: boolean;
+  statusChangedWithin: StatusChangedWindow;
+  createdDateEnabled: boolean;
+  createdAfter: string;
+  createdBefore: string;
+}
+
 interface CreateCallSettingModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedContacts: any[];
+  listId?: string;
 }
 
 const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   isOpen,
   onClose,
   selectedContacts,
+  listId,
 }) => {
   const { data: existingSettings, createCallSettings, updateCallSettings } = useCallSettings();
   const { data: callerIdsData } = useCallerIds();
@@ -95,6 +115,22 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
   const [pacing, setPacing] = useState(1); // Power Dialer: simultaneous calls
   const [amdEnabled, setAmdEnabled] = useState(false);
+
+  // ── Dial Filters ────────────────────────────────────────────────────────────
+  const [dialFilters, setDialFilters] = useState<DialFilters>({
+    startMode: 'top',
+    neverDialedEnabled: false,
+    neverDialedWindow: 'ever',
+    neverContacted: false,
+    statusChangedEnabled: false,
+    statusChangedWithin: '7d',
+    createdDateEnabled: false,
+    createdAfter: '',
+    createdBefore: '',
+  });
+
+  const updateFilter = <K extends keyof DialFilters>(key: K, value: DialFilters[K]) =>
+    setDialFilters((prev) => ({ ...prev, [key]: value }));
 
   const { data: session } = authClient.useSession();
   const appRole = useAppSelector((state) => state.auth.role);
@@ -211,6 +247,17 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
     setPacing(1);
     setSelectedScript("");
     setAmdEnabled(false);
+    setDialFilters({
+      startMode: 'top',
+      neverDialedEnabled: false,
+      neverDialedWindow: 'ever',
+      neverContacted: false,
+      statusChangedEnabled: false,
+      statusChangedWithin: '7d',
+      createdDateEnabled: false,
+      createdAfter: '',
+      createdBefore: '',
+    });
   };
 
   const handleClose = () => {
@@ -258,22 +305,48 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       }
 
       const destination = role === "ADMIN" ? "/admin/contact-info" : "/contact-info";
-      console.log("[CreateCallSetting] Navigating to:", destination);
-      console.log("[CreateCallSetting] Navigation state:", {
-        contacts: selectedContacts,
-        callerIds: selectedCallerIds,
-        numberOfLines: parseInt(noOfLines),
-        selectedScript: selectedScript || undefined,
-        holdRecordingUrl: getSelectedRecordingUrl(),
-        answeringMachineRecordingUrl: getAnsweringMachineUrl(),
-        busyRecordingUrl: getBusyRecordingUrl(),
-        dialerMode,
-        pacing: dialerMode === "power" ? pacing : undefined,
-      });
+
+      // ── Apply dial filters ────────────────────────────────────────────────
+      let contactsToSend = selectedContacts;
+      const hasAnyFilter =
+        dialFilters.startMode === 'resume' ||
+        dialFilters.neverDialedEnabled ||
+        dialFilters.neverContacted ||
+        dialFilters.statusChangedEnabled ||
+        dialFilters.createdDateEnabled;
+
+      if (hasAnyFilter) {
+        const filterPayload = {
+          contactIds: selectedContacts.map((c) => c.id),
+          listId: listId || undefined,
+          filters: {
+            startMode: dialFilters.startMode,
+            neverDialed: dialFilters.neverDialedEnabled ? dialFilters.neverDialedWindow : null,
+            neverContacted: dialFilters.neverContacted,
+            statusChangedWithin: dialFilters.statusChangedEnabled ? dialFilters.statusChangedWithin : null,
+            createdAfter: dialFilters.createdDateEnabled && dialFilters.createdAfter ? dialFilters.createdAfter : null,
+            createdBefore: dialFilters.createdDateEnabled && dialFilters.createdBefore ? dialFilters.createdBefore : null,
+          },
+        };
+
+        const { data: filterResult } = await api.post('/calling/filter-contacts', filterPayload);
+        const filteredIds: string[] = filterResult?.data?.contactIds ?? [];
+
+        if (filteredIds.length === 0) {
+          toast.error("No contacts match the selected filters. Adjust filters and try again.");
+          setIsLoading(false);
+          return;
+        }
+
+        // Re-order contacts to match the backend-returned order
+        const contactMap = new Map(selectedContacts.map((c) => [c.id, c]));
+        contactsToSend = filteredIds.map((id) => contactMap.get(id)).filter(Boolean);
+        toast.success(`Filters applied — ${contactsToSend.length} contact${contactsToSend.length !== 1 ? 's' : ''} queued.`);
+      }
 
       navigate(destination, {
         state: {
-          contacts: selectedContacts,
+          contacts: contactsToSend,
           callerIds: selectedCallerIds,
           numberOfLines: parseInt(noOfLines),
           selectedScript: selectedScript || undefined,
@@ -282,6 +355,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           busyRecordingUrl: getBusyRecordingUrl(),
           dialerMode,
           pacing: dialerMode === "power" ? pacing : undefined,
+          listId: listId || undefined,
         },
       });
 
@@ -328,7 +402,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           </div>
 
           {/* Body */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-180px)] custom-scrollbar">
             
             {/* Dialer Mode (TOP) - Compact */}
             <div className="grid grid-cols-2 gap-3">
@@ -399,7 +473,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <FieldWrapper label="DIALS PER CALLER ID">
                     <SelectInput value={noOfLines} onChange={setNoOfLines}>
-                      {[1, 2, 3, 4, 5].map((n) => (
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                         <option key={n} value={String(n)} className="dark:bg-slate-900">
                           {n} {n === 1 ? "Line" : "Lines"}
                         </option>
@@ -503,10 +577,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: Caller IDs */}
-              <div className="flex flex-col">
+              {/* RIGHT COLUMN: Caller IDs + Dial Filters */}
+              <div className="flex flex-col gap-4">
                 <FieldWrapper label="Caller ID Rotation List">
-                  <div className="space-y-0.5 h-[240px] overflow-y-auto custom-scrollbar pr-2 mt-1">
+                  <div className="space-y-0.5 h-[200px] overflow-y-auto custom-scrollbar pr-2 mt-1">
                     {callerIds.map((cid) => {
                       const number = cid.twillioNumber || cid.id;
                       const fs = freezeStatus[number];
@@ -588,8 +662,188 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                     })}
                   </div>
                 </FieldWrapper>
+
+                {/* ── Dial Filters (inline in right column) ──────────── */}
+                <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl overflow-hidden flex-1">
+
+                  {/* Section header */}
+                  <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+                    <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Dial Filters</span>
+                    {(dialFilters.neverDialedEnabled || dialFilters.neverContacted || dialFilters.statusChangedEnabled || dialFilters.createdDateEnabled) && (
+                      <span className="text-[9px] font-black text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                        Active
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="px-4 pb-4 space-y-4">
+
+                    {/* Start Mode */}
+                    <div>
+                      <p className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5">Start Mode</p>
+                      <div className="flex flex-col gap-1.5">
+                        {([
+                          { value: 'resume', label: 'Resume from last left off', sub: 'New leads first, then continue where you stopped' },
+                          { value: 'top',    label: 'Start from top',            sub: 'Ignore history — dial the full list from the beginning' },
+                        ] as const).map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => updateFilter('startMode', opt.value)}
+                            className={`flex items-start gap-2.5 text-left p-2.5 rounded-xl border-2 transition-all bg-white dark:bg-slate-900 ${
+                              dialFilters.startMode === opt.value
+                                ? 'border-yellow-400'
+                                : 'border-transparent hover:border-gray-200 dark:hover:border-slate-600'
+                            }`}
+                          >
+                            <div className={`mt-0.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${dialFilters.startMode === opt.value ? 'bg-yellow-500' : 'bg-gray-300'}`} />
+                            <div>
+                              <p className={`text-[11px] font-bold leading-tight ${dialFilters.startMode === opt.value ? 'text-gray-900 dark:text-yellow-400' : 'text-gray-600 dark:text-gray-300'}`}>
+                                {opt.label}
+                              </p>
+                              <p className="text-[9px] text-gray-400 leading-tight mt-0.5">{opt.sub}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      {dialFilters.startMode === 'resume' && !listId && (
+                        <p className="text-[9px] text-amber-500 dark:text-amber-400 mt-1 pl-1">
+                          ⚠ Resume requires contacts from a saved list.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Optional Filters</span>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
+                    </div>
+
+                    {/* Never Dialed */}
+                    <div className="flex items-start gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => updateFilter('neverDialedEnabled', !dialFilters.neverDialedEnabled)}
+                        className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
+                          dialFilters.neverDialedEnabled ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        }`}
+                      >
+                        {dialFilters.neverDialedEnabled && <FiPlus className="text-white rotate-45" size={9} />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 leading-tight">Never Dialed</p>
+                        {dialFilters.neverDialedEnabled ? (
+                          <div className="mt-1 bg-white dark:bg-slate-900 rounded-lg px-2.5 py-1.5">
+                            <SelectInput
+                              value={dialFilters.neverDialedWindow}
+                              onChange={(v) => updateFilter('neverDialedWindow', v as NeverDialedWindow)}
+                            >
+                              <option value="ever"  className="dark:bg-slate-900">Ever (never dialed)</option>
+                              <option value="today" className="dark:bg-slate-900">Today</option>
+                              <option value="24h"   className="dark:bg-slate-900">Last 24 hours</option>
+                              <option value="2d"    className="dark:bg-slate-900">Last 2 days</option>
+                              <option value="5d"    className="dark:bg-slate-900">Last 5 days</option>
+                            </SelectInput>
+                          </div>
+                        ) : (
+                          <p className="text-[9px] text-gray-400">Not dialed within a time window</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Never Contacted */}
+                    <div className="flex items-start gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => updateFilter('neverContacted', !dialFilters.neverContacted)}
+                        className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
+                          dialFilters.neverContacted ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        }`}
+                      >
+                        {dialFilters.neverContacted && <FiPlus className="text-white rotate-45" size={9} />}
+                      </button>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 leading-tight">Never Contacted</p>
+                        <p className="text-[9px] text-gray-400">No disposition set in call history</p>
+                      </div>
+                    </div>
+
+                    {/* Status Changed Within */}
+                    <div className="flex items-start gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => updateFilter('statusChangedEnabled', !dialFilters.statusChangedEnabled)}
+                        className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
+                          dialFilters.statusChangedEnabled ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        }`}
+                      >
+                        {dialFilters.statusChangedEnabled && <FiPlus className="text-white rotate-45" size={9} />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 leading-tight">Status Changed</p>
+                        {dialFilters.statusChangedEnabled ? (
+                          <div className="mt-1 bg-white dark:bg-slate-900 rounded-lg px-2.5 py-1.5">
+                            <SelectInput
+                              value={dialFilters.statusChangedWithin}
+                              onChange={(v) => updateFilter('statusChangedWithin', v as StatusChangedWindow)}
+                            >
+                              <option value="7d"  className="dark:bg-slate-900">Last 7 days</option>
+                              <option value="14d" className="dark:bg-slate-900">Last 14 days</option>
+                              <option value="30d" className="dark:bg-slate-900">Last 30 days</option>
+                            </SelectInput>
+                          </div>
+                        ) : (
+                          <p className="text-[9px] text-gray-400">Skip contacts with recent status changes</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Created Date */}
+                    <div className="flex items-start gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => updateFilter('createdDateEnabled', !dialFilters.createdDateEnabled)}
+                        className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
+                          dialFilters.createdDateEnabled ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        }`}
+                      >
+                        {dialFilters.createdDateEnabled && <FiPlus className="text-white rotate-45" size={9} />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-gray-700 dark:text-gray-200 leading-tight">Created Date</p>
+                        {dialFilters.createdDateEnabled ? (
+                          <div className="mt-1 grid grid-cols-2 gap-1.5">
+                            <div className="bg-white dark:bg-slate-900 rounded-lg px-2.5 py-1.5">
+                              <p className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider mb-0.5">From</p>
+                              <input
+                                type="date"
+                                value={dialFilters.createdAfter}
+                                onChange={(e) => updateFilter('createdAfter', e.target.value)}
+                                className="w-full bg-transparent text-[11px] font-semibold text-gray-700 dark:text-white outline-none"
+                              />
+                            </div>
+                            <div className="bg-white dark:bg-slate-900 rounded-lg px-2.5 py-1.5">
+                              <p className="text-[8px] font-extrabold text-gray-400 uppercase tracking-wider mb-0.5">To</p>
+                              <input
+                                type="date"
+                                value={dialFilters.createdBefore}
+                                onChange={(e) => updateFilter('createdBefore', e.target.value)}
+                                className="w-full bg-transparent text-[11px] font-semibold text-gray-700 dark:text-white outline-none"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-[9px] text-gray-400">Only contacts added in a date range</p>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
             </div>
+
           </div>
 
           {/* Footer - Compact */}

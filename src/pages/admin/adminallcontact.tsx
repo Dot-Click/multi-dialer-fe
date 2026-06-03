@@ -258,6 +258,7 @@ const AdminAllContact = () => {
                 selectedContacts={selectedContacts}
                 isOpen={isDialSettingOpen}
                 onClose={() => setIsDialSettingOpen(false)}
+                listId={activeItem.type === "list" ? activeItem.id : undefined}
             />
 
 

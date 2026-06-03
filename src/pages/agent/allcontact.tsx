@@ -152,6 +152,7 @@ const AllContact = () => {
         isOpen={isDialSettingOpen}
         onClose={() => setIsDialSettingOpen(false)}
         selectedContacts={selectedContacts}
+        listId={activeItem.type === "list" ? activeItem.id : undefined}
       />
 
     </section>
