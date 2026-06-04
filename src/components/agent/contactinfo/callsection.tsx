@@ -120,6 +120,17 @@ const CallSection = ({
     return leadStatuses[leadId]?.toLowerCase() ?? 'pending';
   };
 
+  // ── Power dialer display priority ────────────────────────────────────────────
+  // Only show contacts in an active state; hide Queued/pending contacts.
+  // Order: Connected (1) → Ringing (2) → Redialing (3) → Disconnected (4)
+  const ACTIVE_STATE_PRIORITY: Record<string, number> = {
+    connected: 1, 'in-progress': 1, answered: 1, 'on-hold': 1,
+    dialing: 2, ringing: 2, initiated: 2,
+    redialing: 3,
+    disconnected: 4, completed: 4, failed: 4, busy: 4, 'no-answer': 4, 'no_answer': 4,
+  };
+  const ACTIVE_STATES = new Set(Object.keys(ACTIVE_STATE_PRIORITY));
+
   const sortedQueue = [...queue].sort((a, b) => {
     const aPriority = STATUS_PRIORITY[getSortStatus(a.id)] ?? 5;
     const bPriority = STATUS_PRIORITY[getSortStatus(b.id)] ?? 5;
@@ -128,11 +139,19 @@ const CallSection = ({
   const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === activeSortId || call.contactId === activeSortId), 0);
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
-  // Power dialer: always show exactly 6 cards in the 2-column grid.
-  // Manual dialer: show a sliding window of 3 around the active contact.
-  const POWER_DIALER_VISIBLE = 6;
+
   const visibleQueue = isPowerDialer
-    ? sortedQueue.slice(0, POWER_DIALER_VISIBLE)
+    ? // Filter to active states only, then sort by display priority
+      [...queue]
+        .filter((call) => {
+          const s = getSortStatus(call.id);
+          return ACTIVE_STATES.has(s);
+        })
+        .sort((a, b) => {
+          const ap = ACTIVE_STATE_PRIORITY[getSortStatus(a.id)] ?? 99;
+          const bp = ACTIVE_STATE_PRIORITY[getSortStatus(b.id)] ?? 99;
+          return ap - bp;
+        })
     : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
@@ -179,8 +198,11 @@ const CallSection = ({
     <div className="w-full h-full font-inter flex flex-col">
       <div
         ref={scrollContainerRef}
-        className={`flex-1 py-1 px-1 overflow-y-auto no-scrollbar scroll-smooth ${isPowerDialer ? "grid grid-cols-2 gap-2 content-start" : "flex flex-col gap-3"
-          }`}
+        className={`flex-1 py-1 px-1 ${
+          isPowerDialer
+            ? "grid grid-cols-2 gap-2 content-start overflow-hidden"
+            : "flex flex-col gap-3 overflow-y-auto no-scrollbar scroll-smooth"
+        }`}
       >
         {visibleQueue.map((call, index) => {
           const isActive = activeQueueCardId ? activeQueueCardId === call.id : currentContact?.id === call.id;
