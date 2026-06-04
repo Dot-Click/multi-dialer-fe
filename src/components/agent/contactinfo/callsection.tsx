@@ -140,18 +140,25 @@ const CallSection = ({
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
 
+  // For power dialer:
+  //   - When calls are in flight (at least one active), show ONLY active-state
+  //     contacts (Connected → Ringing → Redialing → Disconnected).
+  //     Queued/pending contacts are hidden so the panel stays clean.
+  //   - When NO contacts are active yet (session just started), fall back to
+  //     showing the full sorted queue so the panel is never empty.
+  const activeContacts = isPowerDialer
+    ? [...queue].filter((call) => ACTIVE_STATES.has(getSortStatus(call.id)))
+    : [];
+
   const visibleQueue = isPowerDialer
-    ? // Filter to active states only, then sort by display priority
-      [...queue]
-        .filter((call) => {
-          const s = getSortStatus(call.id);
-          return ACTIVE_STATES.has(s);
-        })
-        .sort((a, b) => {
-          const ap = ACTIVE_STATE_PRIORITY[getSortStatus(a.id)] ?? 99;
-          const bp = ACTIVE_STATE_PRIORITY[getSortStatus(b.id)] ?? 99;
-          return ap - bp;
-        })
+    ? (activeContacts.length > 0
+        ? activeContacts.sort((a, b) => {
+            const ap = ACTIVE_STATE_PRIORITY[getSortStatus(a.id)] ?? 99;
+            const bp = ACTIVE_STATE_PRIORITY[getSortStatus(b.id)] ?? 99;
+            return ap - bp;
+          })
+        : sortedQueue  // fallback: show full queue before first call starts
+      )
     : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
