@@ -484,7 +484,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                   <FieldWrapper label={dialerMode === "power" ? "NUMBER OF LINES" : "Call Script"}>
                     {dialerMode === "power" ? (
                       <SelectInput value={String(pacing)} onChange={(v) => setPacing(Number(v))}>
-                        {[1, 2, 3, 4, 5, 10].map((n) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                           <option key={n} value={n} className="dark:bg-slate-900">
                             {n}x Speed
                           </option>
