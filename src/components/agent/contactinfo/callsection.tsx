@@ -66,12 +66,14 @@ const CallSection = ({
   activeQueueCardId,
   onSelectQueueCard,
   dialerMode,
+  pacing = 1,
 }: {
   leadStatuses?: Record<string, string>,
   leadSids?: Record<string, string>,
   activeQueueCardId?: string,
   onSelectQueueCard?: (queueCardId: string) => void,
   dialerMode?: string,
+  pacing?: number,
 }) => {
   const { queue, currentContact } = useAppSelector((state) => state.contacts);
   const location = useLocation();
@@ -126,7 +128,11 @@ const CallSection = ({
   const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === activeSortId || call.contactId === activeSortId), 0);
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
-  const visibleQueue = isPowerDialer ? sortedQueue : sortedQueue.filter((call) => visibleIds.has(call.id));
+  // Power dialer: only show as many cards as the pacing allows (call queue capacity).
+  // Manual dialer: show a sliding window of 3 around the active contact.
+  const visibleQueue = isPowerDialer
+    ? sortedQueue.slice(0, Math.max(pacing, 1))
+    : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
     if (!isCalling) resetCallStatus();

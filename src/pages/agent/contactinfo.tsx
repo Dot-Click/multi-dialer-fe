@@ -819,6 +819,7 @@ const ContactInfo = () => {
                                     leadSids={leadSids}
                                     activeQueueCardId={currentQueueEntry?.id}
                                     dialerMode={dialerMode}
+                                    pacing={pacing}
                                     onSelectQueueCard={(queueCardId) => {
                                         const foundIdx = queue.findIndex((entry: any) => entry.id === queueCardId);
                                         if (foundIdx >= 0) {
