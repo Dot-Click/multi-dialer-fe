@@ -128,10 +128,11 @@ const CallSection = ({
   const currentQueueIndex = Math.max(queue.findIndex((call) => call.id === activeSortId || call.contactId === activeSortId), 0);
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
-  // Power dialer: only show as many cards as the pacing allows (call queue capacity).
+  // Power dialer: always show exactly 6 cards in the 2-column grid.
   // Manual dialer: show a sliding window of 3 around the active contact.
+  const POWER_DIALER_VISIBLE = 6;
   const visibleQueue = isPowerDialer
-    ? sortedQueue.slice(0, Math.max(pacing, 1))
+    ? sortedQueue.slice(0, POWER_DIALER_VISIBLE)
     : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
