@@ -66,7 +66,7 @@ const CallSection = ({
   activeQueueCardId,
   onSelectQueueCard,
   dialerMode,
-  pacing = 1,
+  pacing: _pacing = 1,
 }: {
   leadStatuses?: Record<string, string>,
   leadSids?: Record<string, string>,
