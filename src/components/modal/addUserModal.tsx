@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
+import { FiEye, FiEyeOff, FiRefreshCw } from "react-icons/fi";
 import downarrow from "@/assets/downarrow.png";
 import { createUser } from "@/store/slices/userSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -18,6 +19,8 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   // Form states
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Dropdown states
   const [roleOpen, setRoleOpen] = useState(false);
@@ -44,7 +47,15 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
       return;
     }
 
-    const generatedPassword = generateSecurePassword();
+    if (!password) {
+      setLocalError("Please set a password for this user");
+      return;
+    }
+
+    if (password.length < 8) {
+      setLocalError("Password must be at least 8 characters");
+      return;
+    }
 
     try {
       const resultAction = await dispatch(
@@ -53,7 +64,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           email,
           role: selectedRole.toUpperCase(),
           status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
-          password: generatedPassword,
+          password,
         }),
       );
 
@@ -63,6 +74,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         // Reset form
         setFullName("");
         setEmail("");
+        setPassword("");
         setSelectedRole("Select Role");
         setSelectedStatus("Select Status");
       }
@@ -120,6 +132,39 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
               placeholder="Enter email address"
               className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
             />
+          </div>
+
+          {/* Password */}
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
+              Password
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Set a password"
+                className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400] flex-1 min-w-0"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex-shrink-0"
+                tabIndex={-1}
+              >
+                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPassword(generateSecurePassword())}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex-shrink-0"
+                title="Generate secure password"
+                tabIndex={-1}
+              >
+                <FiRefreshCw size={15} />
+              </button>
+            </div>
           </div>
 
           {/* Role Dropdown */}
