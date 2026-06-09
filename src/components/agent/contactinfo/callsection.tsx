@@ -222,11 +222,7 @@ const CallSection = ({
         ref={scrollContainerRef}
         className={`flex-1 py-1 px-1 ${
           isPowerDialer
-            ? `grid gap-2 content-start overflow-hidden ${
-                slots === 1 ? 'grid-cols-1' :
-                slots <= 4 ? 'grid-cols-2' :
-                'grid-cols-3'
-              }`
+            ? "grid grid-cols-2 gap-2 content-start overflow-y-auto no-scrollbar"
             : "flex flex-col gap-3 overflow-y-auto no-scrollbar scroll-smooth"
         }`}
       >

@@ -12,7 +12,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeWrapper>
         <Router />
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster position="top-center" reverseOrder={false} />
       </ThemeWrapper>
     </QueryClientProvider>
   );
