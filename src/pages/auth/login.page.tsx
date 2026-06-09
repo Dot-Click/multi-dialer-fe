@@ -160,7 +160,7 @@ const Login: React.FC = () => {
 
             <div className="flex justify-end w-full">
               <a
-                href="/agent/change-password"
+                href="/admin/password-recovery"
                 className="text-gray-600 text-[0.65rem] lg:text-xs"
               >
                 Forget your password?

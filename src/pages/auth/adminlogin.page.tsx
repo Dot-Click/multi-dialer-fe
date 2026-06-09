@@ -159,7 +159,7 @@ const AdminLogin: React.FC = () => {
 
             <div className="flex justify-end w-full">
               <Link
-                to={"/admin/change-password"}
+                to={"/admin/password-recovery"}
                 className="text-gray-600 text-[0.65rem] lg:text-xs"
               >
                 Forget your password?
