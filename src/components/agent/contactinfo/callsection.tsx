@@ -66,7 +66,7 @@ const CallSection = ({
   activeQueueCardId,
   onSelectQueueCard,
   dialerMode,
-  pacing: _pacing = 1,
+  pacing = 1,
 }: {
   leadStatuses?: Record<string, string>,
   leadSids?: Record<string, string>,
@@ -120,17 +120,23 @@ const CallSection = ({
     return leadStatuses[leadId]?.toLowerCase() ?? 'pending';
   };
 
-  // ── Power dialer display priority ────────────────────────────────────────────
-  // Only show contacts in an active state; hide Queued/pending contacts.
-  // Order: Connected (1) → Ringing (2) → Redialing (3) → Disconnected (4)
-  const ACTIVE_STATE_PRIORITY: Record<string, number> = {
+  // ── Slot priority: Connected(1) → Ringing(2) → Redialing(3) → Disconnected(4) → Pending(5)
+  const SLOT_PRIORITY: Record<string, number> = {
     connected: 1, 'in-progress': 1, answered: 1, 'on-hold': 1,
     dialing: 2, ringing: 2, initiated: 2,
     redialing: 3,
     disconnected: 4, completed: 4, failed: 4, busy: 4, 'no-answer': 4, 'no_answer': 4,
+    pending: 5, queued: 5,
   };
-  const ACTIVE_STATES = new Set(Object.keys(ACTIVE_STATE_PRIORITY));
 
+  const IN_FLIGHT_STATES = new Set([
+    'connected', 'in-progress', 'answered', 'on-hold',
+    'dialing', 'ringing', 'initiated',
+    'redialing',
+    'disconnected', 'completed', 'failed', 'busy', 'no-answer', 'no_answer',
+  ]);
+
+  // Non-power-dialer: sorted full queue windowed around current contact
   const sortedQueue = [...queue].sort((a, b) => {
     const aPriority = STATUS_PRIORITY[getSortStatus(a.id)] ?? 5;
     const bPriority = STATUS_PRIORITY[getSortStatus(b.id)] ?? 5;
@@ -140,25 +146,32 @@ const CallSection = ({
   const visibleStartIndex = Math.min(currentQueueIndex, Math.max(queue.length - 3, 0));
   const visibleIds = new Set(queue.slice(visibleStartIndex, visibleStartIndex + 3).map((call) => call.id));
 
-  // For power dialer:
-  //   - When calls are in flight (at least one active), show ONLY active-state
-  //     contacts (Connected → Ringing → Redialing → Disconnected).
-  //     Queued/pending contacts are hidden so the panel stays clean.
-  //   - When NO contacts are active yet (session just started), fall back to
-  //     showing the full sorted queue so the panel is never empty.
-  const activeContacts = isPowerDialer
-    ? [...queue].filter((call) => ACTIVE_STATES.has(getSortStatus(call.id)))
+  // ── Power dialer: strict N-slot model ────────────────────────────────────────
+  // Always show exactly `pacing` cards.
+  // Slots 1..N are filled by in-flight contacts first (Ringing/Connected/Redialing/Disconnected).
+  // Any remaining slots are filled from the front of the pending queue (they are
+  // about to be dialed, so they show as "Ringing" once the backend picks them up).
+  // Sort within the N cards: Connected → Ringing → Redialing → Disconnected → Pending.
+  const slots = Math.max(1, pacing);
+
+  const inFlightContacts = isPowerDialer
+    ? [...queue].filter((c) => IN_FLIGHT_STATES.has(getSortStatus(c.id)))
     : [];
 
+  const pendingContacts = isPowerDialer
+    ? [...queue].filter((c) => !IN_FLIGHT_STATES.has(getSortStatus(c.id)))
+    : [];
+
+  const slotsRemaining = Math.max(0, slots - inFlightContacts.length);
+
   const visibleQueue = isPowerDialer
-    ? (activeContacts.length > 0
-        ? activeContacts.sort((a, b) => {
-            const ap = ACTIVE_STATE_PRIORITY[getSortStatus(a.id)] ?? 99;
-            const bp = ACTIVE_STATE_PRIORITY[getSortStatus(b.id)] ?? 99;
-            return ap - bp;
-          })
-        : sortedQueue  // fallback: show full queue before first call starts
-      )
+    ? [...inFlightContacts, ...pendingContacts.slice(0, slotsRemaining)]
+        .sort((a, b) => {
+          const ap = SLOT_PRIORITY[getSortStatus(a.id)] ?? 5;
+          const bp = SLOT_PRIORITY[getSortStatus(b.id)] ?? 5;
+          return ap - bp;
+        })
+        .slice(0, slots)
     : sortedQueue.filter((call) => visibleIds.has(call.id));
 
   useEffect(() => {
@@ -178,6 +191,8 @@ const CallSection = ({
     if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued') return "Ringing";
     if (bStatus === 'call_back' || bStatus === 'callback') return "Callback";
     if (bStatus === 'completed' || bStatus === 'failed' || bStatus === 'busy' || bStatus === 'no-answer' || bStatus === 'no_answer') return "Disconnected";
+    // In power dialer, pending contacts filling empty slots are about to be dialed — show Ringing
+    if (!isActive && isPowerDialer) return "Ringing";
     if (!isActive) return "Queued";
     if (isHold) return "On Hold";
     switch (callStatus) {
@@ -207,7 +222,11 @@ const CallSection = ({
         ref={scrollContainerRef}
         className={`flex-1 py-1 px-1 ${
           isPowerDialer
-            ? "grid grid-cols-2 gap-2 content-start overflow-hidden"
+            ? `grid gap-2 content-start overflow-hidden ${
+                slots === 1 ? 'grid-cols-1' :
+                slots <= 4 ? 'grid-cols-2' :
+                'grid-cols-3'
+              }`
             : "flex flex-col gap-3 overflow-y-auto no-scrollbar scroll-smooth"
         }`}
       >
