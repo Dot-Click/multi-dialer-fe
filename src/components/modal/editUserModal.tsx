@@ -1,0 +1,188 @@
+import { useState, useEffect } from "react";
+import { IoClose } from "react-icons/io5";
+import downarrow from "@/assets/downarrow.png";
+import { updateUser } from "@/store/slices/userSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import toast from "react-hot-toast";
+
+interface EditUserModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  user: {
+    id: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+    status?: string;
+  } | null;
+}
+
+const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps) => {
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.user);
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("Select Role");
+  const [selectedStatus, setSelectedStatus] = useState("Select Status");
+  const [localError, setLocalError] = useState("");
+
+  const roleOptions = ["Agent", "Admin"];
+  const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
+
+  // Populate fields when the user prop changes
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName || "");
+      setEmail(user.email || "");
+      setSelectedRole(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "Select Role");
+      setSelectedStatus(user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1).toLowerCase().replace(/_/g, " ") : "Select Status");
+      setLocalError("");
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    setLocalError("");
+
+    if (!fullName.trim()) { setLocalError("Name is required"); return; }
+    if (!email.trim()) { setLocalError("Email is required"); return; }
+    if (selectedRole === "Select Role") { setLocalError("Please select a role"); return; }
+    if (selectedStatus === "Select Status") { setLocalError("Please select a status"); return; }
+
+    try {
+      const result = await dispatch(updateUser({
+        id: user!.id,
+        data: {
+          fullName: fullName.trim(),
+          email: email.trim(),
+          role: selectedRole.toUpperCase(),
+          status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
+        },
+      }));
+
+      if (updateUser.fulfilled.match(result)) {
+        toast.success("User updated successfully");
+        onClose();
+        onSuccess?.();
+      } else {
+        setLocalError((result.payload as string) || "Failed to update user");
+      }
+    } catch {
+      setLocalError("An unexpected error occurred");
+    }
+  };
+
+  if (!isOpen || !user) return null;
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[450px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700">
+          <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">Edit User</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+            <IoClose className="text-[22px] text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 flex flex-col gap-4">
+          {localError && <p className="text-red-500 text-xs">{localError}</p>}
+
+          {/* Full Name */}
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter full name"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
+            />
+          </div>
+
+          {/* Email */}
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
+            />
+          </div>
+
+          {/* Role Dropdown */}
+          <div className="relative">
+            <div
+              onClick={() => { setRoleOpen(!roleOpen); setStatusOpen(false); }}
+              className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
+            >
+              <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Role</label>
+              <div className="flex justify-between items-center">
+                <span className={`text-[15px] ${selectedRole === "Select Role" ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}>
+                  {selectedRole}
+                </span>
+                <img src={downarrow} alt="arrow" className={`h-1.5 transition-transform dark:invert ${roleOpen ? "rotate-180" : ""}`} />
+              </div>
+            </div>
+            {roleOpen && (
+              <div className="absolute top-[60px] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-50 border border-gray-100 dark:border-slate-700 overflow-hidden py-1">
+                {roleOptions.map((r) => (
+                  <div key={r} className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#111] dark:text-white"
+                    onClick={() => { setSelectedRole(r); setRoleOpen(false); }}>
+                    {r}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="relative">
+            <div
+              onClick={() => { setStatusOpen(!statusOpen); setRoleOpen(false); }}
+              className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
+            >
+              <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Status</label>
+              <div className="flex justify-between items-center">
+                <span className={`text-[15px] ${selectedStatus === "Select Status" ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}>
+                  {selectedStatus}
+                </span>
+                <img src={downarrow} alt="arrow" className={`h-1.5 transition-transform dark:invert ${statusOpen ? "rotate-180" : ""}`} />
+              </div>
+            </div>
+            {statusOpen && (
+              <div className="absolute top-[60px] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-50 border border-gray-100 dark:border-slate-700 overflow-hidden py-1">
+                {statusOptions.map((s) => (
+                  <div key={s} className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#111] dark:text-white"
+                    onClick={() => { setSelectedStatus(s); setStatusOpen(false); }}>
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-5 flex gap-3 border-t border-gray-100 dark:border-slate-700">
+          <button type="button" onClick={onClose} disabled={loading}
+            className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-3 rounded-[12px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50">
+            Cancel
+          </button>
+          <button type="button" onClick={handleSave} disabled={loading}
+            className="flex-1 bg-[#FFCA06] text-[#000000] font-[500] py-3 rounded-[12px] hover:bg-[#eab700] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+            {loading ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EditUserModal;

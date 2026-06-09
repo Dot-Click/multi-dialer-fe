@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import UserManagementHeader from "@/components/super-admin/user-management/UserManagementHeader";
+import EditUserModal from "@/components/modal/editUserModal";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import tableIcon from "@/assets/tableIcon.png";
@@ -54,6 +55,7 @@ const SuperAdminUserManagement = () => {
   const [statusOpen, setStatusOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -121,6 +123,13 @@ const SuperAdminUserManagement = () => {
       <UserManagementHeader
         totalUsers={users.length}
         onUserAdded={fetchUsers}
+      />
+
+      <EditUserModal
+        isOpen={!!editingUser}
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSuccess={fetchUsers}
       />
 
       {/* Search bar  */}
@@ -311,10 +320,14 @@ const SuperAdminUserManagement = () => {
                         {openMenuUserId === user.id && (
                           <div className="absolute right-5 top-1/2 bg-white dark:bg-slate-900 shadow-lg rounded-lg z-50 border dark:border-gray-700 border-gray-100 overflow-hidden py-1 w-32">
                             <button
-                              onClick={() => {
-                                handleDelete(user.id);
-                              }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 text-[14px] font-medium transition-colors"
+                              onClick={() => { setEditingUser(user); setOpenMenuUserId(null); }}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(user.id)}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
                             >
                               Delete
                             </button>
