@@ -2,7 +2,7 @@ import { useState } from "react";
 import bgImage from "@/assets/resetpass-bg.svg";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import api from "@/lib/axios";
 import toast from "react-hot-toast";
 
 const RecoveryPassword: React.FC = () => {
@@ -16,15 +16,15 @@ const RecoveryPassword: React.FC = () => {
 
     setLoading(true);
     try {
-      await authClient.forgetPassword({
+      // better-auth forget-password endpoint — generates token + calls sendResetPasswordEmail
+      await api.post("/auth/forget-password", {
         email: email.trim(),
-        // better-auth appends ?token=XXX to this URL when emailing the link
         redirectTo: `${window.location.origin}/admin/create-password`,
       });
       setSent(true);
       toast.success("Reset link sent! Check your inbox.");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to send reset link. Please try again.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to send reset link. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -60,16 +60,12 @@ const RecoveryPassword: React.FC = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col w-full gap-3">
-            {/* Info text */}
             <p className="text-xs lg:text-sm text-gray-600 text-center">
               Enter your email address and we'll send you a link to reset your password.
             </p>
 
-            {/* Email input */}
             <div className="bg-gray-200 flex flex-col w-full gap-0.5 px-3 py-1.5 rounded-lg">
-              <label htmlFor="email" className="text-xs font-medium p-0">
-                Email
-              </label>
+              <label htmlFor="email" className="text-xs font-medium p-0">Email</label>
               <input
                 type="email"
                 id="email"
@@ -82,7 +78,6 @@ const RecoveryPassword: React.FC = () => {
               />
             </div>
 
-            {/* Send button */}
             <Button
               type="submit"
               disabled={loading || !email.trim()}

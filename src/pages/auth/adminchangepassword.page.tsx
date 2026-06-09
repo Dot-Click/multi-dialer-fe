@@ -3,7 +3,7 @@ import bgImage from "@/assets/resetpass-bg.svg";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
-import { authClient } from "@/lib/auth-client";
+import api from "@/lib/axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -36,11 +36,15 @@ const AdminChangePassword: React.FC = () => {
 
     setLoading(true);
     try {
-      await authClient.resetPassword({ newPassword, token });
+      // better-auth reset-password endpoint
+      await api.post("/auth/reset-password", {
+        newPassword,
+        token,
+      });
       toast.success("Password reset successfully! Redirecting to login…");
       setTimeout(() => navigate("/admin/login"), 2000);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to reset password. The link may have expired.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to reset password. The link may have expired.");
     } finally {
       setLoading(false);
     }
@@ -69,10 +73,7 @@ const AdminChangePassword: React.FC = () => {
             <p className="text-sm text-red-500">
               This reset link is invalid or has already been used.
             </p>
-            <a
-              href="/admin/password-recovery"
-              className="text-xs text-yellow-600 underline mt-2 inline-block"
-            >
+            <a href="/admin/password-recovery" className="text-xs text-yellow-600 underline mt-2 inline-block">
               Request a new link
             </a>
           </div>
@@ -105,7 +106,7 @@ const AdminChangePassword: React.FC = () => {
               </p>
             </div>
 
-            {/* Confirm New Password */}
+            {/* Confirm Password */}
             <div className="bg-gray-200 flex flex-col w-full gap-1 px-3 py-1.5 rounded-lg">
               <label htmlFor="confirmpassword" className="text-xs text-[#495057] font-medium p-0">
                 Confirm New Password
@@ -127,7 +128,6 @@ const AdminChangePassword: React.FC = () => {
               </div>
             </div>
 
-            {/* Submit */}
             <Button
               type="submit"
               disabled={loading}
