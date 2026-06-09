@@ -22,7 +22,7 @@ interface EditUserModalProps {
 const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps) => {
   const dispatch = useAppDispatch();
   const { loading } = useAppSelector((state) => state.user);
-  const { plans } = useAppSelector((state) => state.subscription);
+  const { plans } = useAppSelector((state) => state.subscriptions);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
