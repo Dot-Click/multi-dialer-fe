@@ -39,7 +39,6 @@ interface ContactPhone {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOTAL_DAILY_LIMIT = 1000;
 const POLL_INTERVAL_MS = 30_000;
 const FREEZE_DURATION_MS = 20 * 60 * 1000; // 20 minutes, must match backend COOLDOWN_MS
 const EMPTY_SESSION_STATS: SessionSummaryStats = {
@@ -340,10 +339,6 @@ const ContactInfo = () => {
     }, [callerIds, callerIdStatus, currentCallerId]);
 
     const _unusedRotateCallerId = useCallback((): string | null => {
-        if (dailyCallsCount >= TOTAL_DAILY_LIMIT) {
-            toast.error(`Daily limit reached!`);
-            return null;
-        }
         const now = Date.now();
         if (currentCallerId) {
             const s = callerIdStatus[currentCallerId];
@@ -721,10 +716,6 @@ const ContactInfo = () => {
     // ─── Rotation ─────────────────────────────────────────────────────────────
 
     const rotateCallerId = useCallback((): string | null => {
-        if (dailyCallsCount >= TOTAL_DAILY_LIMIT) {
-            toast.error(`Daily limit reached!`);
-            return null;
-        }
         const now = Date.now();
         if (currentCallerId) {
             const s = callerIdStatus[currentCallerId];
@@ -795,7 +786,6 @@ const ContactInfo = () => {
                 onPickNextCallerId={_unusedRotateCallerId}
                 onCallStarted={_unusedOnCallStarted}
                 dailyCount={dailyCallsCount}
-                dailyLimit={TOTAL_DAILY_LIMIT}
                 onholdUrl={settingsInfo?.find((s: any) => s.type === 'General Recording')?.url}
                 dialerMode={dialerMode}
                 autoDial={isAutoDialing}
@@ -866,10 +856,10 @@ const ContactInfo = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold">
                                         <span className="text-gray-500 uppercase tracking-tighter">Daily Progress</span>
-                                        <span className="text-gray-900 dark:text-white">{dailyCallsCount} / {TOTAL_DAILY_LIMIT}</span>
+                                        <span className="text-gray-900 dark:text-white">{dailyCallsCount} calls</span>
                                     </div>
                                     <div className="w-full bg-gray-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                        <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `${(dailyCallsCount / TOTAL_DAILY_LIMIT) * 100}%` }} />
+                                        <div className="bg-yellow-400 h-full transition-all duration-500" style={{ width: `100%` }} />
                                     </div>
                                 </div>
 
