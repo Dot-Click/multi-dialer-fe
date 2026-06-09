@@ -1,5 +1,5 @@
 import { useState } from "react";
-import bgImage from "@/assets/resetpass-bg.svg";
+import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/axios";
@@ -32,10 +32,12 @@ const RecoveryPassword: React.FC = () => {
 
   return (
     <div
-      className="h-screen w-full bg-cover bg-center flex justify-end lg:px-40 px-5 items-center"
+      className="h-screen w-full bg-cover work-sans bg-center relative flex justify-end lg:px-40 px-5 items-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="bg-white h-fit w-[24rem] lg:h-fit lg:w-100 rounded-xl flex gap-3 flex-col items-center py-7 lg:py-8 px-12">
+      <div className="bg-black w-full h-full bg-cover bg-center absolute top-0 left-0 opacity-50" />
+
+      <div className="bg-white relative z-50 h-fit w-[25rem] lg:h-fit lg:w-[25rem] rounded-[32px] flex gap-3 flex-col items-center py-[48px] px-[32px] shadow-lg">
         {/* Logo */}
         <div>
           <img src={logoImage} alt="Company Logo" className="object-contain w-48" />
