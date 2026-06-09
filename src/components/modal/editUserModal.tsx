@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import downarrow from "@/assets/downarrow.png";
-import { updateUser } from "@/store/slices/userSlice";
+import { updateUser, updateUserSubscription } from "@/store/slices/userSlice";
+import { fetchPlans, type Plan } from "@/store/slices/subscriptionSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import toast from "react-hot-toast";
 
@@ -21,17 +22,27 @@ interface EditUserModalProps {
 const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps) => {
   const dispatch = useAppDispatch();
   const { loading } = useAppSelector((state) => state.user);
+  const { plans } = useAppSelector((state) => state.subscription);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [roleOpen, setRoleOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("Select Role");
   const [selectedStatus, setSelectedStatus] = useState("Select Status");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [localError, setLocalError] = useState("");
 
   const roleOptions = ["Agent", "Admin"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
+
+  // Load plans when modal opens
+  useEffect(() => {
+    if (isOpen && plans.length === 0) {
+      dispatch(fetchPlans());
+    }
+  }, [isOpen]);
 
   // Populate fields when the user prop changes
   useEffect(() => {
@@ -40,6 +51,7 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
       setEmail(user.email || "");
       setSelectedRole(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "Select Role");
       setSelectedStatus(user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1).toLowerCase().replace(/_/g, " ") : "Select Status");
+      setSelectedPlanId(null);
       setLocalError("");
     }
   }, [user]);
@@ -64,6 +76,14 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
       }));
 
       if (updateUser.fulfilled.match(result)) {
+        // Also update subscription plan if admin selected one
+        if (selectedPlanId) {
+          const subResult = await dispatch(updateUserSubscription({ id: user!.id, planId: selectedPlanId }));
+          if (updateUserSubscription.rejected.match(subResult)) {
+            toast.error((subResult.payload as string) || "Failed to update subscription");
+            return;
+          }
+        }
         toast.success("User updated successfully");
         onClose();
         onSuccess?.();
@@ -145,7 +165,7 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
           {/* Status Dropdown */}
           <div className="relative">
             <div
-              onClick={() => { setStatusOpen(!statusOpen); setRoleOpen(false); }}
+              onClick={() => { setStatusOpen(!statusOpen); setRoleOpen(false); setPlanOpen(false); }}
               className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
             >
               <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Status</label>
@@ -164,6 +184,53 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
                     {s}
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Subscription Plan Dropdown */}
+          <div className="relative">
+            <div
+              onClick={() => { setPlanOpen(!planOpen); setRoleOpen(false); setStatusOpen(false); }}
+              className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
+            >
+              <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
+                Subscription Plan <span className="text-[10px] text-[#9CA3AF]">(optional — leave blank to keep current)</span>
+              </label>
+              <div className="flex justify-between items-center">
+                <span className={`text-[15px] ${!selectedPlanId ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}>
+                  {selectedPlanId
+                    ? plans.find((p: Plan) => p.priceId === selectedPlanId || p.monthlyStripePriceId === selectedPlanId || p.id === selectedPlanId)?.name ?? selectedPlanId
+                    : "No change"}
+                </span>
+                <img src={downarrow} alt="arrow" className={`h-1.5 transition-transform dark:invert ${planOpen ? "rotate-180" : ""}`} />
+              </div>
+            </div>
+            {planOpen && (
+              <div className="absolute top-[60px] left-0 w-full bg-white dark:bg-slate-800 shadow-2xl rounded-[12px] z-50 border border-gray-100 dark:border-slate-700 overflow-hidden py-1 max-h-[180px] overflow-y-auto">
+                <div
+                  className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#9CA3AF]"
+                  onClick={() => { setSelectedPlanId(null); setPlanOpen(false); }}
+                >
+                  No change
+                </div>
+                {plans.map((p: Plan) => {
+                  const priceId = p.monthlyStripePriceId || p.priceId || p.id;
+                  return (
+                    <div
+                      key={priceId}
+                      className="px-4 py-2 hover:bg-[#F3F4F6] dark:hover:bg-slate-700 cursor-pointer text-[14px] text-[#111] dark:text-white"
+                      onClick={() => { setSelectedPlanId(priceId); setPlanOpen(false); }}
+                    >
+                      {p.name}
+                      {p.monthlyAmount != null && (
+                        <span className="ml-2 text-[12px] text-[#6B7280]">
+                          ${(p.monthlyAmount / 100).toFixed(2)}/mo
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

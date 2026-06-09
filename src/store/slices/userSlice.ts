@@ -72,6 +72,18 @@ export const updateUser = createAsyncThunk(
   },
 );
 
+export const updateUserSubscription = createAsyncThunk(
+  "user/updateUserSubscription",
+  async ({ id, planId }: { id: string; planId: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/user/${id}/subscription`, { planId });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to update subscription");
+    }
+  },
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState,
@@ -102,6 +114,11 @@ export const userSlice = createSlice({
     builder.addCase(updateUser.pending, (state) => { state.loading = true; state.error = null; });
     builder.addCase(updateUser.fulfilled, (state) => { state.loading = false; });
     builder.addCase(updateUser.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
+
+    // Update Subscription
+    builder.addCase(updateUserSubscription.pending, (state) => { state.loading = true; state.error = null; });
+    builder.addCase(updateUserSubscription.fulfilled, (state) => { state.loading = false; });
+    builder.addCase(updateUserSubscription.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
 
     // Create User
     builder.addCase(createUser.pending, (state) => {
