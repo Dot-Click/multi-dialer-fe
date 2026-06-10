@@ -65,10 +65,17 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // from a superseded call do NOT wipe the state for the new active call.
   const activeCallRef = useRef<Call | null>(null);
   const deviceRef = useRef<Device | null>(null);
+  // Mirrors `isPostCall` so the `incoming` handler (a stale closure) can read the
+  // live value when deciding whether to auto-accept an incoming dialer bridge.
+  const isPostCallRef = useRef(false);
 
   useEffect(() => {
     isHoldRef.current = isHold;
   }, [isHold]);
+
+  useEffect(() => {
+    isPostCallRef.current = isPostCall;
+  }, [isPostCall]);
 
   const [holdAudio] = useState(() => {
     const audio = new Audio('https://com.twilio.music.classical.s3.amazonaws.com/BusyStrings.mp3');
@@ -186,6 +193,16 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.log("[TwilioProvider] Call Parameters:", JSON.stringify(call.parameters));
         console.log("[TwilioProvider] Custom Parameters:", JSON.stringify(Object.fromEntries((call as any).customParameters || [])));
         console.log("==================================================");
+
+        // SAFETY NET: never auto-accept a power-dialer bridge while the agent is still
+        // in post-call (disposition pending). The backend should not dial during
+        // post-call, but if a bridge ever slips through, reject it rather than silently
+        // connecting the agent to a new customer before the previous call is dispositioned.
+        if (isDialerBridge && isPostCallRef.current) {
+          console.warn("[TwilioProvider] REJECTING dialer bridge: agent still in post-call (disposition pending).");
+          call.reject();
+          return;
+        }
 
         // For power dialer bridge calls, always accept — even if there's a stale activeCall.
         // The bridge IS the agent's connection to the customer, it must never be rejected.
