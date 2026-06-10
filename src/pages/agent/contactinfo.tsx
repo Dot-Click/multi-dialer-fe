@@ -798,7 +798,7 @@ const ContactInfo = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
                     {/* Left Column (Call Tiles) - 3/12 width */}
                     <div className="lg:col-span-3 flex flex-col gap-4 h-full overflow-hidden">
-                        <div className="h-[calc(100vh-20rem)] min-h-[360px] flex flex-col gap-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-2 overflow-hidden">
+                        <div className="flex-1 min-h-[360px] flex flex-col gap-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-2 overflow-hidden">
                             <div className="flex items-center gap-2 px-2 py-1 border-b border-gray-50 dark:border-slate-700/50 mb-1">
                                 <VscCallOutgoing className="text-gray-400" size={14} />
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Queue</h3>
