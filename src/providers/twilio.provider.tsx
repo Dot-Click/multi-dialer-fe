@@ -4,6 +4,14 @@ import api from '@/lib/axios';
 import toast from 'react-hot-toast';
 // import { useCallSettings } from '@/hooks/useSystemSettings';
 
+// ── [TwilioDiag] TEMPORARY DIAGNOSTICS ──────────────────────────────────────
+// Module-level counters survive across provider mounts so we can detect a
+// duplicate Device registration (regCount > 1) or a duplicate incoming bridge
+// (incomingCount > 1 for the same logical call). Remove once the connect bug
+// is diagnosed.
+let __twilioDeviceRegCount = 0;
+let __twilioIncomingCount = 0;
+
 interface TwilioContextType {
   device: Device | null;
   activeCall: Call | null;
@@ -166,15 +174,22 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('registered', () => {
+        __twilioDeviceRegCount += 1;
         setAppStatus('Agent Ready');
         console.log("[TwilioProvider] Device registered successfully.");
         console.log("[TwilioProvider] I am registered as:", agentIdentity);
         console.log("[TwilioProvider] Device Status:", newDevice.state);
+        console.log(`[TwilioDiag] DEVICE REGISTRATION COUNT = ${__twilioDeviceRegCount} (identity: ${agentIdentity}). If this is > 1 with no page reload, there are duplicate Devices on the same identity.`);
       });
 
       newDevice.on('error', (error) => {
         setAppStatus(`Error: ${error.message}`);
         console.error("[TwilioProvider] Device error:", error);
+        console.error(`[TwilioDiag] DEVICE ERROR code=${(error as any)?.code} msg=${(error as any)?.message}`, error);
+      });
+
+      newDevice.on('unregistered', () => {
+        console.warn("[TwilioDiag] Device UNREGISTERED — it can no longer receive calls until re-registered.");
       });
 
       newDevice.on('tokenWillExpire', () => {
@@ -184,6 +199,9 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       newDevice.on('incoming', (call: Call) => {
         const sid = call.parameters.CallSid || (call as any).sid || call.outboundConnectionId;
         const isDialerBridge = call.customParameters?.get('dialerBridge') === 'true';
+
+        __twilioIncomingCount += 1;
+        console.log(`[TwilioDiag] INCOMING #${__twilioIncomingCount} sid=${sid} | activeCallRef set=${!!activeCallRef.current} activeStatus=${activeCallRef.current?.status?.() ?? 'none'}`);
 
         console.log("==================================================");
         console.log("[TwilioProvider] INCOMING CALL DETECTED");
@@ -230,15 +248,18 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setActiveCallSid(sid);
 
         call.on('ringing', () => {
+          console.log(`[TwilioDiag] RINGING sid=${sid} isActive=${activeCallRef.current === call}`);
           if (activeCallRef.current !== call) return;
           setCallStatus('ringing');
         });
         call.on('accept', () => {
+          console.log(`[TwilioDiag] ACCEPT event sid=${sid} isActive=${activeCallRef.current === call} status=${call.status()}`);
           if (activeCallRef.current !== call) return;
           setCallStatus('connected');
         });
 
         call.on('disconnect', () => {
+          console.warn(`[TwilioDiag] DISCONNECT event sid=${sid} | ignored=${ignoredCallsRef.current.has(call)} isActive=${activeCallRef.current === call} isHold=${isHoldRef.current} status=${call.status()}`);
           if (ignoredCallsRef.current.has(call)) return;
           if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
@@ -247,6 +268,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
 
         call.on('cancel', () => {
+          console.warn(`[TwilioDiag] CANCEL event sid=${sid} | ignored=${ignoredCallsRef.current.has(call)} isActive=${activeCallRef.current === call} isHold=${isHoldRef.current} — this means Twilio took the call away (e.g. another registration of this identity answered it).`);
           if (ignoredCallsRef.current.has(call)) return;
           if (activeCallRef.current !== call) return;
           if (!isHoldRef.current) {
@@ -255,11 +277,19 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         });
 
-        call.on('error', () => {
+        call.on('error', (err: any) => {
+          console.error(`[TwilioDiag] CALL ERROR sid=${sid} code=${err?.code} msg=${err?.message}`, err);
           if (ignoredCallsRef.current.has(call)) return;
           if (activeCallRef.current !== call) return;
           handleStopCalling();
         });
+
+        // Media-level diagnostics: a WebRTC/ICE failure shows up here even when
+        // Twilio's signaling still reports the leg as in-progress.
+        call.on('reconnecting', (e: any) => console.warn(`[TwilioDiag] RECONNECTING sid=${sid} code=${e?.code} msg=${e?.message}`));
+        call.on('reconnected', () => console.log(`[TwilioDiag] RECONNECTED sid=${sid}`));
+        (call as any).on('warning', (name: string, data: any) => console.warn(`[TwilioDiag] WARNING sid=${sid} name=${name}`, data));
+        (call as any).on('warning-cleared', (name: string) => console.log(`[TwilioDiag] WARNING CLEARED sid=${sid} name=${name}`));
 
         const contactIdParam = call.customParameters?.get('contactId');
         if (contactIdParam) {
@@ -283,11 +313,15 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           
           // Slight delay to ensure SDK is fully ready for the accept()
           setTimeout(() => {
+            console.log(`[TwilioDiag] PRE-ACCEPT sid=${sid} isActive=${activeCallRef.current === call} status=${call.status()}`);
             console.log("[TwilioProvider] Auto-accepting incoming call...");
             call.accept();
             setAppStatus('Bridge Connected');
             setIsCalling(true);
             console.log("[TwilioProvider] call.accept() transition complete.");
+            console.log(`[TwilioDiag] POST-ACCEPT sid=${sid} status=${call.status()}`);
+            // Snapshot status a moment later to see if the leg stays open.
+            setTimeout(() => console.log(`[TwilioDiag] ACCEPT+2s sid=${sid} status=${call.status()} isActive=${activeCallRef.current === call}`), 2000);
           }, 400);
 
         } catch (e: any) {
