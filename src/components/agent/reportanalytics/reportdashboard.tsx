@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import CallDetail from "@/components/agent/reportanalytics/calldetail";
 import Session from "@/components/agent/reportanalytics/session";
 import RecurringEvent from "@/components/agent/reportanalytics/recurringevent";
