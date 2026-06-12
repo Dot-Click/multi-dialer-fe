@@ -111,7 +111,7 @@ const CallerId: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             className="w-full sm:w-auto bg-[#FECD56] text-black font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-[#F0D500] transition-colors text-sm shadow-sm"
           >
-            <FiPlus size={18} /> Add CallScout Number
+            <FiPlus size={18} /> Add Number
           </button>
         </header>
 
@@ -148,7 +148,7 @@ const CallerId: React.FC = () => {
                 {callerIds?.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                      No Caller IDs found. Click "Add CallScout Number" to create one.
+                      No Caller IDs found. Click "Add Number" to create one.
                     </td>
                   </tr>
                 ) : (

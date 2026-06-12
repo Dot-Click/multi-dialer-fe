@@ -797,21 +797,13 @@ const Step3MapFields = ({
           {mapping.label}
         </span>
       </div>
-      {/* Right: CSV column dropdown */}
-      <select
+      {/* Right: searchable CSV column dropdown (same as Misc fields) */}
+      <HeaderDropdown
         value={mapping.csvHeader}
-        onChange={(e) => updateMapping(mapping.slingvoKey, e.target.value)}
-        className={`w-full text-[12px] px-2.5 py-1.5 rounded-lg border outline-none transition-colors cursor-pointer
-          ${mapping.csvHeader
-            ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300 font-medium"
-            : "bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500"
-          }`}
-      >
-        <option value="" className="dark:bg-slate-800 text-gray-500">Do not import</option>
-        {csvHeaders.map(h => (
-          <option key={h} value={h} className="dark:bg-slate-800 text-gray-800 dark:text-slate-200">{h}</option>
-        ))}
-      </select>
+        onChange={(val) => updateMapping(mapping.slingvoKey, val)}
+        csvHeaders={csvHeaders}
+        placeholder="Do not import"
+      />
     </div>
   );
 
@@ -1163,8 +1155,29 @@ const ImportContactModal: React.FC<ImportContactModalProps> = ({ isOpen, onClose
 
     setSubmitting(true);
     try {
-      await importContacts(formData);
-      toast.success("Contacts imported successfully!");
+      const res = await importContacts(formData);
+      const d = res?.data || {};
+      const inserted = d.inserted ?? d.contactsCount ?? 0;
+      const updated = d.updated ?? 0;
+      const skipped = d.skipped ?? 0;
+
+      if (inserted === 0 && updated === 0) {
+        // Nothing was added — tell the user WHY instead of a misleading "success".
+        toast(
+          skipped > 0
+            ? `No contacts added — all ${skipped} were treated as duplicates. Adjust the Step 4 duplicate settings (e.g. uncheck Phone or choose Overwrite) and try again.`
+            : "No contacts were imported. Check that your Name and Phone columns are mapped on Step 3.",
+          { icon: "⚠️", duration: 7000 }
+        );
+      } else {
+        toast.success(
+          `Imported ${inserted} new` +
+            (updated ? `, updated ${updated}` : "") +
+            (skipped ? `, skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}` : "") +
+            "."
+        );
+      }
+
       if (onSuccess) onSuccess();
       onClose();
     } catch {

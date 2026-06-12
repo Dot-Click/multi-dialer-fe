@@ -9,21 +9,6 @@ import AgentTimeSheet from "@/components/agent/reportanalytics/agenttimesheet";
 // import PostingReport from "@/components/agent/reportanalytics/postingreport";
 import CallRecording from "@/components/agent/reportanalytics/callrecording";
 import exportarrowicon from "../../../assets/exportarrowicon.png";
-import { FaChevronDown } from "react-icons/fa";
-
-const dispositionOptions = [
-  "All Result",
-  "Hot",
-  "Warm",
-  "Cold",
-  "Called",
-  "Busy",
-  "No Answer",
-  "Call Back",
-  "Do not call",
-  "Not interested",
-];
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -33,9 +18,6 @@ interface ReportDashboardProps {
 
 const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
   const [openData, setOpenData] = useState("Call detail");
-  const [selectedResult, setSelectedResult] = useState("All Result");
-  const [isResultDropdownOpen, setIsResultDropdownOpen] = useState(false);
-  const resultDropdownRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handleExport = () => {
@@ -102,17 +84,17 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
     {
       id: 1,
       label: "Call detail",
-      component: <CallDetail userId={userId} selectedResult={selectedResult} />,
+      component: <CallDetail userId={userId} />,
     },
     { id: 2, label: "Session", component: <Session userId={userId} /> },
     {
       id: 3,
       label: "Call Recording",
       component: (
-        <CallRecording userId={userId} selectedResult={selectedResult} />
+        <CallRecording userId={userId} />
       ),
     },
-    { id: 4, label: "Recurring events", component: <RecurringEvent /> },
+    { id: 4, label: "Recurring events", component: <RecurringEvent userId={userId} /> },
     // { id: 5, label: "Posting Report", component: <PostingReport /> },
     {
       id: 6,
@@ -132,67 +114,15 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
     (rd) => rd.label === openData,
   )?.component;
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        resultDropdownRef.current &&
-        !resultDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsResultDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
     <div className="bg-white dark:bg-slate-800 rounded-[24px] p-[24px] shadow-md w-full">
       {/* Header with Filters in Horizontal Layout */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
-        {/* Left: Title + Disposition filter */}
+        {/* Left: Title */}
         <div className="flex gap-5 items-center">
           <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white whitespace-nowrap">
             Reports
           </h2>
-
-          {/* Call Result Dropdown */}
-          <div className="relative" ref={resultDropdownRef}>
-            <div
-              className="border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] px-[16px] h-[40px] flex justify-between items-center gap-2 cursor-pointer bg-white dark:bg-slate-800 min-w-[160px]"
-              onClick={() => setIsResultDropdownOpen(!isResultDropdownOpen)}
-            >
-              <span className="text-[16px] text-[#495057] dark:text-gray-300">
-                {selectedResult}
-              </span>
-              <FaChevronDown
-                className={`text-[13px] text-[#71717A] dark:text-gray-400 transition-transform ${isResultDropdownOpen ? "rotate-180" : ""}`}
-              />
-            </div>
-
-            {isResultDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] shadow-lg z-50 min-w-[160px] max-h-[300px] overflow-y-auto">
-                {dispositionOptions.map((option) => (
-                  <div
-                    key={option}
-                    onClick={() => {
-                      setSelectedResult(option);
-                      setIsResultDropdownOpen(false);
-                    }}
-                    className={`px-[16px] py-[10px] text-[16px] cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors ${selectedResult === option
-                        ? "bg-gray-50 dark:bg-slate-700 font-medium text-[#17181B] dark:text-white"
-                        : "text-[#495057] dark:text-gray-300"
-                      } ${option === dispositionOptions[0] ? "border-b border-gray-200 dark:border-slate-700" : ""}`}
-                  >
-                    {option}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right: Export Button */}

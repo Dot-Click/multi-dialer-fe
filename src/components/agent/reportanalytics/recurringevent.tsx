@@ -1,47 +1,18 @@
 import { Box } from "@/components/ui/box";
 import { TableProvider } from "@/providers/table.provider";
 import { TableComponent } from "@/components/common/tablecomponent";
+import { useEffect, useMemo } from "react";
+import { useRecurringEventsReport, type RecurringEventRow } from "@/hooks/useRecurringEventsReport";
+import { Loader2 } from "lucide-react";
 
-const eventData = [
-  {
-    name: "Kathryn Murphy",
-    startDate: "18/06/2021 09:13",
-    repeat: 2,
-    type: "Email",
-  },
-  { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
-  {
-    name: "Annette Black",
-    startDate: "2021/11/2013 20:01",
-    repeat: 1,
-    type: "Call back",
-  },
-  {
-    name: "Dianne Russell",
-    startDate: "10/06/2021 19:30",
-    repeat: 0,
-    type: "Email",
-  },
-  {
-    name: "Kathryn Murphy",
-    startDate: "18/06/2021 09:13",
-    repeat: 2,
-    type: "Email",
-  },
-  { name: "Robert Fox", startDate: "29/10/2024 15:36", repeat: 3, type: "SMS" },
-  {
-    name: "Annette Black",
-    startDate: "2021/11/2013 20:01",
-    repeat: 1,
-    type: "Call back",
-  },
-  {
-    name: "Dianne Russell",
-    startDate: "10/06/2021 19:30",
-    repeat: 0,
-    type: "Email",
-  },
-];
+// Format an ISO date into "DD/MM/YYYY HH:mm"
+const formatStartDate = (iso: string | null): string => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "-";
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const columns = [
   {
@@ -58,7 +29,24 @@ const columns = [
   { accessorKey: "type", header: () => <span>Type</span> },
 ];
 
-const RecurringEvent = () => {
+const RecurringEvent = ({ userId }: { userId?: string }) => {
+  const { data, loading, getRecurringEvents } = useRecurringEventsReport();
+
+  useEffect(() => {
+    getRecurringEvents(userId || undefined);
+  }, [userId, getRecurringEvents]);
+
+  const tableData = useMemo(
+    () =>
+      (data as RecurringEventRow[]).map((row) => ({
+        name: row.name,
+        startDate: formatStartDate(row.startDate),
+        repeat: row.repeat,
+        type: row.type,
+      })),
+    [data]
+  );
+
   return (
     <Box className="mt-3 w-full h-full">
       <style>
@@ -112,9 +100,19 @@ const RecurringEvent = () => {
       </style>
 
       <main>
-        <TableProvider data={eventData} columns={columns}>
-          {() => <TableComponent />}
-        </TableProvider>
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500 dark:text-slate-400">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading recurring events...
+          </div>
+        ) : tableData.length === 0 ? (
+          <div className="py-10 text-center text-sm text-gray-400 dark:text-slate-500 italic">
+            No recurring events found.
+          </div>
+        ) : (
+          <TableProvider data={tableData} columns={columns}>
+            {() => <TableComponent />}
+          </TableProvider>
+        )}
       </main>
     </Box>
   );

@@ -60,6 +60,7 @@ export interface ContactList {
   contactIds: string[];
   agentIds: string[];
   folderId?: string | null;
+  parentId?: string | null;
   createdAt: string;
 }
 
@@ -562,7 +563,7 @@ export const fetchContactLists = createAsyncThunk(
 export const createContactList = createAsyncThunk(
   "contacts/createContactList",
   async (
-    payload: { name: string; contactIds?: string[]; folderId?: string },
+    payload: { name: string; contactIds?: string[]; folderId?: string; parentId?: string },
     { rejectWithValue },
   ) => {
     try {
@@ -1155,7 +1156,10 @@ export const contactSlice = createSlice({
         }
       })
       .addCase(deleteContactList.fulfilled, (state, action) => {
-        state.lists = state.lists.filter((l) => l.id !== action.payload);
+        // Remove the list and any of its sub-lists (DB cascades; mirror it here).
+        state.lists = state.lists.filter(
+          (l) => l.id !== action.payload && l.parentId !== action.payload,
+        );
       })
       .addCase(moveList.fulfilled, (state, action) => {
         const index = state.lists.findIndex((l) => l.id === action.payload.id);

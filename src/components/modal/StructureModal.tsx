@@ -8,6 +8,10 @@ interface StructureModalProps {
   onSave: (name: string) => void;
   title: string;
   placeholder: string;
+  /** Pre-fills the input (e.g. for rename). Defaults to empty (create mode). */
+  defaultValue?: string;
+  /** Label for the confirm button. Defaults to "Save". */
+  saveLabel?: string;
 }
 
 const StructureModal: React.FC<StructureModalProps> = ({
@@ -16,15 +20,17 @@ const StructureModal: React.FC<StructureModalProps> = ({
   onSave,
   title,
   placeholder,
+  defaultValue = '',
+  saveLabel = 'Save',
 }) => {
   const [name, setName] = useState('');
 
-  // Reset input field when modal opens/closes
+  // Seed the input with defaultValue when the modal opens (rename), else clear it.
   useEffect(() => {
     if (isOpen) {
-      setName('');
+      setName(defaultValue);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultValue]);
 
   if (!isOpen) return null;
 
@@ -87,7 +93,7 @@ const StructureModal: React.FC<StructureModalProps> = ({
             disabled={!name.trim()}
             className="flex-1 bg-[#FFCA06] text-black font-bold py-3.5 rounded-[16px] hover:bg-[#eab700] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,202,6,0.2)] dark:shadow-none"
           >
-            Save
+            {saveLabel}
           </button>
         </div>
       </div>
