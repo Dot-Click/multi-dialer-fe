@@ -35,14 +35,22 @@ import { downloadCSV } from '@/utils/csvDownload'
 import { useEffect, useState } from 'react'
 
 const Compliance = () => {
+  // DNC List pagination — server-side. Declared before useDncList since it feeds it.
+  const DNC_PAGE_SIZE = 10;
+  const [dncPage, setDncPage] = useState(1);
+
   const { data: callerIds } = useCallerIds();
-  const { data: realDncList, removeFromDnc } = useDncList();
+  const { data: dncData, removeFromDnc } = useDncList(dncPage, DNC_PAGE_SIZE);
   const { data: regulatory, updateRegulatorySettings } = useRegulatorySettings();
   const { data: realAuditLogs } = useAuditLogs();
   const navigate = useNavigate()
 
   const [tcpaFrom, setTcpaFrom] = useState(regulatory?.tcpaFrom || "08:00");
   const [tcpaTo, setTcpaTo] = useState(regulatory?.tcpaTo || "18:00");
+
+  // Audit Logs pagination (client-side)
+  const AUDIT_PAGE_SIZE = 10;
+  const [auditPage, setAuditPage] = useState(1);
 
   // Sync with API data when it loads:
   useEffect(() => {
@@ -64,8 +72,8 @@ const Compliance = () => {
     label: item.label || 'Unnamed Number'
   })) || []
 
-  // DNC List Data from API
-  const dncList = realDncList?.map((item) => ({
+  // DNC List Data from API (current page only — pagination handled server-side)
+  const dncList = dncData?.items?.map((item) => ({
     name: item.fullName || 'Unknown',
     lastCalled: new Date(item.createdAt).toLocaleDateString('en-US', {
       month: '2-digit',
@@ -81,6 +89,15 @@ const Compliance = () => {
     source: item.source,
     id: item.id
   })) || [];
+
+  // Totals come from the server response, not the current page's row count.
+  const dncTotal = dncData?.total ?? 0;
+  const dncTotalPages = dncData?.totalPages ?? 1;
+
+  // Keep the current page valid when the underlying data shrinks (e.g. removals).
+  useEffect(() => {
+    if (dncPage > dncTotalPages) setDncPage(dncTotalPages);
+  }, [dncPage, dncTotalPages]);
 
   const handleExportDNC = () => {
     if (!dncList || dncList.length === 0) {
@@ -140,6 +157,17 @@ const Compliance = () => {
     action: item.action + (item.details ? ` (${item.details})` : '')
   })) || [];
 
+  const auditTotalPages = Math.max(1, Math.ceil(auditLogs.length / AUDIT_PAGE_SIZE));
+  const paginatedAuditLogs = auditLogs.slice(
+    (auditPage - 1) * AUDIT_PAGE_SIZE,
+    auditPage * AUDIT_PAGE_SIZE
+  );
+
+  // Keep the current page valid when the underlying data shrinks
+  useEffect(() => {
+    if (auditPage > auditTotalPages) setAuditPage(auditTotalPages);
+  }, [auditPage, auditTotalPages]);
+
   return (
     <Box className="min-h-screen pr-3 lg:pr-6 bg-white dark:bg-slate-900 transition-colors">
       {/* Page Title */}
@@ -154,7 +182,7 @@ const Compliance = () => {
           </Button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
           {purchasedNumbers.map((item, index) => (
             <div key={index} className="grid px-4 py-3 rounded-xl grid-cols-1 sm:grid-cols-3 gap-4 border border-xl sm:gap-6 border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 transition-colors">
               {/* Left Column - Number Details */}
@@ -322,6 +350,41 @@ const Compliance = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* DNC List Pagination */}
+        {dncTotal > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              Showing {(dncPage - 1) * DNC_PAGE_SIZE + 1}
+              –{Math.min(dncPage * DNC_PAGE_SIZE, dncTotal)} of {dncTotal}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDncPage((p) => Math.max(1, p - 1))}
+                disabled={dncPage <= 1}
+                className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:border-slate-600 border-0 disabled:opacity-50"
+              >
+                <ChevronLeft className="size-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 px-2 whitespace-nowrap">
+                Page {dncPage} of {dncTotalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDncPage((p) => Math.min(dncTotalPages, p + 1))}
+                disabled={dncPage >= dncTotalPages}
+                className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:border-slate-600 border-0 disabled:opacity-50"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Regulatory Settings Section */}
@@ -489,7 +552,7 @@ const Compliance = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {auditLogs.map((item, index) => (
+              {paginatedAuditLogs.map((item, index) => (
                 <TableRow key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                   <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">{item.date}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">{item.user}</TableCell>
@@ -514,6 +577,41 @@ const Compliance = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* Audit Logs Pagination */}
+        {auditLogs.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              Showing {(auditPage - 1) * AUDIT_PAGE_SIZE + 1}
+              –{Math.min(auditPage * AUDIT_PAGE_SIZE, auditLogs.length)} of {auditLogs.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
+                disabled={auditPage <= 1}
+                className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:border-slate-600 border-0 disabled:opacity-50"
+              >
+                <ChevronLeft className="size-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 px-2 whitespace-nowrap">
+                Page {auditPage} of {auditTotalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAuditPage((p) => Math.min(auditTotalPages, p + 1))}
+                disabled={auditPage >= auditTotalPages}
+                className="rounded-md bg-gray-100 dark:bg-slate-700 dark:text-white dark:border-slate-600 border-0 disabled:opacity-50"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </Box>
   )

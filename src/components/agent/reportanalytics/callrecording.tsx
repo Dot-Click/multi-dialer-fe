@@ -2,7 +2,7 @@ import { TableComponent } from "@/components/common/tablecomponent";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
-import { FaPlay, FaPause } from "react-icons/fa";
+import { FaPlay, FaPause, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import { useCallRecordingsReport, type CallRecordingRow } from "@/hooks/useCallRecordingsReport";
 
@@ -96,7 +96,13 @@ const columns = [
     ),
     enableSorting: false,
   },
-  { id: "play", header: () => "Play", cell: () => <AudioPlayer url={null} /> },
+  {
+    id: "play",
+    header: () => "Play",
+    cell: ({ row }: any) => (
+      <AudioPlayer url={row.original?.recordingUrl || null} />
+    ),
+  },
   {
     accessorKey: "agent",
     header: () => "Agent",
@@ -150,14 +156,20 @@ const AudioPlayer = ({ url }: { url: string | null }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
-    if (!url) return;
+    if (!url || !audioRef.current) return;
 
     if (isPlaying) {
-      audioRef.current?.pause();
+      audioRef.current.pause();
+      setIsPlaying(false);
     } else {
-      audioRef.current?.play();
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.error("Failed to play recording:", err);
+          setIsPlaying(false);
+        });
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleTimeUpdate = () => {
@@ -229,15 +241,29 @@ const CallRecording: React.FC<CallRecordingProps> = ({
   userId,
   selectedResult,
 }) => {
-  const { data, loading, getCallRecordings } = useCallRecordingsReport();
+  const { data, loading, pagination, getCallRecordings } =
+    useCallRecordingsReport();
+
+  const PAGE_SIZE = 10;
+  const [page, setPage] = useState(1);
 
   const filteredData = (data || []).filter((item) => {
     if (!selectedResult || selectedResult === "All Result") return true;
     return item.callResult.toLowerCase() === selectedResult.toLowerCase();
   });
+
+  // Reset to the first page whenever the selected agent changes.
   useEffect(() => {
-    getCallRecordings({ userId });
-  }, [userId, getCallRecordings]);
+    setPage(1);
+  }, [userId]);
+
+  useEffect(() => {
+    getCallRecordings({ userId, page, limit: PAGE_SIZE });
+  }, [userId, page, getCallRecordings]);
+
+  const total = pagination?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasRealData = !!data && data.length > 0;
 
 
 
@@ -311,6 +337,39 @@ const CallRecording: React.FC<CallRecordingProps> = ({
         {!loading && (!data || data.length === 0) && (
           <div className="text-center py-4 text-gray-500 dark:text-gray-400">
             No recordings found.
+          </div>
+        )}
+
+        {/* Pagination (server-side) */}
+        {hasRealData && total > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+            <span className="text-[13px] text-[#495057] dark:text-gray-400">
+              Showing {(page - 1) * PAGE_SIZE + 1}
+              –{Math.min(page * PAGE_SIZE, total)} of {total}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[13px] bg-[#F3F4F7] dark:bg-slate-700 text-[#495057] dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <FaChevronLeft className="text-[11px]" />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
+              <span className="text-[13px] text-[#495057] dark:text-gray-300 px-1 whitespace-nowrap">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[13px] bg-[#F3F4F7] dark:bg-slate-700 text-[#495057] dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <FaChevronRight className="text-[11px]" />
+              </button>
+            </div>
           </div>
         )}
       </main>

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -704,15 +704,26 @@ export const useTwilioNumbers = (filters?: {
     buyNumber: buyNumberMutation,
   };
 };
-export const useDncList = () => {
+export interface DncListResult {
+  items: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export const useDncList = (page: number = 1, pageSize: number = 10) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["dnc-list"],
+    queryKey: ["dnc-list", page, pageSize],
     queryFn: async () => {
-      const response = await api.get("/contact/dnc-list");
-      return response.data.data as any[];
+      const response = await api.get("/contact/dnc-list", {
+        params: { page, pageSize },
+      });
+      return response.data.data as DncListResult;
     },
+    placeholderData: keepPreviousData,
   });
 
   const removeMutation = useMutation({
