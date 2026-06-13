@@ -15,6 +15,7 @@ import companySettingReducer from "./slices/companySettingSlice";
 import dispositionReducer from "./slices/dispositionSlice";
 import a2pReducer from "./slices/a2pSlice";
 import contactAnalysisReducer from "./slices/contactAnalysisSlice";
+import superAdminCallerIdReducer from "./slices/superAdminCallerIdSlice";
 
 const rootReducer = combineReducers({
   example: exampleReducer,
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   dispositions: dispositionReducer,
   a2p: a2pReducer,
   contactAnalysis: contactAnalysisReducer,
+  superAdminCallerIds: superAdminCallerIdReducer,
 });
 
 export default rootReducer;

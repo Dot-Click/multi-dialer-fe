@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Edit3, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchPlans, updatePlanTier, type Plan } from "@/store/slices/subscriptionSlice";
+import { fetchPlans, updatePlanTier, deletePlan, type Plan } from "@/store/slices/subscriptionSlice";
+import CreatePlanModal from "./CreatePlanModal";
 
 type DraftFeature = {
   text: string;
@@ -46,6 +47,7 @@ const formatMoney = (amount: number) => `$${Number(amount || 0).toLocaleString()
 const SubscriptionCard = () => {
   const dispatch = useAppDispatch();
   const { plans, loading } = useAppSelector((state) => state.subscriptions);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchPlans());
@@ -59,25 +61,37 @@ const SubscriptionCard = () => {
     );
   }
 
-  if (plans.length === 0) {
-    return (
-      <div className="w-full rounded-[12px] bg-white dark:bg-slate-800 border border-dashed border-gray-300 dark:border-slate-600 px-6 py-10 text-center">
-        <h2 className="text-[20px] font-[600] text-[#1D2C45] dark:text-white">
-          No Stripe pricing tiers found
-        </h2>
-        <p className="mt-2 text-[14px] text-[#6575A7] dark:text-gray-400">
-          Create subscription Products with recurring Prices in Stripe, then refresh this page.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full flex justify-start items-stretch flex-wrap work-sans gap-3">
-      {plans.map((plan) => (
-        <PlanCard key={plan.stripeProductId || plan.id} plan={plan} />
-      ))}
-    </div>
+    <>
+      <div className="flex justify-end mb-3">
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-2 bg-[#FFCA06] hover:bg-[#eab700] text-black font-[500] px-5 py-2.5 rounded-[12px] text-[14px] transition-colors"
+        >
+          <Plus size={16} />
+          Create Plan
+        </button>
+      </div>
+
+      {plans.length === 0 ? (
+        <div className="w-full rounded-[12px] bg-white dark:bg-slate-800 border border-dashed border-gray-300 dark:border-slate-600 px-6 py-10 text-center">
+          <h2 className="text-[20px] font-[600] text-[#1D2C45] dark:text-white">
+            No Stripe pricing tiers found
+          </h2>
+          <p className="mt-2 text-[14px] text-[#6575A7] dark:text-gray-400">
+            Use the button above to create your first plan, or add Products in Stripe directly.
+          </p>
+        </div>
+      ) : (
+        <div className="w-full flex justify-start items-stretch flex-wrap work-sans gap-3">
+          {plans.map((plan) => (
+            <PlanCard key={plan.stripeProductId || plan.id} plan={plan} />
+          ))}
+        </div>
+      )}
+
+      <CreatePlanModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
+    </>
   );
 };
 
@@ -87,6 +101,8 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
   const [billing, setBilling] = useState<"Monthly" | "Yearly">("Monthly");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<DraftPlan>(() => toDraft(plan));
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!editing) {
@@ -128,6 +144,20 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
       setEditing(false);
     } catch (error: any) {
       toast.error(error || "Failed to update pricing tier");
+    }
+  };
+
+  const handleDelete = async () => {
+    const productId = plan.stripeProductId || plan.id;
+    setDeleting(true);
+    try {
+      await dispatch(deletePlan(productId)).unwrap();
+      toast.success("Plan archived successfully");
+    } catch (error: any) {
+      toast.error(error || "Failed to delete plan");
+      setConfirmDelete(false);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -284,41 +314,71 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
       )}
 
       <div className="border-t border-gray-100 dark:border-slate-600 pt-3 mb-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-[16px] font-[600] text-[#1D2C45] dark:text-white">Status</p>
-            <p className={`text-[14px] font-[500] ${plan.isActive ? "text-[#2DAC2F]" : "text-gray-400"}`}>
-              {plan.isActive ? "Active" : "Inactive"}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            {editing ? (
-              <>
-                <button
-                  onClick={() => setEditing(false)}
-                  className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#6575A7]"
-                >
-                  <X size={17} />
-                </button>
-                <button
-                  onClick={savePlan}
-                  disabled={loading}
-                  className="size-10 inline-flex items-center justify-center rounded-full bg-[#2463EB] text-white disabled:opacity-60"
-                >
-                  {loading ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
-                </button>
-              </>
-            ) : (
+        {confirmDelete ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-[13px] text-red-500 font-[500]">Archive this plan? This cannot be undone.</p>
+            <div className="flex gap-2">
               <button
-                onClick={() => setEditing(true)}
-                className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#2463EB]"
+                onClick={() => setConfirmDelete(false)}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-[10px] bg-[#F1F5F9] dark:bg-slate-700 text-[#374151] dark:text-white text-[13px] font-[500] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
               >
-                <Edit3 size={17} />
+                Cancel
               </button>
-            )}
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-[10px] bg-red-500 text-white text-[13px] font-[500] hover:bg-red-600 transition-colors flex items-center justify-center disabled:opacity-50"
+              >
+                {deleting ? <Loader2 size={14} className="animate-spin" /> : "Archive"}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-[16px] font-[600] text-[#1D2C45] dark:text-white">Status</p>
+              <p className={`text-[14px] font-[500] ${plan.isActive ? "text-[#2DAC2F]" : "text-gray-400"}`}>
+                {plan.isActive ? "Active" : "Inactive"}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              {editing ? (
+                <>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#6575A7]"
+                  >
+                    <X size={17} />
+                  </button>
+                  <button
+                    onClick={savePlan}
+                    disabled={loading}
+                    className="size-10 inline-flex items-center justify-center rounded-full bg-[#2463EB] text-white disabled:opacity-60"
+                  >
+                    {loading ? <Loader2 size={17} className="animate-spin" /> : <Save size={17} />}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="size-10 inline-flex items-center justify-center rounded-full bg-[#FEE2E2] dark:bg-red-900/30 text-red-500 hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#2463EB]"
+                  >
+                    <Edit3 size={17} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-[#F1F5F9] dark:bg-slate-700 rounded-[12px] py-[11px] px-[19px] flex items-center justify-center gap-2 text-[#9BA4AD] dark:text-gray-400">

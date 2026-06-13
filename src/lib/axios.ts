@@ -26,4 +26,20 @@ api.interceptors.request.use(
   },
 );
 
+// Add response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.message
+        ?.toLowerCase()
+        .includes("suspended")
+    ) {
+      window.location.href = "/suspended";
+    }
+    return Promise.reject(error);
+  },
+);
+
 export default api;

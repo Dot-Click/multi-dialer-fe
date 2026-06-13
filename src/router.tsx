@@ -55,6 +55,7 @@ import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
+import SuspendedPage from "@/pages/auth/suspended.page";
 import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
@@ -62,11 +63,15 @@ import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
 import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
+import SuperAdminPhoneNumbers from "./pages/super-admin/superAdminPhoneNumbers";
 
 const Router: React.FC = () => {
   return (
     <div className="min-h-screen w-full work-sans">
       <Routes>
+
+        {/* Always-accessible routes */}
+        <Route path="/suspended" element={<SuspendedPage />} />
 
         {/* ✅ Public Routes (Only for Guests) */}
         <Route element={<PublicRoute />}>
@@ -157,6 +162,7 @@ const Router: React.FC = () => {
             <Route path="reporting" element={<SuperAdminReporting />} />
             <Route path="setting" element={<SuperAdminSetting />} />
             <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
+            <Route path="phone-numbers" element={<SuperAdminPhoneNumbers />} />
           </Route>
         </Route>
 

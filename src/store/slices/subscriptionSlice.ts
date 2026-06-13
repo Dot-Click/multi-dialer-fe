@@ -15,6 +15,7 @@ export interface Subscription {
     updatedAt: string;
     billingId: string | null;
     amount?: string;
+    stripeSubscriptionId?: string | null;
     user?: {
         id: string;
         fullName: string;
@@ -22,6 +23,37 @@ export interface Subscription {
         role: string;
         status: string;
     };
+}
+
+export interface FailedPaymentRecord {
+    id: string;
+    userId: string;
+    plan: string;
+    amount: string | null;
+    failedAt: string;
+    stripeCustomerId: string | null;
+    user: { fullName: string; email: string } | null;
+}
+
+export interface UpcomingRenewalRecord {
+    id: string;
+    userId: string;
+    plan: string;
+    amount: string | null;
+    billingCycle: string;
+    nextRenewalDate: string;
+    user: { fullName: string; email: string } | null;
+}
+
+export interface Invoice {
+    id: string;
+    number: string | null;
+    amount_paid: number;
+    amount_due: number;
+    status: string | null;
+    created: string;
+    hosted_invoice_url: string | null;
+    invoice_pdf: string | null;
 }
 
 export interface Plan {
@@ -44,6 +76,12 @@ interface SubscriptionState {
     subscriptions: Subscription[];
     plans: Plan[];
     billingPortalUrl: string | null;
+    invoices: Record<string, Invoice[]>;
+    invoicesLoading: Record<string, boolean>;
+    failedPayments: FailedPaymentRecord[];
+    failedPaymentsLoading: boolean;
+    upcomingRenewals: UpcomingRenewalRecord[];
+    upcomingRenewalsLoading: boolean;
     loading: boolean;
     error: string | null;
 }
@@ -52,6 +90,12 @@ const initialState: SubscriptionState = {
     subscriptions: [],
     plans: [],
     billingPortalUrl: null,
+    invoices: {},
+    invoicesLoading: {},
+    failedPayments: [],
+    failedPaymentsLoading: false,
+    upcomingRenewals: [],
+    upcomingRenewalsLoading: false,
     loading: false,
     error: null,
 };
@@ -188,6 +232,129 @@ export const updatePlanTier = createAsyncThunk(
     },
 );
 
+export const changeSubscriptionPlan = createAsyncThunk(
+    'subscriptions/changeSubscriptionPlan',
+    async (payload: { subscriptionId: string; newPriceId: string; newPlan: string }, { rejectWithValue }) => {
+        try {
+            const { subscriptionId, newPriceId, newPlan } = payload;
+            const response = await api.put(`/billing/subscription/${subscriptionId}/plan`, { newPriceId });
+            if (response.data.success) {
+                return { subscriptionId, newPlan: response.data.data?.newPlan ?? newPlan };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to change subscription plan');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to change subscription plan');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const createPlan = createAsyncThunk(
+    'subscriptions/createPlan',
+    async (
+        payload: {
+            name: string;
+            description?: string;
+            monthlyAmount?: number;
+            yearlyAmount?: number;
+            currency?: string;
+            trialDays?: number;
+        },
+        { rejectWithValue },
+    ) => {
+        try {
+            const response = await api.post('/billing/plans', payload);
+            if (response.data.success) {
+                return response.data.data as Plan;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to create plan');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to create plan');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    },
+);
+
+export const deletePlan = createAsyncThunk(
+    'subscriptions/deletePlan',
+    async (productId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.delete(`/billing/plans/${productId}`);
+            if (response.data.success) {
+                return productId;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to delete plan');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to delete plan');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const fetchInvoices = createAsyncThunk(
+    'subscriptions/fetchInvoices',
+    async (customerId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/billing/invoices?customerId=${customerId}`);
+            if (response.data.success) {
+                return { customerId, invoices: response.data.data as Invoice[] };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch invoices');
+            }
+        } catch (error: any) {
+            if (error.response && error.response.data) {
+                return rejectWithValue(error.response.data.message || 'Failed to fetch invoices');
+            } else {
+                return rejectWithValue(error.message);
+            }
+        }
+    }
+);
+
+export const fetchFailedPayments = createAsyncThunk(
+    'subscriptions/fetchFailedPayments',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/billing/failed-payments');
+            if (response.data.success) {
+                return response.data.data as FailedPaymentRecord[];
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch failed payments');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const fetchUpcomingRenewals = createAsyncThunk(
+    'subscriptions/fetchUpcomingRenewals',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/billing/upcoming-renewals');
+            if (response.data.success) {
+                return response.data.data as UpcomingRenewalRecord[];
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch upcoming renewals');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 export const fetchBillingPortalUrl = createAsyncThunk(
     'subscriptions/fetchBillingPortalUrl',
     async (_, { rejectWithValue }) => {
@@ -282,6 +449,50 @@ export const subscriptionSlice = createSlice({
             .addCase(getAllSubscriptions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(createPlan.fulfilled, (state, action) => {
+                state.plans.push(action.payload);
+            })
+            .addCase(deletePlan.fulfilled, (state, action) => {
+                state.plans = state.plans.filter(
+                    (p) => (p.stripeProductId || p.id) !== action.payload
+                );
+            })
+            .addCase(fetchInvoices.pending, (state, action) => {
+                state.invoicesLoading[action.meta.arg] = true;
+            })
+            .addCase(fetchInvoices.fulfilled, (state, action) => {
+                const { customerId, invoices } = action.payload;
+                state.invoices[customerId] = invoices;
+                state.invoicesLoading[customerId] = false;
+            })
+            .addCase(fetchInvoices.rejected, (state, action) => {
+                state.invoicesLoading[action.meta.arg] = false;
+            })
+            .addCase(changeSubscriptionPlan.fulfilled, (state, action) => {
+                const { subscriptionId, newPlan } = action.payload;
+                const sub = state.subscriptions.find((s) => s.stripeSubscriptionId === subscriptionId);
+                if (sub) sub.plan = newPlan;
+            })
+            .addCase(fetchFailedPayments.pending, (state) => {
+                state.failedPaymentsLoading = true;
+            })
+            .addCase(fetchFailedPayments.fulfilled, (state, action) => {
+                state.failedPaymentsLoading = false;
+                state.failedPayments = action.payload;
+            })
+            .addCase(fetchFailedPayments.rejected, (state) => {
+                state.failedPaymentsLoading = false;
+            })
+            .addCase(fetchUpcomingRenewals.pending, (state) => {
+                state.upcomingRenewalsLoading = true;
+            })
+            .addCase(fetchUpcomingRenewals.fulfilled, (state, action) => {
+                state.upcomingRenewalsLoading = false;
+                state.upcomingRenewals = action.payload;
+            })
+            .addCase(fetchUpcomingRenewals.rejected, (state) => {
+                state.upcomingRenewalsLoading = false;
             })
             .addCase(fetchBillingPortalUrl.pending, (state) => {
                 state.loading = true;

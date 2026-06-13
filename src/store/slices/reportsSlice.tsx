@@ -20,7 +20,7 @@ export interface DashboardAlertsData {
 }
 
 export interface BusinessOverviewData {
-  totalRevenue: number;
+  mrr: number;
   activeSubscriptions: number;
   activeUsers: number;
   totalAgents: number;
@@ -60,6 +60,13 @@ export interface RevenueGrowthData {
   growth: number[];
 }
 
+export interface ChurnRateData {
+  churnRate: number;
+  cancelledThisMonth: number;
+  activeAtStart: number;
+  month: string;
+}
+
 export interface StatItem {
   value: number;
   changePercent: number;
@@ -85,6 +92,7 @@ interface ReportsState {
   revenueGrowth: RevenueGrowthData | null;
   revenuePlans: RevenuePlan[];
   dashboardSummaryStats: DashboardSummaryStats | null;
+  churnRate: ChurnRateData | null;
   loading: boolean;
   chartLoading: boolean;
   alertsLoading: boolean;
@@ -93,6 +101,7 @@ interface ReportsState {
   billingLoading: boolean;
   revenueLoading: boolean;
   statsLoading: boolean;
+  churnLoading: boolean;
   error: string | null;
 }
 
@@ -108,6 +117,7 @@ const initialState: ReportsState = {
   revenueGrowth: null,
   revenuePlans: [],
   dashboardSummaryStats: null,
+  churnRate: null,
   loading: false,
   chartLoading: false,
   alertsLoading: false,
@@ -116,6 +126,7 @@ const initialState: ReportsState = {
   billingLoading: false,
   revenueLoading: false,
   statsLoading: false,
+  churnLoading: false,
   error: null,
 };
 
@@ -273,6 +284,24 @@ export const getRevenueByPlan = createAsyncThunk(
       if (error.response && error.response.data) {
         return rejectWithValue(
           error.response.data.message || "Failed to fetch revenue plans",
+        );
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  },
+);
+
+export const getChurnRate = createAsyncThunk(
+  "reports/getChurnRate",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/churn-rate");
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(
+          error.response.data.message || "Failed to fetch churn rate",
         );
       } else {
         return rejectWithValue(error.message);
@@ -440,6 +469,19 @@ export const reportsSlice = createSlice({
     });
     builder.addCase(getDashboardSummaryStats.rejected, (state, action) => {
       state.statsLoading = false;
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(getChurnRate.pending, (state) => {
+      state.churnLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getChurnRate.fulfilled, (state, action) => {
+      state.churnLoading = false;
+      state.churnRate = action.payload?.data || null;
+    });
+    builder.addCase(getChurnRate.rejected, (state, action) => {
+      state.churnLoading = false;
       state.error = action.payload as string;
     });
   },

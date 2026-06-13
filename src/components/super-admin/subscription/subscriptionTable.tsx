@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getAllSubscriptions } from "@/store/slices/subscriptionSlice";
+import { getAllSubscriptions, type Subscription } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
+import ChangePlanModal from "./ChangePlanModal";
+import InvoicesModal from "./InvoicesModal";
 
 
 interface CustomSelectProps {
@@ -68,6 +70,8 @@ const SubscriptionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("All Plans");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [changePlanSub, setChangePlanSub] = useState<Subscription | null>(null);
+  const [invoicesSub, setInvoicesSub] = useState<Subscription | null>(null);
 
   const plans = ["All Plans", "STARTER", "PROFESSIONAL", "ENTERPRISE"];
   const statuses = ["All Status", "ACTIVE", "EXPIRED", "PENDING"];
@@ -116,6 +120,7 @@ const SubscriptionTable = () => {
   }
 
   return (
+    <>
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 mt-5">
       <h1 className="text-[20px] font-medium text-[#111] dark:text-white mb-4">
         Subscription List
@@ -164,7 +169,7 @@ const SubscriptionTable = () => {
                   "Billing Cycle",
                   "Start Date",
                   "End Date",
-                  // "Action",
+                  "Action",
                 ].map((head) => (
                   <th
                     key={head}
@@ -212,17 +217,28 @@ const SubscriptionTable = () => {
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                     {row.endDate ? new Date(row.endDate).toLocaleDateString() : "N/A"}
                   </td>
-                  {/* <td className="px-5 py-4 text-[#2563EB]">
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <FaRegEye /> View Details
+                  <td className="px-5 py-4 rounded-r-[9.02px]">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setChangePlanSub(row)}
+                        className="text-[13px] font-[500] text-[#2563EB] hover:underline whitespace-nowrap"
+                      >
+                        Change Plan
+                      </button>
+                      <button
+                        onClick={() => setInvoicesSub(row)}
+                        className="text-[13px] font-[500] text-[#6B7280] hover:text-[#2563EB] hover:underline whitespace-nowrap"
+                      >
+                        Invoices
+                      </button>
                     </div>
-                  </td> */}
+                  </td>
                 </tr>
               ))}
 
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="text-center py-10 text-gray-500">
+                  <td colSpan={9} className="text-center py-10 text-gray-500 dark:text-gray-400">
                     No data found
                   </td>
                 </tr>
@@ -232,6 +248,19 @@ const SubscriptionTable = () => {
         </div>
       </div>
     </div>
+
+    <ChangePlanModal
+      isOpen={changePlanSub !== null}
+      subscription={changePlanSub}
+      onClose={() => setChangePlanSub(null)}
+      onSuccess={() => dispatch(getAllSubscriptions())}
+    />
+    <InvoicesModal
+      isOpen={invoicesSub !== null}
+      subscription={invoicesSub}
+      onClose={() => setInvoicesSub(null)}
+    />
+    </>
   );
 };
 

@@ -34,7 +34,7 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [localError, setLocalError] = useState("");
 
-  const roleOptions = ["Agent", "Admin"];
+  const roleOptions = ["Agent", "Admin", "Owner"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
 
   // Load plans when modal opens
@@ -159,6 +159,11 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
                   </div>
                 ))}
               </div>
+            )}
+            {selectedRole === "Owner" && (
+              <p className="text-[11px] text-amber-500 dark:text-amber-400 mt-1 px-1">
+                Super role — grants full platform access. Use with caution.
+              </p>
             )}
           </div>
 

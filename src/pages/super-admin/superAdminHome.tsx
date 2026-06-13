@@ -3,6 +3,7 @@ import NewAccountsOverTime from "@/components/super-admin/home/newAccountsOverTi
 import SubscriptionDistribution from "@/components/super-admin/home/subscriptionDistribution"
 import UserOverviews from "@/components/super-admin/home/userOverviews"
 import UserOverviewTable from "@/components/super-admin/home/userOverviewTable"
+import ChurnRateCard from "@/components/super-admin/home/churnRateCard"
 
 
 
@@ -19,6 +20,7 @@ const SuperAdminHome = () => {
             </div>
 
             <UserOverviews />
+            <ChurnRateCard />
 
             <div className="flex flex-col md:flex-row gap-2 items-center justify-evenly">
                 <NewAccountsOverTime />

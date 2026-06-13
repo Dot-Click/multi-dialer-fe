@@ -15,8 +15,8 @@ const BussinessOverviews = () => {
   const data = [
     {
       id: 1,
-      name: "Total Revenue (MRR)",
-      number: `$${businessOverview?.totalRevenue?.toLocaleString() || 0}`,
+      name: "Monthly Recurring Revenue",
+      number: `$${businessOverview?.mrr?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`,
     },
     {
       id: 2,
