@@ -1,32 +1,94 @@
 import { useAppSelector } from "@/store/hooks";
 import dayjs from "dayjs";
-import { FileAudio, Mail, CheckCircle2, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FileAudio, Mail, CheckCircle2, XCircle, UserCheck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useEmailHistory, type EmailLog } from "@/hooks/useEmailHistory";
+import api from "@/lib/axios";
+
+interface ActivityLog {
+    id: string;
+    action: string;
+    note?: string;
+    createdAt: string;
+    user: { fullName: string };
+}
 
 const History = () => {
     const { currentContact } = useAppSelector((state) => state.contacts);
     const { session, role } = useAppSelector((state) => state.auth);
     const { getEmailHistoryForContact, loading: loadingEmails } = useEmailHistory();
     const [emailHistory, setEmailHistory] = useState<EmailLog[]>([]);
+    const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
 
     const allCallRecords = currentContact?.callRecords || [];
 
-    // Filter logic based on role
-    // If ADMIN/OWNER/SUPER_ADMIN, show everything
-    // If AGENT, only show calls made by this agent
     const filteredRecords = (role === 'ADMIN' || role === 'OWNER' || role === 'SUPER_ADMIN')
         ? allCallRecords
         : allCallRecords.filter((record: any) => record.userId === session?.user?.id);
 
+    const fetchActivityLogs = useCallback(() => {
+        if (!currentContact?.id) return;
+        setLoadingLogs(true);
+        api.get(`/contact/${currentContact.id}/activity-logs`)
+            .then(res => setActivityLogs(res.data.data || []))
+            .catch(() => {})
+            .finally(() => setLoadingLogs(false));
+    }, [currentContact?.id]);
+
     useEffect(() => {
         if (currentContact?.id) {
             getEmailHistoryForContact(currentContact.id).then(setEmailHistory);
+            fetchActivityLogs();
         }
-    }, [currentContact?.id, getEmailHistoryForContact]);
+    }, [currentContact?.id, getEmailHistoryForContact, fetchActivityLogs]);
+
+    useEffect(() => {
+        window.addEventListener('CONTACT_ACTIVITY_UPDATED', fetchActivityLogs);
+        return () => window.removeEventListener('CONTACT_ACTIVITY_UPDATED', fetchActivityLogs);
+    }, [fetchActivityLogs]);
 
     return (
         <div className='flex gap-10 w-full flex-col'>
+            {/* Contact Activity Section */}
+            <div className='w-full'>
+                <h1 className='text-[#0E1011] dark:text-white text-[18px] font-medium mb-4'>Contact Activity:</h1>
+                <div className='flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2'>
+                    {loadingLogs ? (
+                        <div className="flex items-center gap-2 py-4 text-gray-400">
+                            <div className="animate-spin h-4 w-4 border-2 border-[#FFCA06] border-b-transparent rounded-full" />
+                            <span className="text-sm">Loading activity...</span>
+                        </div>
+                    ) : activityLogs.length > 0 ? (
+                        activityLogs.map(log => (
+                            <div key={log.id} className='flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-3'>
+                                <div className='w-8 h-8 bg-yellow-100 dark:bg-yellow-500/10 rounded-full flex items-center justify-center shrink-0'>
+                                    <UserCheck size={16} className='text-yellow-600' />
+                                </div>
+                                <div className='flex-1 min-w-0'>
+                                    <p className='text-[13px] font-medium text-[#0E1011] dark:text-white'>{log.action}</p>
+                                    {log.note && <p className='text-[12px] text-gray-500 dark:text-gray-400 truncate'>{log.note}</p>}
+                                    <p className='text-[11px] text-gray-400 dark:text-gray-500'>by {log.user?.fullName || 'Unknown'}</p>
+                                </div>
+                                <div className='text-right shrink-0'>
+                                    <p className='text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap'>
+                                        {dayjs(log.createdAt).format('MMM DD, YYYY')}
+                                    </p>
+                                    <p className='text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap'>
+                                        {dayjs(log.createdAt).format('hh:mm A')}
+                                    </p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className='flex flex-col items-center justify-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-100 dark:border-gray-700'>
+                            <UserCheck size={28} className='text-gray-300 dark:text-gray-600 mb-2' />
+                            <p className='text-sm text-gray-400'>No contact activity logged yet</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Call History & Recordings Row */}
             <div className='flex gap-6 w-full flex-col md:flex-row min-h-40'>
                 <div className="flex w-full md:w-[55%] flex-col gap-6">

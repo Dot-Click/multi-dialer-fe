@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { RiSubtractFill } from "react-icons/ri";
 import { IoIosAdd } from "react-icons/io";
 import { CalendarCheck2, ListTodo, Phone, Loader2, Clock, User } from 'lucide-react';
 import api from '@/lib/axios';
 import dayjs from 'dayjs';
+import toast from 'react-hot-toast';
 import AddEventForm from '@/components/modal/addeventmodal';
 import type { CalendarEvent as CalendarEventType } from '@/hooks/useCalendar';
 
@@ -121,6 +122,22 @@ const Activities = () => {
     return () => window.removeEventListener('CALENDAR_UPDATED', handleUpdate);
   }, [currentContact?.id]);
 
+  const [markingAsContact, setMarkingAsContact] = useState(false);
+
+  const handleMarkAsContact = useCallback(async () => {
+    if (!currentContact?.id) return;
+    setMarkingAsContact(true);
+    try {
+      await api.post(`/contact/${currentContact.id}/mark-as-contacted`);
+      toast.success('Marked as Contact — logged in History');
+      window.dispatchEvent(new Event('CONTACT_ACTIVITY_UPDATED'));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to mark as contact');
+    } finally {
+      setMarkingAsContact(false);
+    }
+  }, [currentContact?.id]);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
@@ -231,9 +248,13 @@ const Activities = () => {
                 {currentContact?.callRecords?.[0]?.status || 'N/A'}
               </span>
             </div>
-            <div className="bg-[#EBEDF0] dark:bg-gray-700 px-[12px] py-[7px] rounded-[8px]">
-              <button className="text-[13px] text-[#0E1011] dark:text-white font-medium">Mark As Contact</button>
-            </div>
+            <button
+              onClick={handleMarkAsContact}
+              disabled={markingAsContact}
+              className="bg-[#EBEDF0] dark:bg-gray-700 px-[12px] py-[7px] rounded-[8px] text-[13px] text-[#0E1011] dark:text-white font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {markingAsContact ? 'Saving…' : 'Mark As Contact'}
+            </button>
           </div>
 
           {/* Last Dial Date */}
