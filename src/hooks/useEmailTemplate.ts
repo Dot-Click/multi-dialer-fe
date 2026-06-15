@@ -16,6 +16,7 @@ export interface EmailTemplate {
         };
     };
     status?: boolean;
+    includeSignature?: boolean;
 }
 
 export const useEmailTemplate = () => {
@@ -38,7 +39,7 @@ export const useEmailTemplate = () => {
         }
     };
 
-    const createEmailTemplate = async (data: { templateName: string; subject: string; content: string }): Promise<EmailTemplate | null> => {
+    const createEmailTemplate = async (data: { templateName: string; subject: string; content: string; includeSignature?: boolean }): Promise<EmailTemplate | null> => {
         setLoading(true);
         setError(null);
         try {
@@ -54,7 +55,7 @@ export const useEmailTemplate = () => {
         }
     };
 
-    const updateEmailTemplate = async (id: string, data: { templateName?: string; subject?: string; content?: string; status?: boolean }): Promise<EmailTemplate | null> => {
+    const updateEmailTemplate = async (id: string, data: { templateName?: string; subject?: string; content?: string; status?: boolean; includeSignature?: boolean }): Promise<EmailTemplate | null> => {
         setLoading(true);
         setError(null);
         try {
