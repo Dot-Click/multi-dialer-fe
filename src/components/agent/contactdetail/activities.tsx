@@ -123,6 +123,24 @@ const Activities = () => {
   }, [currentContact?.id]);
 
   const [markingAsContact, setMarkingAsContact] = useState(false);
+  const [attempts, setAttempts] = useState<number>(0);
+
+  useEffect(() => {
+    setAttempts(currentContact?.dialAttempts ?? 0);
+  }, [currentContact?.id, currentContact?.dialAttempts]);
+
+  const changeAttempts = useCallback(async (action: 'increment' | 'decrement' | 'reset') => {
+    if (!currentContact?.id) return;
+    const prev = attempts;
+    const next = action === 'reset' ? 0 : action === 'increment' ? prev + 1 : Math.max(0, prev - 1);
+    setAttempts(next);
+    try {
+      await api.patch(`/contact/${currentContact.id}/dial-attempts`, { action });
+    } catch {
+      setAttempts(prev);
+      toast.error('Failed to update attempts');
+    }
+  }, [currentContact?.id, attempts]);
 
   const handleMarkAsContact = useCallback(async () => {
     if (!currentContact?.id) return;
@@ -271,16 +289,28 @@ const Activities = () => {
           <div className="flex w-full items-center">
             <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Attempts:</label>
             <div className="flex gap-4 items-center">
-              <span className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700">
+              <button
+                onClick={() => changeAttempts('decrement')}
+                disabled={attempts === 0}
+                className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 transition-colors"
+              >
                 <RiSubtractFill className="text-[17px]" />
+              </button>
+              <span className="text-[#000000] dark:text-white font-medium text-[16px] min-w-[24px] text-center">
+                {attempts}
               </span>
-              <span className="text-[#000000] dark:text-white font-medium text-[16px]">
-                {currentContact?.callRecords?.length ?? 0}
-              </span>
-              <span className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700">
+              <button
+                onClick={() => changeAttempts('increment')}
+                className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
                 <IoIosAdd className="text-[19px]" />
-              </span>
-              <span className="rounded-[8px] text-[14px] font-normal text-[#0E1011] dark:text-white py-[8px] px-[12px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700">Reset</span>
+              </button>
+              <button
+                onClick={() => changeAttempts('reset')}
+                className="rounded-[8px] text-[14px] font-normal text-[#0E1011] dark:text-white py-[8px] px-[12px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Reset
+              </button>
             </div>
           </div>
 
