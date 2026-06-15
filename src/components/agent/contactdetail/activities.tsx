@@ -133,7 +133,9 @@ const Activities = () => {
   const tasks = events.filter(e => getEventCategory(e) === 'task');
   const callbacks = events.filter(e => getEventCategory(e) === 'callback');
 
-  const nextAppointment = appointments.find(e => dayjs(e.startDate).isAfter(dayjs()));
+  const nextActivity = [...events]
+    .filter(e => dayjs(e.startDate).isAfter(dayjs()))
+    .sort((a, b) => dayjs(a.startDate).valueOf() - dayjs(b.startDate).valueOf())[0];
 
   const filtered = activeFilter === 'all' ? events
     : activeFilter === 'appointment' ? appointments
@@ -205,19 +207,29 @@ const Activities = () => {
         <div className="flex flex-col gap-4">
           {/* Source */}
           <div className="w-full flex items-center">
-            <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Source</label>
-            <input  
+            <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Source:</label>
+            <input
               readOnly
               value={currentContact?.source || 'N/A'}
               className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] flex-1 outline-none px-2 py-1 bg-transparent"
             />
           </div>
 
+          {/* Timezone */}
+          <div className="w-full flex items-center">
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Timezone:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.user?.companies?.[0]?.defaultTimeZone || 'N/A'}
+            </span>
+          </div>
+
           {/* Last Call Result */}
           <div className="w-full flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center">
-              <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Last Call Result</label>
-              <input readOnly value="N/A" className="text-[14px] font-normal text-[#18181B] dark:text-white outline-none px-2 py-1 bg-transparent border-b border-gray-300 dark:border-gray-700 w-[120px]" />
+              <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Last Call Result:</label>
+              <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+                {currentContact?.callRecords?.[0]?.status || 'N/A'}
+              </span>
             </div>
             <div className="bg-[#EBEDF0] dark:bg-gray-700 px-[12px] py-[7px] rounded-[8px]">
               <button className="text-[13px] text-[#0E1011] dark:text-white font-medium">Mark As Contact</button>
@@ -226,18 +238,24 @@ const Activities = () => {
 
           {/* Last Dial Date */}
           <div className="w-full flex items-center">
-            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Last Dial Date</label>
-            <input readOnly value="N/A" className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] flex-1 outline-none px-2 py-1 bg-transparent" />
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Last Dial Date:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.callRecords?.[0]?.startTime
+                ? dayjs(currentContact.callRecords[0].startTime).format('MM/DD/YYYY hh:mm A')
+                : 'N/A'}
+            </span>
           </div>
 
           {/* Attempts */}
           <div className="flex w-full items-center">
-            <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Attempts</label>
+            <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Attempts:</label>
             <div className="flex gap-4 items-center">
               <span className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700">
                 <RiSubtractFill className="text-[17px]" />
               </span>
-              <span className="text-[#000000] dark:text-white font-medium text-[16px]">0</span>
+              <span className="text-[#000000] dark:text-white font-medium text-[16px]">
+                {currentContact?.callRecords?.length ?? 0}
+              </span>
               <span className="rounded-[8px] text-[#495057] dark:text-white py-[6px] px-[5px] flex justify-center items-center bg-[#F7F7F7] dark:bg-gray-700">
                 <IoIosAdd className="text-[19px]" />
               </span>
@@ -245,42 +263,46 @@ const Activities = () => {
             </div>
           </div>
 
-          {/* Tasks count */}
-          <div className="w-full flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center">
-              <label className="text-[14px] font-medium text-[#0E1011] dark:text-white w-[180px]">Tasks</label>
-              <input readOnly value={tasks.length} className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] w-[80px] outline-none px-2 py-1 bg-transparent" />
-            </div>
+          {/* Next Activity */}
+          <div className="w-full flex items-center">
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Next Activity:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {nextActivity ? dayjs(nextActivity.startDate).format('MM/DD/YYYY h:mm A') : 'N/A'}
+            </span>
           </div>
 
-          {/* Next Appointment */}
+          {/* Create Date */}
           <div className="w-full flex items-center">
-            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Next Appointment</label>
-            <input
-              readOnly
-              value={nextAppointment ? dayjs(nextAppointment.startDate).format('MM/DD/YYYY h:mm A') : 'None'}
-              className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] flex-1 outline-none px-2 py-1 bg-transparent"
-            />
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Create Date:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.createdAt ? dayjs(currentContact.createdAt).format('MM/DD/YYYY hh:mm A') : 'N/A'}
+            </span>
           </div>
 
-          {/* Date Created */}
+          {/* Modify Date */}
           <div className="w-full flex items-center">
-            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Date Created</label>
-            <input
-              readOnly
-              value={currentContact?.createdAt ? dayjs(currentContact.createdAt).format('MM/DD/YYYY') : 'N/A'}
-              className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] flex-1 outline-none px-2 py-1 bg-transparent"
-            />
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Modify Date:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.updatedAt ? dayjs(currentContact.updatedAt).format('MM/DD/YYYY hh:mm A') : 'N/A'}
+            </span>
           </div>
 
-          {/* Modified Date */}
+          {/* Modified By */}
           <div className="w-full flex items-center">
-            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Modified Date</label>
-            <input
-              readOnly
-              value={currentContact?.updatedAt ? dayjs(currentContact.updatedAt).format('MM/DD/YYYY h:mm A') : 'N/A'}
-              className="border-b border-gray-300 dark:border-gray-700 text-[#18181B] dark:text-white font-normal text-[14px] flex-1 outline-none px-2 py-1 bg-transparent"
-            />
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">Modified By:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.user?.fullName || 'N/A'}
+            </span>
+          </div>
+
+          {/* E-mail Date */}
+          <div className="w-full flex items-center">
+            <label className="text-[14px] whitespace-nowrap font-medium text-[#0E1011] dark:text-white w-[180px]">E-mail Date:</label>
+            <span className="text-[14px] font-normal text-[#18181B] dark:text-white px-2 py-1">
+              {currentContact?.emailLogs?.[0]?.createdAt
+                ? dayjs(currentContact.emailLogs[0].createdAt).format('MM/DD/YYYY hh:mm A')
+                : 'N/A'}
+            </span>
           </div>
         </div>
       </div>
