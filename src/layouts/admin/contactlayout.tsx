@@ -136,7 +136,7 @@ const ContactLayout = () => {
 
       {/* 🔹 Main Content */}
       <div
-        className={`absolute top-16 pt-4  transition-all duration-300
+        className={`absolute top-16 pt-4 pb-16 transition-all duration-300
           ${isMobile
             ? "left-0 pl-4 w-full"
             : isOpen
