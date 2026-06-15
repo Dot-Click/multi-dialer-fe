@@ -587,9 +587,9 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     const customDispositions = activeDispositions.filter(d => !d.isSystem);
 
     const stats = [
-        { id: 1, name: "Calls", number: 0, icon: Phone },
-        { id: 2, name: "Emails", number: currentContact.emails?.length || 0, icon: Mail },
-        { id: 3, name: "SMS", number: 0, icon: MessageSquare },
+        { id: 1, name: "Calls", number: currentContact.callRecords?.length || 0, icon: Phone },
+        { id: 2, name: "Emails", number: currentContact.emailLogs?.length || 0, icon: Mail },
+        { id: 3, name: "SMS", number: currentContact.smsLogs?.length || 0, icon: MessageSquare },
     ];
 
     return (
