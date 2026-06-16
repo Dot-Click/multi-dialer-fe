@@ -38,7 +38,7 @@ interface CallRow {
   name: string;
   address: string;
   list: string;
-  group: string;
+  folder: string;
   phone: string;
   result: string;
 }
@@ -74,8 +74,8 @@ const columns = [
     ),
   },
   {
-    accessorKey: "group",
-    header: (info: any) => <SortedHeader header={info.header} label="Group" />,
+    accessorKey: "folder",
+    header: (info: any) => <SortedHeader header={info.header} label="Folder" />,
     cell: (info: any) => (
       <span className="text-[#495057] dark:text-gray-300 font-normal">
         {info.getValue() || "-"}
@@ -136,7 +136,7 @@ const CallDetail: React.FC<CallDetailProps> = ({ userId, selectedResult }) => {
       name: item.name,
       address: item.address,
       list: item.list,
-      group: item.group,
+      folder: item.folder,
       phone: item.phoneNumber,
       result: item.result,
     }));
@@ -228,12 +228,19 @@ const CallDetail: React.FC<CallDetailProps> = ({ userId, selectedResult }) => {
         </div>
       </div> */}
 
-      {/* Table */}
+      {/* Table — one state at a time: loading → data → empty (never overlap) */}
       <div className="responsive-table-wrapper">
-        <TableProvider data={tableData} columns={columns}>
-          {() => <TableComponent />}
-        </TableProvider>
-        {loading && <div className="text-center py-4">Loading report...</div>}
+        {loading ? (
+          <div className="text-center py-6 dark:text-gray-300">Loading report...</div>
+        ) : tableData.length > 0 ? (
+          <TableProvider data={tableData} columns={columns}>
+            {() => <TableComponent />}
+          </TableProvider>
+        ) : (
+          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+            No call details found.
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

@@ -4,75 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableProvider } from "@/providers/table.provider";
 import { FaPlay, FaPause, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
-import { useCallRecordingsReport, type CallRecordingRow } from "@/hooks/useCallRecordingsReport";
-
-// === SAMPLE DATA ===
-const callRecordingData: CallRecordingRow[] = [
-  {
-    id: "1",
-    agent: "Bertha Wiza",
-    name: "Kathryn Murphy",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "2",
-    agent: "Bertha Wiza",
-    name: "Robert Fox",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "3",
-    agent: "Bertha Wiza",
-    name: "Annette Black",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "4",
-    agent: "Bertha Wiza",
-    name: "Marvin McKinney",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "5",
-    agent: "Bertha Wiza",
-    name: "Ralph Edwards",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "6",
-    agent: "Bertha Wiza",
-    name: "Dianne Russell",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "7",
-    agent: "Bertha Wiza",
-    name: "Annette Black",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-  {
-    id: "8",
-    agent: "Bertha Wiza",
-    name: "Marvin McKinney",
-    duration: "00:00:00",
-    callResult: "Positive",
-    recordingUrl: "",
-  },
-];
+import { useCallRecordingsReport } from "@/hooks/useCallRecordingsReport";
 
 // === COLUMNS ===
 const columns = [
@@ -155,6 +87,17 @@ const AudioPlayer = ({ url }: { url: string | null }) => {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // react-table reuses this cell component across rows/pages, so `url` can
+  // change on an existing <audio>. Changing the `src` attribute alone does NOT
+  // reload the element — without this, play() runs against a stale source and
+  // throws "no supported sources". Force a reload whenever the URL changes.
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    if (audioRef.current) audioRef.current.load();
+  }, [url]);
+
   const togglePlay = () => {
     if (!url || !audioRef.current) return;
 
@@ -208,8 +151,13 @@ const AudioPlayer = ({ url }: { url: string | null }) => {
         <audio
           ref={audioRef}
           src={url}
+          preload="metadata"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onError={() => {
+            console.error("Recording source failed to load:", url);
+            setIsPlaying(false);
+          }}
           onEnded={() => {
             setIsPlaying(false);
             setCurrentTime(0);
@@ -317,31 +265,23 @@ const CallRecording: React.FC<CallRecordingProps> = ({
     
 
       <main>
-        <TableProvider
-          data={
-            filteredData.length > 0
-              ? filteredData
-              : data?.length === 0
-                ? []
-                : callRecordingData
-          }
-          columns={columns}
-        >
-          {() => <TableComponent />}
-        </TableProvider>
-        {loading && (
-          <div className="text-center py-4 dark:text-gray-300">
+        {/* One state at a time: loading → data → empty (never overlap) */}
+        {loading ? (
+          <div className="text-center py-6 dark:text-gray-300">
             Loading recordings...
           </div>
-        )}
-        {!loading && (!data || data.length === 0) && (
-          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+        ) : filteredData.length > 0 ? (
+          <TableProvider data={filteredData} columns={columns}>
+            {() => <TableComponent />}
+          </TableProvider>
+        ) : (
+          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
             No recordings found.
           </div>
         )}
 
         {/* Pagination (server-side) */}
-        {hasRealData && total > 0 && (
+        {!loading && hasRealData && total > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
             <span className="text-[13px] text-[#495057] dark:text-gray-400">
               Showing {(page - 1) * PAGE_SIZE + 1}

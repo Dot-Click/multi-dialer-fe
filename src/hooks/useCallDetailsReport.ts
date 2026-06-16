@@ -6,7 +6,7 @@ export interface CallDetailRow {
     name: string;
     address: string;
     list: string;
-    group: string;
+    folder: string;
     phoneNumber: string;
     result: string;
     startTime: string;
@@ -31,7 +31,9 @@ export interface CallDetailsResponse {
 }
 
 export const useCallDetailsReport = () => {
-    const [loading, setLoading] = useState(false);
+    // Start in loading state — the consumer always fetches on mount, so this
+    // avoids a one-frame "No call details found" flash before the fetch begins.
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<CallDetailRow[]>([]);
     const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 50 });

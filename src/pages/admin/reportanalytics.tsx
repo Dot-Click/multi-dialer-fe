@@ -38,9 +38,8 @@ const ReportAnalytics = () => {
             user.role === "AGENT" && user.createdById === currentAdminId,
         );
         setUsers(agents);
-        if (agents.length > 0 && !selectedAgentId) {
-          setSelectedAgentId(agents[0].id);
-        }
+        // Do NOT auto-select an agent — default to the admin's own data.
+        // The admin can explicitly pick an agent to view that agent's data.
       }
     } catch (err: any) {
       console.error("Fetch Users Error:", err);
@@ -54,9 +53,9 @@ const ReportAnalytics = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedAgentId) {
-      getAgentReport({ userId: selectedAgentId });
-    }
+    // No agent selected → show the admin's own data (the backend defaults to
+    // the requester when userId is omitted). Selecting an agent scopes to them.
+    getAgentReport({ userId: selectedAgentId || undefined });
   }, [selectedAgentId, getAgentReport]);
 
   return (
@@ -73,10 +72,10 @@ const ReportAnalytics = () => {
               onChange={(e) => setSelectedAgentId(e.target.value)}
               className="bg-white dark:bg-slate-800 dark:text-white w-56 text-sm font-medium border border-gray-200 dark:border-slate-700 px-2.5 py-2 rounded-md [&>option]:dark:bg-slate-800"
             >
-              <option value="">Select Agent</option>
+              <option value="">My Data (Admin)</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
-                  {user.name}
+                  {user.fullName || user.name || user.email}
                 </option>
               ))}
             </select>

@@ -19,7 +19,9 @@ export interface CallRecordingsFilters {
 }
 
 export const useCallRecordingsReport = () => {
-    const [loading, setLoading] = useState(false);
+    // Start in loading state — the consumer always fetches on mount, so this
+    // avoids a one-frame "No recordings found" flash before the fetch begins.
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<CallRecordingRow[]>([]);
     const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 50 });

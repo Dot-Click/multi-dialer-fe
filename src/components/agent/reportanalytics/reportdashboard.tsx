@@ -11,6 +11,7 @@ import CallRecording from "@/components/agent/reportanalytics/callrecording";
 import exportarrowicon from "../../../assets/exportarrowicon.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { addReportLogo } from "@/utils/pdfLogo";
 
 interface ReportDashboardProps {
   userId?: string;
@@ -20,10 +21,13 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
   const [openData, setOpenData] = useState("Call detail");
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!reportRef.current) return;
 
     const doc = new jsPDF("p", "mm", "a4");
+
+    // Platform logo (top-right)
+    await addReportLogo(doc);
 
     // Title
     doc.setFontSize(16);
@@ -125,18 +129,20 @@ const ReportDashboard: React.FC<ReportDashboardProps> = ({ userId }) => {
           </h2>
         </div>
 
-        {/* Right: Export Button */}
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 text-[16px] font-medium text-[#495057] dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition whitespace-nowrap"
-        >
-          <img
-            src={exportarrowicon}
-            alt="exportarrowicon"
-            className="dark:invert"
-          />
-          <span>Export</span>
-        </button>
+        {/* Right: Export Button (hidden on the Call Recording tab) */}
+        {openData !== "Call Recording" && (
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 text-[16px] font-medium text-[#495057] dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition whitespace-nowrap"
+          >
+            <img
+              src={exportarrowicon}
+              alt="exportarrowicon"
+              className="dark:invert"
+            />
+            <span>Export</span>
+          </button>
+        )}
       </div>
 
       {/* Tabs */}

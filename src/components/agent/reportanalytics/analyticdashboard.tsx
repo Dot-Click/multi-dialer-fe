@@ -16,6 +16,7 @@ import exportarrowicon from "../../../assets/exportarrowicon.png";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { addReportLogo } from "@/utils/pdfLogo";
 
 interface AgentReport {
   dialingTime?: string;
@@ -111,8 +112,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     },
   ];
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const doc = new jsPDF();
+    // Platform logo (top-right)
+    await addReportLogo(doc);
     doc.setFontSize(16);
     doc.text("Analytics Report", 14, 15);
     doc.setFontSize(10);
