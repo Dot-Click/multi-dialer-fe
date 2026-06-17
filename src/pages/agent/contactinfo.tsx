@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchContactById, setCurrentContact, setQueue, updateContact } from '@/store/slices/contactSlice';
+import { fetchContactById, setCurrentContact, setQueue, removeFromQueue } from '@/store/slices/contactSlice';
 import CallSection from '@/components/agent/contactinfo/callsection';
 import ContactInfoCallSentiment from '@/components/agent/contactinfo/contactinfocallsentiment';
 import ScriptTabs from '@/components/agent/contactinfo/scripttabs';
@@ -465,23 +465,6 @@ const ContactInfo = () => {
         };
     }, [queue]);
 
-    const syncQueuedContact = useCallback((updatedContact: any) => {
-        dispatch(setQueue(queue.map((contact: any) => (
-            getQueueContactId(contact) === updatedContact.id
-                ? {
-                    ...contact,
-                    ...updatedContact,
-                    id: contact.id,
-                    contactId: getQueueContactId(contact),
-                    phone: contact.phone || updatedContact.phones?.[0]?.number || updatedContact.phone || "-",
-                    phoneLabel: contact.phoneLabel,
-                    phoneIndex: contact.phoneIndex,
-                    totalPhones: contact.totalPhones,
-                }
-                : contact
-        ))));
-    }, [dispatch, queue]);
-
     const continueDialer = useCallback((target: DialTarget | null) => {
         setIsPostCall(false);
 
@@ -513,58 +496,66 @@ const ContactInfo = () => {
         setPendingDialTarget(target);
     }, [dialerMode, pendingContactId, queue, setIsPostCall]);
 
-    const moveCurrentPhoneToDnc = useCallback(async (contact: any, phoneIndex: number) => {
-        const phones = getContactPhones(contact);
-        const activePhone = phones[phoneIndex];
-        if (!activePhone) {
-            return { remainingPhones: phones };
-        }
-
-        if (activePhone.id) {
-            await api.post(`/contact/${contact.id}/move-to-dnc`, { phoneIds: [activePhone.id] });
-        }
-
-        const remainingPhones = phones.filter((_, index) => index !== phoneIndex);
-        const updatedContact = await dispatch(updateContact({
-            id: contact.id,
-            payload: { phones: remainingPhones },
-        })).unwrap();
-
-        syncQueuedContact(updatedContact);
-        return { remainingPhones };
-    }, [dispatch, syncQueuedContact]);
-
     const handleOutcomeSelected = useCallback(async (outcomeValue: string) => {
         if (!currentContact?.id) return;
 
+        const contactId = currentContact.id;
         const normalizedValue = outcomeValue.toUpperCase();
         incrementSessionOutcome(normalizedValue);
         const nextContactTarget = getNextContactTarget(currentIndex);
+
+        // The number that was actually being dialed for this contact.
+        const activePhone = getContactPhones(currentContact)[currentPhoneIndex];
+        const phoneId = (activePhone as any)?.id as string | undefined;
+        const phoneNumber = activePhone?.number;
+
+        // Pull the contact out of the live backend power-dialer queue so it can't
+        // be redialed this session.
+        const removeFromLiveQueue = () =>
+            api.post('/calling/queue/remove-contact', { contactId }).catch(() => { });
 
         if (isCalling) {
             await endCall();
         }
 
-        if (normalizedValue === "NO_ANSWER" || normalizedValue === "VOICEMAIL") {
-            continueDialer(nextContactTarget);
-            return;
-        }
-
-        if (normalizedValue === "BAD_NUMBER" || normalizedValue === "DNC_NUMBER") {
-            await moveCurrentPhoneToDnc(currentContact, currentPhoneIndex);
-
-            continueDialer(nextContactTarget);
-            return;
-        }
-
-        if (normalizedValue === "DNC_CONTACT") {
-            await api.post(`/contact/${currentContact.id}/move-to-dnc`, { phoneIds: [] });
-            continueDialer(nextContactTarget);
-            return;
+        try {
+            switch (normalizedValue) {
+                case "CONTACT": {
+                    // Reached → best number (green), contacted state, out of queue.
+                    await api.post(`/contact/${contactId}/mark-as-contacted`, { phoneId });
+                    await removeFromLiveQueue();
+                    dispatch(removeFromQueue(contactId));
+                    break;
+                }
+                case "NO_ANSWER":
+                case "VOICEMAIL":
+                    // Log attempt only — keep the lead in the list for recycling.
+                    await api.patch(`/contact/${contactId}/dial-attempts`, { action: "increment" }).catch(() => { });
+                    break;
+                case "BAD_NUMBER":
+                    // Mark just this number invalid (struck through); keep the contact.
+                    if (phoneId) await api.post(`/contact/${contactId}/mark-bad-number`, { phoneId });
+                    break;
+                case "DNC_NUMBER":
+                    // Globally suppress this number across all lists.
+                    if (phoneNumber) await api.post(`/contact/${contactId}/dnc-number`, { number: phoneNumber });
+                    break;
+                case "DNC_CONTACT": {
+                    // Remove all numbers from list & session, place in DNC folder.
+                    await api.post(`/contact/${contactId}/move-to-dnc`, { phoneIds: [] });
+                    await removeFromLiveQueue();
+                    dispatch(removeFromQueue(contactId));
+                    break;
+                }
+                default:
+                    break;
+            }
+        } catch (err) {
+            console.warn('[ContactInfo] Outcome action failed:', err);
         }
 
         continueDialer(nextContactTarget);
-    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, dialerMode, dispatch, endCall, getNextContactTarget, incrementSessionOutcome, isCalling, moveCurrentPhoneToDnc, queue]);
+    }, [continueDialer, currentContact, currentIndex, currentPhoneIndex, dispatch, endCall, getNextContactTarget, incrementSessionOutcome, isCalling]);
 
     useEffect(() => {
         if (!pendingDialTarget || dialerMode === "power" || isCalling) return;

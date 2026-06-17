@@ -180,29 +180,44 @@ function PhoneList({ contact, activePhoneIndex, onEdit, dispatch }: PhoneListPro
         <div className="flex flex-col gap-1 max-h-[110px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {phones.map((phone: any, index: number) => {
                 const isBest = !!phone.isBestNumber;
+                const isInvalid = phone.isValid === false;
+                const isDnc = !!phone.isDnc;
+                const isDead = isInvalid || isDnc; // struck through, never dialed
                 const isActive = activePhoneIndex === index;
                 return (
                     <div
                         key={index}
                         className={`flex px-2 py-1.5 justify-between items-center gap-2 group rounded-lg transition-all duration-150 border
-                            ${isBest
-                                ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/25'
-                                : isActive
-                                    ? 'border-blue-100 bg-blue-50 dark:border-blue-900/60 dark:bg-blue-900/20'
-                                    : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10'
+                            ${isDead
+                                ? 'border-gray-200 bg-gray-50 dark:border-white/5 dark:bg-white/5 opacity-70'
+                                : isBest
+                                    ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/25'
+                                    : isActive
+                                        ? 'border-blue-100 bg-blue-50 dark:border-blue-900/60 dark:bg-blue-900/20'
+                                        : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10'
                             }`}
                     >
                         <div className="flex gap-2.5 items-center min-w-0">
-                            <Phone size={13} className={isBest ? 'text-emerald-500 shrink-0' : 'text-[#1D85F0] shrink-0'} />
-                            <span className={`font-bold text-[13px] tracking-tight truncate ${isBest ? 'text-emerald-700 dark:text-emerald-300' : 'text-[#1D85F0]'}`}>
+                            <Phone size={13} className={isDead ? 'text-gray-400 shrink-0' : isBest ? 'text-emerald-500 shrink-0' : 'text-[#1D85F0] shrink-0'} />
+                            <span className={`font-bold text-[13px] tracking-tight truncate ${isDead ? 'text-gray-400 line-through' : isBest ? 'text-emerald-700 dark:text-emerald-300' : 'text-[#1D85F0]'}`}>
                                 {phone.number}
                             </span>
-                            {isBest && (
+                            {isInvalid && (
+                                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide text-gray-500 dark:text-gray-300 bg-gray-200 dark:bg-white/10 px-1.5 py-0.5 rounded-full">
+                                    Bad
+                                </span>
+                            )}
+                            {isDnc && (
+                                <span className="shrink-0 text-[9px] font-black uppercase tracking-wide text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/40 px-1.5 py-0.5 rounded-full">
+                                    DNC
+                                </span>
+                            )}
+                            {isBest && !isDead && (
                                 <span className="flex items-center gap-1 shrink-0 text-[9px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded-full">
                                     <Star size={8} className="fill-emerald-500 text-emerald-500" /> Best
                                 </span>
                             )}
-                            {isActive && !isBest && (
+                            {isActive && !isBest && !isDead && (
                                 <span className="text-[9px] font-black uppercase tracking-wide text-blue-600 dark:text-blue-300 shrink-0">Dialing</span>
                             )}
                         </div>
