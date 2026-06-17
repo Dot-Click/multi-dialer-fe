@@ -23,6 +23,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
     address1: "",
     address2: "",
     city: "",
+    state: "",
     postcode: "",
     country: "US",
     message: "",
@@ -50,7 +51,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSend = async () => {
-    if (!form.address1 || !form.city || !form.postcode || !form.recipientName) {
+    if (!form.address1 || !form.city || !form.state || !form.postcode || !form.recipientName) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -62,7 +63,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
       });
       if (res.data.success) {
         toast.success("Direct mail sent via Stannp! 📬");
-        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", postcode: "", message: "", automationId: "" }));
+        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", state: "", postcode: "", message: "", automationId: "" }));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to send direct mail.");
@@ -133,6 +134,18 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
             onChange={(e) => update("city", e.target.value)}
             className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all"
             placeholder="New York"
+          />
+        </div>
+
+        {/* State / Region */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">State / Region *</label>
+          <input
+            type="text"
+            value={form.state}
+            onChange={(e) => update("state", e.target.value)}
+            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all"
+            placeholder="NY"
           />
         </div>
 

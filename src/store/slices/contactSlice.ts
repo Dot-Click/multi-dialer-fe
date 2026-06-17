@@ -743,6 +743,10 @@ export const bulkAssignContactsToFolder = createAsyncThunk(
       const response = await api.patch(`/contact/bulk-assign-folder`, {
         contactIds,
         folderId,
+        // "replace" = a true MOVE: the contacts end up in ONLY the target folder
+        // (removed from their previous folder, e.g. Expired → FSBO), instead of
+        // being added to both.
+        mode: "replace",
       });
       if (response.data.success) {
         return { contactIds, folderId };
