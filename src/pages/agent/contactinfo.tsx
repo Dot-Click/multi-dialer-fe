@@ -662,6 +662,16 @@ const ContactInfo = () => {
         const startedAt = sessionStartTime || endedAt;
         const sessionId = activeSessionIdRef.current || activeSessionId;
 
+        // Stop the backend dialer IMMEDIATELY. Previously the dialer kept running
+        // until the user dismissed the summary modal (closeSessionAndLeave), so it
+        // continued auto-dialing the remaining queue after the agent "left".
+        if (dialerMode === 'power') {
+            await stopSimultaneousDialing();
+        }
+        if (isCalling) {
+            await endCall();
+        }
+
         if (sessionId) {
             try {
                 await api.post(`/calling/session/${sessionId}/end`);
@@ -672,7 +682,7 @@ const ContactInfo = () => {
 
         setSessionDurationMs(endedAt.getTime() - startedAt.getTime());
         setShowSessionSummary(true);
-    }, [activeSessionId, sessionStartTime]);
+    }, [activeSessionId, sessionStartTime, dialerMode, stopSimultaneousDialing, isCalling, endCall]);
 
     const closeSessionAndLeave = useCallback(async () => {
         setShowSessionSummary(false);
@@ -685,6 +695,14 @@ const ContactInfo = () => {
             await endCall();
         }
 
+        // Clear all frontend contact/queue state so nothing can resume dialing
+        // from a stale in-memory queue after we navigate away.
+        dispatch(setQueue([]));
+        dispatch(setCurrentContact(null));
+        setPendingContactId(null);
+        setPendingDialTarget(null);
+        setCurrentIndex(0);
+
         const path = dialerMode === 'power'
             ? (localStorage.getItem('user_role') === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer')
             : -1;
@@ -694,11 +712,15 @@ const ContactInfo = () => {
         } else {
             navigate(path as string);
         }
-    }, [dialerMode, endCall, isCalling, navigate, stopSimultaneousDialing]);
+    }, [dialerMode, endCall, isCalling, navigate, stopSimultaneousDialing, dispatch]);
 
     useEffect(() => {
+        // Stop the backend dialer whenever this page is closed/navigated away from
+        // while a dialing session exists — not only when the auto-dialing ref is
+        // set — so leaving can never strand a running server-side dialer.
+        const shouldStop = () => isAutoDialingRef.current || !!activeSessionIdRef.current;
         const handleUnload = () => {
-            if (isAutoDialingRef.current) {
+            if (shouldStop()) {
                 fetch(`${api.defaults.baseURL}/calling/stop-dialing`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': api.defaults.headers.common['Authorization'] as string },
@@ -709,7 +731,7 @@ const ContactInfo = () => {
         window.addEventListener('beforeunload', handleUnload);
         return () => {
             window.removeEventListener('beforeunload', handleUnload);
-            if (isAutoDialingRef.current) api.post('/calling/stop-dialing').catch(() => { });
+            if (shouldStop()) api.post('/calling/stop-dialing').catch(() => { });
         };
     }, []);
 
