@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useLocation } from "react-router-dom"
 import CallerId from "@/components/admin/systemsettings/callerid"
 import CallSetting from "@/components/admin/systemsettings/callsetting"
 import DialerSetting from "@/components/admin/systemsettings/dialersetting"
@@ -15,7 +16,10 @@ import A2PRegistrationPanel from "@/components/common/A2PRegistrationPanel"
 // Dummy components for each button
 
 const AdminSystemSetting = () => {
-    const [openDialogue, setOpenDialogue] = useState('Caller ID')
+    const location = useLocation()
+    // Allow deep-linking to a specific tab via navigation state (e.g. the
+    // "Connect Stannp" prompt on the contact detail page opens Integrations).
+    const [openDialogue, setOpenDialogue] = useState(location.state?.tab || 'Caller ID')
 
     const firstRowButtons = [
         { id: 1, name: "Caller ID", component: <CallerId /> },

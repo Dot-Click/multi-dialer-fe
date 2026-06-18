@@ -1,11 +1,36 @@
 import { useState, useEffect } from "react";
-import { HiMail, HiPaperAirplane, HiClock, HiOutlineMailOpen } from "react-icons/hi";
+import { HiMail, HiPaperAirplane, HiClock, HiOutlineMailOpen, HiLink } from "react-icons/hi";
 import { HiOutlineMapPin, HiOutlineUser } from "react-icons/hi2";
 import { useEmailTemplate, type EmailTemplate } from "@/hooks/useEmailTemplate";
+import { useIntegrations } from "@/hooks/useSystemSettings";
 import { useAppSelector } from "@/store/hooks";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
 import { FiLoader } from "react-icons/fi";
+
+// ─── Connect-to-Stannp prompt (shown when the account isn't integrated) ───────
+
+const ConnectStannpPrompt = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-16 px-6 rounded-[20px] border-2 border-dashed border-gray-300 dark:border-slate-600">
+      <div className="w-16 h-16 rounded-full bg-[#F3F4F7] dark:bg-slate-700/50 flex items-center justify-center mb-4">
+        <HiLink className="text-3xl text-gray-400" />
+      </div>
+      <h3 className="text-[18px] font-bold text-[#111111] dark:text-white">Connect to Stannp.com</h3>
+      <p className="text-[13px] text-[#848C94] font-medium mt-1 mb-5">
+        Direct Mail campaigns require Stannp.com integration
+      </p>
+      <button
+        onClick={() => navigate("/admin/system-settings", { state: { tab: "Integrations" } })}
+        className="flex items-center gap-2.5 px-6 py-3 bg-[#111111] dark:bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-black transition-all"
+      >
+        <HiLink className="text-lg" /> Connect Stannp
+      </button>
+    </div>
+  );
+};
 
 // ─── Direct Mail Form ─────────────────────────────────────────────────────────
 
@@ -242,6 +267,12 @@ const TouchPoints = () => {
   const { currentContact } = useAppSelector((state) => state.contacts);
   const [activeTab, setActiveTab] = useState<"email" | "direct">("email");
 
+  // Direct Mail requires a connected Stannp.com integration.
+  const { data: integrations } = useIntegrations();
+  const stannpConnected = !!integrations?.some(
+    (i) => i.provider === "STANPP_DOT_COM" && i.status === "CONNECTED",
+  );
+
   useEffect(() => {
     const fetchTemplates = async () => {
       const data = await getEmailTemplates();
@@ -379,7 +410,9 @@ const TouchPoints = () => {
         </div>
       ) : (
         <div>
-          {currentContact ? (
+          {!stannpConnected ? (
+            <ConnectStannpPrompt />
+          ) : currentContact ? (
             <DirectMailForm
               contactId={currentContact.id}
               contactName={currentContact.fullName || ""}
