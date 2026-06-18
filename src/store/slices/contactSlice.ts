@@ -939,7 +939,12 @@ export const contactSlice = createSlice({
       state.queue = action.payload;
     },
     removeFromQueue: (state, action) => {
-      state.queue = state.queue.filter((c: any) => c.id !== action.payload);
+      // Queue entries are per-phone cards whose `id` is `${contactId}_phone_N`,
+      // with the real contact id on `contactId`. Match by contact identity so
+      // ALL of a contact's cards are removed (payload is a bare contactId).
+      state.queue = state.queue.filter(
+        (c: any) => (c.contactId ?? c.id) !== action.payload,
+      );
     },
     setCurrentContact: (state, action) => {
       state.currentContact = action.payload;

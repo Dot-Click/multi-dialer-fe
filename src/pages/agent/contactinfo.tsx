@@ -165,6 +165,10 @@ const ContactInfo = () => {
     const [sessionDurationMs, setSessionDurationMs] = useState(0);
     const activeSessionIdRef = useRef<string | null>(null);
     const unresolvedDialAttemptsRef = useRef(0);
+    // Tracks whether the dial queue has ever been populated this session, so we can
+    // detect when it later becomes empty (e.g. the last contact is trashed) and end
+    // the session — without firing on the initial empty state before it's loaded.
+    const hadQueueRef = useRef(false);
     const currentQueueEntry = queue[currentIndex];
 
 
@@ -260,6 +264,26 @@ const ContactInfo = () => {
                     if (data.success) {
                         if (data.data.leadStatuses) setLeadStatuses(data.data.leadStatuses);
                         if (data.data.leadSids) setLeadSids(data.data.leadSids);
+
+                        // Caller ID Rotation usage: the backend places the calls in power
+                        // mode, so it reports per-number call counts. Merge them into the
+                        // widget state, matching by digits (caller IDs may differ in "+").
+                        const stats = data.data.callerIdStats as Record<string, { callCount: number }> | undefined;
+                        if (stats && Object.keys(stats).length > 0) {
+                            const digitsOf = (s: string) => s.replace(/\D/g, "").slice(-10);
+                            const statEntries = Object.entries(stats);
+                            setCallerIdStatus((prev) => {
+                                const next = { ...prev };
+                                callerIds.forEach((cid) => {
+                                    const match = statEntries.find(([num]) => digitsOf(num) === digitsOf(cid));
+                                    if (match) {
+                                        const existing = next[cid] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
+                                        next[cid] = { ...existing, callCount: match[1].callCount };
+                                    }
+                                });
+                                return next;
+                            });
+                        }
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );
@@ -290,7 +314,7 @@ const ContactInfo = () => {
             }, 2000);
         }
         return () => { if (statusPoll) clearInterval(statusPoll); };
-    }, [isAutoDialing, navigate, role]);
+    }, [isAutoDialing, navigate, role, callerIds]);
 
     // ─── Init from navigation state ───────────────────────────────────────────
 
@@ -687,7 +711,12 @@ const ContactInfo = () => {
         }
 
         // Clear all frontend contact/queue state so nothing can resume dialing
-        // from a stale in-memory queue after we navigate away.
+        // from a stale in-memory queue after we navigate away. Clear the session
+        // refs too so emptying the queue here does not re-trigger the
+        // "queue empty → end session" effect.
+        activeSessionIdRef.current = null;
+        setActiveSessionId(null);
+        hadQueueRef.current = false;
         dispatch(setQueue([]));
         dispatch(setCurrentContact(null));
         setPendingContactId(null);
@@ -704,6 +733,20 @@ const ContactInfo = () => {
             navigate(path as string);
         }
     }, [dialerMode, endCall, isCalling, navigate, stopSimultaneousDialing, dispatch]);
+
+    useEffect(() => {
+        // When the dial queue empties out during an active session (e.g. the last
+        // remaining contact is trashed/dispositioned), there's nothing left to dial,
+        // so end the session automatically.
+        if (queue.length > 0) {
+            hadQueueRef.current = true;
+            return;
+        }
+        if (hadQueueRef.current && activeSessionIdRef.current && !showSessionSummary) {
+            hadQueueRef.current = false;
+            void handleHangupAndLeave();
+        }
+    }, [queue.length, showSessionSummary, handleHangupAndLeave]);
 
     useEffect(() => {
         // Stop the backend dialer whenever this page is closed/navigated away from

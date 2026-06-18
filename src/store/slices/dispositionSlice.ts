@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
+import { removeFromQueue } from "./contactSlice";
 
 export type DispositionColor =
     | "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray" | "pink"
@@ -96,10 +97,21 @@ export const reorderDispositions = createAsyncThunk(
 
 export const applyDisposition = createAsyncThunk(
     "dispositions/apply",
-    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue }) => {
+    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue, dispatch, getState }) => {
         try {
             const response = await api.post("/system-settings/dispositions/apply", { contactId, dispositionId, overrideFolderId, source });
-            if (response.data.success) return response.data;
+            if (response.data.success) {
+                // If the applied disposition is the default "Trash", also eliminate the
+                // contact from the live dialing queue (backend in-memory queue) and the
+                // current session queue — no further dials remain for it.
+                const state = getState() as { dispositions: DispositionState };
+                const applied = state.dispositions.dispositions.find(d => d.id === dispositionId);
+                if (applied?.value?.toUpperCase() === "TRASH") {
+                    await api.post("/calling/queue/remove-contact", { contactId }).catch(() => { });
+                    dispatch(removeFromQueue(contactId));
+                }
+                return response.data;
+            }
             return rejectWithValue(response.data.message || "Failed to apply disposition");
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
