@@ -1,6 +1,7 @@
 import settingicon from "@/assets/settingicon.png";
 import SubscriptionCard from "@/components/super-admin/subscription/subscriptionCard";
 import SubscriptionTable from "@/components/super-admin/subscription/subscriptionTable";
+import CustomerInvoicesTable from "@/components/super-admin/subscription/CustomerInvoicesTable";
 
 const SuperAdminSubscriptionPlan = () => {
   return (
@@ -20,6 +21,7 @@ const SuperAdminSubscriptionPlan = () => {
 
       <SubscriptionCard />
       <SubscriptionTable />
+      <CustomerInvoicesTable />
     </section>
   );
 };

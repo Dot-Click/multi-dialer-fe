@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import UserManagementHeader from "@/components/super-admin/user-management/UserManagementHeader";
+import UserInvoicesModal from "@/components/super-admin/user-management/UserInvoicesModal";
 import EditUserModal from "@/components/modal/editUserModal";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
@@ -56,6 +57,7 @@ const SuperAdminUserManagement = () => {
   const [roleOpen, setRoleOpen] = useState(false);
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [invoicesUser, setInvoicesUser] = useState<any | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -130,6 +132,12 @@ const SuperAdminUserManagement = () => {
         user={editingUser}
         onClose={() => setEditingUser(null)}
         onSuccess={fetchUsers}
+      />
+
+      <UserInvoicesModal
+        isOpen={!!invoicesUser}
+        user={invoicesUser}
+        onClose={() => setInvoicesUser(null)}
       />
 
       {/* Search bar  */}
@@ -280,7 +288,13 @@ const SuperAdminUserManagement = () => {
                       className="bg-[#FAFAFA] dark:bg-slate-700 font-[400] rounded-[9.02px]"
                     >
                       <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                        {user.fullName}
+                        <button
+                          onClick={() => setInvoicesUser(user)}
+                          className="text-[#2563EB] hover:underline font-[500] text-left"
+                          title="View invoice history"
+                        >
+                          {user.fullName}
+                        </button>
                       </td>
                       <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                         {user.email}
@@ -319,6 +333,12 @@ const SuperAdminUserManagement = () => {
 
                         {openMenuUserId === user.id && (
                           <div className="absolute right-5 top-1/2 bg-white dark:bg-slate-900 shadow-lg rounded-lg z-50 border dark:border-gray-700 border-gray-100 overflow-hidden py-1 w-32">
+                            <button
+                              onClick={() => { setInvoicesUser(user); setOpenMenuUserId(null); }}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+                            >
+                              Invoices
+                            </button>
                             <button
                               onClick={() => { setEditingUser(user); setOpenMenuUserId(null); }}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"

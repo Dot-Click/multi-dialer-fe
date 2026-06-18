@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchInvoices, type Subscription } from "@/store/slices/subscriptionSlice";
+import { fetchInvoices, fetchInvoiceCard, type Subscription } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
+import InvoiceDetailModal from "./InvoiceDetailModal";
 
 interface InvoicesModalProps {
   isOpen: boolean;
@@ -25,6 +26,9 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
   const loading = useAppSelector((state) =>
     subscription?.stripeCustomerId ? state.subscriptions.invoicesLoading[subscription.stripeCustomerId] : false
   );
+  const invoiceCards = useAppSelector((state) => state.subscriptions.invoiceCards);
+  const invoiceCardsLoading = useAppSelector((state) => state.subscriptions.invoiceCardsLoading);
+  const [detailInvoiceId, setDetailInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && subscription?.stripeCustomerId && invoices === undefined) {
@@ -32,9 +36,26 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
     }
   }, [isOpen, subscription?.stripeCustomerId]);
 
+  // Lazily resolve each invoice's payment card once the list has loaded
+  useEffect(() => {
+    (invoices ?? []).forEach((inv) => {
+      if (invoiceCards[inv.id] === undefined && !invoiceCardsLoading[inv.id]) {
+        dispatch(fetchInvoiceCard(inv.id));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoices, dispatch]);
+
   if (!isOpen || !subscription) return null;
 
-  const formatAmount = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+  const formatAmount = (cents: number, currency?: string) =>
+    `${currency ? currency.toUpperCase() + " " : "$"}${(cents / 100).toFixed(2)}`;
+
+  const renderCard = (invoiceId: string) => {
+    if (invoiceCardsLoading[invoiceId]) return "…";
+    const pm = invoiceCards[invoiceId];
+    return pm?.last4 ? `${pm.brand ? pm.brand : "Card"} •••• ${pm.last4}` : "—";
+  };
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
@@ -69,7 +90,7 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
             <table className="w-full border-separate border-spacing-y-2">
               <thead>
                 <tr>
-                  {["Invoice #", "Date", "Amount", "Status", "Actions"].map((h) => (
+                  {["Invoice #", "Plan", "Date", "Amount", "Payment", "Status", "Actions"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-[13px] font-[600] text-[#1D2C45] dark:text-white bg-[#FAF9FE] dark:bg-slate-900 first:rounded-l-[8px] last:rounded-r-[8px]"
@@ -85,13 +106,19 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
                     <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white rounded-l-[8px]">
                       {inv.number || inv.id.slice(-8).toUpperCase()}
                     </td>
+                    <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white capitalize">
+                      {inv.plan || "—"}
+                    </td>
                     <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white">
                       {inv.created}
                     </td>
                     <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white">
                       {inv.status === "paid"
-                        ? formatAmount(inv.amount_paid)
-                        : formatAmount(inv.amount_due)}
+                        ? formatAmount(inv.amount_paid, inv.currency)
+                        : formatAmount(inv.amount_due, inv.currency)}
+                    </td>
+                    <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white capitalize whitespace-nowrap">
+                      {renderCard(inv.id)}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -104,18 +131,12 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
                     </td>
                     <td className="px-4 py-3 rounded-r-[8px]">
                       <div className="flex items-center gap-3">
-                        {inv.hosted_invoice_url ? (
-                          <a
-                            href={inv.hosted_invoice_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[13px] font-[500] text-[#2563EB] hover:underline"
-                          >
-                            View
-                          </a>
-                        ) : (
-                          <span className="text-[13px] text-gray-300">View</span>
-                        )}
+                        <button
+                          onClick={() => setDetailInvoiceId(inv.id)}
+                          className="text-[13px] font-[500] text-[#2563EB] hover:underline"
+                        >
+                          View
+                        </button>
                         {inv.invoice_pdf ? (
                           <a
                             href={inv.invoice_pdf}
@@ -147,6 +168,12 @@ const InvoicesModal = ({ isOpen, onClose, subscription }: InvoicesModalProps) =>
           </button>
         </div>
       </div>
+
+      <InvoiceDetailModal
+        isOpen={detailInvoiceId !== null}
+        invoiceId={detailInvoiceId}
+        onClose={() => setDetailInvoiceId(null)}
+      />
     </div>
   );
 };

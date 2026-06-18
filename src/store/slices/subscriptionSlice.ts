@@ -45,13 +45,84 @@ export interface UpcomingRenewalRecord {
     user: { fullName: string; email: string } | null;
 }
 
+export interface InvoiceCard {
+    brand: string | null;
+    last4: string | null;
+    expMonth: number | null;
+    expYear: number | null;
+}
+
 export interface Invoice {
     id: string;
     number: string | null;
+    plan?: string;
+    paymentMethod?: InvoiceCard | null;
     amount_paid: number;
     amount_due: number;
+    currency?: string;
     status: string | null;
     created: string;
+    hosted_invoice_url: string | null;
+    invoice_pdf: string | null;
+}
+
+export interface AllInvoice {
+    id: string;
+    number: string | null;
+    customerId: string;
+    customerName: string | null;
+    customerEmail: string | null;
+    plan: string;
+    paymentMethod?: InvoiceCard | null;
+    amount_paid: number;
+    amount_due: number;
+    currency: string;
+    status: string | null;
+    createdAt: string;
+    created: string;
+    hosted_invoice_url: string | null;
+    invoice_pdf: string | null;
+}
+
+export interface InvoiceLineItem {
+    id: string;
+    description: string | null;
+    quantity: number | null;
+    unitAmount: number;
+    amount: number;
+    periodStart: string | null;
+    periodEnd: string | null;
+}
+
+export interface InvoiceDetail {
+    id: string;
+    number: string | null;
+    status: string | null;
+    currency: string;
+    accountName: string | null;
+    sellerAddressLines: string[];
+    sellerPhone: string | null;
+    customerName: string | null;
+    customerEmail: string | null;
+    customerAddressLines: string[];
+    customerPhone: string | null;
+    description: string | null;
+    created: string | null;
+    dueDate: string | null;
+    periodStart: string | null;
+    periodEnd: string | null;
+    subtotal: number;
+    tax: number;
+    total: number;
+    amountPaid: number;
+    amountDue: number;
+    paymentMethod: {
+        brand: string | null;
+        last4: string | null;
+        expMonth: number | null;
+        expYear: number | null;
+    } | null;
+    lineItems: InvoiceLineItem[];
     hosted_invoice_url: string | null;
     invoice_pdf: string | null;
 }
@@ -78,6 +149,15 @@ interface SubscriptionState {
     billingPortalUrl: string | null;
     invoices: Record<string, Invoice[]>;
     invoicesLoading: Record<string, boolean>;
+    allInvoices: AllInvoice[];
+    allInvoicesLoading: boolean;
+    stripeMode: 'live' | 'test' | null;
+    invoiceDetail: InvoiceDetail | null;
+    invoiceDetailLoading: boolean;
+    userInvoices: AllInvoice[];
+    userInvoicesLoading: boolean;
+    invoiceCards: Record<string, InvoiceCard | null>;
+    invoiceCardsLoading: Record<string, boolean>;
     failedPayments: FailedPaymentRecord[];
     failedPaymentsLoading: boolean;
     upcomingRenewals: UpcomingRenewalRecord[];
@@ -92,6 +172,15 @@ const initialState: SubscriptionState = {
     billingPortalUrl: null,
     invoices: {},
     invoicesLoading: {},
+    allInvoices: [],
+    allInvoicesLoading: false,
+    stripeMode: null,
+    invoiceDetail: null,
+    invoiceDetailLoading: false,
+    userInvoices: [],
+    userInvoicesLoading: false,
+    invoiceCards: {},
+    invoiceCardsLoading: {},
     failedPayments: [],
     failedPaymentsLoading: false,
     upcomingRenewals: [],
@@ -323,6 +412,70 @@ export const fetchInvoices = createAsyncThunk(
     }
 );
 
+export const fetchAllInvoices = createAsyncThunk(
+    'subscriptions/fetchAllInvoices',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/billing/invoices/all');
+            if (response.data.success) {
+                return response.data.data as { mode: 'live' | 'test'; invoices: AllInvoice[] };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch all invoices');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const fetchInvoiceCard = createAsyncThunk(
+    'subscriptions/fetchInvoiceCard',
+    async (invoiceId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/billing/invoices/${invoiceId}/card`);
+            if (response.data.success) {
+                return { invoiceId, card: (response.data.data?.paymentMethod ?? null) as InvoiceCard | null };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch invoice card');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const fetchUserInvoices = createAsyncThunk(
+    'subscriptions/fetchUserInvoices',
+    async (userId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/billing/invoices/by-user/${userId}`);
+            if (response.data.success) {
+                return response.data.data as AllInvoice[];
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch user invoices');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const fetchInvoiceDetail = createAsyncThunk(
+    'subscriptions/fetchInvoiceDetail',
+    async (invoiceId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/billing/invoices/${invoiceId}`);
+            if (response.data.success) {
+                return response.data.data as InvoiceDetail;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch invoice detail');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 export const fetchFailedPayments = createAsyncThunk(
     'subscriptions/fetchFailedPayments',
     async (_, { rejectWithValue }) => {
@@ -378,7 +531,16 @@ export const fetchBillingPortalUrl = createAsyncThunk(
 export const subscriptionSlice = createSlice({
     name: 'subscriptions',
     initialState,
-    reducers: {},
+    reducers: {
+        clearInvoiceDetail: (state) => {
+            state.invoiceDetail = null;
+            state.invoiceDetailLoading = false;
+        },
+        clearUserInvoices: (state) => {
+            state.userInvoices = [];
+            state.userInvoicesLoading = false;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchSubscriptions.pending, (state) => {
@@ -469,6 +631,50 @@ export const subscriptionSlice = createSlice({
             .addCase(fetchInvoices.rejected, (state, action) => {
                 state.invoicesLoading[action.meta.arg] = false;
             })
+            .addCase(fetchAllInvoices.pending, (state) => {
+                state.allInvoicesLoading = true;
+            })
+            .addCase(fetchAllInvoices.fulfilled, (state, action) => {
+                state.allInvoicesLoading = false;
+                state.allInvoices = action.payload.invoices;
+                state.stripeMode = action.payload.mode;
+            })
+            .addCase(fetchAllInvoices.rejected, (state) => {
+                state.allInvoicesLoading = false;
+            })
+            .addCase(fetchInvoiceCard.pending, (state, action) => {
+                state.invoiceCardsLoading[action.meta.arg] = true;
+            })
+            .addCase(fetchInvoiceCard.fulfilled, (state, action) => {
+                const { invoiceId, card } = action.payload;
+                state.invoiceCards[invoiceId] = card;
+                state.invoiceCardsLoading[invoiceId] = false;
+            })
+            .addCase(fetchInvoiceCard.rejected, (state, action) => {
+                state.invoiceCardsLoading[action.meta.arg] = false;
+            })
+            .addCase(fetchUserInvoices.pending, (state) => {
+                state.userInvoicesLoading = true;
+                state.userInvoices = [];
+            })
+            .addCase(fetchUserInvoices.fulfilled, (state, action) => {
+                state.userInvoicesLoading = false;
+                state.userInvoices = action.payload;
+            })
+            .addCase(fetchUserInvoices.rejected, (state) => {
+                state.userInvoicesLoading = false;
+            })
+            .addCase(fetchInvoiceDetail.pending, (state) => {
+                state.invoiceDetailLoading = true;
+                state.invoiceDetail = null;
+            })
+            .addCase(fetchInvoiceDetail.fulfilled, (state, action) => {
+                state.invoiceDetailLoading = false;
+                state.invoiceDetail = action.payload;
+            })
+            .addCase(fetchInvoiceDetail.rejected, (state) => {
+                state.invoiceDetailLoading = false;
+            })
             .addCase(changeSubscriptionPlan.fulfilled, (state, action) => {
                 const { subscriptionId, newPlan } = action.payload;
                 const sub = state.subscriptions.find((s) => s.stripeSubscriptionId === subscriptionId);
@@ -508,5 +714,7 @@ export const subscriptionSlice = createSlice({
             });
     },
 });
+
+export const { clearInvoiceDetail, clearUserInvoices } = subscriptionSlice.actions;
 
 export default subscriptionSlice.reducer;
