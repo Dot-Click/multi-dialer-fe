@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { Device, Call } from '@twilio/voice-sdk';
 import api from '@/lib/axios';
 import toast from 'react-hot-toast';
-// import { useCallSettings } from '@/hooks/useSystemSettings';
+import { useDialerSettings } from '@/hooks/useSystemSettings';
 
 // ── [TwilioDiag] TEMPORARY DIAGNOSTICS ──────────────────────────────────────
 // Module-level counters survive across provider mounts so we can detect a
@@ -65,6 +65,12 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [incomingQueueCardId, setIncomingQueueCardId] = useState<string | null>(null);
   const [isPostCall, setIsPostCall] = useState(false);
 
+  // "Answer Notification Tone" — controls the Twilio Device's built-in connect &
+  // disconnect sounds. Driven by the persisted DialerSetting and reactively
+  // updated when the toggle is changed (in Call Settings or the pre-session modal).
+  const { data: dialerSettings } = useDialerSettings();
+  const answerToneEnabled = dialerSettings?.useAnswerNotificationTone ?? false;
+
   // 🚨 ALL REFS AT THE TOP LEVEL
   const isHoldRef = useRef(false);
   const ignoredCallsRef = useRef<Set<Call>>(new Set());
@@ -83,6 +89,22 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     audio.loop = true;
     return audio;
   });
+
+  // Apply the Answer Notification Tone preference to the Twilio Device's built-in
+  // connect (incoming/outgoing) and disconnect sounds. Re-runs whenever the device
+  // is (re)created or the preference changes, so toggling it takes effect live.
+  useEffect(() => {
+    const dev = deviceRef.current || device;
+    const audioHelper: any = dev?.audio;
+    if (!audioHelper) return;
+    try {
+      audioHelper.incoming?.(answerToneEnabled);
+      audioHelper.outgoing?.(answerToneEnabled);
+      audioHelper.disconnect?.(answerToneEnabled);
+    } catch (e) {
+      console.warn('[TwilioProvider] Failed to apply Answer Notification Tone setting:', e);
+    }
+  }, [device, answerToneEnabled]);
 
   const handleStopCalling = useCallback(() => {
     setIsCalling(false);

@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import AddRecordingModal from "@/components/modal/addrecordingmodal";
 import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
 import { useMediaCenter, type MediaCenterItem, type MediaType } from "@/hooks/useMediaCenter";
-import { useCallSettings, useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
+import { useCallSettings, useCallerIds, useDialerSettings, type CallerId } from "@/hooks/useSystemSettings";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
 import { useScript, type ScriptData } from "@/hooks/useScript";
@@ -115,6 +115,19 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
   const [pacing, setPacing] = useState(1); // Power Dialer: simultaneous calls
   const [amdEnabled, setAmdEnabled] = useState(false);
+
+  // Answer Notification Tone — same persisted setting as in Call Settings; controls
+  // the connect/disconnect ringtones. Toggling here updates it for the session.
+  const { data: dialerSettings, updateDialerSettings } = useDialerSettings();
+  const [answerTone, setAnswerTone] = useState(false);
+  useEffect(() => {
+    if (dialerSettings) setAnswerTone(!!dialerSettings.useAnswerNotificationTone);
+  }, [dialerSettings?.useAnswerNotificationTone]);
+  const toggleAnswerTone = () => {
+    const next = !answerTone;
+    setAnswerTone(next);
+    updateDialerSettings.mutate({ useAnswerNotificationTone: next });
+  };
 
   // ── Dial Filters ────────────────────────────────────────────────────────────
   const [dialFilters, setDialFilters] = useState<DialFilters>({
@@ -574,6 +587,33 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                       Machine calls will be skipped automatically.
                     </p>
                   )}
+                </div>
+
+                {/* Answer Notification Tone Toggle */}
+                <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                        Answer Notification Tone
+                      </p>
+                      <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-0.5">
+                        Ringtone on connect & disconnect
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleAnswerTone}
+                      className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                        answerTone ? "bg-yellow-400" : "bg-gray-300 dark:bg-slate-600"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                          answerTone ? "translate-x-5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 
