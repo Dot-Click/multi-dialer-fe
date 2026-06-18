@@ -547,6 +547,14 @@ const ContactInfo = () => {
                     dispatch(removeFromQueue(contactId));
                     break;
                 }
+                case "TRASH": {
+                    // Move to the Trash folder, remove from all lists, and pull the
+                    // contact out of the live session & queue — no further dials remain.
+                    await api.post(`/contact/${contactId}/move-to-trash`);
+                    await removeFromLiveQueue();
+                    dispatch(removeFromQueue(contactId));
+                    break;
+                }
                 default:
                     break;
             }
