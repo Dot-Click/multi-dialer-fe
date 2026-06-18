@@ -52,7 +52,12 @@ const EMPTY_SESSION_STATS: SessionSummaryStats = {
 
 const getContactPhones = (contact: any): ContactPhone[] => {
     if (Array.isArray(contact?.phones) && contact.phones.length > 0) {
-        return contact.phones.filter((phone: any) => Boolean(phone?.number));
+        // Exclude numbers that must never be dialed: Bad Number (isValid === false)
+        // and DNC (isDnc === true). These are shown struck-through on the contact
+        // detail page and must not appear as a dialable card in the dialer.
+        return contact.phones.filter(
+            (phone: any) => Boolean(phone?.number) && phone?.isValid !== false && !phone?.isDnc,
+        );
     }
 
     if (contact?.phone) {
@@ -78,14 +83,9 @@ const expandContactsIntoPhoneCards = (contacts: any[]) =>
         const phones = getContactPhones(contact);
 
         if (phones.length === 0) {
-            return [{
-                ...contact,
-                contactId: contact.id,
-                phone: contact.phone,
-                phoneLabel: "Phone 1",
-                phoneIndex: 0,
-                totalPhones: 1,
-            }];
+            // No dialable number — either none on file, or every number is
+            // Bad Number / DNC. Don't create a dialable card for this contact.
+            return [];
         }
 
         return phones.map((phone, index) => ({
