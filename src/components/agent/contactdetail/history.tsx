@@ -115,6 +115,12 @@ const History = () => {
                                             {record.disposition || "No disposition"}
                                             {record.duration ? ` • ${Math.floor(record.duration / 60)}m ${record.duration % 60}s` : ""}
                                         </p>
+                                        {record.callerId?.twillioNumber && (
+                                            <p className='text-[#495057] dark:text-gray-400 text-[12px] font-normal'>
+                                                From: {record.callerId.twillioNumber}
+                                                {record.callerId.label ? ` (${record.callerId.label})` : ""}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className='flex flex-col text-right'>
                                         <p className='text-[#495057] dark:text-gray-400 whitespace-nowrap text-[12px] font-normal'>
