@@ -9,12 +9,16 @@ interface MoveToModalProps {
     isOpen: boolean;
     onClose: () => void;
     selectedContacts: any[];
+    // Called after a successful move/DNC so the parent can refresh the view the
+    // contacts were moved out of (without a full page reload).
+    onMoved?: () => void;
 }
 
 const MoveToModal: React.FC<MoveToModalProps> = ({
     isOpen,
     onClose,
     selectedContacts,
+    onMoved,
 }) => {
     const dispatch = useAppDispatch();
     const { lists, folders } = useAppSelector((state) => state.contacts);
@@ -56,6 +60,7 @@ const MoveToModal: React.FC<MoveToModalProps> = ({
                 await dispatch(bulkMoveToDnc(contactIds)).unwrap();
                 toast.success(`Successfully marked ${contactIds.length} contacts as DNC`);
             }
+            onMoved?.();
             onClose();
         } catch (error: any) {
             toast.error(error || 'Failed to perform action');

@@ -10,7 +10,7 @@ import { FaChevronUp } from "react-icons/fa6";
 import { FaChevronDown } from "react-icons/fa";
 import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsidebar";
 import { TbInfoTriangle } from "react-icons/tb";
-import { bulkDeleteContacts } from "@/store/slices/contactSlice";
+import { bulkDeleteContacts, fetchContacts, fetchContactsByFolder, fetchContactsByList } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import MoveToModal from "@/components/modal/movetomodal";
@@ -57,6 +57,19 @@ const ContactLayout = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Re-fetch the contacts for whichever folder/list/all-contacts view is active,
+  // so the source view reflects a move immediately (no page reload needed).
+  const refreshActiveView = () => {
+    setSelectedContacts([]);
+    if (activeItem.type === "folder" && activeItem.id) {
+      dispatch(fetchContactsByFolder(activeItem.id));
+    } else if (activeItem.type === "list" && activeItem.id) {
+      dispatch(fetchContactsByList(activeItem.id));
+    } else {
+      dispatch(fetchContacts());
+    }
+  };
 
   // ✅ Delete handler
   const handleConfirmDelete = async () => {
@@ -251,6 +264,7 @@ const ContactLayout = () => {
         isOpen={showMoveToModal}
         onClose={() => setShowMoveToModal(false)}
         selectedContacts={selectedContacts}
+        onMoved={refreshActiveView}
       />
     </div>
   );
