@@ -39,6 +39,13 @@ function slugify(label: string) {
     return label.trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "")
 }
 
+// Protected default dispositions: seeded by the system and shown in the user's
+// Dispositions list, but they cannot be edited or deleted.
+const PROTECTED_DEFAULT_VALUES = ["TRASH"]
+function isProtectedDisposition(value: string) {
+    return PROTECTED_DEFAULT_VALUES.includes(value.toUpperCase())
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function DispositionBadge({ disposition }: { disposition: Disposition }) {
@@ -436,20 +443,24 @@ export default function DispositionSettings() {
                     </div>
                 ) : (
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E9ECEF] dark:border-slate-700 overflow-hidden">
-                        {customDispositions.map((disp, idx) => (
-                            <DispositionRow
-                                key={disp.id}
-                                disposition={disp}
-                                folders={folders}
-                                isEditing={editingId === disp.id}
-                                isLast={idx === customDispositions.length - 1}
-                                onEdit={() => setEditingId(disp.id)}
-                                onSaveEdit={(data) => handleEdit(disp.id, data)}
-                                onCancelEdit={() => setEditingId(null)}
-                                onToggle={() => handleToggleActive(disp.id)}
-                                onDelete={() => handleDelete(disp.id)}
-                            />
-                        ))}
+                        {customDispositions.map((disp, idx) => {
+                            const protectedDisp = isProtectedDisposition(disp.value)
+                            return (
+                                <DispositionRow
+                                    key={disp.id}
+                                    disposition={disp}
+                                    folders={folders}
+                                    isEditing={editingId === disp.id}
+                                    isLast={idx === customDispositions.length - 1}
+                                    isProtected={protectedDisp}
+                                    onEdit={() => setEditingId(disp.id)}
+                                    onSaveEdit={(data) => handleEdit(disp.id, data)}
+                                    onCancelEdit={() => setEditingId(null)}
+                                    onToggle={() => handleToggleActive(disp.id)}
+                                    onDelete={protectedDisp ? null : () => handleDelete(disp.id)}
+                                />
+                            )
+                        })}
                     </div>
                 )}
             </div>
@@ -464,6 +475,7 @@ function DispositionRow({
     folders,
     isEditing,
     isLast,
+    isProtected = false,
     onEdit,
     onSaveEdit,
     onCancelEdit,
@@ -474,6 +486,7 @@ function DispositionRow({
     folders: any[]
     isEditing: boolean
     isLast: boolean
+    isProtected?: boolean
     onEdit: () => void
     onSaveEdit: (data: FormState) => void
     onCancelEdit: () => void
@@ -505,6 +518,11 @@ function DispositionRow({
                                 System
                             </span>
                         )}
+                        {isProtected && (
+                            <span className="text-[10px] font-medium text-[#6C757D] dark:text-gray-400 bg-[#F1F3F5] dark:bg-slate-700 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                Default
+                            </span>
+                        )}
                         {linkedFolder && (
                             <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <FolderOpen className="w-3 h-3" />
@@ -514,26 +532,30 @@ function DispositionRow({
                     </div>
                 </div>
 
-                {/* Active toggle */}
-                <button
-                    onClick={onToggle}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${disposition.isActive ? "bg-[#FFCA06]" : "bg-[#DEE2E6] dark:bg-slate-600"
-                        }`}
-                >
-                    <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${disposition.isActive ? "translate-x-4" : "translate-x-0.5"
+                {/* Active toggle — protected defaults stay always-on */}
+                {!isProtected && (
+                    <button
+                        onClick={onToggle}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${disposition.isActive ? "bg-[#FFCA06]" : "bg-[#DEE2E6] dark:bg-slate-600"
                             }`}
-                    />
-                </button>
+                    >
+                        <span
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${disposition.isActive ? "translate-x-4" : "translate-x-0.5"
+                                }`}
+                        />
+                    </button>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-1 flex-shrink-0">
-                    <button
-                        onClick={onEdit}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6C757D] dark:text-gray-400 hover:bg-[#F8F9FA] dark:hover:bg-slate-700 hover:text-[#212529] dark:hover:text-white transition-colors"
-                    >
-                        <Pencil className="w-3.5 h-3.5" />
-                    </button>
+                    {!isProtected && (
+                        <button
+                            onClick={onEdit}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6C757D] dark:text-gray-400 hover:bg-[#F8F9FA] dark:hover:bg-slate-700 hover:text-[#212529] dark:hover:text-white transition-colors"
+                        >
+                            <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                     {onDelete && (
                         <button
                             onClick={onDelete}
