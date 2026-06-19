@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, Fragment } from "react";
+import { ChevronRight, ChevronDown, CornerDownRight } from "lucide-react";
 import UserManagementHeader from "@/components/super-admin/user-management/UserManagementHeader";
 import UserInvoicesModal from "@/components/super-admin/user-management/UserInvoicesModal";
 import EditUserModal from "@/components/modal/editUserModal";
@@ -86,22 +87,172 @@ const SuperAdminUserManagement = () => {
     };
   }, [openMenuUserId]);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.status?.toLowerCase().includes(searchTerm.toLowerCase());
+  const [expandedAdmins, setExpandedAdmins] = useState<Set<string>>(new Set());
+
+  const toggleAdmin = (adminId: string) => {
+    setExpandedAdmins((prev) => {
+      const next = new Set(prev);
+      next.has(adminId) ? next.delete(adminId) : next.add(adminId);
+      return next;
+    });
+  };
+
+  const matchesText = (u: any) => {
+    const q = searchTerm.toLowerCase();
+    if (!q) return true;
+    return (
+      u.fullName?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.role?.toLowerCase().includes(q) ||
+      u.status?.toLowerCase().includes(q)
+    );
+  };
+
+  // Group agents under the admin that created them.
+  const agentsByAdmin = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    users.forEach((u: any) => {
+      if ((u.role || "").toUpperCase() === "AGENT" && u.createdById) {
+        (map[u.createdById] ||= []).push(u);
+      }
+    });
+    return map;
+  }, [users]);
+
+  // When searching or filtering by Agent, auto-expand so matches are visible.
+  const forceExpand = !!searchTerm || selectedRole.toUpperCase() === "AGENT";
+
+  // Top-level rows are admins/owners; their agents render nested underneath.
+  const visibleAdmins = users.filter((user) => {
+    const role = (user.role || "").toUpperCase();
+    if (role !== "ADMIN" && role !== "OWNER") return false;
 
     const matchesStatus =
       selectedStatus === "All Status" ||
       user.status?.toUpperCase() === selectedStatus.toUpperCase();
     const matchesRole =
       selectedRole === "All Roles" ||
-      user.role?.toUpperCase() === selectedRole.toUpperCase();
+      selectedRole.toUpperCase() === "AGENT" ||
+      role === selectedRole.toUpperCase();
 
-    return matchesSearch && matchesStatus && matchesRole;
+    const agents = agentsByAdmin[user.id] || [];
+    const matchesSearch = matchesText(user) || agents.some(matchesText);
+
+    return matchesStatus && matchesRole && matchesSearch;
   });
+
+  const renderRow = (
+    user: any,
+    opts: { isAgent?: boolean; agentCount?: number; expanded?: boolean } = {},
+  ) => {
+    const { isAgent = false, agentCount = 0, expanded = false } = opts;
+    const role = (user.role || "").toUpperCase();
+    const isAdmin = !isAgent && (role === "ADMIN" || role === "OWNER");
+    return (
+      <tr
+        key={user.id || user.email}
+        className={`font-[400] rounded-[9.02px] ${
+          isAgent
+            ? "bg-[#F4F5F9] dark:bg-slate-800/70"
+            : "bg-[#FAFAFA] dark:bg-slate-700"
+        }`}
+      >
+        <td
+          className={`px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white ${
+            isAgent ? "pl-10" : ""
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {isAdmin && agentCount > 0 ? (
+              <button
+                onClick={() => toggleAdmin(user.id)}
+                className="text-gray-500 hover:text-gray-800 dark:text-gray-300 shrink-0"
+                title={expanded ? "Hide agents" : "Show agents"}
+              >
+                {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
+            ) : isAgent ? (
+              <CornerDownRight size={14} className="text-gray-400 shrink-0" />
+            ) : (
+              <span className="inline-block w-4 shrink-0" />
+            )}
+            <button
+              onClick={() => setInvoicesUser(user)}
+              className="text-[#2563EB] hover:underline font-[500] text-left"
+              title="View invoice history"
+            >
+              {user.fullName}
+            </button>
+          </div>
+        </td>
+        <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
+          {user.email}
+        </td>
+        <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
+          {formatStatus(user.role || "")}
+        </td>
+        <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
+          {isAdmin ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4338CA] dark:bg-indigo-900/40 dark:text-indigo-300 font-[500]">
+              {agentCount} {agentCount === 1 ? "agent" : "agents"}
+            </span>
+          ) : (
+            "—"
+          )}
+        </td>
+        <td className="px-5 py-4">
+          <span
+            className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status || "")}`}
+          >
+            {formatStatus(user.status || "")}
+          </span>
+        </td>
+        <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C] dark:text-white">
+          {formatDate(user?.lastLogin)}
+        </td>
+        <td
+          ref={(el) => {
+            menuRefs.current[user.id] = el;
+          }}
+          className="px-5 py-4 text-center relative"
+        >
+          <button
+            onClick={() =>
+              setOpenMenuUserId(openMenuUserId === user.id ? null : user.id)
+            }
+            className="text-gray-400 hover:text-gray-700"
+          >
+            <span className="text-xl leading-none">
+              <BsThreeDotsVertical />
+            </span>
+          </button>
+
+          {openMenuUserId === user.id && (
+            <div className="absolute right-5 top-1/2 bg-white dark:bg-slate-900 shadow-lg rounded-lg z-50 border dark:border-gray-700 border-gray-100 overflow-hidden py-1 w-32">
+              <button
+                onClick={() => { setInvoicesUser(user); setOpenMenuUserId(null); }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+              >
+                Invoices
+              </button>
+              <button
+                onClick={() => { setEditingUser(user); setOpenMenuUserId(null); }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(user.id)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </td>
+      </tr>
+    );
+  };
 
   const statusOptions = [
     "All Status",
@@ -251,6 +402,7 @@ const SuperAdminUserManagement = () => {
                     "User Name",
                     "Email",
                     "Role",
+                    "Agents",
                     "Status",
                     "Last Login",
                     "Actions",
@@ -261,7 +413,7 @@ const SuperAdminUserManagement = () => {
                     >
                       <div className="flex items-center gap-2">
                         {head}
-                        {i < 5 && (
+                        {i < 6 && (
                           <img
                             src={tableIcon}
                             className="h-3.5 object-contain"
@@ -277,89 +429,36 @@ const SuperAdminUserManagement = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={7}>
                       <Loader fullPage={false} />
                     </td>
                   </tr>
-                ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.id || user.email}
-                      className="bg-[#FAFAFA] dark:bg-slate-700 font-[400] rounded-[9.02px]"
-                    >
-                      <td className="px-5 py-4 rounded-l-[9.02px] text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                        <button
-                          onClick={() => setInvoicesUser(user)}
-                          className="text-[#2563EB] hover:underline font-[500] text-left"
-                          title="View invoice history"
-                        >
-                          {user.fullName}
-                        </button>
-                      </td>
-                      <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                        {user.email}
-                      </td>
-                      <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                        {formatStatus(user.role || "")}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status || "")}`}
-                        >
-                          {formatStatus(user.status || "")}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C] dark:text-white">
-                        {formatDate(user?.lastLogin)}
-                      </td>
-                      <td
-                        ref={(el) => {
-                          menuRefs.current[user.id] = el;
-                        }}
-                        className="px-5 py-4 text-center relative"
-                      >
-                        <button
-                          onClick={() =>
-                            setOpenMenuUserId(
-                              openMenuUserId === user.id ? null : user.id,
-                            )
-                          }
-                          className="text-gray-400 hover:text-gray-700"
-                        >
-                          <span className="text-xl leading-none">
-                            <BsThreeDotsVertical />
-                          </span>
-                        </button>
-
-                        {openMenuUserId === user.id && (
-                          <div className="absolute right-5 top-1/2 bg-white dark:bg-slate-900 shadow-lg rounded-lg z-50 border dark:border-gray-700 border-gray-100 overflow-hidden py-1 w-32">
-                            <button
-                              onClick={() => { setInvoicesUser(user); setOpenMenuUserId(null); }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
-                            >
-                              Invoices
-                            </button>
-                            <button
-                              onClick={() => { setEditingUser(user); setOpenMenuUserId(null); }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(user.id)}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                ) : visibleAdmins.length > 0 ? (
+                  visibleAdmins.map((admin) => {
+                    const agents = agentsByAdmin[admin.id] || [];
+                    const shownAgents = searchTerm
+                      ? agents.filter(matchesText)
+                      : agents;
+                    const expanded =
+                      (expandedAdmins.has(admin.id) || forceExpand) &&
+                      shownAgents.length > 0;
+                    return (
+                      <Fragment key={admin.id || admin.email}>
+                        {renderRow(admin, {
+                          agentCount: agents.length,
+                          expanded,
+                        })}
+                        {expanded &&
+                          shownAgents.map((agent) =>
+                            renderRow(agent, { isAgent: true }),
+                          )}
+                      </Fragment>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center py-10 text-gray-500 dark:text-white"
                     >
                       {error ? `Error: ${error}` : "No users found."}

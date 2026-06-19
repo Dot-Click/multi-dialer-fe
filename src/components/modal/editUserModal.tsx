@@ -230,7 +230,7 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
                       {p.name}
                       {p.monthlyAmount != null && (
                         <span className="ml-2 text-[12px] text-[#6B7280]">
-                          ${(p.monthlyAmount / 100).toFixed(2)}/mo
+                          ${Number(p.monthlyAmount || 0).toLocaleString()}/mo
                         </span>
                       )}
                     </div>
