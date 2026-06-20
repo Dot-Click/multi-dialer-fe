@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  Legend,
 } from 'recharts';
 import { getRevenueGrowth } from '@/store/slices/reportsSlice';
 import type { RootState, AppDispatch } from '@/store/store';
@@ -25,10 +26,11 @@ const SuperAdminRevenueGrow = () => {
     dispatch(getRevenueGrowth());
   }, [dispatch]);
 
-  // Transform data for BarChart
+  // Transform data for BarChart — show both contracted (MRR) and collected revenue.
   const barData = revenueGrowth?.labels.map((label, index) => ({
     name: label,
-    revenue: revenueGrowth.revenue[index] || 0,
+    contracted: revenueGrowth.revenue[index] || 0,
+    collected: revenueGrowth.collected?.[index] || 0,
   })) || [];
 
   // Transform data for LineChart
@@ -69,11 +71,20 @@ const SuperAdminRevenueGrow = () => {
                 domain={[0, 'auto']}
               />
               <Tooltip cursor={{fill: 'transparent'}} />
-              <Bar 
-                dataKey="revenue" 
-                fill="#FFCC00" 
-                radius={[5, 5, 0, 0]} 
-                barSize={45}
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar
+                name="Contracted (MRR)"
+                dataKey="contracted"
+                fill="#FFCC00"
+                radius={[5, 5, 0, 0]}
+                barSize={22}
+              />
+              <Bar
+                name="Collected"
+                dataKey="collected"
+                fill="#16A34A"
+                radius={[5, 5, 0, 0]}
+                barSize={22}
               />
             </BarChart>
           </ResponsiveContainer>

@@ -24,7 +24,7 @@ const UserOverviews = () => {
     const data = [
         { 
             id: 1, 
-            name: "New Users", 
+            name: "Total Users",
             number: userOverview?.newUsers?.toLocaleString() || "0"
         },
         { 

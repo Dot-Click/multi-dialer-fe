@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { IoClose } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchUserInvoices, clearUserInvoices, fetchInvoiceCard } from "@/store/slices/subscriptionSlice";
+import { fetchUserInvoices, clearUserInvoices, fetchInvoiceCard, type InvoiceCard } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
 import InvoiceDetailModal from "@/components/super-admin/subscription/InvoiceDetailModal";
 
@@ -35,25 +35,40 @@ const UserInvoicesModal = ({ isOpen, user, onClose }: UserInvoicesModalProps) =>
     };
   }, [isOpen, user?.id, dispatch]);
 
-  // Lazily resolve each invoice's payment card once the list has loaded
+  // Lazily resolve the card for PAID invoices only (same as the Customer
+  // Invoices table) — unpaid invoices have no card, so fetching them is wasted
+  // and would only resolve to "—". Cached so each invoice is fetched once.
+  const requestedCardsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    invoices.forEach((inv) => {
-      if (invoiceCards[inv.id] === undefined && !invoiceCardsLoading[inv.id]) {
-        dispatch(fetchInvoiceCard(inv.id));
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoices, dispatch]);
+    for (const inv of invoices) {
+      if (inv.status !== "paid") continue;
+      if (inv.paymentMethod) continue; // already provided by the API
+      if (invoiceCards[inv.id] !== undefined) continue; // already resolved
+      if (requestedCardsRef.current.has(inv.id)) continue; // already in flight
+      requestedCardsRef.current.add(inv.id);
+      dispatch(fetchInvoiceCard(inv.id));
+    }
+  }, [invoices, invoiceCards, dispatch]);
+
+  // Prefer an API-provided card, else the lazily-fetched cache.
+  const cardFor = (invId: string, apiCard?: InvoiceCard | null): InvoiceCard | null | undefined =>
+    apiCard ?? invoiceCards[invId];
 
   if (!isOpen || !user) return null;
 
   const formatAmount = (cents: number, currency: string) =>
     `${currency ? currency.toUpperCase() + " " : "$"}${(cents / 100).toFixed(2)}`;
 
-  const renderCard = (invoiceId: string) => {
-    if (invoiceCardsLoading[invoiceId]) return "…";
-    const pm = invoiceCards[invoiceId];
-    return pm?.last4 ? `${pm.brand ? pm.brand : "Card"} •••• ${pm.last4}` : "—";
+  // "visa" → "Visa", to match the Customer Invoices table formatting.
+  const formatBrand = (brand: string | null) =>
+    brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Card";
+
+  const renderCard = (inv: { id: string; status?: string | null; paymentMethod?: InvoiceCard | null }) => {
+    const card = cardFor(inv.id, inv.paymentMethod);
+    if (card?.last4) return `${formatBrand(card.brand)} •••• ${card.last4}`;
+    if (inv.status !== "paid") return "—"; // unpaid invoices have no card
+    if (invoiceCardsLoading[inv.id]) return "…"; // paid, still resolving
+    return "—";
   };
 
   return (
@@ -119,7 +134,7 @@ const UserInvoicesModal = ({ isOpen, user, onClose }: UserInvoicesModalProps) =>
                           : formatAmount(inv.amount_due, inv.currency)}
                       </td>
                       <td className="px-4 py-3 text-[13px] text-[#2C2C2C] dark:text-white capitalize whitespace-nowrap">
-                        {renderCard(inv.id)}
+                        {renderCard(inv)}
                       </td>
                       <td className="px-4 py-3">
                         <span

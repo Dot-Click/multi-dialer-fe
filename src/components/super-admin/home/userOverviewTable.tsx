@@ -32,9 +32,11 @@ const UserOverviewTable = () => {
     };
 
     const filteredUsers = userSubscriptions.filter((user) => {
-        if (activeTab === 1) return true;
-        if (activeTab === 2) return user.status.toUpperCase() === "ACTIVE";
-        if (activeTab === 3) return user.status.toUpperCase() === "EXPIRED";
+        if (activeTab === 1) return true; // All
+        if (activeTab === 2) return user.status.toUpperCase() === "ACTIVE"; // Active
+        // Inactive = anyone without an active subscription (pending / cancelled /
+        // expired / no plan), not just EXPIRED.
+        if (activeTab === 3) return user.status.toUpperCase() !== "ACTIVE";
         return true;
     });
 

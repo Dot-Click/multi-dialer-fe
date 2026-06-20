@@ -2,9 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchAllInvoices } from "@/store/slices/subscriptionSlice";
+import { fetchAllInvoices, fetchInvoiceCard, type InvoiceCard } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
 import InvoiceDetailModal from "./InvoiceDetailModal";
+
+// "visa" → "Visa", "mastercard" → "Mastercard"
+const formatBrand = (brand: string | null) =>
+  brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Card";
 
 interface CustomSelectProps {
   value: string;
@@ -71,7 +75,8 @@ const statusStyles: Record<string, string> = {
 
 const CustomerInvoicesTable = () => {
   const dispatch = useAppDispatch();
-  const { allInvoices, allInvoicesLoading, stripeMode } = useAppSelector((state) => state.subscriptions);
+  const { allInvoices, allInvoicesLoading, stripeMode, invoiceCards, invoiceCardsLoading } =
+    useAppSelector((state) => state.subscriptions);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [detailInvoiceId, setDetailInvoiceId] = useState<string | null>(null);
@@ -81,6 +86,26 @@ const CustomerInvoicesTable = () => {
   useEffect(() => {
     dispatch(fetchAllInvoices());
   }, [dispatch]);
+
+  // Lazily resolve the card used to pay each invoice (Stripe needs a per-invoice
+  // call, so the list endpoint stays light). Only paid invoices have a card;
+  // results are cached in the store so each invoice is fetched at most once.
+  const requestedCardsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const inv of allInvoices) {
+      if (inv.status !== "paid") continue;
+      if (inv.paymentMethod) continue; // already provided by the API
+      if (invoiceCards[inv.id] !== undefined) continue; // already resolved
+      if (requestedCardsRef.current.has(inv.id)) continue; // already in flight
+      requestedCardsRef.current.add(inv.id);
+      dispatch(fetchInvoiceCard(inv.id));
+    }
+  }, [allInvoices, invoiceCards, dispatch]);
+
+  // Resolve the card to display for a row: prefer an API-provided value, else the
+  // lazily-fetched cache.
+  const cardFor = (invId: string, apiCard?: InvoiceCard | null): InvoiceCard | null | undefined =>
+    apiCard ?? invoiceCards[invId];
 
   const formatAmount = (cents: number, currency: string) =>
     `${currency ? currency.toUpperCase() + " " : "$"}${(cents / 100).toFixed(2)}`;
@@ -157,6 +182,7 @@ const CustomerInvoicesTable = () => {
                     "Plan",
                     "Invoice #",
                     "Amount",
+                    "Payment Method",
                     "Status",
                     "Date",
                     "Actions",
@@ -193,6 +219,25 @@ const CustomerInvoicesTable = () => {
                       {inv.status === "paid"
                         ? formatAmount(inv.amount_paid, inv.currency)
                         : formatAmount(inv.amount_due, inv.currency)}
+                    </td>
+                    <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
+                      {(() => {
+                        const card = cardFor(inv.id, inv.paymentMethod);
+                        if (card?.last4) {
+                          return (
+                            <span className="whitespace-nowrap">
+                              {formatBrand(card.brand)} •••• {card.last4}
+                            </span>
+                          );
+                        }
+                        // Non-paid invoices never have a card; show a dash.
+                        if (inv.status !== "paid") return <span className="text-gray-400">—</span>;
+                        // Paid but still resolving the card.
+                        if (invoiceCardsLoading[inv.id]) {
+                          return <span className="text-gray-400">Loading…</span>;
+                        }
+                        return <span className="text-gray-400">—</span>;
+                      })()}
                     </td>
                     <td className="px-5 py-4">
                       <span
@@ -233,7 +278,7 @@ const CustomerInvoicesTable = () => {
 
                 {filteredData.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-10 text-gray-500 dark:text-gray-400">
+                    <td colSpan={8} className="text-center py-10 text-gray-500 dark:text-gray-400">
                       No invoices found
                     </td>
                   </tr>
