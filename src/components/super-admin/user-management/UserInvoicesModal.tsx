@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchUserInvoices, clearUserInvoices, fetchInvoiceCard, type InvoiceCard } from "@/store/slices/subscriptionSlice";
+import { fetchUserInvoices, clearUserInvoices, type InvoiceCard } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
 import InvoiceDetailModal from "@/components/super-admin/subscription/InvoiceDetailModal";
 
@@ -13,17 +13,15 @@ interface UserInvoicesModalProps {
 
 const statusStyles: Record<string, string> = {
   paid: "bg-[#D0FAE5] text-[#428E43]",
-  open: "bg-[#FFF3C4] text-[#9A7B00]",
-  void: "bg-gray-100 text-gray-500",
-  uncollectible: "bg-[#FFE2E2] text-[#FB0000]",
+  pending: "bg-[#FFF3C4] text-[#9A7B00]",
+  failed: "bg-[#FFE2E2] text-[#FB0000]",
+  refunded: "bg-gray-100 text-gray-500",
 };
 
 const UserInvoicesModal = ({ isOpen, user, onClose }: UserInvoicesModalProps) => {
   const dispatch = useAppDispatch();
   const invoices = useAppSelector((state) => state.subscriptions.userInvoices);
   const loading = useAppSelector((state) => state.subscriptions.userInvoicesLoading);
-  const invoiceCards = useAppSelector((state) => state.subscriptions.invoiceCards);
-  const invoiceCardsLoading = useAppSelector((state) => state.subscriptions.invoiceCardsLoading);
   const [detailInvoiceId, setDetailInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,25 +33,6 @@ const UserInvoicesModal = ({ isOpen, user, onClose }: UserInvoicesModalProps) =>
     };
   }, [isOpen, user?.id, dispatch]);
 
-  // Lazily resolve the card for PAID invoices only (same as the Customer
-  // Invoices table) — unpaid invoices have no card, so fetching them is wasted
-  // and would only resolve to "—". Cached so each invoice is fetched once.
-  const requestedCardsRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    for (const inv of invoices) {
-      if (inv.status !== "paid") continue;
-      if (inv.paymentMethod) continue; // already provided by the API
-      if (invoiceCards[inv.id] !== undefined) continue; // already resolved
-      if (requestedCardsRef.current.has(inv.id)) continue; // already in flight
-      requestedCardsRef.current.add(inv.id);
-      dispatch(fetchInvoiceCard(inv.id));
-    }
-  }, [invoices, invoiceCards, dispatch]);
-
-  // Prefer an API-provided card, else the lazily-fetched cache.
-  const cardFor = (invId: string, apiCard?: InvoiceCard | null): InvoiceCard | null | undefined =>
-    apiCard ?? invoiceCards[invId];
-
   if (!isOpen || !user) return null;
 
   const formatAmount = (cents: number, currency: string) =>
@@ -63,12 +42,10 @@ const UserInvoicesModal = ({ isOpen, user, onClose }: UserInvoicesModalProps) =>
   const formatBrand = (brand: string | null) =>
     brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Card";
 
-  const renderCard = (inv: { id: string; status?: string | null; paymentMethod?: InvoiceCard | null }) => {
-    const card = cardFor(inv.id, inv.paymentMethod);
-    if (card?.last4) return `${formatBrand(card.brand)} •••• ${card.last4}`;
-    if (inv.status !== "paid") return "—"; // unpaid invoices have no card
-    if (invoiceCardsLoading[inv.id]) return "…"; // paid, still resolving
-    return "—";
+  // Card comes directly from the ledger-backed invoice payload now.
+  const renderCard = (inv: { paymentMethod?: InvoiceCard | null }) => {
+    const card = inv.paymentMethod;
+    return card?.last4 ? `${formatBrand(card.brand)} •••• ${card.last4}` : "—";
   };
 
   return (
