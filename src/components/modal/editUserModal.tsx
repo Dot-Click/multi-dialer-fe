@@ -16,6 +16,8 @@ interface EditUserModalProps {
     email?: string;
     role?: string;
     status?: string;
+    userSubscriptions?: { plan: string; status: string }[];
+    billings?: { planName: string | null }[];
   } | null;
 }
 
@@ -55,6 +57,22 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
       setLocalError("");
     }
   }, [user]);
+
+  // Pre-select the user's current plan once both user data and plans list are available
+  useEffect(() => {
+    if (!user || plans.length === 0) return;
+    const currentPlanName =
+      user.billings?.[0]?.planName ||
+      user.userSubscriptions?.[0]?.plan ||
+      null;
+    if (!currentPlanName) return;
+    const match = plans.find(
+      (p: Plan) => p.name?.toLowerCase() === currentPlanName.toLowerCase()
+    );
+    if (match) {
+      setSelectedPlanId(match.monthlyStripePriceId || match.priceId || match.id);
+    }
+  }, [user, plans]);
 
   const handleSave = async () => {
     setLocalError("");
@@ -200,7 +218,7 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
               className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2 cursor-pointer"
             >
               <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
-                Subscription Plan <span className="text-[10px] text-[#9CA3AF]">(optional — leave blank to keep current)</span>
+                Subscription Plan <span className="text-[10px] text-[#9CA3AF]">(change only if needed)</span>
               </label>
               <div className="flex justify-between items-center">
                 <span className={`text-[15px] ${!selectedPlanId ? "text-[#9CA3AF]" : "text-[#111] dark:text-white"}`}>
