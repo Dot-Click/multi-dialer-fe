@@ -64,7 +64,7 @@ export const fetchCallerIdsByUser = createAsyncThunk(
   "superAdminCallerIds/fetch",
   async (userId: string, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/super-admin/caller-ids?userId=${userId}`);
+      const res = await api.get(`/super-admin/caller-ids?userId=${userId}&_t=${Date.now()}`);
       if (res.data.success) return { userId, callerIds: res.data.data as CallerIdRecord[] };
       return rejectWithValue(res.data.message || "Failed to fetch caller IDs");
     } catch (err: any) {

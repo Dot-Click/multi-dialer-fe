@@ -60,7 +60,7 @@ import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
 import SuperAdminReportsOfUser from "./pages/super-admin/superAdminReportsOfUser";
 import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
-import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
+// import SuperAdminReporting from "./pages/super-admin/superAdminReporting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
 import SuperAdminPhoneNumbers from "./pages/super-admin/superAdminPhoneNumbers";
@@ -159,7 +159,7 @@ const Router: React.FC = () => {
             <Route path="user-management" element={<SuperAdminUserManagement />} />
             <Route path="subscription-management" element={<SuperAdminSubscriptionPlan />} />
             <Route path="reports-of-user-billing" element={<SuperAdminReportsOfUser />} />
-            <Route path="reporting" element={<SuperAdminReporting />} />
+            {/* <Route path="reporting" element={<SuperAdminReporting />} /> */}
             <Route path="setting" element={<SuperAdminSetting />} />
             <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
             <Route path="phone-numbers" element={<SuperAdminPhoneNumbers />} />

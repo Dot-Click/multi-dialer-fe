@@ -4,7 +4,7 @@ import sidebaricon from "@/assets/sidebaricon.png";
 import settingicon from "@/assets/settingicon.png";
 import exiticon from "@/assets/exiticon.png";
 
-import reportingIcon from "@/assets/reportingIcon.png";
+// import reportingIcon from "@/assets/reportingIcon.png";
 import userReportIcon from "@/assets/userReportIcon.png";
 import subsIcon from "@/assets/subsIcon.png";
 import userIcon from "@/assets/userIcon.png";
@@ -79,12 +79,12 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
       link: "/super-admin/setting",
       icon: settingicon,
     },
-    {
-      id: 10,
-      name: "Reporting",
-      link: "/super-admin/reporting",
-      icon: reportingIcon,
-    },
+    // {
+    //   id: 10,
+    //   name: "Reporting",
+    //   link: "/super-admin/reporting",
+    //   icon: reportingIcon,
+    // },
     {
       id: 11,
       name: "Phone Numbers",
