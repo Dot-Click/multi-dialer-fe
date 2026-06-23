@@ -253,7 +253,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
       </button>
 
       <p className="text-center text-[10px] text-gray-400 font-medium">
-        Powered by Stannp.com · Test mode active (no physical mail until configured for live)
+        Powered by Stannp.com
       </p>
     </div>
   );
