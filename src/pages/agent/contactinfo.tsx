@@ -651,7 +651,7 @@ const ContactInfo = () => {
                 phoneLabel: c.phoneLabel,
                 totalPhones: c.totalPhones ?? 1,
             }));
-            await api.post('/calling/leads', { leads: leadsPayload, callerIds, pacing });
+            await api.post('/calling/leads', { leads: leadsPayload, callerIds, pacing, maxCallsPerId });
             toast.success("Simultaneous Power Dialer Active", { id: "powerDialer" });
             setIsAutoDialing(true);
         } catch (e: any) {
