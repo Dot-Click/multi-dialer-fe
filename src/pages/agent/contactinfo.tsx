@@ -266,10 +266,9 @@ const ContactInfo = () => {
                         if (data.data.leadSids) setLeadSids(data.data.leadSids);
 
                         // Caller ID Rotation usage: the backend places the calls in power
-                        // mode, so it reports per-number call counts. Merge them into the
-                        // widget state, matching by digits (caller IDs may differ in "+").
-                        const stats = data.data.callerIdStats as Record<string, { callCount: number }> | undefined;
-                        if (stats && Object.keys(stats).length > 0) {
+                        // mode, so it reports per-number call counts and freeze state.
+                        const stats = data.data.callerIdStats as Record<string, { callCount: number; isFrozen?: boolean; unfreezeAt?: number | null }> | undefined;
+                        if (stats) {
                             const digitsOf = (s: string) => s.replace(/\D/g, "").slice(-10);
                             const statEntries = Object.entries(stats);
                             setCallerIdStatus((prev) => {
@@ -278,7 +277,17 @@ const ContactInfo = () => {
                                     const match = statEntries.find(([num]) => digitsOf(num) === digitsOf(cid));
                                     if (match) {
                                         const existing = next[cid] ?? { callCount: 0, isFrozen: false, unfreezeAt: null, secondsRemaining: 0 };
-                                        next[cid] = { ...existing, callCount: match[1].callCount };
+                                        const isFrozen = match[1].isFrozen ?? existing.isFrozen;
+                                        const unfreezeAt = match[1].unfreezeAt ?? existing.unfreezeAt;
+                                        next[cid] = {
+                                            ...existing,
+                                            callCount: match[1].callCount,
+                                            isFrozen,
+                                            unfreezeAt: unfreezeAt ?? null,
+                                            secondsRemaining: unfreezeAt && isFrozen
+                                                ? Math.max(0, (unfreezeAt - Date.now()) / 1000)
+                                                : 0,
+                                        };
                                     }
                                 });
                                 return next;
