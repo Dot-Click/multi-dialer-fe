@@ -299,7 +299,8 @@ const ContactInfo = () => {
                         const isTrulyEmpty = data.data.queueSize === 0 &&
                             data.data.activeCallsCount === 0 &&
                             (data.data.pendingRedialsCount || 0) === 0 &&
-                            !hasPendingCallbacks;
+                            !hasPendingCallbacks &&
+                            !data.data.isPostCall; // don't end session while agent is marking call outcome
 
                         if (isTrulyEmpty) {
                             // Grace period: require 3 consecutive empty polls (6 seconds)
