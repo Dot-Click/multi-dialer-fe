@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { IoClose, IoSearch } from "react-icons/io5";
+import { LuArrowDownAZ } from "react-icons/lu";
 
 interface ManageColumnsModalProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   );
   const [searchAvailable, setSearchAvailable] = useState<string>("");
   const [searchDisplay, setSearchDisplay] = useState<string>("");
+  const [sortAZ, setSortAZ] = useState<boolean>(false);
 
   const handleMove = (
     field: string,
@@ -33,11 +35,18 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     setTo([...to, field]);
   };
 
-  const filteredAvailable = available.filter((item) =>
-    item.toLowerCase().includes(searchAvailable.toLowerCase())
+  const sortMaybe = (list: string[]) =>
+    sortAZ ? [...list].sort((a, b) => a.localeCompare(b)) : list;
+
+  const filteredAvailable = sortMaybe(
+    available.filter((item) =>
+      item.toLowerCase().includes(searchAvailable.toLowerCase())
+    )
   );
-  const filteredDisplay = display.filter((item) =>
-    item.toLowerCase().includes(searchDisplay.toLowerCase())
+  const filteredDisplay = sortMaybe(
+    display.filter((item) =>
+      item.toLowerCase().includes(searchDisplay.toLowerCase())
+    )
   );
 
   return (
@@ -58,9 +67,24 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
           </button>
 
           {/* Header */}
-          <h2 className="text-lg dark:text-white font-semibold text-gray-900">
-            Data Columns
-          </h2>
+          <div className="flex items-center justify-between gap-3 pr-8">
+            <h2 className="text-lg dark:text-white font-semibold text-gray-900">
+              Data Columns
+            </h2>
+            <button
+              type="button"
+              onClick={() => setSortAZ((prev) => !prev)}
+              aria-pressed={sortAZ}
+              title="Show columns in A-Z order"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition
+                ${sortAZ
+                  ? "bg-[#FFCA06] border-[#FFCA06] text-black"
+                  : "bg-transparent border-gray-300 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"}`}
+            >
+              <LuArrowDownAZ className="text-base" />
+              Sort A-Z
+            </button>
+          </div>
 
           {/* Columns Section */}
           <div className="grid grid-cols-1  sm:grid-cols-2 gap-6">
@@ -153,7 +177,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
           <button 
             className="bg-[#FFCA06] w-full px-4 py-2 rounded-md text-sm font-medium text-black hover:bg-[#f5bd00]"
             onClick={() => {
-              if (onApply) onApply(display);
+              if (onApply) onApply(sortMaybe(display));
             }}
           >
             Submit Changes
