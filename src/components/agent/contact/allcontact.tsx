@@ -234,19 +234,23 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
   const columns = useMemo(() => {
     if (!visibleColumns || visibleColumns.length === 0) return allColumns;
 
-    return allColumns.filter((col) => {
-      if (col.id === "select") return true;
-      return visibleColumns.some((vc) => {
-        if (vc === "Name" && col.accessorKey === "name") return true;
-        if (vc === "Email" && col.accessorKey === "email") return true;
-        if (vc === "Phone" && col.accessorKey === "phone") return true;
-        if (vc === "Last Dialed" && col.accessorKey === "lastDialedDate") return true;
-        if (vc === "List" && col.accessorKey === "list") return true;
-        if (vc === "Tags" && col.accessorKey === "tags") return true;
-        if (vc === "Disposition" && col.accessorKey === "disposition") return true;
-        return false;
-      });
-    });
+    const colByLabel: Record<string, typeof allColumns[number] | undefined> = {
+      "Name":        allColumns.find((c) => c.accessorKey === "name"),
+      "Email":       allColumns.find((c) => c.accessorKey === "email"),
+      "Phone":       allColumns.find((c) => c.accessorKey === "phone"),
+      "Last Dialed": allColumns.find((c) => c.accessorKey === "lastDialedDate"),
+      "List":        allColumns.find((c) => c.accessorKey === "list"),
+      "Tags":        allColumns.find((c) => c.accessorKey === "tags"),
+      "Disposition": allColumns.find((c) => c.accessorKey === "disposition"),
+    };
+
+    // Build in visibleColumns order so A-Z sort from the modal is reflected in the table.
+    const selectCol = allColumns.find((c) => c.id === "select");
+    const ordered = visibleColumns
+      .map((vc) => colByLabel[vc])
+      .filter((c): c is typeof allColumns[number] => c !== undefined);
+
+    return selectCol ? [selectCol, ...ordered] : ordered;
   }, [visibleColumns, linkPath]);
 
   const SelectionHandler = ({ selectedRows }: { selectedRows: Contact[] | undefined }) => {
