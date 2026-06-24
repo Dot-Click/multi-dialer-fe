@@ -322,7 +322,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
       // ── Apply dial filters ────────────────────────────────────────────────
       let contactsToSend = selectedContacts;
       const hasAnyFilter =
-        dialFilters.startMode === 'resume' ||
+        (dialFilters.startMode === 'resume' && !!listId) ||
         dialFilters.neverDialedEnabled ||
         dialFilters.neverContacted ||
         dialFilters.statusChangedEnabled ||
