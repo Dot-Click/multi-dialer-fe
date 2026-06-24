@@ -305,16 +305,26 @@ const SuperAdminDashboardSections = () => {
     const totalCallsMTD = dashboardSummaryStats?.totalCallsProcessed?.value ?? 0;
     const newSignups = userOverview?.newUsers ?? dashboardSummaryStats?.newSignups?.value ?? 0;
 
-    const activeCount = subscriptionStatus?.active ?? 0;
-    const inactiveCount = subscriptionStatus?.inactive ?? 0;
-    const total = activeCount + inactiveCount;
-    const churnRate = total > 0 ? ((inactiveCount / total) * 100).toFixed(1) : "0.0";
+    // Proper 30-day monthly churn rate:
+    //   churn = (churned in last 30d) / (active now + churned in last 30d) × 100
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const churnedRecently = subscriptions.filter(
+      (s) =>
+        (s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED") &&
+        new Date(s.updatedAt) >= thirtyDaysAgo
+    );
+    const activeSubs = subscriptions.filter((s) => s.status.toUpperCase() === "ACTIVE");
+    const churnBase = activeSubs.length + churnedRecently.length;
+    const churnRate = churnBase > 0
+      ? ((churnedRecently.length / churnBase) * 100).toFixed(1)
+      : "0.0";
 
     const avgDialsPerUser = activePayingUsers > 0 ? Math.round(totalCallsMTD / activePayingUsers) : 0;
 
     // Top active users: active subscriptions sorted by subscription creation date
     const topUsers = [...subscriptions]
-      .filter((s) => s.status === "active")
+      .filter((s) => s.status.toUpperCase() === "ACTIVE")
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
 

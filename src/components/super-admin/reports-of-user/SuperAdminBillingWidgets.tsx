@@ -202,14 +202,25 @@ const SuperAdminBillingWidgets = () => {
     const pastDueCount = pastDueInvoices.length;
     const upcomingChargesCount = upcomingRenewals.length;
 
-    // Subscription changes
-    const canceledSubs = subscriptions.filter((s) => s.status === "canceled");
+    // Subscription changes — DB stores uppercase status: ACTIVE, CANCELLED, EXPIRED, PENDING
+    const canceledSubs = subscriptions.filter(
+      (s) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
+    );
     const inactiveSubs = subscriptions.filter(
-      (s) => s.status === "inactive" || s.status === "past_due"
+      (s) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
     );
     const cancellationsCount = canceledSubs.length;
-    const totalSubs = subscriptions.length;
-    const churnRate = totalSubs > 0 ? (cancellationsCount / totalSubs) * 100 : 0;
+
+    // Proper 30-day monthly churn rate:
+    //   churn = (churned in last 30d) / (active now + churned in last 30d) × 100
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentlyChurned = canceledSubs.filter(
+      (s) => new Date(s.updatedAt) >= thirtyDaysAgo
+    );
+    const activeSubsCount = subscriptions.filter((s) => s.status.toUpperCase() === "ACTIVE").length;
+    const churnBase = activeSubsCount + recentlyChurned.length;
+    const churnRate = churnBase > 0 ? (recentlyChurned.length / churnBase) * 100 : 0;
     const accountsAtRisk = failedPayments.length + pastDueCount;
 
     // Top paying customers — aggregate paid amount by customer
@@ -237,7 +248,7 @@ const SuperAdminBillingWidgets = () => {
 
     // Fastest growing — most recently created active subs
     const fastestGrowing = [...subscriptions]
-      .filter((s) => s.status === "active")
+      .filter((s) => s.status.toUpperCase() === "ACTIVE")
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
 
