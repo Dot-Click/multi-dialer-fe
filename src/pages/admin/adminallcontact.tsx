@@ -31,6 +31,7 @@ const AdminAllContact = () => {
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
     const [searchTerm, setSearchTerm] = useState(""); // used for agents modal
     const [contactSearchTerm, setContactSearchTerm] = useState(""); // used for table
 
@@ -246,13 +247,21 @@ const AdminAllContact = () => {
                     listId={activeItem.type === "list" ? activeItem.id : undefined}
                     folderId={activeItem.type === "folder" ? activeItem.id : undefined}
                     searchTerm={contactSearchTerm}
+                    visibleColumns={visibleColumns}
                 />
             </div>
 
             {/* Modals */}
             {isFilterOpen && <FilterModal onClose={() => setIsFilterOpen(false)} />}
             {showColumnsModal && (
-                <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
+                <ManageColumnsModal
+                    onClose={() => setShowColumnsModal(false)}
+                    initialDisplayColumns={visibleColumns}
+                    onApply={(columns) => {
+                        setVisibleColumns(columns);
+                        setShowColumnsModal(false);
+                    }}
+                />
             )}
             <CreateCallSettingModal
                 selectedContacts={selectedContacts}
