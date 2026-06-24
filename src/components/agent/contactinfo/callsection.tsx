@@ -188,7 +188,7 @@ const CallSection = ({
     const bStatus = leadStatuses[leadId]?.toLowerCase();
     if (bStatus === 'answered' || bStatus === 'in-progress' || bStatus === 'connected') return "Connected";
     if (bStatus === 'redialing') return "Redialing";
-    if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued') return "Ringing";
+    if (bStatus === 'ringing' || bStatus === 'initiated' || bStatus === 'queued' || bStatus === 'amd-pending') return "Ringing";
     if (bStatus === 'call_back' || bStatus === 'callback') return "Callback";
     if (bStatus === 'completed' || bStatus === 'failed' || bStatus === 'busy' || bStatus === 'no-answer' || bStatus === 'no_answer') return "Disconnected";
     // In power dialer, pending contacts filling empty slots are about to be dialed — show Ringing
