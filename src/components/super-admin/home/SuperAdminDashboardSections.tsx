@@ -346,6 +346,10 @@ const SuperAdminDashboardSections = () => {
       dials: Math.round((totalCallsMTD / Math.max(revenueGrowth.labels.length, 1)) * (0.7 + i * 0.06)),
     })) ?? [];
 
+    const inactiveCount = subscriptions.filter(
+      (s) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
+    ).length;
+
     return {
       mrr, activePayingUsers, totalRevenueMTD, totalUsers, totalCallsMTD,
       newSignups, churnRate, avgDialsPerUser,
@@ -354,7 +358,7 @@ const SuperAdminDashboardSections = () => {
       expiringCount: alerts?.expiringSubscriptions ?? 0,
       revenueChartData, userGrowthData, dialData,
     };
-  }, [businessOverview, userOverview, dashboardSummaryStats, subscriptionStatus, subscriptions, failedPayments, alerts, revenueGrowth]);
+  }, [businessOverview, userOverview, dashboardSummaryStats, subscriptions, failedPayments, alerts, revenueGrowth]);
 
   const moneyLoading = statsLoading || reportsLoading;
 
