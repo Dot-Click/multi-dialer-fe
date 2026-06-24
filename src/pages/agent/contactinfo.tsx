@@ -507,6 +507,14 @@ const ContactInfo = () => {
             if (foundIdx !== -1) {
                 setCurrentIndex(foundIdx);
                 setCurrentPhoneIndex(queue[foundIdx].phoneIndex ?? getInitialPhoneIndex(queue[foundIdx]));
+                // Save resume position to the pending contact we're jumping to
+                if (listId) {
+                    const jumpEntry = queue[foundIdx];
+                    const jumpContactId = (jumpEntry as any).contactId || jumpEntry.id;
+                    if (jumpContactId) {
+                        api.post('/calling/dial-session', { listId, lastContactId: jumpContactId }).catch(() => {});
+                    }
+                }
             }
             setPendingContactId(null);
             setPendingDialTarget(null);
@@ -519,6 +527,17 @@ const ContactInfo = () => {
             return;
         }
 
+        // Save the next contact as the resume position so "resume from last left off" works.
+        if (listId) {
+            const nextEntry = queue[target.contactIndex];
+            if (nextEntry) {
+                const nextContactId = (nextEntry as any).contactId || nextEntry.id;
+                if (nextContactId) {
+                    api.post('/calling/dial-session', { listId, lastContactId: nextContactId }).catch(() => {});
+                }
+            }
+        }
+
         setCurrentIndex(target.contactIndex);
         setCurrentPhoneIndex(target.phoneIndex);
 
@@ -528,7 +547,7 @@ const ContactInfo = () => {
         }
 
         setPendingDialTarget(target);
-    }, [dialerMode, pendingContactId, queue, setIsPostCall]);
+    }, [dialerMode, listId, pendingContactId, queue, setIsPostCall]);
 
     const handleOutcomeSelected = useCallback(async (outcomeValue: string) => {
         if (!currentContact?.id) return;
