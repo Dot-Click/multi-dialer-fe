@@ -5,10 +5,14 @@ import {
   getBusinessOverview,
   getUserOverview,
   getDashboardSummaryStats,
+  getTotalConnections,
+  getAppointmentsSet,
+  getAvgDaysSinceActive,
+  getPlanChanges,
+  fetchAdminInvoices,
+  fetchAdminSubscriptions,
 } from "@/store/slices/reportsSlice";
 import {
-  fetchSubscriptions,
-  fetchAllInvoices,
   fetchFailedPayments,
   fetchUpcomingRenewals,
 } from "@/store/slices/subscriptionSlice";
@@ -35,6 +39,12 @@ const fmt = (n: number) => n.toLocaleString();
 const fmtUSD = (n: number) =>
   "$" + (n / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (n: number) => n.toFixed(1) + "%";
+
+function calcChange(current: number, previous: number): string {
+  if (previous === 0) return current > 0 ? "+100%" : "0%";
+  const change = ((current - previous) / previous) * 100;
+  return (change >= 0 ? "+" : "") + change.toFixed(1) + "%";
+}
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
@@ -157,16 +167,29 @@ const TopRow = ({ rank, name, email, value, subValue }: TopRowProps) => (
 const SuperAdminBillingWidgets = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const { businessOverview, userOverview, dashboardSummaryStats, statsLoading, loading: reportsLoading } =
-    useSelector((state: RootState) => state.reports);
+  const {
+    businessOverview,
+    userOverview,
+    dashboardSummaryStats,
+    statsLoading,
+    loading: reportsLoading,
+    totalConnections,
+    appointmentsSet,
+    avgDaysSinceActive,
+    planChanges,
+    adminInvoices,
+    adminSubscriptions,
+    connectionsLoading,
+    appointmentsLoading,
+    avgDaysLoading,
+    planChangesLoading,
+    adminInvoicesLoading,
+    adminSubscriptionsLoading,
+  } = useSelector((state: RootState) => state.reports);
 
   const {
-    subscriptions,
-    allInvoices,
     failedPayments,
     upcomingRenewals,
-    loading: subLoading,
-    allInvoicesLoading,
     failedPaymentsLoading,
     upcomingRenewalsLoading,
   } = useSelector((state: RootState) => state.subscriptions);
@@ -175,8 +198,12 @@ const SuperAdminBillingWidgets = () => {
     dispatch(getBusinessOverview());
     dispatch(getUserOverview());
     dispatch(getDashboardSummaryStats());
-    dispatch(fetchSubscriptions());
-    dispatch(fetchAllInvoices());
+    dispatch(getTotalConnections());
+    dispatch(getAppointmentsSet());
+    dispatch(getAvgDaysSinceActive());
+    dispatch(getPlanChanges());
+    dispatch(fetchAdminInvoices());
+    dispatch(fetchAdminSubscriptions());
     dispatch(fetchFailedPayments());
     dispatch(fetchUpcomingRenewals());
   }, [dispatch]);
@@ -193,39 +220,38 @@ const SuperAdminBillingWidgets = () => {
     const arpu = activePayingUsers > 0 ? mrr / activePayingUsers : 0;
     const avgCallsPerAccount = activePayingUsers > 0 ? Math.round(totalDialsMTD / activePayingUsers) : 0;
 
-    // Billing status from invoices
-    const paidInvoices = allInvoices.filter((inv) => inv.status === "paid");
-    const pastDueInvoices = allInvoices.filter(
-      (inv) => inv.status === "open" || inv.status === "past_due"
+    // Billing status from admin invoices
+    const paidInvoices = adminInvoices.filter((inv: any) => inv.status === "paid");
+    const pastDueInvoices = adminInvoices.filter(
+      (inv: any) => inv.status === "open" || inv.status === "past_due"
     );
     const successfulPayments = paidInvoices.length;
     const pastDueCount = pastDueInvoices.length;
     const upcomingChargesCount = upcomingRenewals.length;
 
-    // Subscription changes — DB stores uppercase status: ACTIVE, CANCELLED, EXPIRED, PENDING
-    const canceledSubs = subscriptions.filter(
-      (s) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
-    );
-    const inactiveSubs = subscriptions.filter(
-      (s) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
+    // Subscription changes from admin subscriptions
+    const canceledSubs = adminSubscriptions.filter(
+      (s: any) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
     );
     const cancellationsCount = canceledSubs.length;
 
-    // Proper 30-day monthly churn rate:
-    //   churn = (churned in last 30d) / (active now + churned in last 30d) × 100
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentlyChurned = canceledSubs.filter(
-      (s) => new Date(s.updatedAt) >= thirtyDaysAgo
+      (s: any) => new Date(s.updatedAt) >= thirtyDaysAgo
     );
-    const activeSubsCount = subscriptions.filter((s) => s.status.toUpperCase() === "ACTIVE").length;
+    const activeSubsCount = adminSubscriptions.filter((s: any) => s.status.toUpperCase() === "ACTIVE").length;
     const churnBase = activeSubsCount + recentlyChurned.length;
     const churnRate = churnBase > 0 ? (recentlyChurned.length / churnBase) * 100 : 0;
     const accountsAtRisk = failedPayments.length + pastDueCount;
 
+    // Upgrades / downgrades from plan changes ledger
+    const upgradesCount = planChanges?.upgrades ?? 0;
+    const downgradesCount = planChanges?.downgrades ?? 0;
+
     // Top paying customers — aggregate paid amount by customer
     const payByCustomer: Record<string, { name: string; email: string; paid: number; plan: string }> = {};
-    allInvoices.forEach((inv) => {
+    adminInvoices.forEach((inv: any) => {
       if (!inv.customerId) return;
       if (!payByCustomer[inv.customerId]) {
         payByCustomer[inv.customerId] = {
@@ -242,27 +268,36 @@ const SuperAdminBillingWidgets = () => {
       .slice(0, 5);
 
     // Highest usage — by usersCount
-    const topUsage = [...subscriptions]
-      .sort((a, b) => (b.usersCount ?? 0) - (a.usersCount ?? 0))
+    const topUsage = [...adminSubscriptions]
+      .sort((a: any, b: any) => (b.usersCount ?? 0) - (a.usersCount ?? 0))
       .slice(0, 5);
 
     // Fastest growing — most recently created active subs
-    const fastestGrowing = [...subscriptions]
-      .filter((s) => s.status.toUpperCase() === "ACTIVE")
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const fastestGrowing = [...adminSubscriptions]
+      .filter((s: any) => s.status.toUpperCase() === "ACTIVE")
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
 
     return {
       mrr, activePayingUsers, totalRevenueMTD, arpu,
       totalUsers, totalDialsMTD, newSubs, avgCallsPerAccount,
       successfulPayments, failedCount: failedPayments.length, pastDueCount, upcomingChargesCount,
-      cancellationsCount, inactiveSubs: inactiveSubs.length, churnRate, accountsAtRisk,
+      cancellationsCount, churnRate, accountsAtRisk,
+      upgradesCount, downgradesCount,
       topPaying, topUsage, fastestGrowing,
-      canceledSubs, inactiveSubsList: inactiveSubs,
+      canceledSubs,
+      inactiveSubs: adminSubscriptions.filter(
+        (s: any) => s.status.toUpperCase() === "CANCELLED" || s.status.toUpperCase() === "EXPIRED"
+      ).length,
     };
-  }, [businessOverview, userOverview, dashboardSummaryStats, subscriptions, allInvoices, failedPayments, upcomingRenewals]);
+  }, [
+    businessOverview, userOverview, dashboardSummaryStats,
+    adminSubscriptions, adminInvoices, failedPayments, upcomingRenewals, planChanges,
+  ]);
 
-  const anyLoading = statsLoading || reportsLoading || subLoading || allInvoicesLoading || failedPaymentsLoading || upcomingRenewalsLoading;
+  const anyLoading =
+    statsLoading || reportsLoading || adminInvoicesLoading || adminSubscriptionsLoading ||
+    failedPaymentsLoading || upcomingRenewalsLoading;
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -270,7 +305,6 @@ const SuperAdminBillingWidgets = () => {
       {/* Row 1: Revenue Overview + User Activity */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
-        {/* Revenue Overview */}
         <SectionCard title="Revenue Overview" icon={<MdOutlineAttachMoney />} loading={statsLoading || reportsLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
@@ -282,7 +316,7 @@ const SuperAdminBillingWidgets = () => {
             <MetricCard
               label="Total Revenue (MTD)"
               value={fmtUSD(metrics.totalRevenueMTD)}
-              sub={`+${dashboardSummaryStats?.totalRevenue?.changePercent ?? 0}% from last month`}
+              sub={`${dashboardSummaryStats?.totalRevenue?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.totalRevenue?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="blue"
             />
@@ -301,7 +335,6 @@ const SuperAdminBillingWidgets = () => {
           </div>
         </SectionCard>
 
-        {/* User Activity */}
         <SectionCard title="User Activity" icon={<MdOutlinePeopleAlt />} loading={reportsLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
@@ -313,7 +346,7 @@ const SuperAdminBillingWidgets = () => {
             <MetricCard
               label="New Signups (MTD)"
               value={fmt(metrics.newSubs)}
-              sub={`+${dashboardSummaryStats?.newSignups?.changePercent ?? 0}% from last month`}
+              sub={`${dashboardSummaryStats?.newSignups?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.newSignups?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="green"
             />
@@ -336,27 +369,44 @@ const SuperAdminBillingWidgets = () => {
       {/* Row 2: Usage Performance + Billing Status */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
-        {/* Usage Performance */}
-        <SectionCard title="Usage Performance" icon={<MdOutlinePhoneInTalk />} loading={statsLoading}>
+        <SectionCard title="Usage Performance" icon={<MdOutlinePhoneInTalk />} loading={statsLoading || connectionsLoading || appointmentsLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
               label="Total Dials (MTD)"
               value={fmt(metrics.totalDialsMTD)}
-              sub={`+${dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? 0}% from last month`}
+              sub={`${dashboardSummaryStats?.totalCallsProcessed?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="blue"
             />
             <MetricCard
-              label="Total Connections"
-              value="—"
-              sub="Coming soon"
-              highlight="neutral"
+              label="Total Connections (MTD)"
+              value={fmt(totalConnections?.current ?? 0)}
+              sub={
+                totalConnections
+                  ? `${calcChange(totalConnections.current, totalConnections.previous)} from last month`
+                  : "Answered calls"
+              }
+              trend={
+                totalConnections && totalConnections.current >= totalConnections.previous
+                  ? "up"
+                  : "down"
+              }
+              highlight="green"
             />
             <MetricCard
-              label="Appointments Set"
-              value="—"
-              sub="Coming soon"
-              highlight="neutral"
+              label="Appointments Set (MTD)"
+              value={fmt(appointmentsSet?.current ?? 0)}
+              sub={
+                appointmentsSet
+                  ? `${calcChange(appointmentsSet.current, appointmentsSet.previous)} from last month`
+                  : "Calendar appointments"
+              }
+              trend={
+                appointmentsSet && appointmentsSet.current >= appointmentsSet.previous
+                  ? "up"
+                  : "down"
+              }
+              highlight="yellow"
             />
             <MetricCard
               label="Avg Calls per Account"
@@ -367,8 +417,7 @@ const SuperAdminBillingWidgets = () => {
           </div>
         </SectionCard>
 
-        {/* Billing Status */}
-        <SectionCard title="Billing Status" icon={<MdOutlineCreditCard />} loading={allInvoicesLoading || failedPaymentsLoading || upcomingRenewalsLoading}>
+        <SectionCard title="Billing Status" icon={<MdOutlineCreditCard />} loading={adminInvoicesLoading || failedPaymentsLoading || upcomingRenewalsLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
               label="Successful Payments"
@@ -402,8 +451,7 @@ const SuperAdminBillingWidgets = () => {
       {/* Row 3: Subscription Changes + Churn & Risk */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
 
-        {/* Subscription Changes */}
-        <SectionCard title="Subscription Changes" icon={<MdOutlineSwapHoriz />} loading={subLoading}>
+        <SectionCard title="Subscription Changes" icon={<MdOutlineSwapHoriz />} loading={adminSubscriptionsLoading || planChangesLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
               label="New Subscriptions"
@@ -413,16 +461,18 @@ const SuperAdminBillingWidgets = () => {
               highlight="green"
             />
             <MetricCard
-              label="Upgrades"
-              value="—"
-              sub="Coming soon"
-              highlight="neutral"
+              label="Upgrades (30d)"
+              value={fmt(metrics.upgradesCount)}
+              sub={metrics.upgradesCount > 0 ? "Plan upgrades" : "None this period"}
+              trend={metrics.upgradesCount > 0 ? "up" : undefined}
+              highlight={metrics.upgradesCount > 0 ? "green" : "neutral"}
             />
             <MetricCard
-              label="Downgrades"
-              value="—"
-              sub="Coming soon"
-              highlight="neutral"
+              label="Downgrades (30d)"
+              value={fmt(metrics.downgradesCount)}
+              sub={metrics.downgradesCount > 0 ? "Plan downgrades" : "None this period"}
+              trend={metrics.downgradesCount > 0 ? "down" : undefined}
+              highlight={metrics.downgradesCount > 0 ? "yellow" : "neutral"}
             />
             <MetricCard
               label="Cancellations"
@@ -434,20 +484,19 @@ const SuperAdminBillingWidgets = () => {
           </div>
         </SectionCard>
 
-        {/* Churn & Risk */}
-        <SectionCard title="Churn & Risk" icon={<MdOutlineWarningAmber />} loading={subLoading}>
+        <SectionCard title="Churn & Risk" icon={<MdOutlineWarningAmber />} loading={adminSubscriptionsLoading || avgDaysLoading}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <MetricCard
               label="Churn Rate"
               value={pct(metrics.churnRate)}
-              sub="Canceled ÷ total subs"
+              sub="Canceled ÷ total subs (30d)"
               trend={metrics.churnRate > 5 ? "down" : undefined}
               highlight={metrics.churnRate > 5 ? "red" : "green"}
             />
             <MetricCard
               label="Inactive Paying Users"
               value={fmt(metrics.inactiveSubs)}
-              sub="Inactive / past due subs"
+              sub="Canceled / expired subs"
               highlight={metrics.inactiveSubs > 0 ? "yellow" : "green"}
             />
             <MetricCard
@@ -457,20 +506,25 @@ const SuperAdminBillingWidgets = () => {
               highlight={metrics.accountsAtRisk > 0 ? "red" : "green"}
             />
             <MetricCard
-              label="Avg Days Since Active"
-              value="—"
-              sub="Coming soon"
-              highlight="neutral"
+              label="Avg Days Since Login"
+              value={avgDaysSinceActive !== null ? `${avgDaysSinceActive}d` : "—"}
+              sub="Across all admin accounts"
+              highlight={
+                avgDaysSinceActive === null
+                  ? "neutral"
+                  : avgDaysSinceActive > 14
+                  ? "yellow"
+                  : "green"
+              }
             />
           </div>
         </SectionCard>
       </div>
 
-      {/* Row 4: Top Accounts (full width, 3 columns) */}
-      <SectionCard title="Top Accounts" icon={<MdOutlineLeaderboard />} loading={allInvoicesLoading || subLoading}>
+      {/* Row 4: Top Accounts */}
+      <SectionCard title="Top Accounts" icon={<MdOutlineLeaderboard />} loading={adminInvoicesLoading || adminSubscriptionsLoading}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Top Paying */}
           <div>
             <p className="text-[12px] font-[600] text-[#898989] dark:text-gray-400 uppercase tracking-wider mb-3">
               Top Paying Customers
@@ -491,7 +545,6 @@ const SuperAdminBillingWidgets = () => {
             )}
           </div>
 
-          {/* Highest Usage */}
           <div>
             <p className="text-[12px] font-[600] text-[#898989] dark:text-gray-400 uppercase tracking-wider mb-3">
               Highest Usage
@@ -499,7 +552,7 @@ const SuperAdminBillingWidgets = () => {
             {metrics.topUsage.length === 0 ? (
               <p className="text-[13px] text-[#898989] dark:text-gray-400">No data yet</p>
             ) : (
-              metrics.topUsage.map((s, i) => (
+              metrics.topUsage.map((s: any, i: number) => (
                 <TopRow
                   key={s.id}
                   rank={i + 1}
@@ -512,7 +565,6 @@ const SuperAdminBillingWidgets = () => {
             )}
           </div>
 
-          {/* Fastest Growing */}
           <div>
             <p className="text-[12px] font-[600] text-[#898989] dark:text-gray-400 uppercase tracking-wider mb-3">
               Fastest Growing
@@ -520,7 +572,7 @@ const SuperAdminBillingWidgets = () => {
             {metrics.fastestGrowing.length === 0 ? (
               <p className="text-[13px] text-[#898989] dark:text-gray-400">No data yet</p>
             ) : (
-              metrics.fastestGrowing.map((s, i) => (
+              metrics.fastestGrowing.map((s: any, i: number) => (
                 <TopRow
                   key={s.id}
                   rank={i + 1}
@@ -535,11 +587,10 @@ const SuperAdminBillingWidgets = () => {
         </div>
       </SectionCard>
 
-      {/* Row 5: Billing Alerts (full width, 4 columns) */}
+      {/* Row 5: Billing Alerts */}
       <SectionCard title="Billing Alerts" icon={<MdOutlineNotificationsActive />} loading={anyLoading}>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-          {/* Failed Payments */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
               <TbAlertTriangle className="text-red-500 text-sm" />
@@ -563,7 +614,6 @@ const SuperAdminBillingWidgets = () => {
             )}
           </div>
 
-          {/* Past Due */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
               <TbAlertTriangle className="text-yellow-500 text-sm" />
@@ -571,13 +621,13 @@ const SuperAdminBillingWidgets = () => {
                 Past Due ({metrics.pastDueCount})
               </p>
             </div>
-            {allInvoices.filter((inv) => inv.status === "open" || inv.status === "past_due").length === 0 ? (
+            {adminInvoices.filter((inv: any) => inv.status === "open" || inv.status === "past_due").length === 0 ? (
               <p className="text-[13px] text-[#898989] dark:text-gray-400">None</p>
             ) : (
-              allInvoices
-                .filter((inv) => inv.status === "open" || inv.status === "past_due")
+              adminInvoices
+                .filter((inv: any) => inv.status === "open" || inv.status === "past_due")
                 .slice(0, 4)
-                .map((inv) => (
+                .map((inv: any) => (
                   <AlertRow
                     key={inv.id}
                     name={inv.customerName ?? "Unknown"}
@@ -590,7 +640,6 @@ const SuperAdminBillingWidgets = () => {
             )}
           </div>
 
-          {/* Recently Canceled */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
               <TbAlertTriangle className="text-orange-500 text-sm" />
@@ -601,7 +650,7 @@ const SuperAdminBillingWidgets = () => {
             {metrics.canceledSubs.length === 0 ? (
               <p className="text-[13px] text-[#898989] dark:text-gray-400">None</p>
             ) : (
-              metrics.canceledSubs.slice(0, 4).map((s) => (
+              metrics.canceledSubs.slice(0, 4).map((s: any) => (
                 <AlertRow
                   key={s.id}
                   name={s.user?.fullName ?? "Unknown"}
@@ -614,30 +663,30 @@ const SuperAdminBillingWidgets = () => {
             )}
           </div>
 
-          {/* High-Value at Risk */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
               <TbAlertTriangle className="text-purple-500 text-sm" />
               <p className="text-[12px] font-[600] text-purple-500 uppercase tracking-wider">
-                High-Value at Risk ({failedPayments.filter((fp) => parseFloat(fp.amount ?? "0") >= 50).length})
+                Plan Changes ({(planChanges?.upgrades ?? 0) + (planChanges?.downgrades ?? 0)})
               </p>
             </div>
-            {failedPayments.filter((fp) => parseFloat(fp.amount ?? "0") >= 50).length === 0 ? (
-              <p className="text-[13px] text-[#898989] dark:text-gray-400">None</p>
+            {(planChanges?.recent?.length ?? 0) === 0 ? (
+              <p className="text-[13px] text-[#898989] dark:text-gray-400">None in last 30 days</p>
             ) : (
-              failedPayments
-                .filter((fp) => parseFloat(fp.amount ?? "0") >= 50)
-                .slice(0, 4)
-                .map((fp) => (
-                  <AlertRow
-                    key={fp.id}
-                    name={fp.user?.fullName ?? "Unknown"}
-                    email={fp.user?.email ?? "—"}
-                    badge="At Risk"
-                    badgeColor="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
-                    amount={fp.amount ? fmtUSD(parseFloat(fp.amount) * 100) : undefined}
-                  />
-                ))
+              planChanges!.recent.slice(0, 4).map((pc) => (
+                <AlertRow
+                  key={pc.id}
+                  name={pc.user?.fullName ?? "Unknown"}
+                  email={pc.user?.email ?? "—"}
+                  badge={pc.changeType}
+                  badgeColor={
+                    pc.changeType === "UPGRADE"
+                      ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  }
+                  amount={`$${pc.fromAmount} → $${pc.toAmount}`}
+                />
+              ))
             )}
           </div>
         </div>

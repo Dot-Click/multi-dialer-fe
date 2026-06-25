@@ -74,6 +74,24 @@ export interface DashboardSummaryStats {
   totalCallsProcessed: StatItem;
 }
 
+export interface PlanChangeRecord {
+  id: string;
+  userId: string;
+  fromPlan: string;
+  toPlan: string;
+  fromAmount: number;
+  toAmount: number;
+  changeType: "UPGRADE" | "DOWNGRADE";
+  changedAt: string;
+  user: { fullName: string | null; email: string } | null;
+}
+
+export interface PlanChangesData {
+  upgrades: number;
+  downgrades: number;
+  recent: PlanChangeRecord[];
+}
+
 interface ReportsState {
   userOverview: UserOverviewData | null;
   businessOverview: BusinessOverviewData | null;
@@ -86,6 +104,14 @@ interface ReportsState {
   revenueGrowth: RevenueGrowthData | null;
   revenuePlans: RevenuePlan[];
   dashboardSummaryStats: DashboardSummaryStats | null;
+  // new metrics
+  totalConnections: { current: number; previous: number } | null;
+  appointmentsSet: { current: number; previous: number } | null;
+  avgDaysSinceActive: number | null;
+  planChanges: PlanChangesData | null;
+  adminInvoices: any[];
+  adminSubscriptions: any[];
+  // loading flags
   loading: boolean;
   chartLoading: boolean;
   alertsLoading: boolean;
@@ -94,6 +120,12 @@ interface ReportsState {
   billingLoading: boolean;
   revenueLoading: boolean;
   statsLoading: boolean;
+  connectionsLoading: boolean;
+  appointmentsLoading: boolean;
+  avgDaysLoading: boolean;
+  planChangesLoading: boolean;
+  adminInvoicesLoading: boolean;
+  adminSubscriptionsLoading: boolean;
   error: string | null;
 }
 
@@ -109,6 +141,12 @@ const initialState: ReportsState = {
   revenueGrowth: null,
   revenuePlans: [],
   dashboardSummaryStats: null,
+  totalConnections: null,
+  appointmentsSet: null,
+  avgDaysSinceActive: null,
+  planChanges: null,
+  adminInvoices: [],
+  adminSubscriptions: [],
   loading: false,
   chartLoading: false,
   alertsLoading: false,
@@ -117,6 +155,12 @@ const initialState: ReportsState = {
   billingLoading: false,
   revenueLoading: false,
   statsLoading: false,
+  connectionsLoading: false,
+  appointmentsLoading: false,
+  avgDaysLoading: false,
+  planChangesLoading: false,
+  adminInvoicesLoading: false,
+  adminSubscriptionsLoading: false,
   error: null,
 };
 
@@ -300,6 +344,78 @@ export const getDashboardSummaryStats = createAsyncThunk(
   },
 );
 
+export const getTotalConnections = createAsyncThunk(
+  "reports/getTotalConnections",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/total-connections");
+      return response.data?.data as { current: number; previous: number };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const getAppointmentsSet = createAsyncThunk(
+  "reports/getAppointmentsSet",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/appointments-set");
+      return response.data?.data as { current: number; previous: number };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const getAvgDaysSinceActive = createAsyncThunk(
+  "reports/getAvgDaysSinceActive",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/avg-days-since-active");
+      return response.data?.data?.value as number | null;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const getPlanChanges = createAsyncThunk(
+  "reports/getPlanChanges",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/plan-changes");
+      return response.data?.data as import("./reportsSlice").PlanChangesData;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const fetchAdminInvoices = createAsyncThunk(
+  "reports/fetchAdminInvoices",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/billing/invoices/admin-all");
+      return response.data?.data?.invoices ?? [];
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const fetchAdminSubscriptions = createAsyncThunk(
+  "reports/fetchAdminSubscriptions",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/billing/subscriptions/all");
+      return response.data?.data ?? [];
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
 export const reportsSlice = createSlice({
   name: "reports",
   initialState,
@@ -443,6 +559,48 @@ export const reportsSlice = createSlice({
       state.statsLoading = false;
       state.error = action.payload as string;
     });
+
+    builder.addCase(getTotalConnections.pending, (state) => { state.connectionsLoading = true; });
+    builder.addCase(getTotalConnections.fulfilled, (state, action) => {
+      state.connectionsLoading = false;
+      state.totalConnections = action.payload ?? null;
+    });
+    builder.addCase(getTotalConnections.rejected, (state) => { state.connectionsLoading = false; });
+
+    builder.addCase(getAppointmentsSet.pending, (state) => { state.appointmentsLoading = true; });
+    builder.addCase(getAppointmentsSet.fulfilled, (state, action) => {
+      state.appointmentsLoading = false;
+      state.appointmentsSet = action.payload ?? null;
+    });
+    builder.addCase(getAppointmentsSet.rejected, (state) => { state.appointmentsLoading = false; });
+
+    builder.addCase(getAvgDaysSinceActive.pending, (state) => { state.avgDaysLoading = true; });
+    builder.addCase(getAvgDaysSinceActive.fulfilled, (state, action) => {
+      state.avgDaysLoading = false;
+      state.avgDaysSinceActive = action.payload ?? null;
+    });
+    builder.addCase(getAvgDaysSinceActive.rejected, (state) => { state.avgDaysLoading = false; });
+
+    builder.addCase(getPlanChanges.pending, (state) => { state.planChangesLoading = true; });
+    builder.addCase(getPlanChanges.fulfilled, (state, action) => {
+      state.planChangesLoading = false;
+      state.planChanges = action.payload ?? null;
+    });
+    builder.addCase(getPlanChanges.rejected, (state) => { state.planChangesLoading = false; });
+
+    builder.addCase(fetchAdminInvoices.pending, (state) => { state.adminInvoicesLoading = true; });
+    builder.addCase(fetchAdminInvoices.fulfilled, (state, action) => {
+      state.adminInvoicesLoading = false;
+      state.adminInvoices = action.payload;
+    });
+    builder.addCase(fetchAdminInvoices.rejected, (state) => { state.adminInvoicesLoading = false; });
+
+    builder.addCase(fetchAdminSubscriptions.pending, (state) => { state.adminSubscriptionsLoading = true; });
+    builder.addCase(fetchAdminSubscriptions.fulfilled, (state, action) => {
+      state.adminSubscriptionsLoading = false;
+      state.adminSubscriptions = action.payload;
+    });
+    builder.addCase(fetchAdminSubscriptions.rejected, (state) => { state.adminSubscriptionsLoading = false; });
   },
 });
 
