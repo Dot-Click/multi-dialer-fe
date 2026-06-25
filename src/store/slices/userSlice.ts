@@ -72,6 +72,18 @@ export const updateUser = createAsyncThunk(
   },
 );
 
+export const setUserPassword = createAsyncThunk(
+  "user/setUserPassword",
+  async ({ id, password }: { id: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/user/${id}/password`, { password });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || "Failed to update password");
+    }
+  },
+);
+
 export const updateUserSubscription = createAsyncThunk(
   "user/updateUserSubscription",
   async ({ id, planId }: { id: string; planId: string }, { rejectWithValue }) => {

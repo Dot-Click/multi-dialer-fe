@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import downarrow from "@/assets/downarrow.png";
-import { updateUser, updateUserSubscription } from "@/store/slices/userSlice";
+import { updateUser, setUserPassword, updateUserSubscription } from "@/store/slices/userSlice";
 import { fetchPlans, type Plan } from "@/store/slices/subscriptionSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import toast from "react-hot-toast";
@@ -89,18 +89,26 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
     if (newPassword && newPassword.length < 8) { setLocalError("Password must be at least 8 characters"); return; }
 
     try {
-      const data: Record<string, string> = {
-        fullName: fullName.trim(),
-        email: email.trim(),
-        role: selectedRole.toUpperCase(),
-        status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
-      };
-      if (newPassword) data.password = newPassword;
-
-      const result = await dispatch(updateUser({ id: user!.id, data }));
+      const result = await dispatch(updateUser({
+        id: user!.id,
+        data: {
+          fullName: fullName.trim(),
+          email: email.trim(),
+          role: selectedRole.toUpperCase(),
+          status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
+        },
+      }));
 
       if (updateUser.fulfilled.match(result)) {
-        // Also update subscription plan if admin selected one
+        // Change password via dedicated endpoint if provided
+        if (newPassword) {
+          const pwResult = await dispatch(setUserPassword({ id: user!.id, password: newPassword }));
+          if (setUserPassword.rejected.match(pwResult)) {
+            toast.error((pwResult.payload as string) || "Failed to update password");
+            return;
+          }
+        }
+        // Update subscription plan if changed
         if (selectedPlanId) {
           const subResult = await dispatch(updateUserSubscription({ id: user!.id, planId: selectedPlanId }));
           if (updateUserSubscription.rejected.match(subResult)) {
