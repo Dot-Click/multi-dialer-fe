@@ -226,6 +226,7 @@ const Billing = () => {
         toast.success(res.data.message || "Subscription updated successfully.");
         setShowUpgradeModal(false);
         dispatch(fetchSubscriptions());
+        loadInvoices();
       } else {
         toast.error(res.data.message || "Failed to update subscription");
       }
