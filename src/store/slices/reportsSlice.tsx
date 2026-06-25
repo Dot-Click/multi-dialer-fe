@@ -111,6 +111,8 @@ interface ReportsState {
   planChanges: PlanChangesData | null;
   adminInvoices: any[];
   adminSubscriptions: any[];
+  activeUsers: { dau: number; wau: number } | null;
+  callStats: { total: number; completed: number; failed: number; successRate: number; failedRate: number; callsToday: number } | null;
   // loading flags
   loading: boolean;
   chartLoading: boolean;
@@ -126,6 +128,8 @@ interface ReportsState {
   planChangesLoading: boolean;
   adminInvoicesLoading: boolean;
   adminSubscriptionsLoading: boolean;
+  activeUsersLoading: boolean;
+  callStatsLoading: boolean;
   error: string | null;
 }
 
@@ -147,6 +151,8 @@ const initialState: ReportsState = {
   planChanges: null,
   adminInvoices: [],
   adminSubscriptions: [],
+  activeUsers: null,
+  callStats: null,
   loading: false,
   chartLoading: false,
   alertsLoading: false,
@@ -161,6 +167,8 @@ const initialState: ReportsState = {
   planChangesLoading: false,
   adminInvoicesLoading: false,
   adminSubscriptionsLoading: false,
+  activeUsersLoading: false,
+  callStatsLoading: false,
   error: null,
 };
 
@@ -392,6 +400,30 @@ export const getPlanChanges = createAsyncThunk(
   },
 );
 
+export const getActiveUsers = createAsyncThunk(
+  "reports/getActiveUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/active-users");
+      return response.data?.data as { dau: number; wau: number };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
+export const getCallStats = createAsyncThunk(
+  "reports/getCallStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/report/call-stats");
+      return response.data?.data as { total: number; completed: number; failed: number; successRate: number; failedRate: number; callsToday: number };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  },
+);
+
 export const fetchAdminInvoices = createAsyncThunk(
   "reports/fetchAdminInvoices",
   async (_, { rejectWithValue }) => {
@@ -601,6 +633,20 @@ export const reportsSlice = createSlice({
       state.adminSubscriptions = action.payload;
     });
     builder.addCase(fetchAdminSubscriptions.rejected, (state) => { state.adminSubscriptionsLoading = false; });
+
+    builder.addCase(getActiveUsers.pending, (state) => { state.activeUsersLoading = true; });
+    builder.addCase(getActiveUsers.fulfilled, (state, action) => {
+      state.activeUsersLoading = false;
+      state.activeUsers = action.payload ?? null;
+    });
+    builder.addCase(getActiveUsers.rejected, (state) => { state.activeUsersLoading = false; });
+
+    builder.addCase(getCallStats.pending, (state) => { state.callStatsLoading = true; });
+    builder.addCase(getCallStats.fulfilled, (state, action) => {
+      state.callStatsLoading = false;
+      state.callStats = action.payload ?? null;
+    });
+    builder.addCase(getCallStats.rejected, (state) => { state.callStatsLoading = false; });
   },
 });
 

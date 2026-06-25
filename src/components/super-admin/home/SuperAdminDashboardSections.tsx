@@ -16,6 +16,9 @@ import {
   getDashboardSummaryStats,
   getDashboardAlerts,
   getRevenueGrowth,
+  getTotalConnections,
+  getActiveUsers,
+  getCallStats,
 } from "@/store/slices/reportsSlice";
 import {
   fetchSubscriptions,
@@ -275,6 +278,9 @@ const SuperAdminDashboardSections = () => {
     alerts,
     subscriptionStatus,
     revenueGrowth,
+    totalConnections,
+    activeUsers,
+    callStats,
     alertsLoading,
     statsLoading,
     loading: reportsLoading,
@@ -290,6 +296,9 @@ const SuperAdminDashboardSections = () => {
     dispatch(getDashboardSummaryStats());
     dispatch(getDashboardAlerts());
     dispatch(getRevenueGrowth());
+    dispatch(getTotalConnections());
+    dispatch(getActiveUsers());
+    dispatch(getCallStats());
     dispatch(fetchSubscriptions());
     dispatch(fetchFailedPayments());
   }, [dispatch]);
@@ -414,13 +423,13 @@ const SuperAdminDashboardSections = () => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-[#F8F8F8] dark:bg-slate-900 rounded-[12px] px-4 py-3">
               <p className="text-[11px] text-[#898989] dark:text-gray-400 mb-1">Daily Active Users</p>
-              <p className="text-[22px] font-[700] text-[#0E1011] dark:text-white">—</p>
-              <p className="text-[10px] text-[#898989] dark:text-gray-500 mt-0.5">Coming soon</p>
+              <p className="text-[22px] font-[700] text-[#0E1011] dark:text-white">{fmt(activeUsers?.dau ?? 0)}</p>
+              <p className="text-[10px] text-[#898989] dark:text-gray-500 mt-0.5">Logged in today</p>
             </div>
             <div className="bg-[#F8F8F8] dark:bg-slate-900 rounded-[12px] px-4 py-3">
               <p className="text-[11px] text-[#898989] dark:text-gray-400 mb-1">Weekly Active Users</p>
-              <p className="text-[22px] font-[700] text-[#0E1011] dark:text-white">—</p>
-              <p className="text-[10px] text-[#898989] dark:text-gray-500 mt-0.5">Coming soon</p>
+              <p className="text-[22px] font-[700] text-[#0E1011] dark:text-white">{fmt(activeUsers?.wau ?? 0)}</p>
+              <p className="text-[10px] text-[#898989] dark:text-gray-500 mt-0.5">Logged in last 7 days</p>
             </div>
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-[12px] px-4 py-3">
               <p className="text-[11px] text-[#898989] dark:text-gray-400 mb-1">Inactive Accounts (at risk)</p>
@@ -466,7 +475,7 @@ const SuperAdminDashboardSections = () => {
           />
           <UsageStat
             label="Total Connections"
-            value="—"
+            value={fmt(totalConnections?.current ?? 0)}
             icon={<MdTrendingUp />}
           />
           <UsageStat
@@ -530,15 +539,23 @@ const SuperAdminDashboardSections = () => {
             />
             <AlertItem
               icon={<TbAlertTriangle className="text-blue-500" />}
-              label="System Errors"
-              value="0"
-              severity="ok"
+              label="New Signups (MTD)"
+              value={fmt(derived.newSignups)}
+              severity="info"
             />
             <AlertItem
               icon={<TbAlertTriangle className="text-purple-500" />}
-              label="Usage Drops"
-              value="—"
-              severity="info"
+              label="Call Volume Change"
+              value={(() => {
+                const pct = dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? null;
+                if (pct === null) return "—";
+                return `${pct >= 0 ? "+" : ""}${pct}%`;
+              })()}
+              severity={(() => {
+                const pct = dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? null;
+                if (pct === null) return "info";
+                return pct < -10 ? "warn" : pct >= 0 ? "ok" : "info";
+              })()}
             />
           </div>
         </Card>
@@ -550,14 +567,21 @@ const SuperAdminDashboardSections = () => {
             title="System Health"
             sub="Is the platform working?"
           />
-          <HealthRow label="Call Success Rate" value="—" ok={null} />
-          <HealthRow label="Failed Calls %" value="—" ok={null} />
-          <HealthRow label="API Uptime" value="—" ok={null} />
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-[12px]">
-            <p className="text-[12px] text-blue-700 dark:text-blue-400 font-[500]">
-              System health metrics require platform monitoring integration. These will populate once connected.
-            </p>
-          </div>
+          <HealthRow
+            label="Call Success Rate"
+            value={callStats ? `${callStats.successRate}%` : "—"}
+            ok={callStats ? callStats.successRate >= 80 : null}
+          />
+          <HealthRow
+            label="Failed Calls %"
+            value={callStats ? `${callStats.failedRate}%` : "—"}
+            ok={callStats ? callStats.failedRate < 10 : null}
+          />
+          <HealthRow
+            label="Calls Today"
+            value={callStats ? fmt(callStats.callsToday) : "—"}
+            ok={callStats ? callStats.callsToday > 0 : null}
+          />
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-[12px] px-4 py-3 text-center">
               <p className="text-[11px] text-[#898989] dark:text-gray-400">Active Subscriptions</p>
