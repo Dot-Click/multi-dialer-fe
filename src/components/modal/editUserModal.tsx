@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import downarrow from "@/assets/downarrow.png";
 import { updateUser, updateUserSubscription } from "@/store/slices/userSlice";
 import { fetchPlans, type Plan } from "@/store/slices/subscriptionSlice";
@@ -34,6 +35,8 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
   const [selectedRole, setSelectedRole] = useState("Select Role");
   const [selectedStatus, setSelectedStatus] = useState("Select Status");
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
 
   const roleOptions = ["Agent", "Admin", "Owner"];
@@ -54,6 +57,8 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
       setSelectedRole(user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "Select Role");
       setSelectedStatus(user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1).toLowerCase().replace(/_/g, " ") : "Select Status");
       setSelectedPlanId(null);
+      setNewPassword("");
+      setShowPassword(false);
       setLocalError("");
     }
   }, [user]);
@@ -81,17 +86,18 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
     if (!email.trim()) { setLocalError("Email is required"); return; }
     if (selectedRole === "Select Role") { setLocalError("Please select a role"); return; }
     if (selectedStatus === "Select Status") { setLocalError("Please select a status"); return; }
+    if (newPassword && newPassword.length < 8) { setLocalError("Password must be at least 8 characters"); return; }
 
     try {
-      const result = await dispatch(updateUser({
-        id: user!.id,
-        data: {
-          fullName: fullName.trim(),
-          email: email.trim(),
-          role: selectedRole.toUpperCase(),
-          status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
-        },
-      }));
+      const data: Record<string, string> = {
+        fullName: fullName.trim(),
+        email: email.trim(),
+        role: selectedRole.toUpperCase(),
+        status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
+      };
+      if (newPassword) data.password = newPassword;
+
+      const result = await dispatch(updateUser({ id: user!.id, data }));
 
       if (updateUser.fulfilled.match(result)) {
         // Also update subscription plan if admin selected one
@@ -152,6 +158,29 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
               placeholder="Enter email"
               className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
             />
+          </div>
+
+          {/* New Password */}
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
+              New Password <span className="text-[10px] text-[#9CA3AF]">(leave blank to keep current)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400] flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="text-[#9CA3AF] hover:text-[#6B7280] dark:hover:text-gray-300 transition-colors shrink-0"
+              >
+                {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+              </button>
+            </div>
           </div>
 
           {/* Role Dropdown */}
