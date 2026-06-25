@@ -275,7 +275,6 @@ const SuperAdminDashboardSections = () => {
     alerts,
     subscriptionStatus,
     revenueGrowth,
-    userSubscriptions,
     alertsLoading,
     statsLoading,
     loading: reportsLoading,

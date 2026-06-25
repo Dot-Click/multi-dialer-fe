@@ -48,7 +48,7 @@ const Billing = () => {
   // null = "All Dates"; otherwise filter to that month
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
 
-  const { subscriptions, loading, error } = useAppSelector(
+  const { subscriptions } = useAppSelector(
     (state) => state.subscriptions,
   );
 
@@ -90,11 +90,6 @@ const Billing = () => {
   };
 
   const resetFilterMonth = () => setFilterMonth(null);
-
-  const formatCurrency = (amount: string | undefined) => {
-    if (!amount) return "$0";
-    return amount.startsWith("$") ? amount : `$${amount}`;
-  };
 
   const formatCents = (cents: number, currency = "usd") => {
     const dollars = cents / 100;
