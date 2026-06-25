@@ -16,12 +16,16 @@ export interface Subscription {
     billingId: string | null;
     amount?: string;
     stripeSubscriptionId?: string | null;
+    trialEnd?: string | null;
+    stripeStatus?: string | null;
     user?: {
         id: string;
         fullName: string;
         email: string;
         role: string;
         status: string;
+        trialStatus?: 'ACTIVE' | 'EXPIRED' | 'NONE';
+        isSubscribed?: boolean;
     };
 }
 

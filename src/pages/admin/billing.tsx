@@ -128,6 +128,15 @@ const Billing = () => {
     sortedSubscriptions.find((s) => s.status.toLowerCase() === "active") ||
     sortedSubscriptions[0];
 
+  // Derive trial state from the active subscription
+  const trialStatus = activeSubscription?.user?.trialStatus ?? "NONE";
+  const isTrialing =
+    trialStatus === "ACTIVE" || activeSubscription?.stripeStatus === "trialing";
+  const isTrialExpired = trialStatus === "EXPIRED";
+  const trialEnd = activeSubscription?.trialEnd
+    ? format(new Date(activeSubscription.trialEnd), "MM/dd/yyyy")
+    : null;
+
   const calculateUnitPrice = (amount: string | undefined, count: number) => {
     if (!amount || count === 0) return "0";
     const numAmount = parseFloat(amount.replace(/[^0-9.]/g, ""));
@@ -222,11 +231,23 @@ const Billing = () => {
       {/* Current Plan Details Card */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-          <Badge className="bg-yellow-100 text-yellow-800 border-0 hover:bg-yellow-100 px-3 py-1 text-xs font-medium">
-            {activeSubscription
-              ? formatPlan(activeSubscription.plan) + " Plan"
-              : "No Plan"}
-          </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className="bg-yellow-100 text-yellow-800 border-0 hover:bg-yellow-100 px-3 py-1 text-xs font-medium">
+              {activeSubscription
+                ? formatPlan(activeSubscription.plan) + " Plan"
+                : "No Plan"}
+            </Badge>
+            {isTrialing && (
+              <Badge className="bg-blue-100 text-blue-700 border-0 hover:bg-blue-100 px-3 py-1 text-xs font-medium">
+                Trial Active{trialEnd ? ` · ends ${trialEnd}` : ""}
+              </Badge>
+            )}
+            {isTrialExpired && !isTrialing && (
+              <Badge className="bg-gray-100 text-gray-600 border-0 hover:bg-gray-100 px-3 py-1 text-xs font-medium">
+                Trial Ended
+              </Badge>
+            )}
+          </div>
           <Button
             onClick={handleManageBilling}
             disabled={billingLoading}
@@ -399,7 +420,14 @@ const Billing = () => {
                         {format(new Date(inv.createdAt), "MM/dd/yyyy")}
                       </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
-                        {getStatusBadge(inv.status)}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {getStatusBadge(inv.status)}
+                          {inv.amount_paid === 0 && (
+                            <Badge className="bg-blue-100 text-blue-700 border-0 hover:bg-blue-100 rounded-full px-2 py-0.5 text-xs font-medium">
+                              Trial
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
                         <button
