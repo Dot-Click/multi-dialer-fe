@@ -25,7 +25,8 @@ import {
 import { Box } from "@/components/ui/box";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchSubscriptions, fetchPlans, Plan } from "@/store/slices/subscriptionSlice";
+import { fetchSubscriptions, fetchPlans } from "@/store/slices/subscriptionSlice";
+import type { Plan } from "@/store/slices/subscriptionSlice";
 import { format, addMonths, subMonths, addYears, startOfMonth, endOfMonth } from "date-fns";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
