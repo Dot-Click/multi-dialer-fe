@@ -22,25 +22,87 @@ import { Box } from "@/components/ui/box";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchSubscriptions } from "@/store/slices/subscriptionSlice";
-import { format, addMonths, addYears } from "date-fns";
+import { format, addMonths, subMonths, addYears, startOfMonth, endOfMonth } from "date-fns";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
 
+interface BillingInvoice {
+  id: string;
+  number: string | null;
+  plan: string;
+  amount_paid: number;
+  amount_due: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  created: string;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+}
+
 const Billing = () => {
-  // const navigate = useNavigate()
   const dispatch = useAppDispatch();
   const [billingLoading, setBillingLoading] = useState(false);
+  const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  // null = "All Dates"; otherwise filter to that month
+  const [filterMonth, setFilterMonth] = useState<Date | null>(null);
+
   const { subscriptions, loading, error } = useAppSelector(
     (state) => state.subscriptions,
   );
 
   useEffect(() => {
     dispatch(fetchSubscriptions());
+    loadInvoices();
   }, [dispatch]);
+
+  const loadInvoices = async () => {
+    setInvoicesLoading(true);
+    try {
+      const res = await api.get("/billing/invoices/all");
+      if (res.data.success) {
+        setInvoices(res.data.data.invoices ?? []);
+      }
+    } catch (err: any) {
+      console.error("[Billing] Failed to load invoices:", err);
+    } finally {
+      setInvoicesLoading(false);
+    }
+  };
+
+  const filteredInvoices = filterMonth
+    ? invoices.filter((inv) => {
+        const d = new Date(inv.createdAt);
+        return d >= startOfMonth(filterMonth) && d <= endOfMonth(filterMonth);
+      })
+    : invoices;
+
+  const filterLabel = filterMonth ? format(filterMonth, "MMM yyyy") : "All Dates";
+
+  const stepFilterMonth = (direction: "prev" | "next") => {
+    if (filterMonth === null) {
+      // Start from current month and go in the chosen direction
+      setFilterMonth(direction === "prev" ? subMonths(new Date(), 1) : new Date());
+    } else {
+      setFilterMonth(direction === "prev" ? subMonths(filterMonth, 1) : addMonths(filterMonth, 1));
+    }
+  };
+
+  const resetFilterMonth = () => setFilterMonth(null);
 
   const formatCurrency = (amount: string | undefined) => {
     if (!amount) return "$0";
     return amount.startsWith("$") ? amount : `$${amount}`;
+  };
+
+  const formatCents = (cents: number, currency = "usd") => {
+    const dollars = cents / 100;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: 2,
+    }).format(dollars);
   };
 
   const formatPlan = (plan: string) => {
@@ -91,12 +153,8 @@ const Billing = () => {
   };
 
   const calculateTotalHistoryCost = () => {
-    const total = subscriptions.reduce((sum, sub) => {
-      if (!sub.amount) return sum;
-      const numAmount = parseFloat(String(sub.amount).replace(/[^0-9.]/g, ""));
-      return sum + (isNaN(numAmount) ? 0 : numAmount);
-    }, 0);
-    return total.toString();
+    const totalCents = invoices.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0);
+    return (totalCents / 100).toFixed(2);
   };
 
   const handleManageBilling = async () => {
@@ -114,6 +172,44 @@ const Billing = () => {
     } finally {
       setBillingLoading(false);
     }
+  };
+
+  const handleDownloadInvoice = (inv: BillingInvoice) => {
+    const url = inv.invoice_pdf || inv.hosted_invoice_url;
+    if (!url) {
+      toast.error("No PDF available for this invoice.");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleExport = () => {
+    if (filteredInvoices.length === 0) {
+      toast.error("No invoices to export.");
+      return;
+    }
+
+    const headers = ["Invoice", "Plan", "Amount", "Date", "Status"];
+    const rows = filteredInvoices.map((inv) => [
+      inv.number ?? inv.id.slice(0, 12),
+      inv.plan,
+      formatCents(inv.amount_paid, inv.currency),
+      format(new Date(inv.createdAt), "MM/dd/yyyy"),
+      inv.status,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `billing-history-${filterMonth ? format(filterMonth, "yyyy-MM") : "all"}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export downloaded.");
   };
 
   return (
@@ -191,7 +287,7 @@ const Billing = () => {
                 Total cost
               </div>
               <div className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                {formatCurrency(calculateTotalHistoryCost())}
+                ${calculateTotalHistoryCost()}
               </div>
             </div>
           </div>
@@ -221,16 +317,33 @@ const Billing = () => {
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white">
               Billing History
             </h2>
-            <div className="flex items-center gap-2 px-2 sm:px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-700 w-full sm:w-auto justify-center">
-              <ChevronLeft className="size-4 text-gray-500 dark:text-gray-400" />
-              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-                &lt; All Dates &gt;
-              </span>
-              <ChevronRight className="size-4 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-center gap-2 px-2 sm:px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-700 w-full sm:w-auto justify-center">
+              <button
+                onClick={() => stepFilterMonth("prev")}
+                className="hover:text-gray-900 dark:hover:text-white text-gray-500 dark:text-gray-400 transition-colors"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <button
+                onClick={resetFilterMonth}
+                className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white min-w-[80px] text-center transition-colors"
+                title="Click to reset to All Dates"
+              >
+                {filterLabel}
+              </button>
+              <button
+                onClick={() => stepFilterMonth("next")}
+                className="hover:text-gray-900 dark:hover:text-white text-gray-500 dark:text-gray-400 transition-colors"
+                aria-label="Next month"
+              >
+                <ChevronRight className="size-4" />
+              </button>
             </div>
           </div>
           <Button
             variant="outline"
+            onClick={handleExport}
             className="rounded-md border-gray-200 dark:border-slate-700 dark:bg-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-600 w-full sm:w-auto"
           >
             <Download className="size-4" />
@@ -239,12 +352,10 @@ const Billing = () => {
         </div>
 
         <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-          {loading ? (
+          {invoicesLoading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="animate-spin size-8 text-gray-400" />
             </div>
-          ) : error ? (
-            <div className="text-center py-10 text-red-500">{error}</div>
           ) : (
             <Table>
               <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
@@ -271,32 +382,36 @@ const Billing = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {subscriptions.length > 0 ? (
-                  subscriptions.map((item) => (
+                {filteredInvoices.length > 0 ? (
+                  filteredInvoices.map((inv) => (
                     <TableRow
-                      key={item.id}
+                      key={inv.id}
                       className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50"
                     >
                       <TableCell className="px-2 sm:px-4 py-4">
                         <Checkbox className="dark:border-white" />
                       </TableCell>
                       <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                        #{item.billingId || item.id.slice(0, 8)}
+                        #{inv.number ?? inv.id.slice(0, 12)}
                       </TableCell>
                       <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base">
-                        {formatPlan(item.plan)}
+                        {formatPlan(inv.plan)}
                       </TableCell>
                       <TableCell className="text-gray-700 dark:text-gray-300 font-medium px-2 sm:px-4 py-4 text-sm sm:text-base">
-                        {formatCurrency(item.amount)}
+                        {formatCents(inv.amount_paid, inv.currency)}
                       </TableCell>
                       <TableCell className="text-gray-700 dark:text-gray-300 px-2 sm:px-4 py-4 text-sm sm:text-base whitespace-nowrap">
-                        {format(new Date(item.startDate), "MM/dd/yyyy")}
+                        {format(new Date(inv.createdAt), "MM/dd/yyyy")}
                       </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
-                        {getStatusBadge(item.status)}
+                        {getStatusBadge(inv.status)}
                       </TableCell>
                       <TableCell className="px-2 sm:px-4 py-4">
-                        <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-md transition-colors">
+                        <button
+                          onClick={() => handleDownloadInvoice(inv)}
+                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-md transition-colors"
+                          title="Download invoice PDF"
+                        >
                           <Download className="size-4 text-gray-600 dark:text-gray-400" />
                         </button>
                       </TableCell>
@@ -308,7 +423,9 @@ const Billing = () => {
                       colSpan={7}
                       className="text-center py-10 text-gray-500 dark:text-gray-400"
                     >
-                      No billing history found.
+                      {filterMonth
+                        ? `No invoices found for ${format(filterMonth, "MMMM yyyy")}.`
+                        : "No billing history found."}
                     </TableCell>
                   </TableRow>
                 )}
