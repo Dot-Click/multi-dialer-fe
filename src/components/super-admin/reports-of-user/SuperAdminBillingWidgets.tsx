@@ -316,7 +316,7 @@ const SuperAdminBillingWidgets = () => {
             <MetricCard
               label="Total Revenue (MTD)"
               value={fmtUSD(metrics.totalRevenueMTD)}
-              sub={`${dashboardSummaryStats?.totalRevenue?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.totalRevenue?.changePercent ?? 0}% from last month`}
+              sub={`${(dashboardSummaryStats?.totalRevenue?.changePercent ?? 0) >= 0 ? "+" : ""}${dashboardSummaryStats?.totalRevenue?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="blue"
             />
@@ -346,7 +346,7 @@ const SuperAdminBillingWidgets = () => {
             <MetricCard
               label="New Signups (MTD)"
               value={fmt(metrics.newSubs)}
-              sub={`${dashboardSummaryStats?.newSignups?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.newSignups?.changePercent ?? 0}% from last month`}
+              sub={`${(dashboardSummaryStats?.newSignups?.changePercent ?? 0) >= 0 ? "+" : ""}${dashboardSummaryStats?.newSignups?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="green"
             />
@@ -374,7 +374,7 @@ const SuperAdminBillingWidgets = () => {
             <MetricCard
               label="Total Dials (MTD)"
               value={fmt(metrics.totalDialsMTD)}
-              sub={`${dashboardSummaryStats?.totalCallsProcessed?.changePercent >= 0 ? "+" : ""}${dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? 0}% from last month`}
+              sub={`${(dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? 0) >= 0 ? "+" : ""}${dashboardSummaryStats?.totalCallsProcessed?.changePercent ?? 0}% from last month`}
               trend="up"
               highlight="blue"
             />
