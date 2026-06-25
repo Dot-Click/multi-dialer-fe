@@ -7,6 +7,9 @@ import {
   CreditCard,
   Loader2,
   XCircle,
+  ArrowUpCircle,
+  RefreshCw,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +25,7 @@ import {
 import { Box } from "@/components/ui/box";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchSubscriptions } from "@/store/slices/subscriptionSlice";
+import { fetchSubscriptions, fetchPlans, Plan } from "@/store/slices/subscriptionSlice";
 import { format, addMonths, subMonths, addYears, startOfMonth, endOfMonth } from "date-fns";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
@@ -48,15 +51,20 @@ const Billing = () => {
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
+  const [upgradeBillingCycle, setUpgradeBillingCycle] = useState<"monthly" | "yearly">("monthly");
   // null = "All Dates"; otherwise filter to that month
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
 
-  const { subscriptions } = useAppSelector(
+  const { subscriptions, plans } = useAppSelector(
     (state) => state.subscriptions,
   );
 
   useEffect(() => {
     dispatch(fetchSubscriptions());
+    dispatch(fetchPlans());
     loadInvoices();
   }, [dispatch]);
 
@@ -199,6 +207,34 @@ const Billing = () => {
     }
   };
 
+  const openUpgradeModal = () => {
+    // Pre-select current plan so it's highlighted
+    const currentPriceId = upgradeBillingCycle === "monthly"
+      ? (plans.find(p => p.plan === activeSubscription?.plan)?.monthlyStripePriceId ?? null)
+      : (plans.find(p => p.plan === activeSubscription?.plan)?.yearlyStripePriceId ?? null);
+    setSelectedPriceId(currentPriceId);
+    setShowUpgradeModal(true);
+  };
+
+  const handleUpgradeSubscription = async () => {
+    setUpgradeLoading(true);
+    try {
+      const body = selectedPriceId ? { newPriceId: selectedPriceId } : {};
+      const res = await api.post("/billing/subscription/upgrade", body);
+      if (res.data.success) {
+        toast.success(res.data.message || "Subscription updated successfully.");
+        setShowUpgradeModal(false);
+        dispatch(fetchSubscriptions());
+      } else {
+        toast.error(res.data.message || "Failed to update subscription");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update subscription");
+    } finally {
+      setUpgradeLoading(false);
+    }
+  };
+
   const handleDownloadInvoice = (inv: BillingInvoice) => {
     const url = inv.invoice_pdf || inv.hosted_invoice_url;
     if (!url) {
@@ -282,6 +318,26 @@ const Billing = () => {
               )}
               Manage Billing
             </Button>
+            {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
+              <Button
+                onClick={openUpgradeModal}
+                variant="outline"
+                className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+              >
+                <ArrowUpCircle className="size-4 mr-2" />
+                Upgrade Plan
+              </Button>
+            )}
+            {activeSubscription && activeSubscription.status.toLowerCase() !== "active" && (
+              <Button
+                onClick={openUpgradeModal}
+                variant="outline"
+                className="border-green-300 text-green-600 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20 rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+              >
+                <RefreshCw className="size-4 mr-2" />
+                Renew Subscription
+              </Button>
+            )}
             {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
               <Button
                 onClick={() => setShowCancelModal(true)}
@@ -491,6 +547,151 @@ const Billing = () => {
           )}
         </div>
       </div>
+      {/* Upgrade / Renew Subscription Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-[560px] rounded-2xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                {activeSubscription?.status.toLowerCase() === "active"
+                  ? <ArrowUpCircle className="size-5 text-blue-600 dark:text-blue-400" />
+                  : <RefreshCw className="size-5 text-green-600 dark:text-green-400" />
+                }
+              </div>
+              <h2 className="text-[18px] font-[600] text-gray-900 dark:text-white">
+                {activeSubscription?.status.toLowerCase() === "active" ? "Upgrade Plan" : "Renew Subscription"}
+              </h2>
+            </div>
+
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 mb-4">
+              {activeSubscription?.status.toLowerCase() === "active"
+                ? "Select a plan below. Changes take effect immediately with prorated billing."
+                : "Choose a plan to reactivate your subscription."}
+            </p>
+
+            {/* Monthly / Yearly toggle */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => {
+                  setUpgradeBillingCycle("monthly");
+                  setSelectedPriceId(null);
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                  upgradeBillingCycle === "monthly"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => {
+                  setUpgradeBillingCycle("yearly");
+                  setSelectedPriceId(null);
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                  upgradeBillingCycle === "yearly"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-slate-600"
+                }`}
+              >
+                Yearly
+                <span className="ml-1.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full">Save ~17%</span>
+              </button>
+            </div>
+
+            {/* Plan cards */}
+            <div className="grid grid-cols-1 gap-3 mb-6">
+              {plans.filter(p => p.isActive).map((plan: Plan) => {
+                const priceId = upgradeBillingCycle === "monthly"
+                  ? plan.monthlyStripePriceId
+                  : plan.yearlyStripePriceId;
+                const amount = upgradeBillingCycle === "monthly" ? plan.monthlyAmount : plan.yearlyAmount;
+                const isCurrentPlan = plan.plan === activeSubscription?.plan;
+                const isSelected = selectedPriceId === priceId;
+
+                return (
+                  <button
+                    key={plan.id}
+                    onClick={() => setSelectedPriceId(priceId ?? null)}
+                    disabled={!priceId}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700"
+                    } ${!priceId ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {plan.displayName}
+                        </span>
+                        {isCurrentPlan && (
+                          <span className="text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-0.5 rounded-full font-medium">
+                            Current
+                          </span>
+                        )}
+                        {plan.isPopular && !isCurrentPlan && (
+                          <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                            Popular
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
+                          ${amount > 0 ? amount.toFixed(0) : "—"}
+                          {amount > 0 && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/{upgradeBillingCycle === "monthly" ? "mo" : "yr"}</span>}
+                        </span>
+                        {isSelected && (
+                          <div className="p-0.5 bg-blue-500 rounded-full">
+                            <Check className="size-3.5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {plan.features.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {plan.features.slice(0, 3).map((f, i) => (
+                          <li key={i} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                            <Check className={`size-3 flex-shrink-0 ${f.enabled ? "text-green-500" : "text-gray-300"}`} />
+                            {f.text}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowUpgradeModal(false)}
+                disabled={upgradeLoading}
+                className="flex-1 rounded-xl border-gray-200 dark:border-slate-600 dark:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpgradeSubscription}
+                disabled={upgradeLoading || plans.filter(p => p.isActive).length === 0}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+              >
+                {upgradeLoading ? (
+                  <Loader2 className="size-4 animate-spin mr-2" />
+                ) : activeSubscription?.status.toLowerCase() === "active" ? (
+                  <ArrowUpCircle className="size-4 mr-2" />
+                ) : (
+                  <RefreshCw className="size-4 mr-2" />
+                )}
+                {activeSubscription?.status.toLowerCase() === "active" ? "Confirm Upgrade" : "Renew Now"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cancel Subscription Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
