@@ -6,6 +6,7 @@ import {
   Download,
   CreditCard,
   Loader2,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,8 @@ const Billing = () => {
   const [billingLoading, setBillingLoading] = useState(false);
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   // null = "All Dates"; otherwise filter to that month
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
 
@@ -178,6 +181,24 @@ const Billing = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await api.post("/billing/subscription/cancel");
+      if (res.data.success) {
+        toast.success("Subscription cancelled. You'll retain access until the end of your billing period.");
+        setShowCancelModal(false);
+        dispatch(fetchSubscriptions());
+      } else {
+        toast.error(res.data.message || "Failed to cancel subscription");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to cancel subscription");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const handleDownloadInvoice = (inv: BillingInvoice) => {
     const url = inv.invoice_pdf || inv.hosted_invoice_url;
     if (!url) {
@@ -248,18 +269,31 @@ const Billing = () => {
               </Badge>
             )}
           </div>
-          <Button
-            onClick={handleManageBilling}
-            disabled={billingLoading}
-            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:text-black rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
-          >
-            {billingLoading ? (
-              <Loader2 className="size-4 animate-spin mr-2" />
-            ) : (
-              <CreditCard className="size-4 mr-2" />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button
+              onClick={handleManageBilling}
+              disabled={billingLoading}
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 dark:text-black rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+            >
+              {billingLoading ? (
+                <Loader2 className="size-4 animate-spin mr-2" />
+              ) : (
+                <CreditCard className="size-4 mr-2" />
+              )}
+              Manage Billing
+            </Button>
+            {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
+              <Button
+                onClick={() => setShowCancelModal(true)}
+                disabled={cancelLoading}
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+              >
+                <XCircle className="size-4 mr-2" />
+                Cancel Subscription
+              </Button>
             )}
-            Manage Billing
-          </Button>
+          </div>
         </div>
 
         <div className="mb-6 sm:mb-8">
@@ -457,6 +491,52 @@ const Billing = () => {
           )}
         </div>
       </div>
+      {/* Cancel Subscription Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-[420px] rounded-2xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <XCircle className="size-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-[18px] font-[600] text-gray-900 dark:text-white">
+                Cancel Subscription
+              </h2>
+            </div>
+
+            <p className="text-[14px] text-gray-600 dark:text-gray-300 mb-2">
+              Are you sure you want to cancel your{" "}
+              <span className="font-semibold">
+                {activeSubscription ? formatPlan(activeSubscription.plan) : ""} Plan
+              </span>?
+            </p>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-6">
+              You'll keep full access until the end of your current billing period. After that, your subscription will not renew.
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelModal(false)}
+                disabled={cancelLoading}
+                className="flex-1 rounded-xl border-gray-200 dark:border-slate-600 dark:text-white"
+              >
+                Keep Subscription
+              </Button>
+              <Button
+                onClick={handleCancelSubscription}
+                disabled={cancelLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl"
+              >
+                {cancelLoading ? (
+                  <Loader2 className="size-4 animate-spin mr-2" />
+                ) : null}
+                Yes, Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Box>
   );
 };
