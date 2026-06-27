@@ -1,31 +1,11 @@
 import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
-import { FiLoader, FiX, FiCopy, FiCheck, FiExternalLink, FiTrash2, FiRefreshCw } from "react-icons/fi";
-import { toast } from "react-hot-toast";
+import { FiX, FiRefreshCw } from "react-icons/fi";
 import myplusLogo from "@/assets/myplus.png";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const MyPlusLeadsIntegration = () => {
-  const { config, isLoading, updateConfig, disconnect, syncNow } = useMyPlusLeads();
+  const { config, isLoading, syncNow } = useMyPlusLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (config?.apiKey) {
-      setApiKey(config.apiKey);
-    }
-  }, [config]);
-
-  const handleSave = () => {
-    updateConfig.mutate({ apiKey });
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success("Webhook URL copied to clipboard!");
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   if (isLoading) {
     return (

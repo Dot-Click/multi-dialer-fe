@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
-import { BsMicrosoft } from "react-icons/bs";
-import { CheckCircle, XCircle, Loader2, CalendarDays, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, CalendarDays } from "lucide-react";
 import axios from "axios";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
