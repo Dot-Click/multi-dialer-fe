@@ -3,7 +3,8 @@ import { Calendar, ConfigProvider, Modal, theme } from "antd"; // Added `theme`
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
+import { FiClipboard, FiCalendar, FiPhone, FiCheckCircle } from "react-icons/fi";
+import toast from "react-hot-toast";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -48,7 +49,17 @@ export default function CustomCalendar() {
   // Track Dark Mode to sync Ant Design with Tailwind
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const { getAllEvents } = useCalendar();
+  const { getAllEvents, updateEvent } = useCalendar();
+
+  const markComplete = async (evt: CalendarEvent) => {
+    try {
+      await updateEvent(evt.id, { status: "MET" });
+      toast.success("Event marked as completed");
+      fetchEvents();
+    } catch {
+      toast.error("Failed to update event");
+    }
+  };
 
   /* modals */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -268,6 +279,7 @@ export default function CustomCalendar() {
         <AddEventForm
           open={addOpen}
           event={selectedEvent}
+          defaultDate={selectedEvent ? undefined : selectedDate ?? undefined}
           onClose={(success) => {
             setAddOpen(false);
             setSelectedEvent(null);
@@ -296,22 +308,32 @@ export default function CustomCalendar() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-8 px-8 pb-10 pt-6">
             {getEventDataForDate(selectedDate || dayjs()).map((evt, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1f1f1f] p-2 rounded-md transition-colors"
-                onClick={() => openDetail(evt)}
-              >
+              <div key={i} className="flex items-start gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors">
                 <div
-                  className="w-1 rounded-full h-full"
+                  className="w-1 rounded-full self-stretch shrink-0"
                   style={{ backgroundColor: evt.color }}
                 />
-                <div className="flex flex-col leading-tight">
-                  <p className="text-gray-800 dark:text-[#E0E0E0] font-medium text-[15px]">
+                <div className="flex flex-col leading-tight flex-1 min-w-0">
+                  <p
+                    className={`font-medium text-[15px] cursor-pointer truncate ${evt.status === "MET" ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-[#E0E0E0]"}`}
+                    onClick={() => openDetail(evt)}
+                  >
                     {evt.title}
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 text-[13px] mt-0.5">
                     {formatEventTime(evt)}
                   </p>
+                  {evt.status !== "MET" && evt.status !== "CANCELLED" && (
+                    <button
+                      onClick={() => markComplete(evt)}
+                      className="mt-1.5 flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 hover:underline w-fit"
+                    >
+                      <FiCheckCircle size={11} /> Mark as Complete
+                    </button>
+                  )}
+                  {evt.status === "MET" && (
+                    <span className="mt-1 text-[11px] text-green-500 font-medium">Completed</span>
+                  )}
                 </div>
               </div>
             ))}

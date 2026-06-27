@@ -74,19 +74,29 @@ const SubscriptionTable = () => {
   const [invoicesSub, setInvoicesSub] = useState<Subscription | null>(null);
 
   const plans = ["All Plans", "STARTER", "PROFESSIONAL", "ENTERPRISE"];
-  const statuses = ["All Status", "ACTIVE", "EXPIRED", "PENDING"];
+  const statuses = ["All Status", "ACTIVE", "TRIAL", "CANCELLED", "EXPIRED", "PENDING"];
 
   useEffect(() => {
     dispatch(getAllSubscriptions());
   }, [dispatch]);
+
+  const getEffectiveStatus = (item: Subscription) => {
+    const isCancelled = ["CANCELLED", "CANCELED", "canceled"].includes(item.status);
+    const isOnTrial = item.user?.trialStatus === "ACTIVE" && !item.user?.isSubscribed;
+    return isOnTrial && !isCancelled ? "TRIAL" : item.status;
+  };
 
   const getPaymentStatusStyles = (status: string) => {
     switch (status.toUpperCase()) {
       case "ACTIVE":
       case "PAID":
         return "bg-[#D0FAE5] text-[#428E43]";
+      case "TRIAL":
+        return "bg-[#E0F0FF] text-[#1D6FA8]";
       case "PENDING":
         return "bg-[#FFF3C4] text-[#9A7B00]";
+      case "CANCELLED":
+        return "bg-[#F3F4F6] text-[#6B7280]";
       case "EXPIRED":
       case "OVERDUE":
         return "bg-[#FFE2E2] text-[#FB0000]";
@@ -105,8 +115,9 @@ const SubscriptionTable = () => {
     const matchesPlan =
       selectedPlan === "All Plans" || item.plan.toUpperCase() === selectedPlan.toUpperCase();
 
+    const effectiveStatus = getEffectiveStatus(item);
     const matchesStatus =
-      selectedStatus === "All Status" || item.status.toUpperCase() === selectedStatus.toUpperCase();
+      selectedStatus === "All Status" || effectiveStatus.toUpperCase() === selectedStatus.toUpperCase();
 
     return matchesSearch && matchesPlan && matchesStatus;
   });
@@ -202,10 +213,10 @@ const SubscriptionTable = () => {
                   <td className="px-5 py-4">
                     <span
                       className={`px-3 py-1 text-[13.53px] rounded-[75.17px] ${getPaymentStatusStyles(
-                        row.status,
+                        getEffectiveStatus(row),
                       )}`}
                     >
-                      {row.status}
+                      {getEffectiveStatus(row)}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">

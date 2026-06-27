@@ -68,6 +68,7 @@ const CustomSelect = ({ value, onChange, options, placeholder }: CustomSelectPro
 
 const statusStyles: Record<string, string> = {
   paid: "bg-[#D0FAE5] text-[#428E43]",
+  trial: "bg-[#E0F0FF] text-[#1D6FA8]",
   pending: "bg-[#FFF3C4] text-[#9A7B00]",
   failed: "bg-[#FFE2E2] text-[#FB0000]",
   refunded: "bg-gray-100 text-gray-500",
@@ -81,7 +82,7 @@ const CustomerInvoicesTable = () => {
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [detailInvoiceId, setDetailInvoiceId] = useState<string | null>(null);
 
-  const statuses = ["All Status", "paid", "pending", "failed", "refunded"];
+  const statuses = ["All Status", "paid", "trial", "pending", "failed", "refunded"];
 
   useEffect(() => {
     dispatch(fetchAllInvoices());
@@ -98,8 +99,9 @@ const CustomerInvoicesTable = () => {
       (inv.number || "").toLowerCase().includes(term) ||
       inv.customerId.toLowerCase().includes(term);
 
+    const effectiveStatus = inv.isOnTrial ? "trial" : (inv.status ?? "");
     const matchesStatus =
-      selectedStatus === "All Status" || (inv.status ?? "") === selectedStatus;
+      selectedStatus === "All Status" || effectiveStatus === selectedStatus;
 
     return matchesSearch && matchesStatus;
   });
@@ -210,13 +212,18 @@ const CustomerInvoicesTable = () => {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className={`px-3 py-1 text-[13.53px] rounded-[75.17px] capitalize ${
-                          statusStyles[inv.status ?? ""] ?? "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {inv.status ?? "—"}
-                      </span>
+                      {(() => {
+                        const effectiveStatus = inv.isOnTrial ? "trial" : (inv.status ?? "");
+                        return (
+                          <span
+                            className={`px-3 py-1 text-[13.53px] rounded-[75.17px] capitalize ${
+                              statusStyles[effectiveStatus] ?? "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {effectiveStatus || "—"}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                       {inv.created}

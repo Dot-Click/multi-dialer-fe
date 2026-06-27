@@ -82,6 +82,7 @@ export interface AllInvoice {
     amount_due: number;
     currency: string;
     status: string | null;
+    isOnTrial?: boolean;
     createdAt: string;
     created: string;
     hosted_invoice_url: string | null;
@@ -217,7 +218,7 @@ export const getAllSubscriptions = createAsyncThunk(
     'subscriptions/fetchAll',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/billing/subscriptions');
+            const response = await api.get('/billing/subscriptions/all');
             if (response.data.success) {
                 return response.data.data;
             } else {
@@ -420,7 +421,7 @@ export const fetchAllInvoices = createAsyncThunk(
     'subscriptions/fetchAllInvoices',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/billing/invoices/all');
+            const response = await api.get('/billing/invoices/admin-all');
             if (response.data.success) {
                 return response.data.data as { mode: 'live' | 'test'; invoices: AllInvoice[] };
             } else {

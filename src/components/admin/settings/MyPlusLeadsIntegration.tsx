@@ -91,93 +91,19 @@ const MyPlusLeadsIntegration = () => {
               <FiX size={18} className="text-gray-600 dark:text-gray-300" />
             </button>
 
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">
-              {isConnected ? "Manage MyPlusLeads" : "Connect MyPlusLeads"}
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-8">
+              Manage MyPlusLeads
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 font-medium">
-              Enable real-time lead synchronization from your MyPlusLeads account.
-            </p>
 
-            <div className="space-y-6">
-              {/* API Key Input */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">MyPlusLeads API Key</label>
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter your API Key"
-                    className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all text-sm"
-                  />
-                  <button
-                    onClick={handleSave}
-                    disabled={updateConfig.isPending || !apiKey}
-                    className="px-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-500 transition-all text-sm disabled:opacity-50"
-                  >
-                    {updateConfig.isPending ? <FiLoader className="animate-spin" /> : "Save"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Webhook Instructions */}
-              {isConnected && config?.webhookUrl && (
-                <div className="p-5 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl space-y-4">
-                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-bold text-sm">
-                    <FiExternalLink size={16} />
-                    <h3>Setup Real-time Push</h3>
-                  </div>
-
-                  <p className="text-[13px] text-blue-800 dark:text-blue-300 leading-relaxed">
-                    Paste this URL into your MyPlusLeads portal under <strong>Options {">"} Preferences {">"} Data Integrations</strong>.
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 p-3 rounded-lg font-mono text-[11px] text-gray-600 dark:text-gray-400 truncate">
-                      {config.webhookUrl}
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(config.webhookUrl)}
-                      className="p-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-all"
-                    >
-                      {copied ? <FiCheck size={18} /> : <FiCopy size={18} />}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Status & Disconnect */}
-              <div className="pt-6 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Last Sync</span>
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {config?.lastSyncAt ? new Date(config.lastSyncAt).toLocaleString() : "Never"}
-                  </span>
-                </div>
-                {isConnected && (
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => syncNow.mutate()}
-                      disabled={syncNow.isPending}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black transition-all hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <FiRefreshCw size={12} className={syncNow.isPending ? "animate-spin" : ""} />
-                      {syncNow.isPending ? "Syncing" : "Sync Now"}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to disconnect MyPlusLeads?")) {
-                          disconnect.mutate();
-                          setIsModalOpen(false);
-                        }
-                      }}
-                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
-                    >
-                      <FiTrash2 size={12} /> Disconnect
-                    </button>
-                  </div>
-                )}
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => syncNow.mutate()}
+                disabled={syncNow.isPending}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black transition-all hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <FiRefreshCw size={13} className={syncNow.isPending ? "animate-spin" : ""} />
+                {syncNow.isPending ? "Syncing..." : "Sync Now"}
+              </button>
             </div>
           </div>
         </div>

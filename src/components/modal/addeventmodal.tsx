@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Input, Radio, DatePicker } from 'antd';
+import { Input, Radio, DatePicker, TimePicker } from 'antd';
 import { IoClose } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
 import { useCalendar, type CalendarEvent, type EventType, type EventStatus, type EventCategory } from '@/hooks/useCalendar';
@@ -22,9 +22,10 @@ interface AddEventFormProps {
   defaultTitle?: string;
   defaultColor?: string;
   defaultCategory?: EventCategory;
+  defaultDate?: dayjs.Dayjs;
 }
 
-const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, contactId, leadId, defaultTitle, defaultColor, defaultCategory }) => {
+const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, contactId, leadId, defaultTitle, defaultColor, defaultCategory, defaultDate }) => {
   const { createEvent, updateEvent, loading: calendarLoading } = useCalendar();
   const { getUsers, loading: usersLoading } = useUser();
 
@@ -80,7 +81,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
           description: '',
           eventType: 'START_ONLY',
           category: defaultCategory || 'TASK',
-          startDate: null,
+          startDate: defaultDate ? defaultDate.hour(9).minute(0).second(0) : null,
           endDate: null,
           assignToId: 'None',
           color: defaultColor || eventColors[0],
@@ -88,7 +89,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
         });
       }
     }
-  }, [open, event, defaultTitle, defaultColor, defaultCategory, sessionData]);
+  }, [open, event, defaultTitle, defaultColor, defaultCategory, defaultDate, sessionData]);
 
   const handleSave = async () => {
     if (!formData.title) {
@@ -208,6 +209,11 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
           {/* Type of Event */}
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Type of event</label>
+            {defaultDate && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+                Date: <span className="font-medium text-gray-600 dark:text-gray-300">{defaultDate.format("dddd, MMMM D, YYYY")}</span>
+              </p>
+            )}
             <Radio.Group
               onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
               value={formData.eventType}
@@ -217,14 +223,25 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
                 <div>
                   <Radio value="START_ONLY" className="dark:text-white">Start Only</Radio>
                   {formData.eventType === 'START_ONLY' && (
-                    <DatePicker
-                      showTime={{ use12Hours: true, format: 'h:mm A' }}
-                      format="DD/MM/YYYY h:mm A"
-                      placeholder="DD/MM/YYYY 00:00 AM"
-                      className="w-full mt-2"
-                      value={formData.startDate}
-                      onChange={(date) => setFormData({ ...formData, startDate: date })}
-                    />
+                    defaultDate ? (
+                      <TimePicker
+                        use12Hours
+                        format="h:mm A"
+                        placeholder="Select time"
+                        className="w-full mt-2"
+                        value={formData.startDate}
+                        onChange={(time) => setFormData({ ...formData, startDate: time ? defaultDate.hour(time.hour()).minute(time.minute()).second(0) : null })}
+                      />
+                    ) : (
+                      <DatePicker
+                        showTime={{ use12Hours: true, format: 'h:mm A' }}
+                        format="DD/MM/YYYY h:mm A"
+                        placeholder="DD/MM/YYYY 00:00 AM"
+                        className="w-full mt-2"
+                        value={formData.startDate}
+                        onChange={(date) => setFormData({ ...formData, startDate: date })}
+                      />
+                    )
                   )}
                 </div>
 
@@ -232,29 +249,52 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
                   <Radio value="FROM_TO" className="dark:text-white">From - To</Radio>
                   {formData.eventType === 'FROM_TO' && (
                     <div className="mt-2 space-y-2">
-                      <DatePicker
-                        showTime={{ use12Hours: true, format: 'h:mm A' }}
-                        format="DD/MM/YYYY h:mm A"
-                        placeholder="Start Date"
-                        className="w-full"
-                        value={formData.startDate}
-                        onChange={(date) => setFormData({ ...formData, startDate: date })}
-                      />
-                      <DatePicker
-                        showTime={{ use12Hours: true, format: 'h:mm A' }}
-                        format="DD/MM/YYYY h:mm A"
-                        placeholder="End Date"
-                        className="w-full"
-                        value={formData.endDate}
-                        onChange={(date) => setFormData({ ...formData, endDate: date })}
-                      />
+                      {defaultDate ? (
+                        <>
+                          <TimePicker
+                            use12Hours
+                            format="h:mm A"
+                            placeholder="Start time"
+                            className="w-full"
+                            value={formData.startDate}
+                            onChange={(time) => setFormData({ ...formData, startDate: time ? defaultDate.hour(time.hour()).minute(time.minute()).second(0) : null })}
+                          />
+                          <TimePicker
+                            use12Hours
+                            format="h:mm A"
+                            placeholder="End time"
+                            className="w-full"
+                            value={formData.endDate}
+                            onChange={(time) => setFormData({ ...formData, endDate: time ? defaultDate.hour(time.hour()).minute(time.minute()).second(0) : null })}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <DatePicker
+                            showTime={{ use12Hours: true, format: 'h:mm A' }}
+                            format="DD/MM/YYYY h:mm A"
+                            placeholder="Start Date"
+                            className="w-full"
+                            value={formData.startDate}
+                            onChange={(date) => setFormData({ ...formData, startDate: date })}
+                          />
+                          <DatePicker
+                            showTime={{ use12Hours: true, format: 'h:mm A' }}
+                            format="DD/MM/YYYY h:mm A"
+                            placeholder="End Date"
+                            className="w-full"
+                            value={formData.endDate}
+                            onChange={(date) => setFormData({ ...formData, endDate: date })}
+                          />
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
 
                 <div>
                   <Radio value="ALL_DAY" className="dark:text-white">All Day</Radio>
-                  {formData.eventType === 'ALL_DAY' && (
+                  {formData.eventType === 'ALL_DAY' && !defaultDate && (
                     <DatePicker
                       placeholder="Select Date"
                       className="w-full mt-2"

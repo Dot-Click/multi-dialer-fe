@@ -4,6 +4,7 @@ import stanppLogo from "../../../assets/stamnp.png";
 import bombLogo from "/images/bombbomb_icon.png";
 import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
 import MyPlusLeadsIntegration from '../settings/MyPlusLeadsIntegration';
+import CalendarIntegration from './calendarintegration';
 import toast from 'react-hot-toast';
 
 interface IntegrationDef {
@@ -284,6 +285,11 @@ const Integrations: React.FC = () => {
 
         {/* MyPlusLeads Custom Integration Card */}
         <MyPlusLeadsIntegration />
+
+        {/* Calendar Integration */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <CalendarIntegration />
+        </div>
       </div>
 
       {selectedDef && (
