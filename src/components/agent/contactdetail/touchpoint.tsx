@@ -41,8 +41,8 @@ interface DirectMailFormProps {
 
 const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
   const [sending, setSending] = useState(false);
-  const [automations, setAutomations] = useState<any[]>([]);
-  const [loadingAutomations, setLoadingAutomations] = useState(false);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [form, setForm] = useState({
     recipientName: contactName || "",
     address1: "",
@@ -51,33 +51,37 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
     state: "",
     postcode: "",
     country: "US",
-    message: "",
-    automationId: "",
+    pdfUrl: "",
+    groupId: "",
   });
 
   useEffect(() => {
-    const fetchAutomations = async () => {
-      setLoadingAutomations(true);
+    const fetchGroups = async () => {
+      setLoadingGroups(true);
       try {
         const res = await api.get("/system-settings/integration/stannp/automations");
         if (res.data.success) {
-          setAutomations(res.data.data.data || []);
+          setGroups(res.data.data || []);
         }
       } catch (err) {
-        console.error("Failed to fetch Stannp automations", err);
+        console.error("Failed to fetch Stannp groups", err);
       } finally {
-        setLoadingAutomations(false);
+        setLoadingGroups(false);
       }
     };
-    fetchAutomations();
+    fetchGroups();
   }, []);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSend = async () => {
-    if (!form.address1 || !form.city || !form.state || !form.postcode || !form.recipientName) {
+    if (!form.address1 || !form.city || !form.postcode || !form.recipientName) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (!form.groupId && !form.pdfUrl) {
+      toast.error("Please provide a PDF URL or select an automation group.");
       return;
     }
     setSending(true);
@@ -88,7 +92,7 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
       });
       if (res.data.success) {
         toast.success("Direct mail sent via Stannp! 📬");
-        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", state: "", postcode: "", message: "", automationId: "" }));
+        setForm((prev) => ({ ...prev, address1: "", address2: "", city: "", state: "", postcode: "", pdfUrl: "", groupId: "" }));
       }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to send direct mail.");
@@ -202,41 +206,48 @@ const DirectMailForm = ({ contactId, contactName }: DirectMailFormProps) => {
           </select>
         </div>
 
-        {/* Stannp Automation (Group) Selection */}
+        {/* Stannp Group (Automation) Selection */}
         <div className="sm:col-span-2">
           <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-            Stannp Automation (Optional)
+            Automation Group (Optional)
           </label>
           <select
-            value={form.automationId}
-            onChange={(e) => update("automationId", e.target.value)}
+            value={form.groupId}
+            onChange={(e) => update("groupId", e.target.value)}
             className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all appearance-none cursor-pointer"
-            disabled={loadingAutomations}
+            disabled={loadingGroups}
           >
-            <option value="">{loadingAutomations ? "Loading automations..." : "Standard One-off Send"}</option>
-            {automations.map((automation) => (
-              <option key={automation.id} value={automation.id}>
-                {automation.name} ({automation.recipients} recipients)
+            <option value="">{loadingGroups ? "Loading groups..." : "Standard One-off Send"}</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name} ({g.recipients ?? 0} recipients)
               </option>
             ))}
           </select>
           <p className="text-[10px] text-gray-500 mt-1">
-            Selecting an automation will trigger a triggered campaign linked to this group in Stannp.
+            Adding to a group triggers any Stannp automation linked to it.
           </p>
         </div>
 
 
-        {/* Message */}
-        <div className="sm:col-span-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Message</label>
-          <textarea
-            value={form.message}
-            onChange={(e) => update("message", e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all resize-none"
-            placeholder="Write your personal message here..."
-          />
-        </div>
+        {/* PDF URL — only required when no group is selected */}
+        {!form.groupId && (
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+              Letter PDF URL *
+            </label>
+            <input
+              type="url"
+              value={form.pdfUrl}
+              onChange={(e) => update("pdfUrl", e.target.value)}
+              className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#FFCA06] outline-none transition-all"
+              placeholder="https://example.com/letter-template.pdf"
+            />
+            <p className="text-[10px] text-gray-500 mt-1">
+              Paste a publicly accessible PDF URL to use as the letter content.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Send Button */}
