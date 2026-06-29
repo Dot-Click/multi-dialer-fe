@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
-import { removeFromQueue } from "./contactSlice";
 
 export type DispositionColor =
     | "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray" | "pink"
@@ -97,7 +96,7 @@ export const reorderDispositions = createAsyncThunk(
 
 export const applyDisposition = createAsyncThunk(
     "dispositions/apply",
-    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue, dispatch, getState }) => {
+    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue, getState }) => {
         try {
             const response = await api.post("/system-settings/dispositions/apply", { contactId, dispositionId, overrideFolderId, source });
             if (response.data.success) {
