@@ -63,17 +63,21 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
 
     async function applyImmediate(id: string, label: string, value: string) {
         if (!currentContact?.id) return;
+        const isTrash = value.toUpperCase() === "TRASH";
         setSelectedDisp(value);
         setSavingDisp(true);
         try {
             await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
             await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
             setSavedDisp(value);
-            toast.success(`Disposition set: ${label}`);
-            try {
-                await continueAfterDisposition(value);
-            } catch (err: unknown) {
-                toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
+            toast.success(isTrash ? `Moved to Trash — select a call outcome to continue` : `Disposition set: ${label}`);
+            // Trash: stay on current contact so agent can select call outcome before advancing
+            if (!isTrash) {
+                try {
+                    await continueAfterDisposition(value);
+                } catch (err: unknown) {
+                    toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
+                }
             }
         } catch (err: any) {
             toast.error("Failed to update disposition: " + err);
@@ -96,6 +100,7 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
 
     async function handleConfirmApply() {
         if (!currentContact?.id || !pendingDisp) return;
+        const isTrash = pendingDisp.value.toUpperCase() === "TRASH";
         setSavingDisp(true);
         try {
             await dispatch(updateContact({ id: currentContact.id, payload: { disposition: pendingDisp.value } })).unwrap();
@@ -108,11 +113,17 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
             setSelectedDisp(pendingDisp.value);
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
-            toast.success(`Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`);
-            try {
-                await continueAfterDisposition(pendingDisp.value);
-            } catch (err: unknown) {
-                toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
+            toast.success(isTrash
+                ? `Moved to Trash${folderName ? ` → ${folderName}` : ""} — select a call outcome to continue`
+                : `Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`
+            );
+            // Trash: stay on current contact so agent can select call outcome before advancing
+            if (!isTrash) {
+                try {
+                    await continueAfterDisposition(pendingDisp.value);
+                } catch (err: unknown) {
+                    toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
+                }
             }
         } catch (err: any) {
             toast.error("Failed: " + err);

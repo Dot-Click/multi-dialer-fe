@@ -121,6 +121,8 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
 
     const { label, value, targetFolderId, id: dispositionId } = dispObj;
 
+    const isTrash = value.toUpperCase() === "TRASH";
+
     // If no folder action configured → apply immediately
     if (!targetFolderId) {
       setSelectedDisp(value);
@@ -128,10 +130,11 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
       try {
         await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } }));
         await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId, source: "CALL" }));
-        dispatch(removeContactById(currentContact.id));
+        // Trash: stay on current contact so agent can select call outcome first
+        if (!isTrash) dispatch(removeContactById(currentContact.id));
         setSavedDisp(value);
         setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
-        toast.success(`Disposition: ${label}`);
+        toast.success(isTrash ? `Moved to Trash — select a call outcome to continue` : `Disposition: ${label}`);
       } finally {
         setSavingDisp(false);
       }
@@ -146,6 +149,7 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
   async function handleConfirmApply() {
     if (!currentContact?.id || !pendingDisp) return;
     const { id: dispositionId, label, value } = pendingDisp;
+    const isTrash = value.toUpperCase() === "TRASH";
     setSavingDisp(true);
     try {
       await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } }));
@@ -155,12 +159,16 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
         overrideFolderId: confirmFolderId || undefined,
         source: "CALL"
       }));
-      dispatch(removeContactById(currentContact.id));
+      // Trash: stay on current contact so agent can select call outcome first
+      if (!isTrash) dispatch(removeContactById(currentContact.id));
       setSelectedDisp(value);
       setSavedDisp(value);
       setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
       const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
-      toast.success(`Disposition: ${label}${folderName ? ` - Moved to ${folderName}` : ""}`);
+      toast.success(isTrash
+        ? `Moved to Trash${folderName ? ` → ${folderName}` : ""} — select a call outcome to continue`
+        : `Disposition: ${label}${folderName ? ` - Moved to ${folderName}` : ""}`
+      );
     } finally {
       setSavingDisp(false);
       setPendingDisp(null);
