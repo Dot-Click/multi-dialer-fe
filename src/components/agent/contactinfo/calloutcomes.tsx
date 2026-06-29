@@ -42,7 +42,7 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
             setSelectedDisp(d);
             setSavedDisp(d);
         }
-    }, [currentContact]);
+    }, [currentContact?.id]);
 
     const activeDispositions = dispositions.filter(d => d.isActive);
     const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));

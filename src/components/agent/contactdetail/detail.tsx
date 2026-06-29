@@ -433,7 +433,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                 }
             }
         }
-    }, [currentContact, lists, folders]);
+    }, [currentContact?.id, lists, folders]);
 
     if (!currentContact) return null;
 
