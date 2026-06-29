@@ -554,12 +554,15 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
             // Apply Disposition Backend Action (Folder drop & Logging)
             const dispObj = dispositions.find(d => d.value === value);
             if (dispObj) {
-                await dispatch(applyDisposition({
+                const applyResult = await dispatch(applyDisposition({
                     contactId: currentContact.id,
                     dispositionId: dispObj.id,
                     overrideFolderId: overrideFolderId || undefined,
                     source: "MANUAL"
                 }));
+                if (applyDisposition.rejected.match(applyResult)) {
+                    throw new Error((applyResult.payload as string) || "Failed to move contact to folder");
+                }
             }
 
             setSavedDisp(value);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import bgImage from "@/assets/resetpass-bg.svg";
+import bgImage from "@/assets/bg.png";
 import logoImage from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { VscEye, VscEyeClosed } from "react-icons/vsc";
@@ -52,10 +52,11 @@ const AdminChangePassword: React.FC = () => {
 
   return (
     <div
-      className="h-screen w-full bg-cover bg-center flex justify-end lg:px-40 px-5 items-center"
+      className="h-screen w-full bg-cover work-sans bg-center relative flex justify-end lg:px-40 px-5 items-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="bg-white h-fit w-[24rem] lg:w-[25rem] rounded-4xl flex flex-col gap-4 items-center py-10 px-12">
+      <div className="bg-black w-full h-full bg-cover bg-center absolute top-0 left-0 opacity-50" />
+      <div className="relative z-10 bg-white h-fit w-[24rem] lg:w-[25rem] rounded-4xl flex flex-col gap-4 items-center py-10 px-12">
         {/* Logo */}
         <div>
           <img src={logoImage} alt="Company Logo" className="object-contain w-48" />

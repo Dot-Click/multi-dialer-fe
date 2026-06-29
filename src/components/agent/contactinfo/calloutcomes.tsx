@@ -68,7 +68,12 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
         setSavingDisp(true);
         try {
             await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
-            await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
+            const applyResult = await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
+            if (applyDisposition.rejected.match(applyResult)) {
+                toast.error(`Failed to apply disposition: ${applyResult.payload || "Unknown error"}`);
+                setSelectedDisp(null);
+                return;
+            }
             setSavedDisp(value);
             toast.success(isTrash ? `Moved to Trash — select a call outcome to continue` : `Disposition set: ${label}`);
             // Trash: stay on current contact so agent can select call outcome before advancing
@@ -104,12 +109,16 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
         setSavingDisp(true);
         try {
             await dispatch(updateContact({ id: currentContact.id, payload: { disposition: pendingDisp.value } })).unwrap();
-            await dispatch(applyDisposition({
+            const applyResult = await dispatch(applyDisposition({
                 contactId: currentContact.id,
                 dispositionId: pendingDisp.id,
                 overrideFolderId: confirmFolderId || undefined,
                 source: "CALL"
             }));
+            if (applyDisposition.rejected.match(applyResult)) {
+                toast.error(`Failed to move contact to folder: ${applyResult.payload || "Unknown error"}`);
+                return;
+            }
             setSelectedDisp(pendingDisp.value);
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;

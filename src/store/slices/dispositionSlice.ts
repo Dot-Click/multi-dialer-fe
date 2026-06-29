@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
+import { setCurrentContactFields } from "./contactSlice";
 
 export type DispositionColor =
     | "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray" | "pink"
@@ -96,10 +97,17 @@ export const reorderDispositions = createAsyncThunk(
 
 export const applyDisposition = createAsyncThunk(
     "dispositions/apply",
-    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue, getState }) => {
+    async ({ contactId, dispositionId, overrideFolderId, source }: { contactId: string, dispositionId: string, overrideFolderId?: string | null, source?: "CALL" | "MANUAL" }, { rejectWithValue, getState, dispatch }) => {
         try {
             const response = await api.post("/system-settings/dispositions/apply", { contactId, dispositionId, overrideFolderId, source });
             if (response.data.success) {
+                const folderId: string | null = response.data.data?.folderId ?? null;
+
+                // Sync the contact's folderIds in Redux so the detail view reflects the move immediately
+                if (folderId) {
+                    dispatch(setCurrentContactFields({ folderIds: [folderId] }));
+                }
+
                 // If the applied disposition is the default "Trash", also eliminate the
                 // contact from the live dialing queue (backend in-memory queue) and the
                 // current session queue — no further dials remain for it.
