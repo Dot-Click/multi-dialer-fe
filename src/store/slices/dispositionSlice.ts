@@ -107,8 +107,10 @@ export const applyDisposition = createAsyncThunk(
                 const state = getState() as { dispositions: DispositionState };
                 const applied = state.dispositions.dispositions.find(d => d.id === dispositionId);
                 if (applied?.value?.toUpperCase() === "TRASH") {
+                    // Remove from backend queue so the contact is never re-dialed,
+                    // but do NOT update Redux queue state — that would shift queue[currentIndex]
+                    // and auto-load the next contact, which the agent hasn't chosen to move to yet.
                     await api.post("/calling/queue/remove-contact", { contactId }).catch(() => { });
-                    dispatch(removeFromQueue(contactId));
                 }
                 return response.data;
             }
