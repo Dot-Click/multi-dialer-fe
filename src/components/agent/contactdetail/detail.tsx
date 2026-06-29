@@ -415,11 +415,17 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         return () => window.removeEventListener('contact-action-toast', handler);
     }, []);
 
+    // Sync disposition color when contact changes or when saved disposition data arrives
     useEffect(() => {
         if (currentContact) {
             const d = currentContact.disposition ?? null;
             setSelectedDisp(d);
             setSavedDisp(d);
+        }
+    }, [currentContact?.id, currentContact?.disposition]);
+
+    useEffect(() => {
+        if (currentContact) {
             setTagsInput(normalizeTags(currentContact.tags).join(", "));
 
             if (lists.length > 0) {

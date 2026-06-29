@@ -86,12 +86,15 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
     if (folders?.length === 0) dispatch(fetchFolders());
   }, []);
 
-  // Sync when contact changes (next/prev navigation)
+  // Sync disposition color when contact changes or saved disposition arrives
   useEffect(() => {
     const d = currentContact?.disposition ?? null;
     setSelectedDisp(d);
     setSavedDisp(d);
+  }, [currentContact?.id, currentContact?.disposition]);
 
+  // Sync group membership when contact or groups change
+  useEffect(() => {
     if (currentContact?.id) {
       const contactId = currentContact.id;
       const inGroups = new Set(
