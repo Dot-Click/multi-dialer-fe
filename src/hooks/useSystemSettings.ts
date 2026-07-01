@@ -665,20 +665,24 @@ export const useActionPlans = () => {
 };
 
 // 9. Twilio Number Hooks
-export const useTwilioNumbers = (filters?: {
-  countryCode?: string;
-  cityName?: string;
-  state?: string;
-}) => {
+export const useTwilioNumbers = (
+  filters?: {
+    countryCode?: string;
+    cityName?: string;
+    state?: string;
+  },
+  // Optional: lets an OWNER/SUPER_ADMIN act on behalf of another user's Twilio account.
+  targetUserId?: string,
+) => {
   const queryClient = useQueryClient();
 
   const availableNumbersQuery = useQuery({
-    queryKey: ["available-numbers", filters],
+    queryKey: ["available-numbers", filters, targetUserId],
     queryFn: async (): Promise<AvailableNumbersResponse> => {
-      const response = await api.post(
-        "/calling/available-numbers",
-        filters || {},
-      );
+      const response = await api.post("/calling/available-numbers", {
+        ...(filters || {}),
+        ...(targetUserId ? { userId: targetUserId } : {}),
+      });
       return response.data.data || response.data;
     },
     staleTime: 0,
@@ -691,7 +695,10 @@ export const useTwilioNumbers = (filters?: {
       countryCode?: string;
       label?: string;
     }) => {
-      const response = await api.post("/calling/buy-number", payload);
+      const response = await api.post("/calling/buy-number", {
+        ...payload,
+        ...(targetUserId ? { userId: targetUserId } : {}),
+      });
       return response.data;
     },
     onSuccess: () => {

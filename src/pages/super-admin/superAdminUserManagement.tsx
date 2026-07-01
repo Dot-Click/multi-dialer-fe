@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { ChevronRight, ChevronDown, CornerDownRight } from "lucide-react";
 import UserManagementHeader from "@/components/super-admin/user-management/UserManagementHeader";
 import UserInvoicesModal from "@/components/super-admin/user-management/UserInvoicesModal";
+import PhoneNumbersModal from "@/components/super-admin/user-management/PhoneNumbersModal";
 import EditUserModal from "@/components/modal/editUserModal";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
@@ -59,6 +60,7 @@ const SuperAdminUserManagement = () => {
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [invoicesUser, setInvoicesUser] = useState<any | null>(null);
+  const [phoneNumbersUser, setPhoneNumbersUser] = useState<any | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -242,6 +244,12 @@ const SuperAdminUserManagement = () => {
                 Edit
               </button>
               <button
+                onClick={() => { setPhoneNumbersUser(user); setOpenMenuUserId(null); }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+              >
+                Phone Numbers
+              </button>
+              <button
                 onClick={() => handleDelete(user.id)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
               >
@@ -289,6 +297,12 @@ const SuperAdminUserManagement = () => {
         isOpen={!!invoicesUser}
         user={invoicesUser}
         onClose={() => setInvoicesUser(null)}
+      />
+
+      <PhoneNumbersModal
+        isOpen={!!phoneNumbersUser}
+        user={phoneNumbersUser}
+        onClose={() => setPhoneNumbersUser(null)}
       />
 
       {/* Search bar  */}

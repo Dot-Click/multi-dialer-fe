@@ -85,12 +85,6 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
     //   link: "/super-admin/reporting",
     //   icon: reportingIcon,
     // },
-    {
-      id: 11,
-      name: "Phone Numbers",
-      link: "/super-admin/phone-numbers",
-      icon: userReportIcon,
-    },
   ];
 
   return (

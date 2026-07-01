@@ -19,19 +19,9 @@ export interface CallerIdRecord {
   updatedAt: string;
 }
 
-export interface AvailableNumber {
-  sid: string;
-  phoneNumber: string;
-  friendlyName: string;
-  voiceEnabled: boolean;
-  smsEnabled: boolean;
-}
-
 interface SuperAdminCallerIdState {
   callerIds: CallerIdRecord[];
   selectedUserId: string | null;
-  availableNumbers: AvailableNumber[];
-  availableNumbersLoading: boolean;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -40,25 +30,10 @@ interface SuperAdminCallerIdState {
 const initialState: SuperAdminCallerIdState = {
   callerIds: [],
   selectedUserId: null,
-  availableNumbers: [],
-  availableNumbersLoading: false,
   loading: false,
   saving: false,
   error: null,
 };
-
-export const fetchAvailableNumbers = createAsyncThunk(
-  "superAdminCallerIds/fetchAvailableNumbers",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      const res = await api.get(`/super-admin/caller-ids/available-numbers?userId=${userId}`);
-      if (res.data.success) return res.data.data as AvailableNumber[];
-      return rejectWithValue(res.data.message || "Failed to fetch numbers");
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || err.message);
-    }
-  }
-);
 
 export const fetchCallerIdsByUser = createAsyncThunk(
   "superAdminCallerIds/fetch",
@@ -67,31 +42,6 @@ export const fetchCallerIdsByUser = createAsyncThunk(
       const res = await api.get(`/super-admin/caller-ids?userId=${userId}&_t=${Date.now()}`);
       if (res.data.success) return { userId, callerIds: res.data.data as CallerIdRecord[] };
       return rejectWithValue(res.data.message || "Failed to fetch caller IDs");
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || err.message);
-    }
-  }
-);
-
-export const createAdminCallerId = createAsyncThunk(
-  "superAdminCallerIds/create",
-  async (
-    payload: {
-      userId: string;
-      label: string;
-      countryCode: string;
-      twillioNumber?: string;
-      twillioSid?: string;
-      numberOfLines?: number;
-      dialerType?: string;
-      aiPacing?: boolean;
-    },
-    { rejectWithValue }
-  ) => {
-    try {
-      const res = await api.post("/super-admin/caller-ids", payload);
-      if (res.data.success) return res.data.data as CallerIdRecord;
-      return rejectWithValue(res.data.message || "Failed to create caller ID");
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -148,17 +98,6 @@ const superAdminCallerIdSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAvailableNumbers.pending, (state) => {
-        state.availableNumbersLoading = true;
-        state.availableNumbers = [];
-      })
-      .addCase(fetchAvailableNumbers.fulfilled, (state, action) => {
-        state.availableNumbersLoading = false;
-        state.availableNumbers = action.payload;
-      })
-      .addCase(fetchAvailableNumbers.rejected, (state) => {
-        state.availableNumbersLoading = false;
-      })
       .addCase(fetchCallerIdsByUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -172,12 +111,6 @@ const superAdminCallerIdSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      .addCase(createAdminCallerId.pending, (state) => { state.saving = true; })
-      .addCase(createAdminCallerId.fulfilled, (state, action) => {
-        state.saving = false;
-        state.callerIds.unshift(action.payload);
-      })
-      .addCase(createAdminCallerId.rejected, (state) => { state.saving = false; })
       .addCase(updateAdminCallerId.pending, (state) => { state.saving = true; })
       .addCase(updateAdminCallerId.fulfilled, (state, action) => {
         state.saving = false;

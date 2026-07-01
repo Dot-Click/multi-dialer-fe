@@ -9,9 +9,11 @@ interface AddCallScoutNumberModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (callerId: any) => void;
+    // Optional: when set, an OWNER/SUPER_ADMIN buys the number on behalf of this user instead of themselves.
+    userId?: string;
 }
 
-const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpen, onClose, onSuccess, userId }) => {
     const [filters, setFilters] = useState({
         countryCode: 'US',
         cityName: '',
@@ -24,7 +26,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
         ? City.getCitiesOfState(filters.countryCode, filters.state)
         : [];
 
-    const { availableNumbers, buyNumber } = useTwilioNumbers(filters);
+    const { availableNumbers, buyNumber } = useTwilioNumbers(filters, userId);
     const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
