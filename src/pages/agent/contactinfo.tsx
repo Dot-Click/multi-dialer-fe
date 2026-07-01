@@ -293,6 +293,22 @@ const ContactInfo = () => {
                                 return next;
                             });
                         }
+                        // All caller IDs frozen (every number hit its per-number dial cap)
+                        // → end the session and stop calling. Wait until no call is live
+                        // and the agent isn't mid-disposition so an active call is never cut off.
+                        if (data.data.allCallerIdsFrozen &&
+                            (data.data.activeCallsCount || 0) === 0 &&
+                            !data.data.isPostCall) {
+                            clearInterval(statusPoll);
+                            setIsAutoDialing(false);
+                            isAutoDialingRef.current = false;
+                            try { await api.post('/calling/stop-dialing'); } catch { /* best effort */ }
+                            toast("All caller IDs are frozen (dial limits reached). Ending session.", { icon: '🧊', duration: 5000 });
+                            const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
+                            navigate(path);
+                            return;
+                        }
+
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
                             (s: any) => s.toLowerCase() === 'callback' || s.toLowerCase() === 'call_back'
                         );

@@ -323,6 +323,11 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             call.accept();
             setAppStatus('Bridge Connected');
             setIsCalling(true);
+            // A new customer is now bridged to the agent's audio. Clear the
+            // post-call gate so the UI follows the live call to this contact
+            // instead of staying frozen on the previous contact's
+            // "Call Ended — select a disposition" banner.
+            setIsPostCall(false);
             console.log("[TwilioProvider] call.accept() transition complete.");
             console.log(`[TwilioDiag] POST-ACCEPT sid=${sid} status=${call.status()}`);
             // Snapshot status a moment later to see if the leg stays open.
