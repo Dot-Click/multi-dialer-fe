@@ -49,24 +49,13 @@ export default function Page() {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const { data, error } = await authClient.admin.listUsers({
-        query: { limit: 20 },
-      });
-
-      if (error) {
-        toast.error(error.message || "Failed to fetch users");
-        return;
-      }
-
-      const filteredUsers =
-        data.users?.filter(
-          (u: ManagedUser) => u.createdById === session?.user?.id,
-        ) || [];
-
-      setUsers(filteredUsers);
+      const res = await api.get("/user");
+      setUsers(res.data?.data || []);
     } catch (err: any) {
       console.error("Fetch Users Error:", err);
-      toast.error(err.message || "Failed to fetch users");
+      toast.error(
+        err.response?.data?.message || err.message || "Failed to fetch users",
+      );
     } finally {
       setIsLoadingUsers(false);
     }
