@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
+import { SiMicrosoftoutlook } from "react-icons/si";
 import { CheckCircle, XCircle, Loader2, CalendarDays } from "lucide-react";
 import axios from "axios";
 
@@ -26,11 +27,15 @@ export default function CalendarIntegration() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Handle OAuth redirect result
   useEffect(() => {
     const result = searchParams.get("calendar_sync");
     if (result === "google_connected") {
       toast.success("Google Calendar connected successfully!");
+      searchParams.delete("calendar_sync");
+      setSearchParams(searchParams, { replace: true });
+      fetchStatus();
+    } else if (result === "outlook_connected") {
+      toast.success("Outlook Calendar connected successfully!");
       searchParams.delete("calendar_sync");
       setSearchParams(searchParams, { replace: true });
       fetchStatus();
@@ -61,11 +66,14 @@ export default function CalendarIntegration() {
     fetchStatus();
   }, []);
 
-  async function connectGoogle() {
+  async function connectProvider(provider: "GOOGLE" | "OUTLOOK") {
     try {
-      setActionLoading("GOOGLE");
+      setActionLoading(provider);
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const res = await axios.get(`${BACKEND_URL}/api/calendar-sync/auth/google/url`, {
+      const endpoint = provider === "GOOGLE"
+        ? `${BACKEND_URL}/api/calendar-sync/auth/google/url`
+        : `${BACKEND_URL}/api/calendar-sync/auth/outlook/url`;
+      const res = await axios.get(endpoint, {
         headers: authHeader(),
         params: { timezone },
       });
@@ -73,10 +81,10 @@ export default function CalendarIntegration() {
       if (url) {
         window.location.href = url;
       } else {
-        toast.error("Failed to get Google auth URL.");
+        toast.error(`Failed to get ${provider === "GOOGLE" ? "Google" : "Outlook"} auth URL.`);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Failed to start Google auth.";
+      const msg = err.response?.data?.message || err.message || "Failed to start auth.";
       toast.error(msg);
     } finally {
       setActionLoading(null);
@@ -126,7 +134,6 @@ export default function CalendarIntegration() {
         </p>
       </div>
 
-      {/* Google Calendar */}
       <ProviderCard
         icon={<FcGoogle size={28} />}
         name="Google Calendar"
@@ -134,10 +141,20 @@ export default function CalendarIntegration() {
         connected={isConnected("GOOGLE")}
         info={providerInfo("GOOGLE")}
         actionLoading={actionLoading === "GOOGLE"}
-        onConnect={connectGoogle}
+        onConnect={() => connectProvider("GOOGLE")}
         onDisconnect={() => disconnect("GOOGLE")}
       />
 
+      <ProviderCard
+        icon={<SiMicrosoftoutlook size={26} color="#0078D4" />}
+        name="Outlook Calendar"
+        description="Sync appointments, callbacks, and tasks to your Microsoft Outlook Calendar in real-time."
+        connected={isConnected("OUTLOOK")}
+        info={providerInfo("OUTLOOK")}
+        actionLoading={actionLoading === "OUTLOOK"}
+        onConnect={() => connectProvider("OUTLOOK")}
+        onDisconnect={() => disconnect("OUTLOOK")}
+      />
     </div>
   );
 }
