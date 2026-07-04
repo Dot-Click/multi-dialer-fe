@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
-import { SiMicrosoftoutlook } from "react-icons/si";
+import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CheckCircle, XCircle, Loader2, CalendarDays } from "lucide-react";
 import axios from "axios";
 
@@ -146,7 +146,7 @@ export default function CalendarIntegration() {
       />
 
       <ProviderCard
-        icon={<SiMicrosoftoutlook size={26} color="#0078D4" />}
+        icon={<PiMicrosoftOutlookLogo size={26} color="#0078D4" />}
         name="Outlook Calendar"
         description="Sync appointments, callbacks, and tasks to your Microsoft Outlook Calendar in real-time."
         connected={isConnected("OUTLOOK")}
