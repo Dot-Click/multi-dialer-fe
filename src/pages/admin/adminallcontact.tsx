@@ -14,7 +14,6 @@ import { assignAgentsToList } from "@/store/slices/contactSlice";
 import { authClient } from "@/lib/auth-client";
 import { fetchContactLists } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
-import FeatureLockedOverlay from "@/components/common/FeatureLockedOverlay";
 
 type OutletContextType = {
     activeItem: { type: string; id?: string; name: string };
@@ -131,17 +130,8 @@ const AdminAllContact = () => {
         );
     };
 
-    const isLocked = session?.user?.trialStatus === "EXPIRED" && !session?.user?.isSubscribed;
-
     return (
         <section className="pr-7 flex flex-col h-screen w-full sm:px-6 py-4 lg:py-1 transition-all relative overflow-hidden">
-            {isLocked && (
-                <FeatureLockedOverlay 
-                    featureName="Data & Dialer" 
-                    message="Your trial has expired. Upgrade to your plan to continue using the power dialer and managing leads."
-                />
-            )}
-
             {/* Sticky Header */}
             <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 pb-2 -mx-4 sm:-mx-6 md:-mx-10 lg:-mx-3 px-4 sm:px-6 md:px-10 lg:px-3 pt-2 flex-shrink-0">
                 {/* Breadcrumb + Heading */}

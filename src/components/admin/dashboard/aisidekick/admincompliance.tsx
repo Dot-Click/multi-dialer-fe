@@ -2,7 +2,11 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
 import { useCompliance } from "@/hooks/useAiSidekick";
 
-const COLORS = ["#22C55E", "#E5E7EB"];
+const TRACK_COLOR = "#E5E7EB";
+
+// Compliance risk escalates: low = green, moderate = amber, high = red.
+const severityColor = (pct: number) =>
+  pct >= 15 ? "#EF4444" : pct >= 5 ? "#F6BF26" : "#22C55E";
 
 const AdminCompliance = () => {
 
@@ -16,6 +20,10 @@ const AdminCompliance = () => {
     { name: "Detected", value: 0 },
     { name: "Safe", value: 100 },
   ];
+
+  const riskColor = severityColor(riskRate);
+  const flagsColor = flags > 0 ? severityColor(flagsPercentage) : "#22C55E";
+  const donutColors = [riskColor, TRACK_COLOR];
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl w-full shadow-sm p-6 sm:p-8 flex flex-col h-full min-h-[300px]">
@@ -41,8 +49,8 @@ const AdminCompliance = () => {
               </p>
               <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 mb-2">
                 <div
-                  className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${flagsPercentage}%` }}
+                  className="h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${flagsPercentage}%`, backgroundColor: flagsColor }}
                 />
               </div>
             </span>
@@ -72,8 +80,8 @@ const AdminCompliance = () => {
                     {riskData.map((_: any, index: number) => (
                       <Cell
                         key={index}
-                        fill={COLORS[index % COLORS.length]}
-                        stroke={COLORS[index % COLORS.length]}
+                        fill={donutColors[index % donutColors.length]}
+                        stroke={donutColors[index % donutColors.length]}
                       />
                     ))}
                   </Pie>

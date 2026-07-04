@@ -130,7 +130,7 @@ const AdminAiCoaching = () => {
             {/* Call Confidence Index */}
             <div className="flex flex-col">
               <h2 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-4 text-center">
-                Call Confidence Index
+                AI Analysis Confidence
               </h2>
               <div className="flex flex-row items-center justify-center gap-4 w-full">
                 <div className="min-w-[9rem] w-36 h-36 relative flex-shrink-0">
@@ -205,7 +205,7 @@ const AdminAiCoaching = () => {
               </span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 pt-1">
-              AI-rated delivery quality (tone, pacing, clarity)
+              Positive-sentiment rate across analyzed calls
             </p>
           </div>
         </>

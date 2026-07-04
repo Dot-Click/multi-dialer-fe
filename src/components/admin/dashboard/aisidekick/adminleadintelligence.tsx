@@ -13,7 +13,8 @@ import {
 import { Loader2 } from "lucide-react";
 import { useLeadIntelligence } from "@/hooks/useAiSidekick";
 
-const COLORS = ["#9400BD", "#F91E4A", "#ff7f3a"];
+// High / Medium / Low — kept in sync with the "Overall Lead Score" legend below.
+const COLORS = ["#3DC269", "#F6BF26", "#D43435"];
 
 const lineLegendData = [
   { name: "Positive", color: "#22C55E" },

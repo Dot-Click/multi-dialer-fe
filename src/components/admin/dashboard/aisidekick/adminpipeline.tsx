@@ -11,6 +11,9 @@ const AdminPipeline = () => {
   const speedIncrease = data?.pipeline?.speedIncrease ?? 0;
   const accelerationPercentage = data?.pipeline?.accelerationPercentage ?? 0;
 
+  const fmtPct = (n: number) => `${n >= 0 ? "+" : ""}${n}%`;
+  const barWidth = Math.max(0, Math.min(accelerationPercentage, 100));
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl w-full shadow-sm p-6 min-h-[160px]">
       <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
@@ -33,7 +36,7 @@ const AdminPipeline = () => {
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Average Speed Increase</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                +{speedIncrease}%
+                {fmtPct(speedIncrease)}
               </p>
             </div>
           </div>
@@ -42,11 +45,11 @@ const AdminPipeline = () => {
             <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-md h-10">
               <div
                 className="bg-green-500 h-10 rounded-md transition-all duration-500"
-                style={{ width: `${Math.min(accelerationPercentage, 100)}%` }}
+                style={{ width: `${barWidth}%` }}
               />
             </div>
             <span className="font-semibold text-lg text-gray-700 dark:text-gray-300 whitespace-nowrap">
-              {accelerationPercentage}%
+              {fmtPct(accelerationPercentage)}
             </span>
           </div>
         </>

@@ -9,8 +9,6 @@ import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
 import toast from "react-hot-toast";
-import { useAppSelector } from "@/store/hooks";
-import FeatureLockedOverlay from "@/components/common/FeatureLockedOverlay";
 
 type OutletContextType = {
   activeItem: { type: string; id?: string; name: string };
@@ -25,9 +23,6 @@ const AllContact = () => {
   const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
 
   const { activeItem } = useOutletContext<OutletContextType>();
-  const { session } = useAppSelector((state) => state.auth);
-  const user = session?.user;
-  const isLocked = user?.trialStatus === "EXPIRED" && !user?.isSubscribed;
 
   const getBreadcrumb = () => {
     if (activeItem.type === "allContacts") return "";
@@ -44,13 +39,6 @@ const AllContact = () => {
 
   return (
     <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all relative">
-      {isLocked && (
-        <FeatureLockedOverlay 
-          featureName="Data & Dialer" 
-          message="Your trial has expired. Upgrade to your plan to continue using the power dialer and managing leads."
-        />
-      )}
-
       {/* Breadcrumb + Heading */}
       <div className="flex flex-col">
         {getBreadcrumb() && (

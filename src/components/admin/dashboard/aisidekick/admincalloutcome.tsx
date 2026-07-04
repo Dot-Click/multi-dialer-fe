@@ -9,9 +9,9 @@ const AdminCallOutcome = () => {
   const predictedOutcomes = data?.predictedOutcomes || { appointmentSet: "0%", interested: "0%", notInterested: 0 };
   const qualityScore = data?.qualityScore || 0;
   const keywordData = data?.keywordData || [
-    { label: "Low", percentage: 0, color: "bg-green-500" },
+    { label: "High", percentage: 0, color: "bg-green-500" },
     { label: "Medium", percentage: 0, color: "bg-yellow-400" },
-    { label: "High", percentage: 0, color: "bg-red-500" },
+    { label: "Low", percentage: 0, color: "bg-red-500" },
   ];
 
   return (

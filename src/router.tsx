@@ -55,6 +55,7 @@ import AdminPreviewData from "@/pages/admin/adminpreviewdata";
 import LogincodeAgenct from "@/pages/auth/code.page.tsx"
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import PublicRoute from "@/components/auth/PublicRoute";
+import FeatureGate from "@/components/common/FeatureGate";
 import SuspendedPage from "@/pages/auth/suspended.page";
 import SuperAdminHome from "./pages/super-admin/superAdminHome";
 import SuperAdminUserManagement from "./pages/super-admin/superAdminUserManagement";
@@ -90,19 +91,19 @@ const Router: React.FC = () => {
           <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<AgentHome />} />
-              <Route path="inbox" element={<Inbox />} />
-              <Route path="library" element={<Library />} />
-              <Route path="calendar" element={<Calender />} />
-              <Route path="reports-analytics" element={<ReportAnalytics />} />
+              <Route path="inbox" element={<FeatureGate featureName="Inbox"><Inbox /></FeatureGate>} />
+              <Route path="library" element={<FeatureGate featureName="Library"><Library /></FeatureGate>} />
+              <Route path="calendar" element={<FeatureGate featureName="Calendar"><Calender /></FeatureGate>} />
+              <Route path="reports-analytics" element={<FeatureGate featureName="Reports & Analytics"><ReportAnalytics /></FeatureGate>} />
               <Route path="settings" element={<Setting />} />
             </Route>
 
-            <Route path="/data-dialer" element={<ContactLayout />}>
+            <Route path="/data-dialer" element={<FeatureGate featureName="Data & Dialer"><ContactLayout /></FeatureGate>}>
               <Route index element={<AllContact />} />
               <Route path="contact-detail/:id" element={<ContactDetail />} />
             </Route>
 
-            <Route path="/contact-info" element={<ContactInfo />} />
+            <Route path="/contact-info" element={<FeatureGate featureName="Contact Info"><ContactInfo /></FeatureGate>} />
           </Route>
         </Route>
 
@@ -110,7 +111,7 @@ const Router: React.FC = () => {
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             {/* ✅ Admin Contact / Data Dialer Area */}
-            <Route path="/admin" element={<AdminContact />}>
+            <Route path="/admin" element={<FeatureGate featureName="Data & Dialer"><AdminContact /></FeatureGate>}>
               <Route path="data-dialer" element={<AdminAllContact />} />
               <Route path="find-duplicate" element={<AdminFindDuplicate />} />
               <Route path="contact-detail/:id" element={<ContactDetail />} />
@@ -120,11 +121,11 @@ const Router: React.FC = () => {
             {/* ✅ Admin Dashboard Section */}
             <Route path="/admin" element={<AdminDashboardLayout />}>
               <Route index element={<AdminHome />} />
-              <Route path="inbox" element={<Inbox />} />
+              <Route path="inbox" element={<FeatureGate featureName="Inbox"><Inbox /></FeatureGate>} />
 
-              <Route path="calendar" element={<AdminCalender />} />
-              <Route path="library" element={<AdminLibrary />} />
-              <Route path="reports-analytics" element={<AdminReportAnalytics />} />
+              <Route path="calendar" element={<FeatureGate featureName="Calendar"><AdminCalender /></FeatureGate>} />
+              <Route path="library" element={<FeatureGate featureName="Library"><AdminLibrary /></FeatureGate>} />
+              <Route path="reports-analytics" element={<FeatureGate featureName="Reports & Analytics"><AdminReportAnalytics /></FeatureGate>} />
               <Route path="user-management" element={<AdminUserManagment />} />
               <Route path="system-settings" element={<AdminSystemSetting />} />
               <Route path="number-setting" element={<NumberSetting />} />
@@ -132,8 +133,8 @@ const Router: React.FC = () => {
               <Route path="action-plan" element={<AdminActionPlan />} />
               <Route path="billing" element={<Billing />} />
 
-              <Route path="lead-store" element={<LeadStore />} />
-              <Route path="compliance" element={<Compliance />} />
+              <Route path="lead-store" element={<FeatureGate featureName="Lead Store"><LeadStore /></FeatureGate>} />
+              <Route path="compliance" element={<FeatureGate featureName="Compliance"><Compliance /></FeatureGate>} />
               <Route path="add-setting" element={<AddSettingPage />} />
               <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
               <Route path="edit-signature" element={<AdminEditSignature />} />
