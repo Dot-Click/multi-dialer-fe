@@ -11,7 +11,6 @@ const Setting = () => {
   const [activeTab, setActiveTab] = useState('personal');
   const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
   const [isNotificationsOpen, setNotificationsOpen] = useState(true);
-  const [voicemailOption, setVoicemailOption] = useState('auto');
   const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
 
   // Email Change States
@@ -54,7 +53,6 @@ const Setting = () => {
   // Initialize local state for Dialer Settings
   useEffect(() => {
     if (dialerSettings) {
-      setVoicemailOption(dialerSettings.voicemailMode || 'auto');
       setLiveAnswerBeep(dialerSettings.useAnswerNotificationTone || false);
     }
   }, [dialerSettings]);
@@ -575,64 +573,6 @@ const Setting = () => {
               </div>
 
               <div className="space-y-8">
-                {/* Voicemail Handling */}
-                <div className="p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10">
-                  <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
-                    Voicemail Handling
-                  </h3>
-                  <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-4">
-                    Choose how to handle voicemail messages
-                  </p>
-
-                  <div className="space-y-4">
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="voicemail"
-                        value="manual"
-                        checked={voicemailOption === "manual"}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setVoicemailOption(val);
-                          updateDialerSettings.mutate({ voicemailMode: val });
-                        }}
-                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
-                      />
-                      <div className="flex-1">
-                        <p className="text-[16px] font-medium text-[#17181B] dark:text-white group-hover:text-yellow-400 transition-colors">
-                          Manual Voicemail
-                        </p>
-                        <p className="text-[14px] text-[#495057] dark:text-gray-400 mt-1">
-                          Agent manually drops voicemail during the call
-                        </p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="voicemail"
-                        value="auto"
-                        checked={voicemailOption === "auto"}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setVoicemailOption(val);
-                          updateDialerSettings.mutate({ voicemailMode: val });
-                        }}
-                        className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0 transition-all"
-                      />
-                      <div className="flex-1">
-                        <p className="text-[16px] font-medium text-[#17181B] dark:text-white group-hover:text-yellow-400 transition-colors">
-                          Auto Drop Voicemail
-                        </p>
-                        <p className="text-[14px] text-[#495057] dark:text-gray-400 mt-1">
-                          System automatically drops pre-recorded voicemail
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
                 {/* Live Answer Beep */}
                 <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10 hover:border-yellow-400/30 transition-all">
                   <div className="flex-1">
