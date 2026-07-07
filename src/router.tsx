@@ -91,10 +91,10 @@ const Router: React.FC = () => {
           <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<AgentHome />} />
-              <Route path="inbox" element={<FeatureGate featureName="Inbox"><Inbox /></FeatureGate>} />
-              <Route path="library" element={<FeatureGate featureName="Library"><Library /></FeatureGate>} />
-              <Route path="calendar" element={<FeatureGate featureName="Calendar"><Calender /></FeatureGate>} />
-              <Route path="reports-analytics" element={<FeatureGate featureName="Reports & Analytics"><ReportAnalytics /></FeatureGate>} />
+              <Route path="inbox" element={<Inbox />} />
+              <Route path="library" element={<Library />} />
+              <Route path="calendar" element={<Calender />} />
+              <Route path="reports-analytics" element={<ReportAnalytics />} />
               <Route path="settings" element={<Setting />} />
             </Route>
 
@@ -121,11 +121,11 @@ const Router: React.FC = () => {
             {/* ✅ Admin Dashboard Section */}
             <Route path="/admin" element={<AdminDashboardLayout />}>
               <Route index element={<AdminHome />} />
-              <Route path="inbox" element={<FeatureGate featureName="Inbox"><Inbox /></FeatureGate>} />
+              <Route path="inbox" element={<Inbox />} />
 
-              <Route path="calendar" element={<FeatureGate featureName="Calendar"><AdminCalender /></FeatureGate>} />
-              <Route path="library" element={<FeatureGate featureName="Library"><AdminLibrary /></FeatureGate>} />
-              <Route path="reports-analytics" element={<FeatureGate featureName="Reports & Analytics"><AdminReportAnalytics /></FeatureGate>} />
+              <Route path="calendar" element={<AdminCalender />} />
+              <Route path="library" element={<AdminLibrary />} />
+              <Route path="reports-analytics" element={<AdminReportAnalytics />} />
               <Route path="user-management" element={<AdminUserManagment />} />
               <Route path="system-settings" element={<AdminSystemSetting />} />
               <Route path="number-setting" element={<NumberSetting />} />
@@ -133,8 +133,8 @@ const Router: React.FC = () => {
               <Route path="action-plan" element={<AdminActionPlan />} />
               <Route path="billing" element={<Billing />} />
 
-              <Route path="lead-store" element={<FeatureGate featureName="Lead Store"><LeadStore /></FeatureGate>} />
-              <Route path="compliance" element={<FeatureGate featureName="Compliance"><Compliance /></FeatureGate>} />
+              <Route path="lead-store" element={<LeadStore />} />
+              <Route path="compliance" element={<Compliance />} />
               <Route path="add-setting" element={<AddSettingPage />} />
               <Route path="add-lead-sheet" element={<AddLeadSheetPage />} />
               <Route path="edit-signature" element={<AdminEditSignature />} />

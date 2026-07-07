@@ -252,7 +252,16 @@ const SuperAdminUserManagement = () => {
                 Phone Numbers
               </button>
               <button
-                onClick={() => { setChangeCardUser(user); setOpenMenuUserId(null); }}
+                onClick={() => {
+                  // Agents have no billing of their own — the subscription (and the
+                  // Stripe customer to attach a card to) lives on the admin who
+                  // created them, so resolve to that account instead.
+                  const billingOwner = isAgent
+                    ? users.find((u: any) => u.id === user.createdById) || user
+                    : user;
+                  setChangeCardUser(billingOwner);
+                  setOpenMenuUserId(null);
+                }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
               >
                 Change Card
