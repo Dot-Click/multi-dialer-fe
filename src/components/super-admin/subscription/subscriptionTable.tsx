@@ -175,6 +175,7 @@ const SubscriptionTable = () => {
                   "Username",
                   "Plan",
                   "Stripe Customer ID",
+                  "Card",
                   "Agents",
                   "Status",
                   "Billing Cycle",
@@ -206,6 +207,18 @@ const SubscriptionTable = () => {
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                     {row.stripeCustomerId || "N/A"}
+                  </td>
+                  <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white whitespace-nowrap">
+                    {row.cardBrand && row.cardLast4 ? (
+                      <span>
+                        {row.cardBrand.toUpperCase()} •••• {row.cardLast4}
+                        {row.cardExpMonth && row.cardExpYear && (
+                          <span className="text-gray-400"> ({String(row.cardExpMonth).padStart(2, "0")}/{String(row.cardExpYear).slice(-2)})</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">No card on file</span>
+                    )}
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                     {row.usersCount}
@@ -249,7 +262,7 @@ const SubscriptionTable = () => {
 
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="text-center py-10 text-gray-500 dark:text-gray-400">
+                  <td colSpan={10} className="text-center py-10 text-gray-500 dark:text-gray-400">
                     No data found
                   </td>
                 </tr>

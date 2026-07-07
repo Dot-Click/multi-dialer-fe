@@ -214,6 +214,20 @@ const SuperAdminUserManagement = () => {
         <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C] dark:text-white">
           {formatDate(user?.lastLogin)}
         </td>
+        <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white whitespace-nowrap">
+          {(() => {
+            // Agents have no billing of their own — show the owning admin's card.
+            const billingOwner = isAgent
+              ? users.find((u: any) => u.id === user.createdById) || user
+              : user;
+            const card = billingOwner.userSubscriptions?.[0];
+            return card?.cardBrand && card?.cardLast4 ? (
+              <span>{card.cardBrand.toUpperCase()} •••• {card.cardLast4}</span>
+            ) : (
+              <span className="text-gray-400">No card on file</span>
+            );
+          })()}
+        </td>
         <td
           ref={(el) => {
             menuRefs.current[user.id] = el;
@@ -442,7 +456,7 @@ const SuperAdminUserManagement = () => {
 
         <div className="overflow-x-auto">
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-            <table className="w-full min-w-[900px] border-separate border-spacing-y-3">
+            <table className="w-full min-w-[1050px] border-separate border-spacing-y-3">
               <thead>
                 <tr>
                   {[
@@ -452,15 +466,16 @@ const SuperAdminUserManagement = () => {
                     "Agents",
                     "Status",
                     "Last Login",
+                    "Card",
                     "Actions",
-                  ].map((head, i) => (
+                  ].map((head, i, arr) => (
                     <th
                       key={head}
                       className="px-5 py-3 text-left text-[15.03px] bg-[#FAF9FE] dark:bg-slate-900 font-[500] text-[#1D2C45] dark:text-white sticky top-0 z-10"
                     >
                       <div className="flex items-center gap-2">
                         {head}
-                        {i < 6 && (
+                        {i < arr.length - 1 && (
                           <img
                             src={tableIcon}
                             className="h-3.5 object-contain"
@@ -476,7 +491,7 @@ const SuperAdminUserManagement = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7}>
+                    <td colSpan={8}>
                       <Loader fullPage={false} />
                     </td>
                   </tr>
@@ -505,7 +520,7 @@ const SuperAdminUserManagement = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-10 text-gray-500 dark:text-white"
                     >
                       {error ? `Error: ${error}` : "No users found."}
