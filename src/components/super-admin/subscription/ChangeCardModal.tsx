@@ -3,7 +3,7 @@ import { IoClose } from "react-icons/io5";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useAppDispatch } from "@/store/hooks";
-import { createCardSetupIntent, updateCardPaymentMethod } from "@/store/slices/subscriptionSlice";
+import { createCardSetupIntent, updateCardPaymentMethod, fetchCurrentCard, type CardSummary } from "@/store/slices/subscriptionSlice";
 import toast from "react-hot-toast";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
@@ -41,6 +41,8 @@ const ChangeCardForm = ({ target, onClose, onSuccess }: Omit<ChangeCardModalProp
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [currentCard, setCurrentCard] = useState<CardSummary | null>(null);
+  const [loadingCurrentCard, setLoadingCurrentCard] = useState(true);
 
   useEffect(() => {
     if (!target) return;
@@ -56,6 +58,23 @@ const ChangeCardForm = ({ target, onClose, onSuccess }: Omit<ChangeCardModalProp
         }
       })
       .finally(() => setLoadingSecret(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.userId]);
+
+  useEffect(() => {
+    if (!target) return;
+    setLoadingCurrentCard(true);
+    setCurrentCard(null);
+
+    // The list-view card fields can be stale/empty (older subscriptions never
+    // had cardBrand/cardLast4 written locally) — resolve live from Stripe.
+    dispatch(fetchCurrentCard(target.userId))
+      .then((result: any) => {
+        if (fetchCurrentCard.fulfilled.match(result)) {
+          setCurrentCard(result.payload.card);
+        }
+      })
+      .finally(() => setLoadingCurrentCard(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target?.userId]);
 
@@ -102,7 +121,13 @@ const ChangeCardForm = ({ target, onClose, onSuccess }: Omit<ChangeCardModalProp
     }
   };
 
-  const hasCurrentCard = target?.cardBrand && target?.cardLast4;
+  const displayCard = currentCard ?? {
+    brand: target?.cardBrand ?? null,
+    last4: target?.cardLast4 ?? null,
+    expMonth: null,
+    expYear: null,
+  };
+  const hasCurrentCard = displayCard.brand && displayCard.last4;
 
   return (
     <>
@@ -117,9 +142,13 @@ const ChangeCardForm = ({ target, onClose, onSuccess }: Omit<ChangeCardModalProp
         <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-3">
           <span className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Current Card</span>
           <span className="text-[#111] dark:text-white text-[15px] font-[500]">
-            {hasCurrentCard
-              ? `${target!.cardBrand!.toUpperCase()} •••• ${target!.cardLast4}`
-              : "No card on file"}
+            {loadingCurrentCard ? (
+              <span className="text-gray-400 font-normal">Checking Stripe…</span>
+            ) : hasCurrentCard ? (
+              `${displayCard.brand!.toUpperCase()} •••• ${displayCard.last4}`
+            ) : (
+              "No card on file"
+            )}
           </span>
         </div>
 

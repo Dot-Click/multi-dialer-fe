@@ -541,6 +541,22 @@ export interface CardSummary {
     expYear: number | null;
 }
 
+export const fetchCurrentCard = createAsyncThunk(
+    'subscriptions/fetchCurrentCard',
+    async (userId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/billing/subscription/${userId}/card`);
+            if (response.data.success) {
+                return { userId, card: response.data.data.card as CardSummary };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to fetch current card');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 export const createCardSetupIntent = createAsyncThunk(
     'subscriptions/createCardSetupIntent',
     async (userId: string, { rejectWithValue }) => {
