@@ -18,6 +18,11 @@ export interface Subscription {
     stripeSubscriptionId?: string | null;
     trialEnd?: string | null;
     stripeStatus?: string | null;
+    defaultPaymentMethodId?: string | null;
+    cardBrand?: string | null;
+    cardLast4?: string | null;
+    cardExpMonth?: number | null;
+    cardExpYear?: number | null;
     user?: {
         id: string;
         fullName: string;
@@ -513,6 +518,46 @@ export const fetchUpcomingRenewals = createAsyncThunk(
     }
 );
 
+export interface CardSummary {
+    brand: string | null;
+    last4: string | null;
+    expMonth: number | null;
+    expYear: number | null;
+}
+
+export const createCardSetupIntent = createAsyncThunk(
+    'subscriptions/createCardSetupIntent',
+    async (userId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/billing/subscription/${userId}/card/setup-intent`);
+            if (response.data.success) {
+                return response.data.data.clientSecret as string;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to start card setup');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const updateCardPaymentMethod = createAsyncThunk(
+    'subscriptions/updateCardPaymentMethod',
+    async (payload: { userId: string; paymentMethodId: string }, { rejectWithValue }) => {
+        try {
+            const { userId, paymentMethodId } = payload;
+            const response = await api.post(`/billing/subscription/${userId}/card`, { paymentMethodId });
+            if (response.data.success) {
+                return { userId, card: response.data.data.card as CardSummary };
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to update card');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 export const fetchBillingPortalUrl = createAsyncThunk(
     'subscriptions/fetchBillingPortalUrl',
     async (_, { rejectWithValue }) => {
@@ -704,6 +749,16 @@ export const subscriptionSlice = createSlice({
             })
             .addCase(fetchUpcomingRenewals.rejected, (state) => {
                 state.upcomingRenewalsLoading = false;
+            })
+            .addCase(updateCardPaymentMethod.fulfilled, (state, action) => {
+                const { userId, card } = action.payload;
+                const sub = state.subscriptions.find((s) => s.userId === userId);
+                if (sub) {
+                    sub.cardBrand = card.brand;
+                    sub.cardLast4 = card.last4;
+                    sub.cardExpMonth = card.expMonth;
+                    sub.cardExpYear = card.expYear;
+                }
             })
             .addCase(fetchBillingPortalUrl.pending, (state) => {
                 state.loading = true;

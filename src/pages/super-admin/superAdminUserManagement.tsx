@@ -4,6 +4,7 @@ import UserManagementHeader from "@/components/super-admin/user-management/UserM
 import UserInvoicesModal from "@/components/super-admin/user-management/UserInvoicesModal";
 import PhoneNumbersModal from "@/components/super-admin/user-management/PhoneNumbersModal";
 import EditUserModal from "@/components/modal/editUserModal";
+import ChangeCardModal from "@/components/super-admin/subscription/ChangeCardModal";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
 import tableIcon from "@/assets/tableIcon.png";
@@ -61,6 +62,7 @@ const SuperAdminUserManagement = () => {
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [invoicesUser, setInvoicesUser] = useState<any | null>(null);
   const [phoneNumbersUser, setPhoneNumbersUser] = useState<any | null>(null);
+  const [changeCardUser, setChangeCardUser] = useState<any | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -250,6 +252,12 @@ const SuperAdminUserManagement = () => {
                 Phone Numbers
               </button>
               <button
+                onClick={() => { setChangeCardUser(user); setOpenMenuUserId(null); }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
+              >
+                Change Card
+              </button>
+              <button
                 onClick={() => handleDelete(user.id)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
               >
@@ -303,6 +311,22 @@ const SuperAdminUserManagement = () => {
         isOpen={!!phoneNumbersUser}
         user={phoneNumbersUser}
         onClose={() => setPhoneNumbersUser(null)}
+      />
+
+      <ChangeCardModal
+        isOpen={!!changeCardUser}
+        target={
+          changeCardUser
+            ? {
+                userId: changeCardUser.id,
+                fullName: changeCardUser.fullName,
+                cardBrand: changeCardUser.userSubscriptions?.[0]?.cardBrand ?? null,
+                cardLast4: changeCardUser.userSubscriptions?.[0]?.cardLast4 ?? null,
+              }
+            : null
+        }
+        onClose={() => setChangeCardUser(null)}
+        onSuccess={fetchUsers}
       />
 
       {/* Search bar  */}
