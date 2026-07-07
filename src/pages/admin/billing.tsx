@@ -59,7 +59,7 @@ const Billing = () => {
   // null = "All Dates"; otherwise filter to that month
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
 
-  const { subscriptions, plans } = useAppSelector(
+  const { subscriptions, plans, loading: subscriptionsLoading } = useAppSelector(
     (state) => state.subscriptions,
   );
 
@@ -341,7 +341,7 @@ const Billing = () => {
               )}
               Manage Billing
             </Button>
-            {!activeSubscription && (
+            {!subscriptionsLoading && !activeSubscription && (
               <Button
                 onClick={openUpgradeModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
@@ -350,7 +350,7 @@ const Billing = () => {
                 Subscribe to a Plan
               </Button>
             )}
-            {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
+            {!subscriptionsLoading && activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
               <Button
                 onClick={openUpgradeModal}
                 variant="outline"
@@ -360,7 +360,7 @@ const Billing = () => {
                 Upgrade Plan
               </Button>
             )}
-            {activeSubscription && activeSubscription.status.toLowerCase() !== "active" && (
+            {!subscriptionsLoading && activeSubscription && activeSubscription.status.toLowerCase() !== "active" && (
               <Button
                 onClick={openUpgradeModal}
                 variant="outline"
@@ -370,7 +370,7 @@ const Billing = () => {
                 Renew Subscription
               </Button>
             )}
-            {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
+            {!subscriptionsLoading && activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
               <Button
                 onClick={() => setShowCancelModal(true)}
                 disabled={cancelLoading}
