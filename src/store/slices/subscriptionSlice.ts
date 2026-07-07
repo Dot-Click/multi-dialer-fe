@@ -331,6 +331,22 @@ export const updatePlanTier = createAsyncThunk(
     },
 );
 
+export const startSubscriptionCheckout = createAsyncThunk(
+    'subscriptions/startSubscriptionCheckout',
+    async (priceId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/billing/subscription/start', { priceId });
+            if (response.data.success) {
+                return response.data.data.url as string;
+            } else {
+                return rejectWithValue(response.data.message || 'Failed to start subscription checkout');
+            }
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    },
+);
+
 export const changeSubscriptionPlan = createAsyncThunk(
     'subscriptions/changeSubscriptionPlan',
     async (payload: { subscriptionId: string; newPriceId: string; newPlan: string }, { rejectWithValue }) => {

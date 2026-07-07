@@ -25,7 +25,7 @@ import {
 import { Box } from "@/components/ui/box";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchSubscriptions, fetchPlans } from "@/store/slices/subscriptionSlice";
+import { fetchSubscriptions, fetchPlans, startSubscriptionCheckout } from "@/store/slices/subscriptionSlice";
 import type { Plan } from "@/store/slices/subscriptionSlice";
 import { format, addMonths, subMonths, addYears, startOfMonth, endOfMonth } from "date-fns";
 import toast from "react-hot-toast";
@@ -218,6 +218,27 @@ const Billing = () => {
   };
 
   const handleUpgradeSubscription = async () => {
+    // No subscription row at all yet — there's nothing to update, so start a
+    // fresh Stripe Checkout session and hand off to Stripe's hosted page.
+    if (!activeSubscription) {
+      if (!selectedPriceId) {
+        toast.error("Select a plan first");
+        return;
+      }
+      setUpgradeLoading(true);
+      try {
+        const result = await dispatch(startSubscriptionCheckout(selectedPriceId));
+        if (startSubscriptionCheckout.fulfilled.match(result)) {
+          window.location.href = result.payload;
+        } else {
+          toast.error((result.payload as string) || "Failed to start checkout");
+        }
+      } finally {
+        setUpgradeLoading(false);
+      }
+      return;
+    }
+
     setUpgradeLoading(true);
     try {
       const body = selectedPriceId ? { newPriceId: selectedPriceId } : {};
@@ -320,6 +341,15 @@ const Billing = () => {
               )}
               Manage Billing
             </Button>
+            {!activeSubscription && (
+              <Button
+                onClick={openUpgradeModal}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 font-medium w-full sm:w-auto"
+              >
+                <ArrowUpCircle className="size-4 mr-2" />
+                Subscribe to a Plan
+              </Button>
+            )}
             {activeSubscription && activeSubscription.status.toLowerCase() === "active" && (
               <Button
                 onClick={openUpgradeModal}
@@ -555,18 +585,26 @@ const Billing = () => {
           <div className="bg-white dark:bg-slate-800 w-full max-w-[560px] rounded-2xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                {activeSubscription?.status.toLowerCase() === "active"
+                {!activeSubscription
+                  ? <ArrowUpCircle className="size-5 text-blue-600 dark:text-blue-400" />
+                  : activeSubscription.status.toLowerCase() === "active"
                   ? <ArrowUpCircle className="size-5 text-blue-600 dark:text-blue-400" />
                   : <RefreshCw className="size-5 text-green-600 dark:text-green-400" />
                 }
               </div>
               <h2 className="text-[18px] font-[600] text-gray-900 dark:text-white">
-                {activeSubscription?.status.toLowerCase() === "active" ? "Upgrade Plan" : "Renew Subscription"}
+                {!activeSubscription
+                  ? "Subscribe to a Plan"
+                  : activeSubscription.status.toLowerCase() === "active"
+                  ? "Upgrade Plan"
+                  : "Renew Subscription"}
               </h2>
             </div>
 
             <p className="text-[14px] text-gray-500 dark:text-gray-400 mb-4">
-              {activeSubscription?.status.toLowerCase() === "active"
+              {!activeSubscription
+                ? "Choose a plan to activate your subscription. You'll be redirected to Stripe to enter your payment details."
+                : activeSubscription.status.toLowerCase() === "active"
                 ? "Select a plan below. Changes take effect immediately with prorated billing."
                 : "Choose a plan to reactivate your subscription."}
             </p>
@@ -682,12 +720,16 @@ const Billing = () => {
               >
                 {upgradeLoading ? (
                   <Loader2 className="size-4 animate-spin mr-2" />
-                ) : activeSubscription?.status.toLowerCase() === "active" ? (
+                ) : !activeSubscription || activeSubscription.status.toLowerCase() === "active" ? (
                   <ArrowUpCircle className="size-4 mr-2" />
                 ) : (
                   <RefreshCw className="size-4 mr-2" />
                 )}
-                {activeSubscription?.status.toLowerCase() === "active" ? "Confirm Upgrade" : "Renew Now"}
+                {!activeSubscription
+                  ? "Continue to Checkout"
+                  : activeSubscription.status.toLowerCase() === "active"
+                  ? "Confirm Upgrade"
+                  : "Renew Now"}
               </Button>
             </div>
           </div>
