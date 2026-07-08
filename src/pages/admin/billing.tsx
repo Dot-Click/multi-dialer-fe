@@ -30,6 +30,7 @@ import type { Plan } from "@/store/slices/subscriptionSlice";
 import { format, addMonths, subMonths, addYears, startOfMonth, endOfMonth } from "date-fns";
 import toast from "react-hot-toast";
 import api from "@/lib/axios";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 interface BillingInvoice {
   id: string;
@@ -47,6 +48,7 @@ interface BillingInvoice {
 
 const Billing = () => {
   const dispatch = useAppDispatch();
+  const { data: planLimits } = usePlanLimits();
   const [billingLoading, setBillingLoading] = useState(false);
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
@@ -447,6 +449,70 @@ const Billing = () => {
           </div>
         </div>
       </div>
+
+      {/* Plan Limits Section */}
+      {planLimits && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6 mt-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4">
+            Plan Limits
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Dialer Lines</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {planLimits.maxDialerLines ?? "Unlimited"}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Agent Seats</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {planLimits.includedAgentSeats ?? "Unlimited"}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Included Numbers</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {planLimits.includedNumbers ?? "Unlimited"}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Extra Number Price</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {planLimits.extraNumberPriceCents != null
+                  ? `$${(planLimits.extraNumberPriceCents / 100).toFixed(2)}/mo`
+                  : "Standard rate"}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">AI Insights</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                {planLimits.aiInsightsLevel.toLowerCase()}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {[
+              { label: "Call Recording", on: planLimits.callRecordingEnabled },
+              { label: "STIR/SHAKEN", on: planLimits.stirShakenEnabled },
+              { label: "Smart Rotation", on: planLimits.smartNumberRotationEnabled },
+              { label: "Team Dashboard", on: planLimits.teamDashboardEnabled },
+              { label: "Priority Routing", on: planLimits.priorityRoutingEnabled },
+              { label: "AI Call Coaching", on: planLimits.aiCallCoachingEnabled },
+            ].map((f) => (
+              <span
+                key={f.label}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                  f.on
+                    ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                    : "bg-gray-100 text-gray-400 dark:bg-slate-700 dark:text-gray-500 line-through"
+                }`}
+              >
+                {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Billing History Section */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 sm:p-6">

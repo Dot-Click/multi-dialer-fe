@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Edit3, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { Check, Edit3, Loader2, Plus, Save, Sliders, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchPlans, updatePlanTier, deletePlan, type Plan } from "@/store/slices/subscriptionSlice";
 import CreatePlanModal from "./CreatePlanModal";
+import PlanLimitsModal from "./PlanLimitsModal";
 
 type DraftFeature = {
   text: string;
@@ -103,6 +104,7 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
   const [draft, setDraft] = useState<DraftPlan>(() => toDraft(plan));
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [limitsOpen, setLimitsOpen] = useState(false);
 
   useEffect(() => {
     if (!editing) {
@@ -369,6 +371,13 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
                     <Trash2 size={17} />
                   </button>
                   <button
+                    onClick={() => setLimitsOpen(true)}
+                    title="Manage plan limits"
+                    className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#6575A7]"
+                  >
+                    <Sliders size={17} />
+                  </button>
+                  <button
                     onClick={() => setEditing(true)}
                     className="size-10 inline-flex items-center justify-center rounded-full bg-[#F1F5F9] dark:bg-slate-700 text-[#2463EB]"
                   >
@@ -384,6 +393,12 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
       <div className="bg-[#F1F5F9] dark:bg-slate-700 rounded-[12px] py-[11px] px-[19px] flex items-center justify-center gap-2 text-[#9BA4AD] dark:text-gray-400">
         <span className="text-[12px]">Synced with Stripe Products and Prices</span>
       </div>
+
+      <PlanLimitsModal
+        isOpen={limitsOpen}
+        onClose={() => setLimitsOpen(false)}
+        planName={plan.displayName || plan.name}
+      />
     </div>
   );
 };

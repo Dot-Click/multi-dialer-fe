@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
 import { useScript, type ScriptData } from "@/hooks/useScript";
 import { useAppSelector } from "@/store/hooks";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -115,6 +116,14 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
   const [pacing, setPacing] = useState(1); // Power Dialer: simultaneous calls
   const [amdEnabled, setAmdEnabled] = useState(false);
+
+  // Plan-configured cap on simultaneous power-dialer lines (null = unlimited).
+  // The backend re-validates this at dial-session start regardless.
+  const { data: planLimits } = usePlanLimits();
+  const maxDialerLines = planLimits?.maxDialerLines ?? 10;
+  useEffect(() => {
+    if (pacing > maxDialerLines) setPacing(maxDialerLines);
+  }, [maxDialerLines, pacing]);
 
   // Answer Notification Tone — same persisted setting as in Call Settings; controls
   // the connect/disconnect ringtones. Toggling here updates it for the session.
@@ -497,7 +506,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
                   <FieldWrapper label={dialerMode === "power" ? "NUMBER OF LINES" : "Call Script"}>
                     {dialerMode === "power" ? (
                       <SelectInput value={String(pacing)} onChange={(v) => setPacing(Number(v))}>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                        {Array.from({ length: maxDialerLines }, (_, i) => i + 1).map((n) => (
                           <option key={n} value={n} className="dark:bg-slate-900">
                             {n}x Speed
                           </option>
