@@ -337,7 +337,7 @@ const ContactInfo = () => {
                 } catch (e) {
                     console.warn('[ContactInfo] Status poll failed');
                 }
-            }, 2000);
+            }, 1000);
         }
         return () => { if (statusPoll) clearInterval(statusPoll); };
     }, [isAutoDialing, navigate, role, callerIds]);
