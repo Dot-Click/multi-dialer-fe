@@ -2,7 +2,9 @@ import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { useAppDispatch } from "@/store/hooks";
 import { createPlan } from "@/store/slices/subscriptionSlice";
+import { savePlanLimits } from "@/store/slices/planLimitsSlice";
 import toast from "react-hot-toast";
+import { DEFAULT_PLAN_LIMIT_DRAFT, PlanLimitFieldsForm, type PlanLimitDraft } from "./planLimitFields";
 
 interface CreatePlanModalProps {
   isOpen: boolean;
@@ -28,6 +30,16 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 2: limits are required before a plan is considered fully created —
+  // a plan can never be left without a PlanLimit row (even if intentionally
+  // all-unlimited), closing the gap where an unconfigured plan defaults to
+  // unrestricted for anyone subscribed to it.
+  const [step, setStep] = useState<1 | 2>(1);
+  const [limitsDraft, setLimitsDraft] = useState<PlanLimitDraft>(DEFAULT_PLAN_LIMIT_DRAFT);
+  // Set once the Stripe product itself has been created, so a retry after a
+  // limits-save failure doesn't try to create the plan a second time.
+  const [createdPlanName, setCreatedPlanName] = useState<string | null>(null);
+
   const reset = () => {
     setName("");
     setDescription("");
@@ -35,9 +47,21 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
     setYearlyAmount("");
     setTrialDays("");
     setErrors({});
+    setStep(1);
+    setLimitsDraft(DEFAULT_PLAN_LIMIT_DRAFT);
+    setCreatedPlanName(null);
   };
 
   const handleClose = () => {
+    // The Stripe product already exists but its limits never saved — closing
+    // now would leave exactly the unconfigured, unrestricted plan this whole
+    // flow exists to prevent. Make abandoning it a deliberate choice.
+    if (createdPlanName) {
+      const confirmed = window.confirm(
+        `"${createdPlanName}" was created but its limits were never saved, so it will default to unlimited until you configure it from the plan list. Close anyway?`
+      );
+      if (!confirmed) return;
+    }
     reset();
     onClose();
   };
@@ -72,35 +96,54 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
     return e;
   };
 
-  const handleSubmit = async () => {
+  const handleContinueToLimits = () => {
     const e = validate();
     if (Object.keys(e).length > 0) {
       setErrors(e);
       return;
     }
     setErrors({});
+    setStep(2);
+  };
+
+  const handleFinish = async () => {
     setSubmitting(true);
     try {
-      const monthly = monthlyAmount !== "" ? Math.round(parseFloat(monthlyAmount) * 100) : undefined;
-      const yearly = yearlyAmount !== "" ? Math.round(parseFloat(yearlyAmount) * 100) : undefined;
+      let planName = createdPlanName;
 
-      const result = await dispatch(
-        createPlan({
-          name: name.trim(),
-          description: description.trim() || undefined,
-          monthlyAmount: monthly,
-          yearlyAmount: yearly,
-          currency: "usd",
-          trialDays: trialDays !== "" ? parseInt(trialDays, 10) : undefined,
-        }),
-      );
+      // Only create the Stripe product once — a retry after a limits-save
+      // failure should just retry the limits save, not create a duplicate plan.
+      if (!planName) {
+        const monthly = monthlyAmount !== "" ? Math.round(parseFloat(monthlyAmount) * 100) : undefined;
+        const yearly = yearlyAmount !== "" ? Math.round(parseFloat(yearlyAmount) * 100) : undefined;
 
-      if (createPlan.fulfilled.match(result)) {
-        toast.success("Plan created and synced to Stripe");
-        handleClose();
-      } else {
-        toast.error((result.payload as string) || "Failed to create plan");
+        const result = await dispatch(
+          createPlan({
+            name: name.trim(),
+            description: description.trim() || undefined,
+            monthlyAmount: monthly,
+            yearlyAmount: yearly,
+            currency: "usd",
+            trialDays: trialDays !== "" ? parseInt(trialDays, 10) : undefined,
+          }),
+        );
+
+        if (!createPlan.fulfilled.match(result)) {
+          toast.error((result.payload as string) || "Failed to create plan");
+          return;
+        }
+        planName = name.trim();
+        setCreatedPlanName(planName);
       }
+
+      const limitsResult = await dispatch(savePlanLimits({ planName, ...limitsDraft }));
+      if (!savePlanLimits.fulfilled.match(limitsResult)) {
+        toast.error((limitsResult.payload as string) || "Plan created, but saving its limits failed — try again.");
+        return;
+      }
+
+      toast.success("Plan created with limits and synced to Stripe");
+      handleClose();
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +156,9 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
       <div className="bg-white dark:bg-slate-800 w-full max-w-[460px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex-shrink-0">
-          <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">Create New Plan</h2>
+          <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">
+            {step === 1 ? "Create New Plan" : `Set Limits — ${name.trim()}`}
+          </h2>
           <button
             onClick={handleClose}
             className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
@@ -124,6 +169,15 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
 
         {/* Body */}
         <div className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
+        {step === 2 ? (
+          <>
+            <p className="text-[13px] text-[#6575A7] dark:text-gray-400 -mt-1">
+              Every plan needs its limits set before it's usable — leave a field blank for unlimited.
+            </p>
+            <PlanLimitFieldsForm draft={limitsDraft} onChange={setLimitsDraft} />
+          </>
+        ) : (
+        <>
           {/* Plan Name */}
           <div className="flex flex-col gap-1">
             <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
@@ -233,25 +287,33 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
             </div>
             {errors.trialDays && <p className="text-red-500 text-[11px] px-1">{errors.trialDays}</p>}
           </div>
+        </>
+        )}
         </div>
 
         {/* Footer */}
         <div className="px-6 py-5 flex gap-3 border-t border-gray-100 dark:border-slate-700 flex-shrink-0">
           <button
             type="button"
-            onClick={handleClose}
+            onClick={step === 2 && !createdPlanName ? () => setStep(1) : handleClose}
             disabled={submitting}
             className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-3 rounded-[12px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
           >
-            Cancel
+            {step === 2 && !createdPlanName ? "Back" : "Cancel"}
           </button>
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={step === 1 ? handleContinueToLimits : handleFinish}
             disabled={submitting}
             className="flex-1 bg-[#FFCA06] text-black font-[500] py-3 rounded-[12px] hover:bg-[#eab700] transition-colors flex items-center justify-center disabled:opacity-50"
           >
-            {submitting ? "Creating…" : "Create Plan"}
+            {step === 1
+              ? "Continue to Limits"
+              : submitting
+                ? "Saving…"
+                : createdPlanName
+                  ? "Retry Saving Limits"
+                  : "Create Plan"}
           </button>
         </div>
       </div>
