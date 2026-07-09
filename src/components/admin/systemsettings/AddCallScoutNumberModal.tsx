@@ -60,7 +60,6 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             const buyResult = await buyNumber.mutateAsync({
                 phoneNumber: selectedNumber,
                 countryCode: twilioNum.isoCountry || 'US',
-                label: `CallScout Number - ${twilioNum.locality || 'US'}`,
                 ...(confirmOverageCharge ? { confirmOverageCharge: true } : {}),
             });
 
