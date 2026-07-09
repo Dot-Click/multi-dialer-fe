@@ -30,13 +30,17 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Backend returns { numbers: TwilioNumber[], pricing: TwilioPricing }
+    // Backend returns { numbers, pricing, billing } — billing.effectivePriceCents
+    // is what a purchase will actually be charged right now (0 if still within
+    // the plan's included free count, otherwise the super-admin-configured
+    // add-on price, falling back to Twilio's live price only if unconfigured).
     const numbersList: TwilioNumber[] = availableNumbers.data?.numbers ?? [];
-    const pricing = availableNumbers.data?.pricing;
+    const billing = availableNumbers.data?.billing;
 
-    // TwilioPricing uses camelCase from the hook: priceUnit, phoneNumberPrices
-    const pricingInfo = pricing?.priceUnit
-        ? `${pricing.priceUnit} ${pricing.phoneNumberPrices?.[0]?.current_price || 'N/A'}`
+    const pricingInfo = billing
+        ? billing.isWithinIncludedCount
+            ? 'Free (included in plan)'
+            : `$${(billing.effectivePriceCents / 100).toFixed(2)}/mo`
         : null;
 
     if (!isOpen) return null;
@@ -177,7 +181,9 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                         </div>
                                         {pricingInfo && (
                                             <div className="text-right">
-                                                <p className="text-[11px] font-bold text-gray-700 dark:text-gray-300">{pricingInfo}</p>
+                                                <p className={`text-[11px] font-bold ${billing?.isWithinIncludedCount ? 'text-green-600 dark:text-green-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                    {pricingInfo}
+                                                </p>
                                             </div>
                                         )}
                                     </div>

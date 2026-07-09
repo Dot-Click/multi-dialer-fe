@@ -249,6 +249,14 @@ export interface TwilioPricing {
 export interface AvailableNumbersResponse {
   numbers: TwilioNumber[];
   pricing: TwilioPricing;
+  // The actual price a purchase will be charged right now — mirrors what the
+  // buy-number endpoint will actually do, so this always matches reality
+  // instead of just showing Twilio's raw list price.
+  billing: {
+    isWithinIncludedCount: boolean;
+    effectivePriceCents: number;
+    effectiveCurrency: string;
+  };
 }
 
 // --- Hooks ---
