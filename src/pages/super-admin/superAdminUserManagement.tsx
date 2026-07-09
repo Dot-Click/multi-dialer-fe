@@ -198,7 +198,7 @@ const SuperAdminUserManagement = () => {
         <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
           {isAdmin ? (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4338CA] dark:bg-indigo-900/40 dark:text-indigo-300 font-[500]">
-              {agentCount} {agentCount === 1 ? "agent" : "agents"}
+              {agentCount}
             </span>
           ) : (
             "—"
