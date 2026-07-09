@@ -59,7 +59,12 @@ export default function Page() {
     setIsLoadingUsers(true);
     try {
       const res = await api.get("/user");
-      setUsers(res.data?.data || []);
+      const allUsers: ManagedUser[] = res.data?.data || [];
+      // This page manages the agents this admin created — the admin's own
+      // account isn't an agent and shouldn't be listed/editable here (the
+      // /user endpoint includes it for other consumers, e.g. "assign to me"
+      // in TakeActionModal, so filter it out here rather than at the API).
+      setUsers(allUsers.filter((u) => u.id !== session?.user?.id));
     } catch (err: any) {
       console.error("Fetch Users Error:", err);
       toast.error(
