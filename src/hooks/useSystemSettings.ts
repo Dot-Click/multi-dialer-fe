@@ -702,6 +702,7 @@ export const useTwilioNumbers = (
       phoneNumber: string;
       countryCode?: string;
       label?: string;
+      confirmOverageCharge?: boolean;
     }) => {
       const response = await api.post("/calling/buy-number", {
         ...payload,

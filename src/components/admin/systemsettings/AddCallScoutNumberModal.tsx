@@ -30,6 +30,11 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Shown instead of buying directly once the plan's included count is
+    // used up — mirrors the agent-seat overage flow: block the action, show
+    // the exact charge, and only proceed once the user explicitly confirms.
+    const [overageConfirm, setOverageConfirm] = useState<{ priceCents: number; currency: string } | null>(null);
+
     // Backend returns { numbers, pricing, billing } — billing.effectivePriceCents
     // is what a purchase will actually be charged right now (0 if still within
     // the plan's included free count, otherwise the super-admin-configured
@@ -45,12 +50,8 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
 
     if (!isOpen) return null;
 
-    const handleAddNumber = async () => {
-        if (!selectedNumber) {
-            toast.error('Please select a number first');
-            return;
-        }
-
+    const runPurchase = async (confirmOverageCharge?: boolean) => {
+        if (!selectedNumber) return;
         const twilioNum = numbersList.find((n: TwilioNumber) => n.phoneNumber === selectedNumber);
         if (!twilioNum) return;
 
@@ -59,19 +60,47 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             const buyResult = await buyNumber.mutateAsync({
                 phoneNumber: selectedNumber,
                 countryCode: twilioNum.isoCountry || 'US',
-                label: `CallScout Number - ${twilioNum.locality || 'US'}`
+                label: `CallScout Number - ${twilioNum.locality || 'US'}`,
+                ...(confirmOverageCharge ? { confirmOverageCharge: true } : {}),
             });
 
             const newRecord = buyResult.data?.callerId || buyResult.callerId;
 
-            toast.success('Number bought and added successfully');
+            toast.success(confirmOverageCharge ? 'Extra number purchased and added' : 'Number bought and added successfully');
+            setOverageConfirm(null);
             onSuccess(newRecord);
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to process number');
+            // Defense in depth: even if the client's cached billing info said
+            // this was still free, the server is the source of truth — if it
+            // comes back requiring payment, show the same confirm dialog
+            // instead of just failing.
+            if (error.response?.data?.requiresPayment) {
+                setOverageConfirm({
+                    priceCents: error.response.data.priceCents,
+                    currency: error.response.data.currency || 'usd',
+                });
+                return;
+            }
             toast.error(error.response?.data?.message || 'Failed to process number');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleAddNumber = () => {
+        if (!selectedNumber) {
+            toast.error('Please select a number first');
+            return;
+        }
+
+        // Past the included count — block the purchase and ask for
+        // confirmation on the exact charge instead of buying immediately.
+        if (billing && !billing.isWithinIncludedCount) {
+            setOverageConfirm({ priceCents: billing.effectivePriceCents, currency: billing.effectiveCurrency });
+            return;
+        }
+
+        runPurchase();
     };
 
     return (
@@ -210,11 +239,50 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                     <Loader2 size={18} className="animate-spin" />
                                     Processing...
                                 </span>
-                            ) : 'Buy & Add Number'}
+                            ) : billing && !billing.isWithinIncludedCount ? 'Pay & Add Number' : 'Buy & Add Number'}
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* OVERAGE CONFIRMATION DIALOG */}
+            {overageConfirm && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl p-6">
+                        <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-2">
+                            Number Limit Reached
+                        </h3>
+                        <p className="text-[13px] text-gray-600 dark:text-gray-300 mb-4">
+                            You've used all the phone numbers included in your plan. Adding this number costs{' '}
+                            <span className="font-bold text-gray-900 dark:text-white">
+                                ${(overageConfirm.priceCents / 100).toFixed(2)}/mo
+                            </span>
+                            . Proceed with the charge?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setOverageConfirm(null)}
+                                disabled={isSubmitting}
+                                className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-gray-900 dark:text-white text-[13px] font-bold py-3 rounded-2xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => runPurchase(true)}
+                                disabled={isSubmitting}
+                                className="flex-1 bg-[#FECD56] text-gray-900 text-[13px] font-bold py-3 rounded-2xl shadow-sm hover:bg-[#F0D500] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : 'Pay & Add Number'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <style>{`.custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }`}</style>
         </div>
     );
