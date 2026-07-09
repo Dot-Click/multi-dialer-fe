@@ -44,6 +44,15 @@ export default function Page() {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
+  // Shown when creating an agent hits the plan's seat cap but the plan
+  // offers a paid overage seat — confirms the charge before retrying
+  // creation with the purchased seat attached.
+  const [seatPurchase, setSeatPurchase] = useState<{
+    open: boolean;
+    priceCents: number | null;
+    purchasing: boolean;
+  }>({ open: false, priceCents: null, purchasing: false });
+
   const { session } = useAppSelector((state) => state.auth);
 
   const fetchUsers = async () => {
@@ -141,9 +150,58 @@ export default function Page() {
       closeModal();
       fetchUsers();
     } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred");
+      const message = err.message || "An unexpected error occurred";
+
+      // Seat cap hit, but this plan offers paid overage seats (backend only
+      // uses this exact phrasing when extraAgentSeatPriceCents is set) — offer
+      // to purchase one instead of just failing.
+      if (!isEditing && message.includes("Purchase an extra seat")) {
+        setOpenUserModal(false);
+        setSeatPurchase({ open: true, priceCents: null, purchasing: false });
+        try {
+          const res = await api.get("/plan-limits/mine");
+          setSeatPurchase((s) => ({ ...s, priceCents: res.data?.data?.extraAgentSeatPriceCents ?? null }));
+        } catch {
+          // Price display is best-effort; the purchase call itself still works without it.
+        }
+        return;
+      }
+
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const confirmSeatPurchaseAndCreateAgent = async () => {
+    setSeatPurchase((s) => ({ ...s, purchasing: true }));
+    try {
+      const purchaseRes = await api.post("/agent-seats/purchase");
+      const { stripeSubscriptionItemId, agentSeatMonthlyPriceCents } = purchaseRes.data?.data || {};
+
+      const result = await authClient.admin.createUser({
+        name: fullName,
+        email,
+        password,
+        data: {
+          role: role.toUpperCase(),
+          createdById: session?.user?.id,
+          stripeAgentSeatItemId: stripeSubscriptionItemId,
+          agentSeatMonthlyPriceCents,
+        },
+      });
+
+      if (result?.error) {
+        throw new Error(result.error.message || "Failed to create agent after purchasing the seat");
+      }
+
+      toast.success("Extra agent seat purchased and agent created");
+      setSeatPurchase({ open: false, priceCents: null, purchasing: false });
+      closeModal();
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Failed to purchase the extra seat");
+      setSeatPurchase((s) => ({ ...s, purchasing: false }));
     }
   };
 
@@ -479,6 +537,49 @@ export default function Page() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SEAT PURCHASE CONFIRMATION MODAL */}
+      {seatPurchase.open && (
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-40">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl p-6 animate-fadeIn">
+            <h2 className="text-lg font-semibold dark:text-white mb-2">
+              Agent Seat Limit Reached
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              You've used all the agent seats included in your plan. Adding another agent costs{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {seatPurchase.priceCents != null ? `$${(seatPurchase.priceCents / 100).toFixed(2)}/mo` : "an extra fee"}
+              </span>
+              . Proceed with the charge?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setSeatPurchase({ open: false, priceCents: null, purchasing: false })}
+                disabled={seatPurchase.purchasing}
+                className="flex-1 py-3 rounded-xl bg-gray-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 font-semibold hover:bg-gray-300 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmSeatPurchaseAndCreateAgent}
+                disabled={seatPurchase.purchasing}
+                className="flex-1 py-3 rounded-xl bg-yellow-400 dark:text-black font-semibold hover:bg-yellow-500 transition flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                {seatPurchase.purchasing ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Processing...
+                  </>
+                ) : (
+                  "Pay & Add Agent"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

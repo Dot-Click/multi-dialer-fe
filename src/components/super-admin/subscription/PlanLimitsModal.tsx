@@ -16,6 +16,7 @@ const PlanLimitsModal = ({ isOpen, onClose, planName }: PlanLimitsModalProps) =>
   const dispatch = useAppDispatch();
   const { rows, saving } = useAppSelector((state) => state.planLimits);
   const [draft, setDraft] = useState<PlanLimitDraft>(DEFAULT_PLAN_LIMIT_DRAFT);
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +32,12 @@ const PlanLimitsModal = ({ isOpen, onClose, planName }: PlanLimitsModalProps) =>
   }, [isOpen, planName, rows]);
 
   const handleSave = async () => {
+    if (draft.extraAgentSeatPriceCents == null) {
+      setShowErrors(true);
+      toast.error("Set an extra agent seat price — every plan must support paid overage seats.");
+      return;
+    }
+
     try {
       await dispatch(savePlanLimits({ planName, ...draft })).unwrap();
       toast.success("Plan limits saved");
@@ -53,7 +60,7 @@ const PlanLimitsModal = ({ isOpen, onClose, planName }: PlanLimitsModalProps) =>
         </div>
 
         <div className="p-6">
-          <PlanLimitFieldsForm draft={draft} onChange={setDraft} />
+          <PlanLimitFieldsForm draft={draft} onChange={setDraft} showErrors={showErrors} />
         </div>
 
         <div className="px-6 py-5 flex gap-3 border-t border-gray-100 dark:border-slate-700">

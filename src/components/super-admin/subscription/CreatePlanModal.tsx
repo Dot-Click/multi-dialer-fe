@@ -36,6 +36,7 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
   // unrestricted for anyone subscribed to it.
   const [step, setStep] = useState<1 | 2>(1);
   const [limitsDraft, setLimitsDraft] = useState<PlanLimitDraft>(DEFAULT_PLAN_LIMIT_DRAFT);
+  const [showLimitErrors, setShowLimitErrors] = useState(false);
   // Set once the Stripe product itself has been created, so a retry after a
   // limits-save failure doesn't try to create the plan a second time.
   const [createdPlanName, setCreatedPlanName] = useState<string | null>(null);
@@ -49,6 +50,7 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
     setErrors({});
     setStep(1);
     setLimitsDraft(DEFAULT_PLAN_LIMIT_DRAFT);
+    setShowLimitErrors(false);
     setCreatedPlanName(null);
   };
 
@@ -107,6 +109,12 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
   };
 
   const handleFinish = async () => {
+    if (limitsDraft.extraAgentSeatPriceCents == null) {
+      setShowLimitErrors(true);
+      toast.error("Set an extra agent seat price — every plan must support paid overage seats.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       let planName = createdPlanName;
@@ -174,7 +182,7 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
             <p className="text-[13px] text-[#6575A7] dark:text-gray-400 -mt-1">
               Every plan needs its limits set before it's usable — leave a field blank for unlimited.
             </p>
-            <PlanLimitFieldsForm draft={limitsDraft} onChange={setLimitsDraft} />
+            <PlanLimitFieldsForm draft={limitsDraft} onChange={setLimitsDraft} showErrors={showLimitErrors} />
           </>
         ) : (
         <>

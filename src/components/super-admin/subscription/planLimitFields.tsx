@@ -7,6 +7,7 @@ export const DEFAULT_PLAN_LIMIT_DRAFT: PlanLimitDraft = {
   maxDialerLines: null,
   includedAgentSeats: null,
   maxAgentSeats: null,
+  extraAgentSeatPriceCents: null,
   includedNumbers: null,
   extraNumberPriceCents: null,
   callRecordingEnabled: true,
@@ -44,6 +45,41 @@ export const NumberField = ({
   </label>
 );
 
+// Unlike NumberField (blank = unlimited), this field has no "unlimited"
+// meaning — every plan must offer a paid-overage-seat price, so blank is
+// invalid rather than a valid choice. `invalid` drives the error styling;
+// validation itself lives in the caller (CreatePlanModal/PlanLimitsModal).
+export const RequiredNumberField = ({
+  label,
+  hint,
+  value,
+  onChange,
+  invalid,
+}: {
+  label: string;
+  hint: string;
+  value: number | null;
+  onChange: (v: number | null) => void;
+  invalid?: boolean;
+}) => (
+  <label className="block">
+    <span className="text-[13px] text-[#6575A7] dark:text-gray-300">
+      {label} <span className="text-red-400">*</span>
+    </span>
+    <input
+      type="number"
+      min={0}
+      placeholder="Required"
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+      className={`mt-1 w-full h-10 rounded-[10px] bg-[#F8FAFC] dark:bg-slate-700 px-3 text-[14px] outline-none dark:text-white ${
+        invalid ? "ring-1 ring-red-400" : ""
+      }`}
+    />
+    <span className={`text-[11px] ${invalid ? "text-red-500" : "text-gray-400"}`}>{hint}</span>
+  </label>
+);
+
 export const ToggleRow = ({
   label,
   checked,
@@ -63,9 +99,12 @@ export const ToggleRow = ({
 export const PlanLimitFieldsForm = ({
   draft,
   onChange,
+  showErrors,
 }: {
   draft: PlanLimitDraft;
   onChange: (next: PlanLimitDraft) => void;
+  /** Show required-field errors (e.g. after a failed submit attempt). */
+  showErrors?: boolean;
 }) => (
   <div className="flex flex-col gap-5">
     <div>
@@ -79,9 +118,16 @@ export const PlanLimitFieldsForm = ({
         />
         <NumberField
           label="Included agent seats"
-          hint="Hard cap — no auto-billing for extras."
+          hint="Hard cap once reached — the extra seat price below unlocks paid overage."
           value={draft.includedAgentSeats}
           onChange={(v) => onChange({ ...draft, includedAgentSeats: v })}
+        />
+        <RequiredNumberField
+          label="Extra agent seat price (cents)"
+          hint="e.g. 1500 = $15/mo per extra agent seat past the included count."
+          value={draft.extraAgentSeatPriceCents}
+          onChange={(v) => onChange({ ...draft, extraAgentSeatPriceCents: v })}
+          invalid={showErrors && draft.extraAgentSeatPriceCents == null}
         />
       </div>
     </div>

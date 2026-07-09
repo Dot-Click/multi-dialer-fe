@@ -8,6 +8,9 @@ export interface PlanLimits {
     maxDialerLines: number | null;
     includedAgentSeats: number | null;
     maxAgentSeats: number | null;
+    extraAgentSeatPriceCents: number | null;
+    /** How many overage agent seats this admin currently has paid for and active. */
+    activePaidOverageSeats: number;
     includedNumbers: number | null;
     extraNumberPriceCents: number | null;
     callRecordingEnabled: boolean;

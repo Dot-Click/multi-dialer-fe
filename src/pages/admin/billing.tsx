@@ -467,6 +467,17 @@ const Billing = () => {
               <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Agent Seats</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
                 {planLimits.includedAgentSeats ?? "Unlimited"}
+                {planLimits.activePaidOverageSeats > 0 && (
+                  <span className="text-sm font-normal text-gray-500 dark:text-gray-400"> + {planLimits.activePaidOverageSeats} paid</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Extra Agent Seat Price</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {planLimits.extraAgentSeatPriceCents != null
+                  ? `$${(planLimits.extraAgentSeatPriceCents / 100).toFixed(2)}/mo`
+                  : "Not available"}
               </div>
             </div>
             <div>

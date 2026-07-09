@@ -8,6 +8,7 @@ export interface PlanLimitRow {
     maxDialerLines: number | null;
     includedAgentSeats: number | null;
     maxAgentSeats: number | null;
+    extraAgentSeatPriceCents: number | null;
     includedNumbers: number | null;
     extraNumberPriceCents: number | null;
     callRecordingEnabled: boolean;
