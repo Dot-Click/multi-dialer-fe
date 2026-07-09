@@ -8,9 +8,13 @@ import AdminSalesAgent from '@/components/admin/dashboard/workspace/adminsalesag
 import AdminCallMetrics from '@/components/admin/dashboard/workspace/admincallmetrics'
 import { useAppSelector } from '@/store/hooks'
 import type { AppearanceSettings } from '@/store/slices/appearanceSlice'
+import { usePlanLimits } from '@/hooks/usePlanLimits'
+import FeatureLockedOverlay from '@/components/common/FeatureLockedOverlay'
 
 const AdminWorkspace = () => {
   const { settings } = useAppSelector((state) => state.appearance);
+  const { data: planLimits } = usePlanLimits();
+  const teamDashboardEnabled = planLimits?.teamDashboardEnabled ?? true;
 
   const show = (key: keyof AppearanceSettings, defaultVal = true) => {
     if (!settings) return defaultVal;
@@ -43,9 +47,15 @@ const AdminWorkspace = () => {
         {show('recentActivity') && <AdminRecentActivity />}
       </div>
 
-      <div className='flex gap-6 md:flex-row flex-col justify-between items-start'>
+      <div className='relative flex gap-6 md:flex-row flex-col justify-between items-start'>
         <AdminSalesAgent />
         <AdminCallMetrics />
+        {!teamDashboardEnabled && (
+          <FeatureLockedOverlay
+            featureName="Team Dashboard"
+            message="Your plan doesn't include the Team Dashboard. Upgrade your plan to unlock it."
+          />
+        )}
       </div>
     </div>
   )

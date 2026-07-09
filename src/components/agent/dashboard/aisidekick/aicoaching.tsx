@@ -1,5 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useAiCoaching } from "@/hooks/useAiSidekick";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import FeatureLockedOverlay from "@/components/common/FeatureLockedOverlay";
 import { Loader2 } from "lucide-react";
 
 const OBJECTION_COLORS = ['#9400BD', '#F91E4A'];
@@ -8,6 +10,19 @@ const CONFIDENCE_COLORS = ['#3DC269', '#D43435', '#F6BF26'];
 
 const AiCoaching = () => {
   const { data: coachingData, isLoading } = useAiCoaching();
+  const { data: planLimits } = usePlanLimits();
+  const aiCallCoachingEnabled = planLimits?.aiCallCoachingEnabled ?? true;
+
+  if (!aiCallCoachingEnabled) {
+    return (
+      <section className='relative bg-white dark:bg-slate-800 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md p-5 flex items-center justify-center min-h-[500px]'>
+        <FeatureLockedOverlay
+          featureName="AI Call Coaching"
+          message="Your plan doesn't include AI Call Coaching. Upgrade your plan to unlock it."
+        />
+      </section>
+    );
+  }
 
   if (isLoading) {
     return (

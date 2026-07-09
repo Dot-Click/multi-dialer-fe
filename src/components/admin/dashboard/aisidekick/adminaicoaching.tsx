@@ -1,6 +1,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
 import { useAiCoaching } from "@/hooks/useAiSidekick";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import FeatureLockedOverlay from "@/components/common/FeatureLockedOverlay";
 
 const OBJECTION_COLORS = ["#9333EA", "#EF4444"];
 const CONFIDENCE_COLORS = ["#22C55E", "#FBBF24", "#DC2626"];
@@ -10,6 +12,8 @@ const AdminAiCoaching = () => {
   // const [isLoading, setIsLoading] = useState(false);
 
   const { data, isLoading } = useAiCoaching();
+  const { data: planLimits } = usePlanLimits();
+  const aiCallCoachingEnabled = planLimits?.aiCallCoachingEnabled ?? true;
 
   const coachingEvents = data?.coachingEvents || { count: 0, total: 0, successPercentage: 0 };
   const objectionData = data?.objectionDetection?.data || [];
@@ -19,12 +23,17 @@ const AdminAiCoaching = () => {
   const keywordScore = data?.keywordScore || 0;
 
   return (
-    <section className="bg-white dark:bg-slate-800 rounded-2xl w-full shadow-sm p-5 flex flex-col h-full min-h-[500px]">
+    <section className="relative bg-white dark:bg-slate-800 rounded-2xl w-full shadow-sm p-5 flex flex-col h-full min-h-[500px]">
       <h1 className="text-xl font-medium text-gray-800 dark:text-white">
         AI Coaching & Call Analysis
       </h1>
 
-      {isLoading ? (
+      {!aiCallCoachingEnabled ? (
+        <FeatureLockedOverlay
+          featureName="AI Call Coaching"
+          message="Your plan doesn't include AI Call Coaching. Upgrade your plan to unlock it."
+        />
+      ) : isLoading ? (
         <div className="grow flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
         </div>

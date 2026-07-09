@@ -4,10 +4,14 @@ import { Loader2, RefreshCw } from "lucide-react";
 import { FreezeCountdown, isCurrentlyFrozen } from "@/components/agent/common/FreezeCountdown";
 import api from "@/lib/axios";
 import type { CallerId } from "@/hooks/useSystemSettings";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import FeatureLockedOverlay from "@/components/common/FeatureLockedOverlay";
 
 const DialerHealth = () => {
     const { data: dialers, isLoading } = useDialerHealth();
     const { mutate: refresh, isPending: isRefreshing } = useRefreshDialerHealth();
+    const { data: planLimits } = usePlanLimits();
+    const advancedDeliverabilityEnabled = planLimits?.advancedDeliverabilityEnabled ?? true;
 
     // Poll caller IDs every 15 s so freeze state stays current on the dashboard.
     // We use a local query (not the shared useCallerIds hook) so the refetchInterval
@@ -46,7 +50,13 @@ const DialerHealth = () => {
     }
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-6 rounded-[32px] px-6 py-6 w-full overflow-hidden">
+        <section className="relative bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-6 rounded-[32px] px-6 py-6 w-full overflow-hidden">
+            {!advancedDeliverabilityEnabled && (
+                <FeatureLockedOverlay
+                    featureName="Advanced Deliverability"
+                    message="Your plan doesn't include advanced deliverability tracking. Upgrade your plan to unlock it."
+                />
+            )}
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
