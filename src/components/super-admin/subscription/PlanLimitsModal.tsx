@@ -51,7 +51,7 @@ const PlanLimitsModal = ({ isOpen, onClose, planName }: PlanLimitsModalProps) =>
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white dark:bg-slate-800 w-full max-w-[520px] max-h-[85vh] overflow-y-auto rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[680px] max-h-[85vh] overflow-y-auto rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
         <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10">
           <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">Plan Limits — {planName}</h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">

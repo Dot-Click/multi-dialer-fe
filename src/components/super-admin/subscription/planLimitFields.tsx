@@ -152,7 +152,7 @@ export const PlanLimitFieldsForm = ({
 
     <div>
       <h3 className="text-[14px] font-[600] text-[#1D2C45] dark:text-white mb-2">Features</h3>
-      <div className="bg-[#F8FAFC] dark:bg-slate-700 rounded-[12px] px-4 py-1">
+      <div className="bg-[#F8FAFC] dark:bg-slate-700 rounded-[12px] px-4 py-1 grid grid-cols-2 gap-x-4">
         <ToggleRow
           label="Call recording"
           checked={draft.callRecordingEnabled}

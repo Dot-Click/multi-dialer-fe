@@ -161,7 +161,7 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white dark:bg-slate-800 w-full max-w-[460px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[680px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex-shrink-0">
           <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">
@@ -186,35 +186,37 @@ const CreatePlanModal = ({ isOpen, onClose }: CreatePlanModalProps) => {
           </>
         ) : (
         <>
-          {/* Plan Name */}
-          <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Plan Name */}
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+                <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
+                  Plan Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Professional"
+                  className="bg-transparent outline-none text-[#111] dark:text-white text-[15px]"
+                />
+              </div>
+              {errors.name && <p className="text-red-500 text-[11px] px-1">{errors.name}</p>}
+            </div>
+
+            {/* Description */}
             <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
               <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
-                Plan Name <span className="text-red-400">*</span>
+                Description <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Professional"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short plan description"
                 className="bg-transparent outline-none text-[#111] dark:text-white text-[15px]"
               />
             </div>
-            {errors.name && <p className="text-red-500 text-[11px] px-1">{errors.name}</p>}
-          </div>
-
-          {/* Description */}
-          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
-            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">
-              Description <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short plan description"
-              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px]"
-            />
           </div>
 
           {/* Pricing */}
