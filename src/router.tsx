@@ -130,6 +130,7 @@ const Router: React.FC = () => {
               <Route path="system-settings" element={<AdminSystemSetting />} />
               <Route path="number-setting" element={<NumberSetting />} />
               <Route path="create-setting" element={<AdminCreateCallSetting />} />
+              <Route path="create-setting/:id" element={<AdminCreateCallSetting />} />
               <Route path="action-plan" element={<AdminActionPlan />} />
               <Route path="billing" element={<Billing />} />
 

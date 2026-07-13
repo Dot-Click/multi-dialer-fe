@@ -1,192 +1,176 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { FC, ReactNode } from "react";
-import { IoIosArrowDown } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { FiChevronDown, FiPlus } from "react-icons/fi";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import AddRecordingModal from "@/components/modal/addrecordingmodal";
-import { useRecordings, type RecordingItem } from "@/hooks/useRecordings";
-import { useCallSettings } from "@/hooks/useSystemSettings";
+import api from "@/lib/axios";
+import { FreezeCountdown, isCurrentlyFrozen } from "@/components/agent/common/FreezeCountdown";
+import { useMediaCenter, type MediaCenterItem, type MediaType } from "@/hooks/useMediaCenter";
+import {
+  useCallSettings,
+  useCallerIds,
+  useDialerSettings,
+  type CallerId,
+} from "@/hooks/useSystemSettings";
 import { useScript, type ScriptData } from "@/hooks/useScript";
-import { useCallerIds, type CallerId } from "@/hooks/useSystemSettings";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
-// Types
-interface InputFieldProps {
-  label: string;
-  type?: string;
-  placeholder?: string;
-  value?: string;
-}
+// ── Shared field primitives (identical to CreateCallSettingModal) ──────────────
 
-interface SelectFieldProps {
-  label: string;
-  children: ReactNode;
-}
-
-interface CheckboxFieldProps {
-  label: string;
-}
-
-interface RadioGroupProps {
-  title: string;
-  name: string;
-  options: string[];
-  selected: string;
-  onChange: (value: string) => void;
-}
-
-// Reusable Input Field Component
-const InputField: FC<InputFieldProps & { onChange?: (value: string) => void }> = ({ label, type = "text", placeholder, value, onChange }) => (
-  <div className="bg-gray-100 rounded-lg px-4 py-2">
-    <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-      className="w-full bg-transparent text-sm text-gray-800 focus:outline-none"
-    />
+const FieldWrapper: FC<{ label: string; children: ReactNode }> = ({ label, children }) => (
+  <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl px-4 py-3">
+    <label className="block text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-1">
+      {label}
+    </label>
+    {children}
   </div>
 );
 
-// Reusable Select Field Component
-const SelectField: FC<SelectFieldProps & { value?: string; onChange?: (value: string) => void }> = ({ label, children, value, onChange }) => (
-  <div className="relative bg-gray-100 rounded-lg px-4 py-2">
-    <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+const SelectInput: FC<{ value: string; onChange: (v: string) => void; children: ReactNode }> = ({ value, onChange, children }) => (
+  <div className="relative">
     <select
       value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-      className="w-full bg-transparent text-sm text-gray-800 appearance-none focus:outline-none cursor-pointer"
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-transparent appearance-none text-[13px] font-semibold text-gray-700 dark:text-white outline-none pr-6 cursor-pointer"
     >
       {children}
     </select>
-    <IoIosArrowDown className="absolute right-4 top-8 text-gray-500 pointer-events-none" />
+    <FiChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
   </div>
 );
 
-// Reusable Checkbox Component
-const CheckboxField: FC<CheckboxFieldProps & { checked?: boolean; onChange?: (checked: boolean) => void }> = ({ label, checked, onChange }) => (
-  <div className="flex items-center gap-3">
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onChange?.(e.target.checked)}
-      className="h-4 w-4 rounded accent-black border-gray-300 focus:ring-blue-400"
-    />
-    <label className="text-sm text-gray-700">{label}</label>
-  </div>
-);
-
-// Reusable Radio Group Component
-const RadioGroup: FC<RadioGroupProps> = ({ title, name, options, selected, onChange }) => (
-  <div>
-    <h3 className="text-sm font-semibold text-gray-800 mb-3">{title}</h3>
-    <div className="flex flex-col gap-2">
-      {options.map((option) => (
-        <div key={option} className="flex items-center gap-3">
-          <input
-            type="radio"
-            id={`${name}-${option}`}
-            name={name}
-            value={option}
-            checked={selected === option}
-            onChange={(e) => onChange(e.target.value)}
-            className="h-4 w-4 accent-black border-gray-300 focus:ring-blue-400"
-          />
-          <label htmlFor={`${name}-${option}`} className="text-sm text-gray-700">
-            {option}
-          </label>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+// Matches the RecordingSlot enum from the Prisma schema: ON_HOLD | IVR | ANSWERING_MACHINE | VOICEMAIL | GENERAL
+const filterAudioByType = (media: MediaCenterItem[], mediaType: MediaType): MediaCenterItem[] =>
+  media.filter((item) => item.fileCategory === "audio" && item.mediaType === mediaType);
 
 const AdminCreateCallSetting: FC = () => {
   const navigate = useNavigate();
-  const { createCallSettings } = useCallSettings();
-
-  // Form state
-  const [name, setName] = useState("");
-  const [onHoldRecording1, setOnHoldRecording1] = useState("");
-  const [onHoldRecording2, setOnHoldRecording2] = useState("");
-  const [onHoldRecording3, setOnHoldRecording3] = useState("");
-  const [answeringMachineRecording, setAnsweringMachineRecording] = useState("");
-  const [enableAutoPause, setEnableAutoPause] = useState(false);
-  const [enableRecording, setEnableRecording] = useState(false);
-  const [sendAppointmentMail, setSendAppointmentMail] = useState(false);
-  const [dncCalls, setDncCalls] = useState("No");
-  const [callerId, setCallerId] = useState("");
-  const [countryCode, setCountryCode] = useState("");
-  const [noOfLines, setNoOfLines] = useState("");
-  const [phoneRingTime, setPhoneRingTime] = useState("");
-  const [callScript, setCallScript] = useState("");
-  const [sendEmail, setSendEmail] = useState("No");
-  const [sendText, setSendText] = useState("No");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [recordings, setRecordings] = useState<RecordingItem[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { getRecordings } = useRecordings();
-
-  const [scripts, setScripts] = useState<ScriptData[]>([]);
+  const { id: editId } = useParams<{ id: string }>();
+  const isEditMode = !!editId;
+  const { data: existingSettings, createCallSettings, updateCallSettings } = useCallSettings();
+  const { data: callerIdsData } = useCallerIds();
+  const { getMediaCenterItems } = useMediaCenter();
   const { getScripts } = useScript();
 
+  const [name, setName] = useState("");
+  const [selectedCallerIds, setSelectedCallerIds] = useState<string[]>([]);
+  const [countryCode] = useState("US");
+  const [noOfLines, setNoOfLines] = useState("1");
+  const [onHoldRecording1, setOnHoldRecording1] = useState("");
+  const [answeringMachineRecording, setAnsweringMachineRecording] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [mediaCenterItems, setMediaCenterItems] = useState<MediaCenterItem[]>([]);
   const [callerIds, setCallerIds] = useState<CallerId[]>([]);
-  const { data: callerIdsData } = useCallerIds();
+  const [freezeStatus, setFreezeStatus] = useState<Record<string, { isFrozen: boolean; unfreezeAt: string | null; secondsRemaining: number }>>({});
+
+  const [scripts, setScripts] = useState<ScriptData[]>([]);
+  const [selectedScript, setSelectedScript] = useState("");
+  const [dialerMode, setDialerMode] = useState<"manual" | "power">("manual");
+  const [pacing, setPacing] = useState(1);
+  const [amdEnabled, setAmdEnabled] = useState(false);
+
+  const { data: planLimits } = usePlanLimits();
+  const maxDialerLines = planLimits?.maxDialerLines ?? 10;
+  useEffect(() => {
+    if (pacing > maxDialerLines) setPacing(maxDialerLines);
+  }, [maxDialerLines, pacing]);
+
+  const { data: dialerSettings, updateDialerSettings } = useDialerSettings();
+  const [answerTone, setAnswerTone] = useState(false);
+  useEffect(() => {
+    if (dialerSettings) setAnswerTone(!!dialerSettings.useAnswerNotificationTone);
+  }, [dialerSettings?.useAnswerNotificationTone]);
+  const toggleAnswerTone = () => {
+    const next = !answerTone;
+    setAnswerTone(next);
+    updateDialerSettings.mutate({ useAnswerNotificationTone: next });
+  };
+
+  const onHoldMedia = filterAudioByType(mediaCenterItems, "ON_HOLD");
+  const voiceMailMedia = filterAudioByType(mediaCenterItems, "VOICE_MAIL");
 
   useEffect(() => {
-    if (callerIdsData) {
-      setCallerIds(callerIdsData as CallerId[]);
-    }
+    getMediaCenterItems().then(setMediaCenterItems);
+    getScripts().then(setScripts);
+  }, []);
+
+  useEffect(() => {
+    if (callerIdsData) setCallerIds(callerIdsData as CallerId[]);
   }, [callerIdsData]);
 
-  const fetchRecordings = async () => {
-    const data = await getRecordings();
-    setRecordings(data);
-  };
+  // ── Load existing setting when editing ──────────────────────────────────
+  useEffect(() => {
+    if (!isEditMode || !existingSettings) return;
+    const setting = existingSettings.find((s: any) => s.id === editId);
+    if (!setting) return;
+    setName(setting.label || "");
+    setSelectedCallerIds(setting.callerId ? setting.callerId.split(",").map((s: string) => s.trim()) : []);
+    setNoOfLines(String(setting.numberOfLines || 1));
+    setOnHoldRecording1(setting.onHoldRecording1Id || "");
+    setAnsweringMachineRecording(setting.answeringMachineRecordingId || "");
+    setSelectedScript(setting.callScriptId || "");
+    setDialerMode((setting as any).dialerMode || "manual");
+    setPacing((setting as any).pacing || 1);
+    setAmdEnabled((setting as any).amdEnabled ?? false);
+  }, [isEditMode, editId, existingSettings]);
 
-  const fetchScripts = async () => {
-    const data = await getScripts();
-    setScripts(data);
-  };
+  // ── Freeze status polling ────────────────────────────────────────────────
+  const fetchFreezeStatus = useCallback(async (ids: CallerId[]) => {
+    const numbers = ids.map((c) => c.twillioNumber).filter(Boolean) as string[];
+    if (numbers.length === 0) return;
+    try {
+      const { data } = await api.get('/system-settings/caller-id/status', {
+        params: { numbers: numbers.join(',') },
+      });
+      if (data.success) setFreezeStatus(data.data);
+    } catch {
+      // non-critical — UI degrades gracefully
+    }
+  }, []);
 
   useEffect(() => {
-    fetchRecordings();
-    fetchScripts();
-  }, []);
+    if (callerIds.length === 0) return;
+    fetchFreezeStatus(callerIds);
+    const interval = setInterval(() => fetchFreezeStatus(callerIds), 15_000);
+    return () => clearInterval(interval);
+  }, [callerIds, fetchFreezeStatus]);
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error("Name is required");
+      toast.error("Please enter a name for this setting.");
+      return;
+    }
+    if (selectedCallerIds.length === 0) {
+      toast.error("Please select at least one Caller ID.");
       return;
     }
 
     setIsLoading(true);
     try {
       const payload = {
-        label: name,
-        onHoldRecording1: onHoldRecording1 || undefined,
-        onHoldRecording2: onHoldRecording2 || undefined,
-        onHoldRecording3: onHoldRecording3 || undefined,
-        answeringMachineRecording: answeringMachineRecording || undefined,
-        enableAutoPause,
-        enableRecording,
-        sendAppointmentMail,
-        dncCalls: dncCalls === "Yes",
-        callerId: callerId || undefined,
-        countryCode: countryCode || undefined,
-        noOfLines: noOfLines ? parseInt(noOfLines) : undefined,
-        phoneRingTime: phoneRingTime || undefined,
-        callScript: callScript || undefined,
-        sendEmail: sendEmail === "Yes",
-        sendText: sendText === "Yes",
+        label: name.trim(),
+        callerId: selectedCallerIds.join(","),
+        countryCode,
+        numberOfLines: parseInt(noOfLines),
+        onHoldRecording1Id: onHoldRecording1 || undefined,
+        answeringMachineRecordingId: answeringMachineRecording || undefined,
+        callScriptId: selectedScript || undefined,
+        dialerMode,
+        pacing,
+        amdEnabled,
       };
 
-      await createCallSettings.mutateAsync(payload);
-      toast.success("Call Settings created successfully");
+      if (isEditMode && editId) {
+        await updateCallSettings.mutateAsync({ id: editId, data: payload as any });
+        toast.success("Call Setting updated successfully!");
+      } else {
+        await createCallSettings.mutateAsync(payload as any);
+        toast.success("Call Setting created successfully!");
+      }
       navigate("/admin/system-settings");
     } catch (error: any) {
-      toast.error(error.message || "Failed to save call settings");
+      toast.error(error?.response?.data?.message || error?.message || "Failed to save Call Setting.");
     } finally {
       setIsLoading(false);
     }
@@ -198,185 +182,292 @@ const AdminCreateCallSetting: FC = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 rounded-2xl">
+      <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
-        <div className="flex flex-wrap justify-between items-center mb-2">
-          <h1 className="text-2xl font-semibold text-gray-950">Create Call Settings</h1>
+        <div className="flex flex-wrap justify-between items-center mb-4">
+          <h1 className="text-2xl font-semibold text-gray-950 dark:text-white">{isEditMode ? "Edit Call Setting" : "Create Call Setting"}</h1>
           <div className="flex items-center gap-3 mt-4 sm:mt-0">
             <button
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-5 py-2 text-sm font-semibold w-28 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
+              className="px-5 py-2.5 text-[13px] font-bold w-28 text-gray-700 dark:text-white bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-all shadow-sm"
             >
-              Cancel
+              Discard
             </button>
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="px-5 py-2 text-sm font-semibold w-28 text-gray-950 bg-[#FFCA06] rounded-md hover:bg-[#f1c00b] disabled:opacity-50 transition-colors"
+              className="px-5 py-2.5 text-[13px] font-black w-28 text-gray-900 bg-[#FFCA06] hover:bg-[#FECD56] rounded-xl disabled:opacity-50 transition-all shadow-sm active:scale-95"
             >
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>
 
-        {/* Form */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg space-y-8">
-          {/* Section 1 */}
-          <div className="lg:w-[50%]">
-            <InputField
-              label="Name"
-              placeholder="Enter Name"
-              value={name}
-              onChange={setName}
-            />
+        {/* Form — mirrors CreateCallSettingModal's field set exactly */}
+        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-[24px] shadow-sm space-y-6">
+          {/* Dialer Mode */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setDialerMode("manual")}
+              className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${dialerMode === "manual"
+                  ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 shadow-sm"
+                  : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
+                }`}
+            >
+              <div className={`w-2.5 h-2.5 rounded-full ${dialerMode === "manual" ? "bg-yellow-500" : "bg-gray-300"}`} />
+              <div className="flex flex-col items-start">
+                <span className={`text-[13px] font-bold ${dialerMode === "manual" ? "text-gray-900 dark:text-yellow-400" : "text-gray-500"}`}>Manual Dialer</span>
+                <span className="text-[10px] text-gray-400">Step-by-step dialing</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDialerMode("power")}
+              className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${dialerMode === "power"
+                  ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 shadow-sm"
+                  : "border-gray-100 dark:border-slate-800 hover:border-gray-200"
+                }`}
+            >
+              <div className={`w-2.5 h-2.5 rounded-full ${dialerMode === "power" ? "bg-yellow-500" : "bg-gray-300"}`} />
+              <div className="flex flex-col items-start">
+                <span className={`text-[13px] font-bold ${dialerMode === "power" ? "text-gray-900 dark:text-yellow-400" : "text-gray-500"}`}>Power Dialer</span>
+                <span className="text-[10px] text-gray-400">Automatic progression</span>
+              </div>
+            </button>
           </div>
 
-          {/* Section 2 */}
-          <div>
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Voice recordings Details</h2>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors"
-              >
-                Add Recording
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SelectField label="On-hold Recording 1" value={onHoldRecording1} onChange={setOnHoldRecording1}>
-                <option value="">Select</option>
-                {recordings.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </SelectField>
-              <SelectField label="On-hold Recording 2" value={onHoldRecording2} onChange={setOnHoldRecording2}>
-                <option value="">Select</option>
-                {recordings.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </SelectField>
-              <SelectField label="On-hold Recording 3" value={onHoldRecording3} onChange={setOnHoldRecording3}>
-                <option value="">Select</option>
-                {recordings.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </SelectField>
-              <SelectField label="Answering Machine Recordings" value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
-                <option value="">Select</option>
-                {recordings.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </SelectField>
-            </div>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* LEFT COLUMN: Basic Settings */}
+            <div className="space-y-4">
+              <FieldWrapper label="Configuration Name">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Sales Q1"
+                  className="w-full bg-transparent text-[12px] font-bold text-gray-800 dark:text-white outline-none"
+                />
+              </FieldWrapper>
 
-          {/* Section 3 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">General Communication</h2>
-              <div className="space-y-4">
-                <CheckboxField
-                  label="Enable Auto Pause"
-                  checked={enableAutoPause}
-                  onChange={setEnableAutoPause}
-                />
-                <CheckboxField
-                  label="Enable Recording"
-                  checked={enableRecording}
-                  onChange={setEnableRecording}
-                />
-                <CheckboxField
-                  label="Send scheduled appointment mail in outlook format"
-                  checked={sendAppointmentMail}
-                  onChange={setSendAppointmentMail}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <FieldWrapper label="Dials Per Caller ID">
+                  <SelectInput value={noOfLines} onChange={setNoOfLines}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                      <option key={n} value={String(n)} className="dark:bg-slate-900">
+                        {n} {n === 1 ? "Line" : "Lines"}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </FieldWrapper>
+
+                <FieldWrapper label={dialerMode === "power" ? "Number of Lines" : "Call Script"}>
+                  {dialerMode === "power" ? (
+                    <SelectInput value={String(pacing)} onChange={(v) => setPacing(Number(v))}>
+                      {Array.from({ length: maxDialerLines }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n} className="dark:bg-slate-900">
+                          {n}x Speed
+                        </option>
+                      ))}
+                    </SelectInput>
+                  ) : (
+                    <SelectInput value={selectedScript} onChange={setSelectedScript}>
+                      <option value="" className="dark:bg-slate-900">None</option>
+                      {scripts.map((s) => (
+                        <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                          {s.scriptName}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  )}
+                </FieldWrapper>
+              </div>
+
+              {dialerMode === "power" && (
+                <FieldWrapper label="Call Script">
+                  <SelectInput value={selectedScript} onChange={setSelectedScript}>
+                    <option value="" className="dark:bg-slate-900">None</option>
+                    {scripts.map((s) => (
+                      <option key={s.id} value={s.id} className="dark:bg-slate-900">
+                        {s.scriptName}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </FieldWrapper>
+              )}
+
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center gap-3">
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Audio Slots</span>
+                  <div className="flex-1 h-px bg-gray-100 dark:bg-slate-800" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <FieldWrapper label="On-Hold">
+                    <SelectInput value={onHoldRecording1} onChange={setOnHoldRecording1}>
+                      <option value="" className="dark:bg-slate-900">None</option>
+                      {onHoldMedia.map((item) => (
+                        <option key={item.id} value={item.id} className="dark:bg-slate-900">{item.templateName}</option>
+                      ))}
+                    </SelectInput>
+                  </FieldWrapper>
+
+                  <FieldWrapper label="Drop VM">
+                    <SelectInput value={answeringMachineRecording} onChange={setAnsweringMachineRecording}>
+                      <option value="" className="dark:bg-slate-900">None</option>
+                      {voiceMailMedia.map((item) => (
+                        <option key={item.id} value={item.id} className="dark:bg-slate-900">{item.templateName}</option>
+                      ))}
+                    </SelectInput>
+                  </FieldWrapper>
+                </div>
+              </div>
+
+              {/* AMD Toggle */}
+              <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                      Skip on Machine
+                    </p>
+                    <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-0.5">
+                      Voicemail Detection
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAmdEnabled(!amdEnabled)}
+                    className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                      amdEnabled ? "bg-yellow-400" : "bg-gray-300 dark:bg-slate-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        amdEnabled ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+                {amdEnabled && !answeringMachineRecording && (
+                  <p className="text-[10px] text-blue-500 dark:text-blue-400 mt-2">
+                    Machine calls will be skipped automatically.
+                  </p>
+                )}
+              </div>
+
+              {/* Answer Notification Tone Toggle */}
+              <div className="bg-[#F3F4F8] dark:bg-slate-800 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                      Answer Notification Tone
+                    </p>
+                    <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-0.5">
+                      Ringtone on connect & disconnect
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleAnswerTone}
+                    className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                      answerTone ? "bg-yellow-400" : "bg-gray-300 dark:bg-slate-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        answerTone ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
-            <div>
-              <RadioGroup
-                title="Make Calls to DNC Numbers"
-                name="dnc"
-                options={["No", "Yes"]}
-                selected={dncCalls}
-                onChange={setDncCalls}
-              />
-            </div>
-          </div>
 
-          {/* Section 4 */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
-              <div className="sm:col-span-3">
-                <SelectField
-                  label="Caller ID"
-                  value={callerId}
-                  onChange={setCallerId}
-                >
-                  <option value="">Select</option>
-                  {callerIds.map(cid => (
-                    <option key={cid.id} value={cid.twillioNumber || cid.id}>{cid.label} ({cid.twillioNumber})</option>
-                  ))}
-                </SelectField>
-              </div>
-              <div className="sm:col-span-2">
-                <SelectField label="Country Code" value={countryCode} onChange={setCountryCode}>
-                  <option value="">Select</option>
-                  <option value="US">US</option>
-                  <option value="CA">CA</option>
-                  <option value="GB">GB</option>
-                </SelectField>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <SelectField label="No of Lines" value={noOfLines} onChange={setNoOfLines}>
-                <option value="">Select</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="5">5</option>
-              </SelectField>
-              <SelectField label="Phone Ring Time" value={phoneRingTime} onChange={setPhoneRingTime}>
-                <option value="">Select</option>
-                <option value="15">15 seconds</option>
-                <option value="30">30 seconds</option>
-                <option value="45">45 seconds</option>
-                <option value="60">60 seconds</option>
-              </SelectField>
-              <SelectField label="Call Script" value={callScript} onChange={setCallScript}>
-                <option value="">Select</option>
-                {scripts.map(s => (
-                  <option key={s.id} value={s.id}>{s.scriptName}</option>
-                ))}
-              </SelectField>
-            </div>
-          </div>
+            {/* RIGHT COLUMN: Caller ID Rotation List */}
+            <div className="flex flex-col gap-4">
+              <FieldWrapper label="Caller ID Rotation List">
+                <div className="space-y-0.5 h-[420px] overflow-y-auto custom-scrollbar pr-2 mt-1">
+                  {callerIds.map((cid) => {
+                    const number = cid.twillioNumber || cid.id;
+                    const fs = freezeStatus[number];
+                    const backendFrozen = fs?.isFrozen ?? false;
+                    const clientExpired = fs?.unfreezeAt ? !isCurrentlyFrozen(fs.unfreezeAt) : false;
+                    const isFrozen = backendFrozen && !clientExpired;
+                    const isSelected = selectedCallerIds.includes(number);
 
-          {/* Section 5 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-4 border-t border-gray-200">
-            <RadioGroup
-              title="Send Email"
-              name="email"
-              options={["No", "Yes"]}
-              selected={sendEmail}
-              onChange={setSendEmail}
-            />
-            <RadioGroup
-              title="Send Text"
-              name="text"
-              options={["No", "Yes"]}
-              selected={sendText}
-              onChange={setSendText}
-            />
+                    return (
+                      <label
+                        key={cid.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg transition-all group mb-0.5
+                          ${isFrozen
+                            ? 'bg-orange-50 dark:bg-orange-900/15 border border-orange-200 dark:border-orange-700/40 cursor-not-allowed opacity-75'
+                            : isSelected
+                              ? 'bg-yellow-50 dark:bg-yellow-900/10 border border-transparent cursor-pointer'
+                              : 'hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent cursor-pointer'
+                          }`}
+                      >
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0
+                          ${isFrozen
+                            ? 'bg-orange-100 border-orange-300 dark:bg-orange-900/30 dark:border-orange-600'
+                            : isSelected
+                              ? 'bg-yellow-500 border-yellow-500 shadow-sm'
+                              : 'border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800'
+                          }`}
+                        >
+                          {isSelected && !isFrozen && <FiPlus className="text-white rotate-45" size={12} />}
+                          <input
+                            type="checkbox"
+                            checked={isSelected && !isFrozen}
+                            disabled={isFrozen}
+                            onChange={(e) => {
+                              if (isFrozen) return;
+                              setSelectedCallerIds(
+                                e.target.checked
+                                  ? [...selectedCallerIds, number]
+                                  : selectedCallerIds.filter((v) => v !== number)
+                              );
+                            }}
+                            className="hidden"
+                          />
+                        </div>
+
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className={`text-[12px] font-bold truncate
+                            ${isFrozen
+                              ? 'text-orange-700 dark:text-orange-300'
+                              : isSelected
+                                ? 'text-gray-900 dark:text-yellow-400'
+                                : 'text-gray-700 dark:text-gray-200'
+                            }`}
+                          >
+                            {cid.label || number}
+                          </span>
+                          <span className={`text-[10px] ${isFrozen ? 'text-orange-400' : 'text-gray-400'}`}>
+                            {cid.twillioNumber}
+                          </span>
+                        </div>
+
+                        {isFrozen && (
+                          <div className="flex flex-col items-end shrink-0 gap-0.5">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-orange-500 bg-orange-100 dark:bg-orange-900/40 px-1.5 py-0.5 rounded-full">
+                              Frozen
+                            </span>
+                            <FreezeCountdown
+                              unfreezeAt={fs?.unfreezeAt}
+                              className="text-[9px] font-black tabular-nums text-orange-500"
+                            />
+                          </div>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </FieldWrapper>
+            </div>
           </div>
         </div>
       </div>
-      {isModalOpen && (
-        <AddRecordingModal
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={fetchRecordings}
-        />
-      )}
     </div>
   );
 };
