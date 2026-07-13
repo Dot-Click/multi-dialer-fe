@@ -149,7 +149,7 @@ export const fetchContacts = createAsyncThunk(
         return response.data.data.map((c: any) => ({
           id: c.id,
           name: c.fullName || "-",
-          lastDialedDate: "-",
+          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
           phone: c.phones?.[0]?.number || "-",
           phones: c.phones || [],
           email: c.emails?.[0]?.email || "-",
@@ -179,7 +179,7 @@ export const fetchContactsByList = createAsyncThunk(
         return response.data.data.map((c: any) => ({
           id: c.id,
           name: c.fullName || "-",
-          lastDialedDate: "-",
+          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
           phone: c.phones?.[0]?.number || "-",
           phones: c.phones || [],
           email: c.emails?.[0]?.email || "-",
@@ -211,7 +211,7 @@ export const fetchContactsByFolder = createAsyncThunk(
         return response.data.data.map((c: any) => ({
           id: c.id,
           name: c.fullName || "-",
-          lastDialedDate: "-",
+          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
           phone: c.phones?.[0]?.number || "-",
           phones: c.phones || [],
           email: c.emails?.[0]?.email || "-",
@@ -907,7 +907,7 @@ export const fetchDuplicateContacts = createAsyncThunk(
         return response.data.data.map((c: any) => ({
           id: c.id,
           name: c.fullName || "-",
-          lastDialedDate: "-",
+          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
           phone: c.phones?.[0]?.number || "-",
           phones: c.phones || [],
           email: c.emails?.[0]?.email || "-",
@@ -1026,7 +1026,7 @@ export const contactSlice = createSlice({
         const newContact: Contact = {
           id: action.payload.id,
           name: action.payload.fullName || "-",
-          lastDialedDate: "-",
+          lastDialedDate: action.payload.callRecords?.[0]?.startTime ? new Date(action.payload.callRecords[0].startTime).toLocaleDateString() : "-",
           phone: action.payload.phones?.[0]?.number || "-",
           email: action.payload.emails?.[0]?.email || "-",
           list: action.payload.source || "-",
@@ -1055,7 +1055,7 @@ export const contactSlice = createSlice({
           state.contacts[index] = {
             id: action.payload.id,
             name: action.payload.fullName || "-",
-            lastDialedDate: "-",
+            lastDialedDate: action.payload.callRecords?.[0]?.startTime ? new Date(action.payload.callRecords[0].startTime).toLocaleDateString() : "-",
             phone: action.payload.phones?.[0]?.number || "-",
             email: action.payload.emails?.[0]?.email || "-",
             list: action.payload.source || "-",

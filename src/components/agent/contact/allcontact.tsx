@@ -141,6 +141,9 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
       accessorKey: "lastDialedDate",
       header: "Last Dialed Date",
       enableSorting: false,
+      cell: (info: any) => (
+        <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
+      ),
     },
     {
       accessorKey: "phone",
