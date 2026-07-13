@@ -105,7 +105,7 @@ const ContactDetailHeader = () => {
     try {
       await dispatch(deleteContact({ id: currentContact.id })).unwrap();
       toast.success("Contact deleted successfully");
-      navigate("/agent/allcontact");
+      navigate("/data-dialer");
     } catch (error: any) {
       toast.error(error || "Failed to delete contact");
     }
@@ -134,8 +134,6 @@ const ContactDetailHeader = () => {
       if (response.data.success) {
         toast.success("Successfully moved contact to DNC");
         setDncModalOpen(false);
-        // Navigate away or refresh if needed, since contact will be hidden
-        navigate("/agent/allcontact");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to move to DNC");
