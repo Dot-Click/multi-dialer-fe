@@ -311,6 +311,10 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         busyRecordingId: busyRecording && isLegacyRecordingId(busyRecording) ? busyRecording : undefined,
         callScriptId: selectedScript || undefined,
         dialerMode,
+        // Persist the simultaneous-lines choice. Without this the saved
+        // configuration always reloaded at 1x speed regardless of what the
+        // user had selected, silently serializing their power-dialer sessions.
+        pacing,
         amdEnabled,
       };
 

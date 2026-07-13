@@ -169,7 +169,18 @@ const ContactInfo = () => {
     // detect when it later becomes empty (e.g. the last contact is trashed) and end
     // the session — without firing on the initial empty state before it's loaded.
     const hadQueueRef = useRef(false);
+    // Live mirrors of the Twilio call state for use inside the 1s status poll
+    // (the interval closure would otherwise capture stale values).
+    const isCallingRef = useRef(isCalling);
+    const isPostCallRef = useRef(isPostCall);
+    // Counts consecutive polls where the BACKEND says post-call but this browser
+    // has no live call and no disposition banner — i.e. a call ended without the
+    // agent ever being bridged. Left alone, that state freezes the server queue.
+    const orphanPostCallPollsRef = useRef(0);
     const currentQueueEntry = queue[currentIndex];
+
+    useEffect(() => { isCallingRef.current = isCalling; }, [isCalling]);
+    useEffect(() => { isPostCallRef.current = isPostCall; }, [isPostCall]);
 
 
     // ─── Backend sync ─────────────────────────────────────────────────────────
@@ -307,6 +318,26 @@ const ContactInfo = () => {
                             const path = role === 'ADMIN' ? '/admin/data-dialer' : '/data-dialer';
                             navigate(path);
                             return;
+                        }
+
+                        // ── Orphaned post-call recovery ────────────────────────
+                        // The backend arms post-call when a lock-owning call ends.
+                        // If this browser never actually took that call (bridge
+                        // failed, device offline, customer hung up mid-bridge),
+                        // no disposition banner is shown, so /agent-ready would
+                        // never be sent and the server queue would sit frozen.
+                        // After ~4s of that contradiction, clear it ourselves.
+                        // A short debounce avoids racing a genuine disconnect
+                        // event that is about to set the local post-call banner.
+                        if (data.data.isPostCall && !isCallingRef.current && !isPostCallRef.current) {
+                            orphanPostCallPollsRef.current += 1;
+                            if (orphanPostCallPollsRef.current >= 4) {
+                                orphanPostCallPollsRef.current = 0;
+                                console.warn('[ContactInfo] Backend post-call with no local call — auto-sending agent-ready to unfreeze the queue.');
+                                try { await api.post('/calling/agent-ready'); } catch { /* next poll retries */ }
+                            }
+                        } else {
+                            orphanPostCallPollsRef.current = 0;
                         }
 
                         const hasPendingCallbacks = Object.values(data.data.leadStatuses || {}).some(
