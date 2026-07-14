@@ -122,6 +122,7 @@ export default function CustomCalendar() {
     }
 
     return filtered.filter(e => {
+      if (e.status === "MET") return false;
       const category = e.category || 'TASK';
       if (category === 'TASK' && !filters.task) return false;
       if (category === 'APPOINTMENT' && !filters.appointments) return false;

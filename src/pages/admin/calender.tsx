@@ -104,6 +104,8 @@ export default function CustomCalendar() {
 
   const getEventDataForDate = (date: Dayjs) => {
     return events.filter((event) => {
+      if (event.status === "MET") return false;
+
       const isSameDate =
         dayjs(event.startDate).format("YYYY-MM-DD") ===
         date.format("YYYY-MM-DD");
