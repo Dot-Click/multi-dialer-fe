@@ -12,7 +12,7 @@ import Detail from '@/components/agent/contactdetail/detail';
 import CallOutcomes from '@/components/agent/contactinfo/calloutcomes';
 import { useTwilio } from '@/providers/twilio.provider';
 import toast from 'react-hot-toast';
-import api from '@/lib/axios';
+import api, { postKeepalive } from '@/lib/axios';
 import { VscCallOutgoing } from 'react-icons/vsc';
 import { FreezeCountdown, isCurrentlyFrozen } from '@/components/agent/common/FreezeCountdown';
 
@@ -622,7 +622,11 @@ const ContactInfo = () => {
             switch (normalizedValue) {
                 case "CONTACT": {
                     // Reached → best number (green), contacted state, out of queue.
-                    await api.post(`/contact/${contactId}/mark-as-contacted`, { phoneId });
+                    // Durable: this is what "Resume from Last Left Off" relies on to
+                    // exclude this contact next time. A plain axios call can be aborted
+                    // by the browser if the agent closes the tab right after dispositioning
+                    // (e.g. leaving abruptly) — keepalive guarantees it still lands.
+                    await postKeepalive(`/contact/${contactId}/mark-as-contacted`, { phoneId });
                     await removeFromLiveQueue();
                     dispatch(removeFromQueue(contactId));
                     break;
@@ -830,12 +834,12 @@ const ContactInfo = () => {
         // set — so leaving can never strand a running server-side dialer.
         const shouldStop = () => isAutoDialingRef.current || !!activeSessionIdRef.current;
         const handleUnload = () => {
+            // NOTE: previously read the Authorization header from
+            // `api.defaults.headers.common['Authorization']`, which this app never
+            // sets (the token is attached per-request by the axios interceptor from
+            // localStorage) — this call was silently going out unauthenticated.
             if (shouldStop()) {
-                fetch(`${api.defaults.baseURL}/calling/stop-dialing`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': api.defaults.headers.common['Authorization'] as string },
-                    keepalive: true
-                }).catch(() => { });
+                postKeepalive('/calling/stop-dialing').catch(() => { });
             }
         };
         window.addEventListener('beforeunload', handleUnload);

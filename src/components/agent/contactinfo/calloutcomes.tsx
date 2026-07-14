@@ -75,11 +75,17 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
                 return;
             }
             setSavedDisp(value);
-            toast.success(isTrash ? `Moved to Trash — select a call outcome to continue` : `Disposition set: ${label}`);
-            // Trash: stay on current contact so agent can select call outcome before advancing
-            if (!isTrash) {
+            if (isTrash) {
+                // Trash: stay on current contact so agent can select call outcome before advancing
+                toast.success(`Moved to Trash — select a call outcome to continue`);
+            } else {
+                // Wait for the outcome's own durable side effects (e.g. marking the
+                // contact CONTACTED, which "Resume from Last Left Off" depends on) to
+                // actually complete before telling the agent it's safe to move on —
+                // showing success first invited them to close the tab mid-write.
                 try {
                     await continueAfterDisposition(value);
+                    toast.success(`Disposition set: ${label}`);
                 } catch (err: unknown) {
                     toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
                 }
@@ -122,14 +128,16 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
             setSelectedDisp(pendingDisp.value);
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
-            toast.success(isTrash
-                ? `Moved to Trash${folderName ? ` → ${folderName}` : ""} — select a call outcome to continue`
-                : `Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`
-            );
-            // Trash: stay on current contact so agent can select call outcome before advancing
-            if (!isTrash) {
+            if (isTrash) {
+                // Trash: stay on current contact so agent can select call outcome before advancing
+                toast.success(`Moved to Trash${folderName ? ` → ${folderName}` : ""} — select a call outcome to continue`);
+            } else {
+                // See applyImmediate: wait for the durable write to land before
+                // signalling success, so an agent who closes the tab right after
+                // seeing "success" can't drop the mark-as-contacted write mid-flight.
                 try {
                     await continueAfterDisposition(pendingDisp.value);
+                    toast.success(`Disposition: ${pendingDisp.label}${folderName ? ` - Moved to ${folderName}` : ""}`);
                 } catch (err: unknown) {
                     toast.error(getErrorMessage(err) || "Failed to continue the dialer.");
                 }
