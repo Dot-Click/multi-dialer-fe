@@ -54,8 +54,10 @@ export default function CustomCalendar() {
   const markComplete = async (evt: CalendarEvent) => {
     try {
       await updateEvent(evt.id, { status: "MET" });
+      // Remove immediately from local state — getAllEvents has no status filter
+      // so a refetch would bring it back unchanged.
+      setEvents((prev) => prev.filter((e) => e.id !== evt.id));
       toast.success("Event marked as completed");
-      fetchEvents();
     } catch {
       toast.error("Failed to update event");
     }

@@ -3,7 +3,7 @@ import { Calendar, ConfigProvider, Modal, theme } from "antd"; // Added theme
 import enGB from "antd/locale/en_GB";
 import { IoFilterOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { FiClipboard, FiCalendar, FiPhone } from "react-icons/fi";
+import { FiClipboard, FiCalendar, FiPhone, FiCheckCircle } from "react-icons/fi";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/en-gb";
 import AddEventForm from "@/components/modal/addeventmodal";
@@ -12,6 +12,7 @@ import { useCalendar, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
+import toast from "react-hot-toast";
 
 // Helper to group events by date
 const groupEventsByDate = (eventList: CalendarEvent[]) => {
@@ -40,7 +41,7 @@ const formatEventTime = (event: CalendarEvent) => {
  *  MAIN COMPONENT
  * -------------------------------------------------- */
 export default function CustomCalendar() {
-  const { getEvents, loading } = useCalendar();
+  const { getEvents, updateEvent, loading } = useCalendar();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
@@ -85,6 +86,16 @@ export default function CustomCalendar() {
   const fetchEvents = async () => {
     const data = await getEvents();
     setEvents(data);
+  };
+
+  const markComplete = async (evt: CalendarEvent) => {
+    try {
+      await updateEvent(evt.id, { status: "MET" });
+      setEvents((prev) => prev.filter((e) => e.id !== evt.id));
+      toast.success("Event marked as completed");
+    } catch {
+      toast.error("Failed to update event");
+    }
   };
 
   useEffect(() => {
@@ -314,16 +325,31 @@ export default function CustomCalendar() {
             {getEventData(selectedDate || dayjs()).map((evt, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1f1f1f] p-2 rounded-md transition-colors"
-                onClick={() => openDetail(evt)}
+                className="flex items-start gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors"
               >
                 <div
-                  className="w-1 rounded-full h-full"
+                  className="w-1 rounded-full self-stretch shrink-0"
                   style={{ backgroundColor: evt.color }}
                 />
-                <div className="flex flex-col leading-tight">
-                  <p className="text-gray-800 dark:text-[#E0E0E0] font-medium text-[15px]">{evt.title}</p>
+                <div className="flex flex-col leading-tight flex-1 min-w-0">
+                  <p
+                    className="font-medium text-[15px] cursor-pointer truncate text-gray-800 dark:text-[#E0E0E0]"
+                    onClick={() => openDetail(evt)}
+                  >
+                    {evt.title}
+                  </p>
                   <p className="text-gray-500 dark:text-gray-400 text-[13px] mt-0.5">{formatEventTime(evt)}</p>
+                  {evt.status !== "MET" && evt.status !== "CANCELLED" && (
+                    <button
+                      onClick={() => markComplete(evt)}
+                      className="mt-1.5 flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 hover:underline w-fit"
+                    >
+                      <FiCheckCircle size={11} /> Mark as Complete
+                    </button>
+                  )}
+                  {evt.status === "MET" && (
+                    <span className="mt-1 text-[11px] text-green-500 font-medium">Completed</span>
+                  )}
                 </div>
               </div>
             ))}
