@@ -408,6 +408,24 @@ const ContactInfo = () => {
         }
     }, [location.state]);
 
+    // Seed today's real call total from the DB. Without this, "Daily Progress"
+    // always started back at 0 on page load / new session — it only ever
+    // reflected calls placed during the current in-memory session, not calls
+    // already made earlier today. Applies to both manual and power dialer:
+    // both write CallRecord rows, and this endpoint counts all of them.
+    useEffect(() => {
+        void (async () => {
+            try {
+                const { data } = await api.get('/calling/daily-stats');
+                if (data?.success && typeof data.data?.callsToday === 'number') {
+                    setDailyCallsCount((prev) => Math.max(prev, data.data.callsToday));
+                }
+            } catch {
+                // Non-critical — the counter still works locally for this session.
+            }
+        })();
+    }, []);
+
     useEffect(() => {
         if (callerIds.length === 0 || currentCallerId) return;
         const now = Date.now();
@@ -1001,7 +1019,10 @@ const ContactInfo = () => {
 
                                 {/* Caller IDs Status */}
                                 <div className="space-y-2">
-                                    <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Caller ID Rotation</h5>
+                                    <div className="flex items-center justify-between">
+                                        <h5 className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Caller ID Rotation</h5>
+                                        <span className="text-[10px] font-black text-gray-400 tabular-nums">{callerIds.length} selected</span>
+                                    </div>
                                     <div className="space-y-1.5 max-h-[150px] overflow-y-auto no-scrollbar pr-1">
                                         {callerIds.length === 0 && (
                                             <p className="text-[10px] text-gray-400 italic px-1">No caller IDs in this session.</p>
