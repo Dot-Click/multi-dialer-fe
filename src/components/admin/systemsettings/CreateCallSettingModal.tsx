@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FiX, FiChevronDown, FiPlus } from "react-icons/fi";
 import { FreezeCountdown, isCurrentlyFrozen } from "@/components/agent/common/FreezeCountdown";
 import api from "@/lib/axios";
@@ -105,6 +105,24 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
   const [mediaCenterItems, setMediaCenterItems] = useState<MediaCenterItem[]>([]);
   const [callerIds, setCallerIds] = useState<CallerId[]>([]);
+  // Dedupe by phone number before rendering. The DB has no unique constraint on
+  // twillioNumber, so the same number can exist as multiple CallerId rows. This
+  // list renders ONE checkbox per row, but selection is tracked by number value
+  // (see isSelected below) — with duplicate rows, checking one number makes
+  // every other row sharing it appear pre-checked, and clicking one of those
+  // "already checked" rows silently REMOVES the number instead of adding a new
+  // one. That's how "31 rows clicked" collapsed to "19 numbers selected" for a
+  // real client. Deduping here means there is always exactly one row per
+  // unique number, so what's displayed can never diverge from what's selected.
+  const uniqueCallerIds = useMemo(() => {
+    const seen = new Set<string>();
+    return callerIds.filter((cid) => {
+      const key = cid.twillioNumber || cid.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [callerIds]);
   const [editId, setEditId] = useState<string | null>(null);
   // Freeze status map: twillioNumber → { isFrozen, unfreezeAt, secondsRemaining }
   const [freezeStatus, setFreezeStatus] = useState<Record<string, { isFrozen: boolean; unfreezeAt: string | null; secondsRemaining: number }>>({});
@@ -634,7 +652,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
               <div className="flex flex-col gap-4">
                 <FieldWrapper label="Caller ID Rotation List">
                   <div className="space-y-0.5 h-[200px] overflow-y-auto custom-scrollbar pr-2 mt-1">
-                    {callerIds.map((cid) => {
+                    {uniqueCallerIds.map((cid) => {
                       const number = cid.twillioNumber || cid.id;
                       const fs = freezeStatus[number];
                       // Client-side timestamp check so the row unfreezes the instant
