@@ -4,6 +4,7 @@ import stanppLogo from "../../../assets/stamnp.png";
 import bombLogo from "/images/bombbomb_icon.png";
 import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
 import MyPlusLeadsIntegration from '../settings/MyPlusLeadsIntegration';
+import SmtpIntegration from '../settings/SmtpIntegration';
 import CalendarIntegration from './calendarintegration';
 import toast from 'react-hot-toast';
 
@@ -282,6 +283,9 @@ const Integrations: React.FC = () => {
             </div>
           );
         })}
+
+        {/* Email Sending (SMTP) */}
+        <SmtpIntegration />
 
         {/* MyPlusLeads Custom Integration Card */}
         <MyPlusLeadsIntegration />
