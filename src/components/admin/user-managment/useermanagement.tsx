@@ -4,6 +4,7 @@ import {
   Filter,
   MoreHorizontal,
   ChevronDown,
+  ChevronUp,
   Plus,
   X,
   Loader2,
@@ -43,6 +44,7 @@ export default function Page() {
 
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   // Shown when creating an agent hits the plan's seat cap but the plan
   // offers a paid overage seat — confirms the charge before retrying
@@ -256,8 +258,12 @@ export default function Page() {
           <Filter size={20} className="dark:text-gray-300" />
         </button>
 
-        <button className="flex items-center gap-1 sm:ml-auto text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition">
-          Sort by <ChevronDown size={16} />
+        <button
+          onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+          className="flex items-center gap-1 sm:ml-auto text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition"
+        >
+          Sort by: {sortDir === 'asc' ? 'A → Z' : 'Z → A'}
+          {sortDir === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>
 
@@ -272,7 +278,11 @@ export default function Page() {
             No users found.
           </div>
         ) : (
-          users.map((user, idx) => {
+          [...users].sort((a, b) => {
+            const av = (a.fullName || a.name || '').toLowerCase();
+            const bv = (b.fullName || b.name || '').toLowerCase();
+            return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+          }).map((user, idx) => {
             const currentRole = (user.role || "AGENT").toUpperCase();
 
             return (
@@ -320,32 +330,9 @@ export default function Page() {
                 {/* RIGHT SIDE */}
                 <div className="relative flex items-center justify-end gap-4 md:gap-6 min-w-[140px]">
                   <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => {
-                        setOpenRoleDropdown(
-                          openRoleDropdown === idx ? null : idx,
-                        );
-                        setOpenActionMenu(null);
-                      }}
-                      className="flex items-center gap-2 border dark:border-slate-700 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition text-sm font-medium dark:text-white"
-                    >
-                      {currentRole}{" "}
-                      <ChevronDown size={14} className="text-gray-400" />
-                    </button>
-
-                    {openRoleDropdown === idx && (
-                      <div className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg shadow-xl w-40 z-20 overflow-hidden">
-                        {ROLE_OPTIONS.map((r) => (
-                          <button
-                            key={r}
-                            onClick={() => handleUpdateUserRole(user, r.toUpperCase())}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors border-b dark:border-slate-700 last:border-none dark:text-white"
-                          >
-                            {r.toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-lg border dark:border-slate-700 bg-gray-50 dark:bg-slate-900 text-gray-600 dark:text-gray-300">
+                      {currentRole}
+                    </span>
 
                     <button
                       onClick={() => {

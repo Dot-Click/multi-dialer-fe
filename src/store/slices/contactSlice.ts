@@ -29,6 +29,7 @@ export interface Contact {
   notes: string[];
   description?: string | null;
   agentRemarks?: string | null;
+  status?: string | null;
   folderId?: string | null;
   disposition?: string | null;
   permission?: boolean;
@@ -155,6 +156,12 @@ export const fetchContacts = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: normalizeTags(c.tags).join(", ") || "-",
+          address: c.address || "-",
+          city: c.city || "-",
+          state: c.state || "-",
+          zip: c.zip || "-",
+          description: c.description || "-",
+          status: c.status || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -185,6 +192,12 @@ export const fetchContactsByList = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: normalizeTags(c.tags).join(", ") || "-",
+          address: c.address || "-",
+          city: c.city || "-",
+          state: c.state || "-",
+          zip: c.zip || "-",
+          description: c.description || "-",
+          status: c.status || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -217,6 +230,12 @@ export const fetchContactsByFolder = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: normalizeTags(c.tags).join(", ") || "-",
+          address: c.address || "-",
+          city: c.city || "-",
+          state: c.state || "-",
+          zip: c.zip || "-",
+          description: c.description || "-",
+          status: c.status || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
@@ -913,6 +932,12 @@ export const fetchDuplicateContacts = createAsyncThunk(
           email: c.emails?.[0]?.email || "-",
           list: c.source || "-",
           tags: normalizeTags(c.tags).join(", ") || "-",
+          address: c.address || "-",
+          city: c.city || "-",
+          state: c.state || "-",
+          zip: c.zip || "-",
+          description: c.description || "-",
+          status: c.status || "-",
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],

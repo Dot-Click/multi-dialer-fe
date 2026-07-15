@@ -18,6 +18,7 @@ interface AllContactProps {
   folderId?: string;
   visibleColumns?: string[];
   searchTerm?: string;
+  miscFieldNames?: string[];
 }
 
 // ─── Skeleton Loader ───────────────────────────────────────────────────────────
@@ -76,7 +77,7 @@ const ContactTableSkeleton = () => {
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searchTerm }: AllContactProps) => {
+const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searchTerm, miscFieldNames = [] }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
@@ -201,6 +202,52 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
       },
     },
     {
+      accessorKey: "address",
+      header: "Address",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    {
+      accessorKey: "city",
+      header: "City",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    {
+      accessorKey: "state",
+      header: "State",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    {
+      accessorKey: "zip",
+      header: "Zip",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      enableSorting: false,
+      cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
+    },
+    // Dynamic misc field columns — one per custom field name
+    ...miscFieldNames.map((fieldName) => ({
+      id: `misc_${fieldName}`,
+      header: fieldName,
+      enableSorting: false,
+      cell: (info: any) => {
+        const val = info.row.original.miscValues?.[fieldName];
+        return <span className="text-[#495057] dark:text-slate-300">{val ?? "-"}</span>;
+      },
+    })),
+    {
       accessorKey: "disposition",
       header: "Disposition",
       enableSorting: false,
@@ -244,7 +291,15 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
       "Last Dialed": allColumns.find((c) => c.accessorKey === "lastDialedDate"),
       "List":        allColumns.find((c) => c.accessorKey === "list"),
       "Tags":        allColumns.find((c) => c.accessorKey === "tags"),
+      "Address":     allColumns.find((c) => c.accessorKey === "address"),
+      "City":        allColumns.find((c) => c.accessorKey === "city"),
+      "State":       allColumns.find((c) => c.accessorKey === "state"),
+      "Zip":         allColumns.find((c) => c.accessorKey === "zip"),
+      "Description": allColumns.find((c) => c.accessorKey === "description"),
+      "Status":      allColumns.find((c) => c.accessorKey === "status"),
       "Disposition": allColumns.find((c) => c.accessorKey === "disposition"),
+      // Dynamic misc fields
+      ...Object.fromEntries(miscFieldNames.map((fn) => [fn, allColumns.find((c) => c.id === `misc_${fn}`)])),
     };
 
     // Build in visibleColumns order so A-Z sort from the modal is reflected in the table.

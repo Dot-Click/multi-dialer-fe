@@ -14,11 +14,30 @@ import { assignAgentsToList } from "@/store/slices/contactSlice";
 import { authClient } from "@/lib/auth-client";
 import { fetchContactLists } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
+import api from "@/lib/axios";
 
 type OutletContextType = {
     activeItem: { type: string; id?: string; name: string };
     selectedContacts: any[];
     setSelectedContacts: (contacts: any[]) => void;
+};
+
+const VISIBLE_COLUMNS_STORAGE_KEY = "admin-all-contact-visible-columns";
+const DEFAULT_VISIBLE_COLUMNS = ["Name", "Email", "Phone", "Last Dialed"];
+
+const loadVisibleColumns = (): string[] => {
+    try {
+        const stored = localStorage.getItem(VISIBLE_COLUMNS_STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
+                return parsed;
+            }
+        }
+    } catch {
+        // Corrupt/inaccessible storage — fall back to defaults.
+    }
+    return DEFAULT_VISIBLE_COLUMNS;
 };
 
 const AdminAllContact = () => {
@@ -30,7 +49,8 @@ const AdminAllContact = () => {
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
-    const [visibleColumns, setVisibleColumns] = useState<string[]>(["Name", "Email", "Phone", "Last Dialed"]);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+    const [miscFieldNames, setMiscFieldNames] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState(""); // used for agents modal
     const [contactSearchTerm, setContactSearchTerm] = useState(""); // used for table
 
@@ -65,6 +85,12 @@ const AdminAllContact = () => {
     useEffect(() => {
         if (session?.user?.id) {
             dispatch(fetchContactLists());
+            api.get("/system-settings/misc-fields")
+                .then((res) => {
+                    const fields: string[] = (res.data?.data || []).map((f: any) => f.fieldName as string);
+                    setMiscFieldNames(fields);
+                })
+                .catch(() => {});
         }
     }, [session?.user?.id]);
 
@@ -238,6 +264,7 @@ const AdminAllContact = () => {
                     folderId={activeItem.type === "folder" ? activeItem.id : undefined}
                     searchTerm={contactSearchTerm}
                     visibleColumns={visibleColumns}
+                    miscFieldNames={miscFieldNames}
                 />
             </div>
 
@@ -249,6 +276,11 @@ const AdminAllContact = () => {
                     initialDisplayColumns={visibleColumns}
                     onApply={(columns) => {
                         setVisibleColumns(columns);
+                        try {
+                            localStorage.setItem(VISIBLE_COLUMNS_STORAGE_KEY, JSON.stringify(columns));
+                        } catch {
+                            // Best-effort persistence; ignore storage failures (e.g. private browsing).
+                        }
                         setShowColumnsModal(false);
                     }}
                 />

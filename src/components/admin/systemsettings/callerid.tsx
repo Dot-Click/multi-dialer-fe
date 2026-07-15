@@ -1,10 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { FiPlus, FiSearch, FiMoreHorizontal, FiSettings, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiMoreHorizontal, FiSettings, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { BiSortAlt2 } from 'react-icons/bi';
 import { Modal, message } from 'antd';
 import AddCallScoutNumberModal from './AddCallScoutNumberModal';
 import NumberSettingsModal from './NumberSettingsModal';
 import { useCallerIds } from '@/hooks/useSystemSettings';
+
+type SortDir = 'asc' | 'desc';
 
 // ── Per-row context menu ──────────────────────────────────────────────────────
 
@@ -66,6 +68,24 @@ const CallerId: React.FC = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [selectedCallerId, setSelectedCallerId] = useState<any>(null);
 
+  const [search, setSearch] = useState('');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const filtered = (callerIds ?? []).filter((n: any) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (n.twillioNumber ?? '').toLowerCase().includes(q) ||
+      (n.label ?? '').toLowerCase().includes(q)
+    );
+  });
+
+  const sorted = [...filtered].sort((a: any, b: any) => {
+    const av = new Date(a.createdAt).getTime();
+    const bv = new Date(b.createdAt).getTime();
+    return sortDir === 'asc' ? av - bv : bv - av;
+  });
+
   // Called after adding a new number — auto-opens settings for it
   const handleAddNumberSuccess = (callerId: any) => {
     setIsAddModalOpen(false);
@@ -121,12 +141,19 @@ const CallerId: React.FC = () => {
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by phone number"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by number or label"
               className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm dark:text-white dark:placeholder-gray-500"
             />
           </div>
-          <button className="text-sm font-bold text-gray-600 dark:text-gray-400 flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
-            <BiSortAlt2 size={18} /> Sort by
+          <button
+            onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+            className="text-sm font-bold text-gray-600 dark:text-gray-400 flex items-center gap-2 p-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+          >
+            <BiSortAlt2 size={18} />
+            Sort by: {sortDir === 'asc' ? 'Oldest first' : 'Newest first'}
+            {sortDir === 'asc' ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
           </button>
         </div>
 
@@ -145,14 +172,14 @@ const CallerId: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
-                {callerIds?.length === 0 ? (
+                {sorted.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                      No Caller IDs found. Click "Add Number" to create one.
+                      {search.trim() ? 'No results match your search.' : 'No Caller IDs found. Click "Add Number" to create one.'}
                     </td>
                   </tr>
                 ) : (
-                  callerIds?.map((number: any) => (
+                  sorted.map((number: any) => (
                     <tr key={number.id} className="hover:bg-gray-50/80 dark:hover:bg-slate-700/50 transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex flex-col">
@@ -165,14 +192,14 @@ const CallerId: React.FC = () => {
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-1">
-                          {number.availableTo?.length > 0 ? (
-                            number.availableTo.map((team: string) => (
-                              <span key={team} className="text-[9px] font-extrabold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-800 uppercase">
-                                {team}
+                          {number.agents?.length > 0 ? (
+                            number.agents.map((agent: { id: string; fullName: string }) => (
+                              <span key={agent.id} className="text-[9px] font-extrabold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-800 uppercase">
+                                {agent.fullName}
                               </span>
                             ))
                           ) : (
-                            <span className="text-[9px] font-extrabold bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-md border border-gray-100 dark:border-slate-800 uppercase">ALL</span>
+                            <span className="text-[9px] font-extrabold bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-md border border-gray-100 dark:border-slate-800 uppercase">None</span>
                           )}
                         </div>
                       </td>

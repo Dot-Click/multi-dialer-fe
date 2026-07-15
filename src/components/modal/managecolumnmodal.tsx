@@ -1,7 +1,12 @@
-import { useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
 import { IoClose, IoSearch } from "react-icons/io5";
 import { LuArrowDownAZ } from "react-icons/lu";
+import { useMiscFields } from "@/hooks/useSystemSettings";
+
+const STATIC_FIELDS = [
+  "Name", "Email", "Phone", "Last Dialed", "List", "Tags",
+  "Address", "City", "State", "Zip", "Description", "Status", "Disposition",
+];
 
 interface ManageColumnsModalProps {
   onClose: () => void;
@@ -9,56 +14,64 @@ interface ManageColumnsModalProps {
   onApply?: (columns: string[]) => void;
 }
 
-const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({ 
-  onClose, 
-  initialDisplayColumns, 
-  onApply 
+const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
+  onClose,
+  initialDisplayColumns,
+  onApply,
 }) => {
-  const allFields = ["Name", "Email", "Phone", "Last Dialed", "List", "Tags"];
+  const { data: miscFields } = useMiscFields();
 
-  const [display, setDisplay] = useState<string[]>(initialDisplayColumns || allFields.slice(0, 4));
-  const [available, setAvailable] = useState<string[]>(
-    allFields.filter(field => !(initialDisplayColumns || allFields.slice(0, 4)).includes(field))
+  // Misc fields are fetched live from the API (same source as System
+  // Settings → Profile Fields) — never hardcoded here. "notes" is excluded
+  // to match the Contact Detail Profile tab, which hides it in favor of the
+  // dedicated Description field.
+  const miscFieldNames = useMemo(
+    () =>
+      (miscFields ?? [])
+        .map((f) => f.fieldName)
+        .filter((name) => name.trim().toLowerCase() !== "notes"),
+    [miscFields]
   );
-  const [searchAvailable, setSearchAvailable] = useState<string>("");
-  const [searchDisplay, setSearchDisplay] = useState<string>("");
-  const [sortAZ, setSortAZ] = useState<boolean>(false);
 
-  const handleMove = (
-    field: string,
-    from: string[],
-    to: string[],
-    setFrom: Dispatch<SetStateAction<string[]>>,
-    setTo: Dispatch<SetStateAction<string[]>>
-  ) => {
-    setFrom(from.filter((item) => item !== field));
-    setTo([...to, field]);
-  };
+  // allFields is derived — recalculates whenever miscFieldNames loads/changes.
+  const allFields = useMemo(
+    () => [...STATIC_FIELDS, ...miscFieldNames.filter((f) => !STATIC_FIELDS.includes(f))],
+    [miscFieldNames]
+  );
+
+  const defaultDisplay = initialDisplayColumns ?? allFields.slice(0, 4);
+
+  // Only display[] is stored in state; available is always derived so new
+  // misc fields appear automatically even if the API responded after mount.
+  const [display, setDisplay] = useState<string[]>(defaultDisplay);
+
+  const available = useMemo(
+    () => allFields.filter((f) => !display.includes(f)),
+    [allFields, display]
+  );
+
+  const [searchAvailable, setSearchAvailable] = useState("");
+  const [searchDisplay, setSearchDisplay] = useState("");
+  const [sortAZ, setSortAZ] = useState(false);
 
   const sortMaybe = (list: string[]) =>
     sortAZ ? [...list].sort((a, b) => a.localeCompare(b)) : list;
 
   const filteredAvailable = sortMaybe(
-    available.filter((item) =>
-      item.toLowerCase().includes(searchAvailable.toLowerCase())
-    )
+    available.filter((item) => item.toLowerCase().includes(searchAvailable.toLowerCase()))
   );
   const filteredDisplay = sortMaybe(
-    display.filter((item) =>
-      item.toLowerCase().includes(searchDisplay.toLowerCase())
-    )
+    display.filter((item) => item.toLowerCase().includes(searchDisplay.toLowerCase()))
   );
+
+  const moveToDisplay = (field: string) => setDisplay((prev) => [...prev, field]);
+  const moveToAvailable = (field: string) => setDisplay((prev) => prev.filter((f) => f !== field));
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-2 sm:p-4">
-      {/* Modal Box */}
-      <div
-        className="bg-white w-full dark:bg-slate-800 max-w-[95%] sm:max-w-2xl md:max-w-3xl rounded-2xl shadow-2xl relative flex flex-col
-        max-h-[90vh] overflow-hidden animate-fadeIn"
-      >
-        {/* Scrollable Content Area */}
+      <div className="bg-white w-full dark:bg-slate-800 max-w-[95%] sm:max-w-2xl md:max-w-3xl rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden animate-fadeIn">
         <div className="overflow-y-auto custom-scrollbar p-5 sm:p-6">
-          {/* Close Button */}
+          {/* Close */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition bg-gray-100 rounded-full p-1"
@@ -68,28 +81,27 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
           {/* Header */}
           <div className="flex items-center justify-between gap-3 pr-8">
-            <h2 className="text-lg dark:text-white font-semibold text-gray-900">
-              Data Columns
-            </h2>
+            <h2 className="text-lg dark:text-white font-semibold text-gray-900">Data Columns</h2>
             <button
               type="button"
               onClick={() => setSortAZ((prev) => !prev)}
               aria-pressed={sortAZ}
               title="Show columns in A-Z order"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition
-                ${sortAZ
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                sortAZ
                   ? "bg-[#FFCA06] border-[#FFCA06] text-black"
-                  : "bg-transparent border-gray-300 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"}`}
+                  : "bg-transparent border-gray-300 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+              }`}
             >
               <LuArrowDownAZ className="text-base" />
               Sort A-Z
             </button>
           </div>
 
-          {/* Columns Section */}
-          <div className="grid grid-cols-1  sm:grid-cols-2 gap-6">
-            {/* Available Fields */}
-            <div className="rounded-xl p-4 h-[320px] flex flex-col ">
+          {/* Two panels */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Available */}
+            <div className="rounded-xl p-4 h-[380px] flex flex-col">
               <h3 className="text-[15px] dark:text-white font-medium mb-3 text-gray-800">
                 Available fields:
               </h3>
@@ -103,7 +115,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                 />
                 <IoSearch className="absolute right-3 top-2.5 text-gray-400" />
               </div>
-              <div className="overflow-y-auto flex-1 space-y-2 custom-scrollbar">
+              <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar">
                 {filteredAvailable.length ? (
                   filteredAvailable.map((field) => (
                     <label
@@ -112,9 +124,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                     >
                       <input
                         type="checkbox"
-                        onChange={() =>
-                          handleMove(field, available, display, setAvailable, setDisplay)
-                        }
+                        onChange={() => moveToDisplay(field)}
                         className="w-4 h-4 accent-gray-900 cursor-pointer"
                       />
                       {field}
@@ -126,8 +136,8 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
               </div>
             </div>
 
-            {/* Fields to Display */}
-            <div className="rounded-xl p-4 h-[320px] flex flex-col">
+            {/* Display */}
+            <div className="rounded-xl p-4 h-[380px] flex flex-col">
               <h3 className="text-[15px] dark:text-white font-medium mb-3 text-gray-800">
                 Fields to display:
               </h3>
@@ -141,7 +151,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                 />
                 <IoSearch className="absolute right-3 top-2.5 text-gray-400" />
               </div>
-              <div className="overflow-y-auto flex-1 space-y-2 custom-scrollbar">
+              <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar">
                 {filteredDisplay.length ? (
                   filteredDisplay.map((field) => (
                     <label
@@ -151,9 +161,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
                       <input
                         type="checkbox"
                         checked
-                        onChange={() =>
-                          handleMove(field, display, available, setDisplay, setAvailable)
-                        }
+                        onChange={() => moveToAvailable(field)}
                         className="w-4 h-4 accent-gray-900 cursor-pointer"
                       />
                       {field}
@@ -167,22 +175,22 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
           </div>
 
           {/* Footer */}
-         <div className="flex justify-center items-center gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className=" w-full bg-[#EBEDF0] px-4 py-2 rounded-md text-sm text-gray-900 font-[500] hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button 
-            className="bg-[#FFCA06] w-full px-4 py-2 rounded-md text-sm font-medium text-black hover:bg-[#f5bd00]"
-            onClick={() => {
-              if (onApply) onApply(sortMaybe(display));
-            }}
-          >
-            Submit Changes
-          </button>
-        </div>
+          <div className="flex justify-center items-center gap-3 mt-6">
+            <button
+              onClick={onClose}
+              className="w-full bg-[#EBEDF0] px-4 py-2 rounded-md text-sm text-gray-900 font-[500] hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-[#FFCA06] w-full px-4 py-2 rounded-md text-sm font-medium text-black hover:bg-[#f5bd00]"
+              onClick={() => {
+                if (onApply) onApply(sortMaybe(display));
+              }}
+            >
+              Submit Changes
+            </button>
+          </div>
         </div>
       </div>
     </div>
