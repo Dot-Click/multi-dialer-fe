@@ -26,8 +26,9 @@ const AdminFindDuplicate = () => {
 
     return (
         <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all">
-            {/* 🔹 Breadcrumb + Heading */}
-            <div className="flex flex-col">
+            {/* 🔹 Breadcrumb + Heading — sticky so the Merge Duplicates button stays
+                reachable while scrolling through a long duplicates list */}
+            <div className="sticky top-0 z-20 bg-[#F7F7F7] dark:bg-slate-900 -mx-4 sm:-mx-6 md:-mx-10 lg:-mx-3 px-4 sm:px-6 md:px-10 lg:px-3 pb-3 pt-1 flex flex-col">
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <h1 className="text-[24px] sm:text-[28px] font-[500] dark:text-white">
@@ -54,7 +55,7 @@ const AdminFindDuplicate = () => {
                                 ${selectedContacts.length >= 2 ? "bg-[#FFCA06] text-[#2B3034] hover:bg-[#ffcf29]" : "bg-gray-100 text-gray-400 cursor-not-allowed"}
                             `}>
                                 <img src={mergeduplicates} alt="mergeduplicates" className={`w-4 ${selectedContacts.length < 2 ? "grayscale opacity-50" : ""}`}/>
-                                <span>Merge Duplicates</span>
+                                <span>Merge Duplicates{selectedContacts.length > 0 ? ` (${selectedContacts.length})` : ""}</span>
                             </button>
                         </div>
 

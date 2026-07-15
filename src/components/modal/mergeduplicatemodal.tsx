@@ -95,7 +95,30 @@ const MergeDuplicateModal = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-gray-900 dark:text-white truncate">{contact.fullName || contact.name}</div>
-                      <div className="text-[11px] text-gray-500 truncate">{contact.locationContext || "No location info"}</div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {(contact.folderNames?.length || contact.listNames?.length) ? (
+                          <>
+                            {(contact.folderNames || []).map((name: string) => (
+                              <span
+                                key={`folder-${name}`}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                              >
+                                <FiFolder size={10} /> {name}
+                              </span>
+                            ))}
+                            {(contact.listNames || []).map((name: string) => (
+                              <span
+                                key={`list-${name}`}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400"
+                              >
+                                <FiList size={10} /> {name}
+                              </span>
+                            ))}
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-gray-400 italic">Not in any folder or list</span>
+                        )}
+                      </div>
                     </div>
                   </label>
                 ))}

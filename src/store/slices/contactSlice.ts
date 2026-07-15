@@ -943,6 +943,8 @@ export const fetchDuplicateContacts = createAsyncThunk(
           notes: c.notes || [],
           duplicateReason: c.duplicateReason || "-",
           locationContext: c.locationContext || "-",
+          folderNames: c.folderNames || [],
+          listNames: c.listNames || [],
         }));
       }
       return rejectWithValue("Failed to fetch duplicate contacts");
