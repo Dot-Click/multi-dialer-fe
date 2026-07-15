@@ -128,6 +128,15 @@ const TableProvider = <T,>({
     setSelectedRows(selected.map((val: any) => val.original));
   }, [rowSelection, table]);
 
+  // 🔹 Selection is keyed by row index, so once `data` changes (a delete,
+  // merge, move, or refetch reshuffles/shrinks the rows), stale `true` flags
+  // can point at different rows than the ones the user actually checked —
+  // and can even make the "select all" header checkbox appear checked when
+  // nothing should be selected. Clear selection whenever the data set changes.
+  useEffect(() => {
+    setRowSelection({});
+  }, [flatData]);
+
   // 🔹 Reset selection when Escape key is pressed
   useEffect(() => {
     const handleEscapeKeyPress = (e: KeyboardEvent) => {

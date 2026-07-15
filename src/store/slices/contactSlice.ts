@@ -941,6 +941,8 @@ export const fetchDuplicateContacts = createAsyncThunk(
           miscValues: c.miscValues || {},
           leadsheetValues: c.leadsheetValues || {},
           notes: c.notes || [],
+          duplicateReason: c.duplicateReason || "-",
+          locationContext: c.locationContext || "-",
         }));
       }
       return rejectWithValue("Failed to fetch duplicate contacts");

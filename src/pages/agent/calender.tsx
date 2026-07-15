@@ -146,6 +146,7 @@ export default function CustomCalendar() {
 
   const showAdd = () => {
     setOptionsOpen(false);
+    setSelectedEvent(null);
     setAddOpen(true);
   };
 
@@ -172,8 +173,8 @@ export default function CustomCalendar() {
 
     return (
       <div className="flex flex-col gap-1 py-2 h-full text-left">
-        {list.slice(0, max).map((it, i) => (
-          <div key={i} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
+        {list.slice(0, max).map((it) => (
+          <div key={it.id} className="flex items-start gap-1 text-[10px] sm:text-[11px] leading-tight cursor-pointer" onClick={(e) => {
             e.stopPropagation();
             openDetail(it);
           }}>
@@ -323,9 +324,9 @@ export default function CustomCalendar() {
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-8 px-8 pb-10 pt-6">
-            {getEventData(selectedDate || dayjs()).map((evt, i) => (
+            {getEventData(selectedDate || dayjs()).map((evt) => (
               <div
-                key={i}
+                key={evt.id}
                 className="flex items-start gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors"
               >
                 <div

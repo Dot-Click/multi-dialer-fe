@@ -610,8 +610,17 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     // const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
     const customDispositions = activeDispositions.filter(d => !d.isSystem);
 
+    // "Calls" counts how many times this contact was brought to the dialer, not
+    // how many lines were dialed. Records sharing a sessionId came from the same
+    // dialer pass (all the contact's lines tried in one go) and count as 1;
+    // records with no sessionId (e.g. manual click-to-call) count individually.
+    const callRecords = currentContact.callRecords || [];
+    const uniqueSessionIds = new Set(callRecords.filter((r: any) => r.sessionId).map((r: any) => r.sessionId));
+    const soloCalls = callRecords.filter((r: any) => !r.sessionId).length;
+    const callsCount = uniqueSessionIds.size + soloCalls;
+
     const stats = [
-        { id: 1, name: "Calls", number: currentContact.callRecords?.length || 0, icon: Phone },
+        { id: 1, name: "Calls", number: callsCount, icon: Phone },
         { id: 2, name: "Emails", number: currentContact.emailLogs?.length || 0, icon: Mail },
         { id: 3, name: "SMS", number: currentContact.smsLogs?.length || 0, icon: MessageSquare },
     ];
