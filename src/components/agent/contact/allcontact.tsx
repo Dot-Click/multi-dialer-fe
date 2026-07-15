@@ -112,7 +112,7 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     });
   }, [contacts, searchTerm]);
 
-  const allColumns = [
+  const allColumns: any[] = [
     {
       id: "select",
       header: (context: any) => {

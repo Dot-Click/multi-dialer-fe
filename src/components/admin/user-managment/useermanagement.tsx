@@ -31,7 +31,6 @@ const ROLE_OPTIONS = ["Admin", "Agent"];
 export default function Page() {
   const [openFilter, setOpenFilter] = useState(false);
   const [openUserModal, setOpenUserModal] = useState(false);
-  const [openRoleDropdown, setOpenRoleDropdown] = useState<number | null>(null);
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
 
@@ -99,7 +98,6 @@ export default function Page() {
     setPassword("");
     setRole("Agent");
     setOpenActionMenu(null);
-    setOpenRoleDropdown(null);
     setOpenUserModal(true);
   };
 
@@ -111,7 +109,6 @@ export default function Page() {
     setRole(normalizedRole === "ADMIN" ? "Admin" : "Agent");
     setPassword("");
     setOpenActionMenu(null);
-    setOpenRoleDropdown(null);
     setOpenUserModal(true);
   };
 
@@ -212,17 +209,6 @@ export default function Page() {
     }
   };
 
-  const handleUpdateUserRole = async (user: ManagedUser, nextRole: string) => {
-    try {
-      await api.put(`/user/${user.id}`, { role: nextRole });
-      toast.success(`Role updated to ${nextRole}`);
-      setOpenRoleDropdown(null);
-      fetchUsers();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Failed to update role");
-    }
-  };
-
   return (
     <div className="pr-8">
       {/* HEADER */}
@@ -282,7 +268,7 @@ export default function Page() {
             const av = (a.fullName || a.name || '').toLowerCase();
             const bv = (b.fullName || b.name || '').toLowerCase();
             return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-          }).map((user, idx) => {
+          }).map((user) => {
             const currentRole = (user.role || "AGENT").toUpperCase();
 
             return (
@@ -335,10 +321,7 @@ export default function Page() {
                     </span>
 
                     <button
-                      onClick={() => {
-                        setOpenActionMenu(openActionMenu === user.id ? null : user.id);
-                        setOpenRoleDropdown(null);
-                      }}
+                      onClick={() => setOpenActionMenu(openActionMenu === user.id ? null : user.id)}
                       className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition relative"
                     >
                       <MoreHorizontal size={20} className="text-gray-400" />
