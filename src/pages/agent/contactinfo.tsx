@@ -15,6 +15,8 @@ import toast from 'react-hot-toast';
 import api, { postKeepalive } from '@/lib/axios';
 import { VscCallOutgoing } from 'react-icons/vsc';
 import { FreezeCountdown, isCurrentlyFrozen } from '@/components/agent/common/FreezeCountdown';
+import { useCallbackDue, type DueCallback } from '@/hooks/useCallbackDue';
+import CallbackDueModal from '@/components/dialer/CallbackDueModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -178,6 +180,10 @@ const ContactInfo = () => {
     // agent ever being bridged. Left alone, that state freezes the server queue.
     const orphanPostCallPollsRef = useRef(0);
     const currentQueueEntry = queue[currentIndex];
+
+    // Interrupts the dialer with a full-screen modal whenever a scheduled
+    // callback comes due. Only polls while an active dialing session exists.
+    const { dueCallbacks, removeDueCallback } = useCallbackDue(!!activeSessionId);
 
     useEffect(() => { isCallingRef.current = isCalling; }, [isCalling]);
     useEffect(() => { isPostCallRef.current = isPostCall; }, [isPostCall]);
@@ -770,6 +776,31 @@ const ContactInfo = () => {
         }
     }, []);
 
+    // "Call Now" from the callback-due interrupt: purge any other queued
+    // instance of this contact first (so it can't also ring from the normal
+    // queue), then dial it directly with the agent's current caller ID.
+    const handleCallbackDueCallNow = useCallback(async (callback: DueCallback) => {
+        const contactId = callback.contactId || callback.contact?.id;
+        const phone = callback.contact?.phones?.find((p) => p.isPrimary && p.isValid !== false && !p.isDnc)?.number
+            || callback.contact?.phones?.find((p) => p.isValid !== false && !p.isDnc)?.number;
+
+        if (!contactId || !phone) {
+            toast.error("This callback has no dialable contact or phone number.");
+            return;
+        }
+
+        try {
+            await api.post('/calling/queue/remove-contact', { contactId }).catch((err) => {
+                console.warn('[ContactInfo] Failed to purge callback contact from queue:', err);
+            });
+            const fromNumber = currentCallerId || callerIds[0];
+            await startCall(phone, fromNumber, contactId);
+        } catch (err) {
+            console.error('[ContactInfo] Callback "Call Now" failed:', err);
+            toast.error('Failed to start the call.');
+        }
+    }, [currentCallerId, callerIds, startCall]);
+
     const handleHangupAndLeave = useCallback(async () => {
         const endedAt = new Date();
         const startedAt = sessionStartTime || endedAt;
@@ -1104,6 +1135,11 @@ const ContactInfo = () => {
                 durationMs={sessionDurationMs}
                 stats={sessionStats}
                 onClose={closeSessionAndLeave}
+            />
+            <CallbackDueModal
+                dueCallbacks={dueCallbacks}
+                onCallNow={handleCallbackDueCallNow}
+                onResolved={removeDueCallback}
             />
         </div>
     );
