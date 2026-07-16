@@ -23,6 +23,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [companyName, setCompanyName] = useState("");
 
   // Dropdown states
   const [roleOpen, setRoleOpen] = useState(false);
@@ -84,6 +85,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
           password,
           planId: selectedPlanId,
+          ...(companyName.trim() ? { companyName: companyName.trim() } : {}),
         }),
       );
 
@@ -94,6 +96,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         setFullName("");
         setEmail("");
         setPassword("");
+        setCompanyName("");
         setSelectedRole("Select Role");
         setSelectedStatus("Select Status");
         setSelectedPlanId(null);
@@ -238,6 +241,18 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Company Name */}
+          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Company Name (Optional)</label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
+            />
           </div>
 
           {/* Status Dropdown */}
