@@ -305,6 +305,69 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
     onClose();
   };
 
+  // Applies any active dial filters, then navigates to the dialer screen with
+  // the current selections. Shared by "Save & Start" (after persisting the
+  // setting) and "Start" (which skips persisting entirely — see handleStart).
+  // Returns false if a filter narrowed the list to zero contacts, so the
+  // caller knows NOT to close the modal (the user needs to adjust filters).
+  const startDialing = async (): Promise<boolean> => {
+    const destination = role === "ADMIN" ? "/admin/contact-info" : "/contact-info";
+
+    // ── Apply dial filters ────────────────────────────────────────────────
+    let contactsToSend = selectedContacts;
+    const hasAnyFilter =
+      (dialFilters.startMode === 'resume' && !!listId) ||
+      dialFilters.neverDialedEnabled ||
+      dialFilters.neverContacted ||
+      dialFilters.statusChangedEnabled ||
+      dialFilters.createdDateEnabled;
+
+    if (hasAnyFilter) {
+      const filterPayload = {
+        contactIds: selectedContacts.map((c) => c.id),
+        listId: listId || undefined,
+        filters: {
+          startMode: dialFilters.startMode,
+          neverDialed: dialFilters.neverDialedEnabled ? dialFilters.neverDialedWindow : null,
+          neverContacted: dialFilters.neverContacted,
+          statusChangedWithin: dialFilters.statusChangedEnabled ? dialFilters.statusChangedWithin : null,
+          createdAfter: dialFilters.createdDateEnabled && dialFilters.createdAfter ? dialFilters.createdAfter : null,
+          createdBefore: dialFilters.createdDateEnabled && dialFilters.createdBefore ? dialFilters.createdBefore : null,
+        },
+      };
+
+      const { data: filterResult } = await api.post('/calling/filter-contacts', filterPayload);
+      const filteredIds: string[] = filterResult?.data?.contactIds ?? [];
+
+      if (filteredIds.length === 0) {
+        toast.error("No contacts match the selected filters. Adjust filters and try again.");
+        return false;
+      }
+
+      // Re-order contacts to match the backend-returned order
+      const contactMap = new Map(selectedContacts.map((c) => [c.id, c]));
+      contactsToSend = filteredIds.map((id) => contactMap.get(id)).filter(Boolean);
+      toast.success(`Filters applied — ${contactsToSend.length} contact${contactsToSend.length !== 1 ? 's' : ''} queued.`);
+    }
+
+    navigate(destination, {
+      state: {
+        contacts: contactsToSend,
+        callerIds: selectedCallerIds,
+        numberOfLines: parseInt(noOfLines),
+        selectedScript: selectedScript || undefined,
+        holdRecordingUrl: getSelectedRecordingUrl(),
+        answeringMachineRecordingUrl: getAnsweringMachineUrl(),
+        busyRecordingUrl: getBusyRecordingUrl(),
+        dialerMode,
+        pacing: dialerMode === "power" ? pacing : undefined,
+        listId: listId || undefined,
+      },
+    });
+
+    return true;
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       toast.error("Please enter a name for this setting.");
@@ -348,63 +411,11 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         toast.success("Call Setting created successfully!");
       }
 
-      const destination = role === "ADMIN" ? "/admin/contact-info" : "/contact-info";
-
-      // ── Apply dial filters ────────────────────────────────────────────────
-      let contactsToSend = selectedContacts;
-      const hasAnyFilter =
-        (dialFilters.startMode === 'resume' && !!listId) ||
-        dialFilters.neverDialedEnabled ||
-        dialFilters.neverContacted ||
-        dialFilters.statusChangedEnabled ||
-        dialFilters.createdDateEnabled;
-
-      if (hasAnyFilter) {
-        const filterPayload = {
-          contactIds: selectedContacts.map((c) => c.id),
-          listId: listId || undefined,
-          filters: {
-            startMode: dialFilters.startMode,
-            neverDialed: dialFilters.neverDialedEnabled ? dialFilters.neverDialedWindow : null,
-            neverContacted: dialFilters.neverContacted,
-            statusChangedWithin: dialFilters.statusChangedEnabled ? dialFilters.statusChangedWithin : null,
-            createdAfter: dialFilters.createdDateEnabled && dialFilters.createdAfter ? dialFilters.createdAfter : null,
-            createdBefore: dialFilters.createdDateEnabled && dialFilters.createdBefore ? dialFilters.createdBefore : null,
-          },
-        };
-
-        const { data: filterResult } = await api.post('/calling/filter-contacts', filterPayload);
-        const filteredIds: string[] = filterResult?.data?.contactIds ?? [];
-
-        if (filteredIds.length === 0) {
-          toast.error("No contacts match the selected filters. Adjust filters and try again.");
-          setIsLoading(false);
-          return;
-        }
-
-        // Re-order contacts to match the backend-returned order
-        const contactMap = new Map(selectedContacts.map((c) => [c.id, c]));
-        contactsToSend = filteredIds.map((id) => contactMap.get(id)).filter(Boolean);
-        toast.success(`Filters applied — ${contactsToSend.length} contact${contactsToSend.length !== 1 ? 's' : ''} queued.`);
+      const started = await startDialing();
+      if (started) {
+        console.log("[CreateCallSetting] Navigation called, closing modal");
+        handleClose();
       }
-
-      navigate(destination, {
-        state: {
-          contacts: contactsToSend,
-          callerIds: selectedCallerIds,
-          numberOfLines: parseInt(noOfLines),
-          selectedScript: selectedScript || undefined,
-          holdRecordingUrl: getSelectedRecordingUrl(),
-          answeringMachineRecordingUrl: getAnsweringMachineUrl(),
-          busyRecordingUrl: getBusyRecordingUrl(),
-          dialerMode,
-          pacing: dialerMode === "power" ? pacing : undefined,
-          listId: listId || undefined,
-        },
-      });
-
-      console.log("[CreateCallSetting] Navigation called, closing modal");
-      handleClose();
     } catch (err: any) {
       console.error("[CreateCallSetting] Error saving:", err);
       console.error("[CreateCallSetting] Error details:", {
@@ -413,6 +424,31 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
         status: err?.response?.status,
       });
       toast.error(err?.response?.data?.message || err?.message || "Failed to save Call Setting.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // "Start" — redirect-only. Skips creating/updating a saved Call Setting
+  // entirely; just applies any dial filters and navigates to the dialer with
+  // the current in-modal selections, for a one-off session the user doesn't
+  // want persisted as a named preset.
+  const handleStart = async () => {
+    if (selectedCallerIds.length === 0) {
+      toast.error("Please select at least one Caller ID.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const started = await startDialing();
+      if (started) {
+        console.log("[CreateCallSetting] Start-only navigation called, closing modal");
+        handleClose();
+      }
+    } catch (err: any) {
+      console.error("[CreateCallSetting] Error starting dialer:", err);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to start dialing.");
     } finally {
       setIsLoading(false);
     }
@@ -446,7 +482,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
           </div>
 
           {/* Body */}
-          <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-180px)] custom-scrollbar">
+          <div className="p-6 space-y-6 overflow-y-auto overscroll-contain max-h-[calc(100vh-180px)] custom-scrollbar">
             
             {/* Dialer Mode (TOP) - Compact */}
             <div className="grid grid-cols-2 gap-3">
@@ -651,7 +687,7 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
               {/* RIGHT COLUMN: Caller IDs + Dial Filters */}
               <div className="flex flex-col gap-4">
                 <FieldWrapper label="Caller ID Rotation List">
-                  <div className="space-y-0.5 h-[200px] overflow-y-auto custom-scrollbar pr-2 mt-1">
+                  <div className="space-y-0.5 h-[200px] overflow-y-auto overscroll-contain custom-scrollbar pr-2 mt-1">
                     {uniqueCallerIds.map((cid) => {
                       const number = cid.twillioNumber || cid.id;
                       const fs = freezeStatus[number];
@@ -926,7 +962,16 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
             >
               Discard
             </button>
-   
+
+            <button
+              type="button"
+              onClick={handleStart}
+              disabled={isLoading}
+              className="flex-1 bg-white dark:bg-slate-800 border border-[#FFCA06] hover:bg-[#FFCA06]/10 text-gray-900 dark:text-white text-[13px] font-black py-2.5 rounded-xl shadow-sm transition-all active:scale-95"
+            >
+              {isLoading ? "Starting..." : "Start"}
+            </button>
+
             <button
               type="button"
               onClick={handleSave}

@@ -184,6 +184,7 @@ rgb(228, 212, 192)
   /* For Firefox */
   scrollbar-width: thin;
   scrollbar-color: #a9a9a9 #f0f0f0; /* Darker thumb, lighter track */
+  scroll-behavior: smooth;
 
   /* For WebKit Browsers */
 }
