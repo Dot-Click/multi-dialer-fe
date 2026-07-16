@@ -125,13 +125,19 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
     const { label, value, targetFolderId, id: dispositionId } = dispObj;
 
     const isTrash = value.toUpperCase() === "TRASH";
+    // Call outcomes (Mojo smart values) are one-off call-result logging, not a
+    // sticky contact attribute — they must never write contact.disposition,
+    // which is reserved for actual Dispositions and drives that pill's highlight.
+    const isCallOutcome = SMART_VALUES.includes(value.toUpperCase());
 
     // If no folder action configured → apply immediately
     if (!targetFolderId) {
-      setSelectedDisp(value);
+      if (!isCallOutcome) setSelectedDisp(value);
       setSavingDisp(true);
       try {
-        await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+        if (!isCallOutcome) {
+          await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+        }
         const applyResult = await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId, source: "CALL" }));
         if (applyDisposition.rejected.match(applyResult)) {
           toast.error(`Failed to apply disposition: ${applyResult.payload || "Unknown error"}`);
@@ -140,12 +146,12 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
         }
         // Trash: stay on current contact so agent can select call outcome first
         if (!isTrash) dispatch(removeContactById(currentContact.id));
-        setSavedDisp(value);
+        if (!isCallOutcome) setSavedDisp(value);
         setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
         toast.success(isTrash ? `Moved to Trash — select a call outcome to continue` : `Disposition: ${label}`);
       } catch (err: any) {
         toast.error("Failed to set disposition: " + (err?.message || err));
-        setSelectedDisp(savedDisp);
+        if (!isCallOutcome) setSelectedDisp(savedDisp);
       } finally {
         setSavingDisp(false);
       }
@@ -161,9 +167,12 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
     if (!currentContact?.id || !pendingDisp) return;
     const { id: dispositionId, label, value } = pendingDisp;
     const isTrash = value.toUpperCase() === "TRASH";
+    const isCallOutcome = SMART_VALUES.includes(value.toUpperCase());
     setSavingDisp(true);
     try {
-      await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+      if (!isCallOutcome) {
+        await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+      }
       const applyResult = await dispatch(applyDisposition({
         contactId: currentContact.id,
         dispositionId,
@@ -176,8 +185,10 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
       }
       // Trash: stay on current contact so agent can select call outcome first
       if (!isTrash) dispatch(removeContactById(currentContact.id));
-      setSelectedDisp(value);
-      setSavedDisp(value);
+      if (!isCallOutcome) {
+        setSelectedDisp(value);
+        setSavedDisp(value);
+      }
       setSessionCounts(prev => ({ ...prev, [value]: (prev[value] || 0) + 1 }));
       const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
       toast.success(isTrash
@@ -258,15 +269,17 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
           <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-gray-100 dark:border-slate-700">
             {smartItems.map(d => {
               const Icon = ICON_MAP[d.icon] ?? User;
+              // Call outcomes are one-off logging actions, not a sticky selection —
+              // only the folder-confirmation step should visually highlight, never
+              // "this was the last outcome picked" (that's what Dispositions are for).
               const isPending = pendingDisp?.value === d.value;
-              const isActive = selectedDisp === d.value;
               return (
                 <button
                   key={d.id}
                   onClick={() => handleSmartAction(d)}
                   disabled={savingDisp}
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-sm rounded-full border font-medium transition-all duration-150 active:scale-95 ${
-                    isActive || isPending
+                    isPending
                       ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
                       : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                   }`}

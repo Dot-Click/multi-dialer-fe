@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { updateContact } from "@/store/slices/contactSlice";
 import { fetchDispositions, applyDisposition } from "@/store/slices/dispositionSlice";
 import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import { Phone, User, Check, Loader2, Tag } from "lucide-react";
@@ -23,7 +22,6 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
     const { folders } = useAppSelector(s => s.contactStructure);
     const { isPostCall } = useTwilio();
 
-    const [selectedDisp, setSelectedDisp] = useState<string | null>(null);
     const [_, setSavedDisp] = useState<string | null>(null);
     const [savingDisp, setSavingDisp] = useState(false);
 
@@ -38,9 +36,7 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
 
     useEffect(() => {
         if (currentContact) {
-            const d = currentContact.disposition ?? null;
-            setSelectedDisp(d);
-            setSavedDisp(d);
+            setSavedDisp(currentContact.disposition ?? null);
         }
     }, [currentContact?.id, currentContact?.disposition]);
 
@@ -64,14 +60,14 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
     async function applyImmediate(id: string, label: string, value: string) {
         if (!currentContact?.id) return;
         const isTrash = value.toUpperCase() === "TRASH";
-        setSelectedDisp(value);
         setSavingDisp(true);
         try {
-            await dispatch(updateContact({ id: currentContact.id, payload: { disposition: value } })).unwrap();
+            // Call outcomes are logged via applyDisposition (folder move + log) only —
+            // they must never write contact.disposition, which is reserved for actual
+            // Dispositions (Hot/Warm/etc.) and drives that separate pill's highlight.
             const applyResult = await dispatch(applyDisposition({ contactId: currentContact.id, dispositionId: id, source: "CALL" }));
             if (applyDisposition.rejected.match(applyResult)) {
                 toast.error(`Failed to apply disposition: ${applyResult.payload || "Unknown error"}`);
-                setSelectedDisp(null);
                 return;
             }
             setSavedDisp(value);
@@ -114,7 +110,7 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
         const isTrash = pendingDisp.value.toUpperCase() === "TRASH";
         setSavingDisp(true);
         try {
-            await dispatch(updateContact({ id: currentContact.id, payload: { disposition: pendingDisp.value } })).unwrap();
+            // See applyImmediate — call outcomes never write contact.disposition.
             const applyResult = await dispatch(applyDisposition({
                 contactId: currentContact.id,
                 dispositionId: pendingDisp.id,
@@ -125,7 +121,6 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
                 toast.error(`Failed to move contact to folder: ${applyResult.payload || "Unknown error"}`);
                 return;
             }
-            setSelectedDisp(pendingDisp.value);
             setSavedDisp(pendingDisp.value);
             const folderName = folders?.find(f => f.id === confirmFolderId)?.name;
             if (isTrash) {
@@ -172,14 +167,16 @@ const CallOutcomes = ({ onOutcomeSelected, isPowerDialer = false }: CallOutcomes
             <div className="grid grid-cols-2 gap-1.5 px-1">
                 {smartItems.map(d => {
                     const Icon = ICON_MAP[d.icon] ?? User;
+                    // Call outcomes are one-off logging actions, not a sticky selection —
+                    // only the folder-confirmation step should visually highlight, never
+                    // "this was the last outcome picked" (that's what Dispositions are for).
                     const isPending = pendingDisp?.value === d.value;
-                    const isActive = selectedDisp === d.value;
                     return (
                         <button
                             key={d.id}
                             onClick={() => handleClick(d)}
                             disabled={savingDisp}
-                            className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[9px] rounded-full border font-black tracking-wide transition-all duration-150 active:scale-95 ${isActive || isPending
+                            className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[9px] rounded-full border font-black tracking-wide transition-all duration-150 active:scale-95 ${isPending
                                 ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
                                 : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                                 }`}
