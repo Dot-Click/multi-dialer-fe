@@ -12,6 +12,7 @@ import bulbicon from "../../../assets/bulbicon.svg";
 import usericon from "../../../assets/userIcon.svg";
 // import trainingicon from "@/assets/trainingicon.png";
 import exiticon from "../../../assets/exiticon.svg";
+import leadStoreIcon from "@/assets/fluent_building-shop-24-regular.png";
 import { FiMenu } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { signout } from "@/store/slices/authSlice";
@@ -96,10 +97,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 10, name: "Billing", link: "/admin/billing", icon: billingicon },
   ];
 
-  // const bottomLinks = [
-  //   { id: 10, name: "Training", link: "/training", icon: trainingicon },
-  //   { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: dataicon },
-  // ];
+  const bottomLinks = [
+    { id: 11, name: "Lead Store", link: "/admin/lead-store", icon: leadStoreIcon },
+  ];
 
   return (
     <>
@@ -194,7 +194,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {/* Bottom Links */}
         <div className="px-3 pb-4 border-t border-gray-200 dark:border-slate-800 pt-3 flex flex-col gap-1">
-          {/* {bottomLinks.map((item) => (
+          {bottomLinks.map((item) => (
             <NavLink
               key={item.id}
               to={item.link}
@@ -217,7 +217,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <span className="text-[12px] font-medium">{item.name}</span>
               )}
             </NavLink>
-          ))} */}
+          ))}
 
           {/* EXIT BUTTON */}
           <button

@@ -74,6 +74,12 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
       icon: userReportIcon,
     },
     {
+      id: 11,
+      name: "Lead Store",
+      link: "/super-admin/lead-store",
+      icon: subsIcon,
+    },
+    {
       id: 9,
       name: "Settings",
       link: "/super-admin/setting",

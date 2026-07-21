@@ -1,52 +1,30 @@
 import api from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import axios from "axios";
 import { toast } from "react-hot-toast";
-
 
 export interface MyPlusLeadsConfig {
   id: string;
-  apiKey: string;
-  webhookUrl: string;
-  selectedTypes: string[];
+  label: string | null;
+  subAccountEmail: string | null;
   autoSync: boolean;
   status: string;
   lastSyncAt: string | null;
   errorMessage?: string | null;
 }
 
+/**
+ * Read-only view of the current user's linked MyPlusLeads account(s).
+ * Credentials are entered by Client via the Super Admin linking panel —
+ * there is no self-service connect/edit/disconnect here anymore.
+ */
 export const useMyPlusLeads = () => {
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<MyPlusLeadsConfig>({
+  const { data: configs = [], isLoading } = useQuery<MyPlusLeadsConfig[]>({
     queryKey: ["myPlusLeadsConfig"],
     queryFn: async () => {
       const response = await api.get(`/integrations/myplusleads`);
       return response.data.data;
-    },
-  });
-
-  const updateConfig = useMutation({
-    mutationFn: async (payload: Partial<MyPlusLeadsConfig>) => {
-      const response = await api.post(`/integrations/myplusleads`, payload);
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myPlusLeadsConfig"] });
-      toast.success("MyPlusLeads integration updated");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to update integration");
-    },
-  });
-
-  const disconnect = useMutation({
-    mutationFn: async () => {
-      await api.delete(`/integrations/myplusleads`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myPlusLeadsConfig"] });
-      toast.success("Integration disconnected");
     },
   });
 
@@ -65,10 +43,8 @@ export const useMyPlusLeads = () => {
   });
 
   return {
-    config: data,
+    configs,
     isLoading,
-    updateConfig,
-    disconnect,
     syncNow,
   };
 };

@@ -4,7 +4,7 @@ import myplusLogo from "@/assets/myplus.png";
 import { useState } from "react";
 
 const MyPlusLeadsIntegration = () => {
-  const { config, isLoading, syncNow } = useMyPlusLeads();
+  const { configs, isLoading, syncNow } = useMyPlusLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (isLoading) {
@@ -15,7 +15,7 @@ const MyPlusLeadsIntegration = () => {
     );
   }
 
-  const isConnected = config?.status === "CONNECTED";
+  const isConnected = configs.some((c) => c.status === "CONNECTED");
 
   return (
     <>
@@ -28,39 +28,35 @@ const MyPlusLeadsIntegration = () => {
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center gap-3 mb-2">
               <h3 className="text-xl font-black text-gray-900 dark:text-white">MyPlusLeads</h3>
-              {isConnected && (
+              {isConnected ? (
                 <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full">
                   Connected
+                </span>
+              ) : (
+                <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+                  Awaiting Setup
                 </span>
               )}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-lg">
-              Connect your MyPlusLeads account to automatically sync Expired, FSBO, and FRBO leads directly into your dialer in real-time.
+              {isConnected
+                ? "Your MyPlusLeads account is linked and syncing Expired, FSBO, and FRBO leads into your dialer."
+                : "Subscribe to a list in the Lead Store — our team will link a MyPlusLeads account to your subscription shortly after."}
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-3 sm:min-w-[150px]">
-            {isConnected ? (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="w-full px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 transition-all text-sm"
-              >
-                Manage Settings
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="w-full px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg hover:shadow-yellow-400/20 text-sm"
-              >
-                Connect MyPlusLeads
-              </button>
-            )}
-            {!isConnected && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Setup Required</span>}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 transition-all text-sm"
+            >
+              View Status
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Configuration Modal */}
+      {/* Status Modal (read-only — accounts are managed by our team) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[1300] p-4" onClick={() => setIsModalOpen(false)}>
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-8 relative border dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
@@ -71,11 +67,37 @@ const MyPlusLeadsIntegration = () => {
               <FiX size={18} className="text-gray-600 dark:text-gray-300" />
             </button>
 
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-8">
-              Manage MyPlusLeads
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">
+              MyPlusLeads Status
             </h2>
 
-            <div className="flex items-center gap-3">
+            {configs.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">No MyPlusLeads account has been linked yet.</p>
+            ) : (
+              <div className="space-y-3 mb-6">
+                {configs.map((config) => (
+                  <div key={config.id} className="flex items-center justify-between border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{config.label || config.subAccountEmail || "Linked account"}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {config.lastSyncAt ? `Last synced ${new Date(config.lastSyncAt).toLocaleString()}` : "Not synced yet"}
+                      </p>
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                        config.status === "CONNECTED"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                          : "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {config.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {isConnected && (
               <button
                 onClick={() => syncNow.mutate()}
                 disabled={syncNow.isPending}
@@ -84,7 +106,7 @@ const MyPlusLeadsIntegration = () => {
                 <FiRefreshCw size={13} className={syncNow.isPending ? "animate-spin" : ""} />
                 {syncNow.isPending ? "Syncing..." : "Sync Now"}
               </button>
-            </div>
+            )}
           </div>
         </div>
       )}
