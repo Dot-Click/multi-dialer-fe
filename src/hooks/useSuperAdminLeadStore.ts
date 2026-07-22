@@ -106,7 +106,28 @@ export const useSuperAdminMyPlusLeadsAccounts = () => {
     },
   });
 
-  return { accounts, isLoading, registerAccount };
+  const updateAccount = useMutation({
+    mutationFn: async (params: {
+      configId: string;
+      subAccountEmail?: string;
+      subAccountPassword?: string;
+      subAccountId?: string;
+      label?: string;
+    }) => {
+      const { configId, ...body } = params;
+      const response = await api.patch(`/super-admin/lead-store/accounts/${configId}`, body);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["superAdminMyPlusLeadsAccounts"] });
+      toast.success("MyPlusLeads account updated");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update account");
+    },
+  });
+
+  return { accounts, isLoading, registerAccount, updateAccount };
 };
 
 export interface PortalAccount {

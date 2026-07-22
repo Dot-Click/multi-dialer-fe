@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSuperAdminMyPlusLeadsAccounts, useSuperAdminCustomers, useSuperAdminPortalAccounts } from "@/hooks/useSuperAdminLeadStore";
+import type { MyPlusLeadsAccount } from "@/hooks/useSuperAdminLeadStore";
 import { FiX } from "react-icons/fi";
 
 const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
@@ -128,9 +129,94 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
+const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; onClose: () => void }) => {
+  const { updateAccount } = useSuperAdminMyPlusLeadsAccounts();
+  const [label, setLabel] = useState(account.label || "");
+  const [subAccountEmail, setSubAccountEmail] = useState(account.subAccountEmail || "");
+  const [subAccountPassword, setSubAccountPassword] = useState("");
+  const [subAccountId, setSubAccountId] = useState(account.subAccountId || "");
+  const [error, setError] = useState("");
+
+  const handleSave = () => {
+    if (!subAccountEmail) {
+      setError("Email is required.");
+      return;
+    }
+    updateAccount.mutate(
+      {
+        configId: account.id,
+        subAccountEmail,
+        subAccountPassword: subAccountPassword || undefined,
+        subAccountId: subAccountId || undefined,
+        label: label || undefined,
+      },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[1300] p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-8 relative border dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600">
+          <FiX size={18} className="text-gray-600 dark:text-gray-300" />
+        </button>
+
+        <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1">Edit MyPlusLeads Account</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Fix a mis-entered credential — the new password (if changed) is re-validated against MyPlusLeads before saving.
+        </p>
+
+        <div className="space-y-3">
+          <input
+            placeholder="Label"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            placeholder="MyPlusLeads sub-account email"
+            value={subAccountEmail}
+            onChange={(e) => setSubAccountEmail(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            type="password"
+            placeholder="New password (leave blank to keep current)"
+            value={subAccountPassword}
+            onChange={(e) => setSubAccountPassword(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            placeholder="Sub-account ID (optional)"
+            value={subAccountId}
+            onChange={(e) => setSubAccountId(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+        </div>
+
+        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={updateAccount.isPending}
+            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-60"
+          >
+            {updateAccount.isPending ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SuperAdminLeadStoreAccounts = () => {
   const { accounts, isLoading } = useSuperAdminMyPlusLeadsAccounts();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<MyPlusLeadsAccount | null>(null);
 
   return (
     <div>
@@ -162,6 +248,7 @@ const SuperAdminLeadStoreAccounts = () => {
                 <th className="px-4 py-3 font-semibold">Customer</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Linked Purchases</th>
+                <th className="px-4 py-3 font-semibold"></th>
               </tr>
             </thead>
             <tbody>
@@ -189,6 +276,11 @@ const SuperAdminLeadStoreAccounts = () => {
                   <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
                     {a.leadStores.length > 0 ? a.leadStores.map((ls) => ls.title).join(", ") : "Unlinked"}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <button onClick={() => setEditingAccount(a)} className="text-xs font-bold text-yellow-600 hover:underline">
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -197,6 +289,7 @@ const SuperAdminLeadStoreAccounts = () => {
       )}
 
       {isAdding && <RegisterAccountModal onClose={() => setIsAdding(false)} />}
+      {editingAccount && <EditAccountModal account={editingAccount} onClose={() => setEditingAccount(null)} />}
     </div>
   );
 };

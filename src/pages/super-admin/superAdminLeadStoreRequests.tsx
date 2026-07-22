@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useSuperAdminLeadStoreRequests, useSuperAdminMyPlusLeadsAccounts, useAccountPackages } from "@/hooks/useSuperAdminLeadStore";
+import {
+  useSuperAdminLeadStoreRequests,
+  useSuperAdminMyPlusLeadsAccounts,
+  useSuperAdminPortalAccounts,
+  useAccountPackages,
+} from "@/hooks/useSuperAdminLeadStore";
 import type { LeadStoreRequest } from "@/hooks/useSuperAdminLeadStore";
 import { FiX } from "react-icons/fi";
 
@@ -14,20 +19,53 @@ const StatusBadge = ({ status }: { status: LeadStoreRequest["status"] }) => {
 
 const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onClose: () => void }) => {
   const { linkAccount } = useSuperAdminLeadStoreRequests();
-  const { accounts } = useSuperAdminMyPlusLeadsAccounts();
-  const [selectedConfigId, setSelectedConfigId] = useState("");
+  const { accounts, registerAccount } = useSuperAdminMyPlusLeadsAccounts();
+  const { portalAccounts, isLoading: isLoadingPortalAccounts, isError: portalAccountsFailed, error: portalAccountsError } = useSuperAdminPortalAccounts();
+  const [selectedPortalAccountId, setSelectedPortalAccountId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmedConfigId, setConfirmedConfigId] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("");
   const [error, setError] = useState("");
-  const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(selectedConfigId || null);
+  const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(confirmedConfigId || null);
 
-  const handleSelectAccount = (configId: string) => {
-    setSelectedConfigId(configId);
+  // A portal account already stored as a MyPlusLeadsConfig (matched by
+  // sub-account id, falling back to email) — no password needed for those.
+  const matchedExisting = accounts.find(
+    (a) => a.subAccountId === selectedPortalAccountId || a.subAccountEmail === portalAccounts.find((p) => p.id === selectedPortalAccountId)?.email,
+  );
+
+  const handleSelectAccount = (portalAccountId: string) => {
+    setSelectedPortalAccountId(portalAccountId);
+    setPassword("");
+    setConfirmedConfigId("");
     setSelectedPackage("");
     setError("");
+
+    const existing = accounts.find(
+      (a) => a.subAccountId === portalAccountId || a.subAccountEmail === portalAccounts.find((p) => p.id === portalAccountId)?.email,
+    );
+    if (existing) setConfirmedConfigId(existing.id);
+  };
+
+  const handleUsePassword = async () => {
+    const portalAccount = portalAccounts.find((p) => p.id === selectedPortalAccountId);
+    if (!portalAccount || !password) {
+      setError("Enter the account's password to continue.");
+      return;
+    }
+    registerAccount.mutate(
+      { userId: request.user.id, subAccountEmail: portalAccount.email, subAccountPassword: password, subAccountId: portalAccount.id, label: portalAccount.name },
+      {
+        onSuccess: (created: any) => {
+          setConfirmedConfigId(created.id);
+          setError("");
+        },
+      },
+    );
   };
 
   const handleSave = () => {
-    if (!selectedConfigId) {
+    if (!confirmedConfigId) {
       setError("Select an account to link.");
       return;
     }
@@ -36,7 +74,7 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
       return;
     }
     linkAccount.mutate(
-      { leadStoreId: request.id, myPlusLeadsConfigId: selectedConfigId, assignedPackage: selectedPackage },
+      { leadStoreId: request.id, myPlusLeadsConfigId: confirmedConfigId, assignedPackage: selectedPackage },
       { onSuccess: onClose },
     );
   };
@@ -53,57 +91,81 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           {request.service.name} for {request.user.fullName || request.user.email}
         </p>
 
-        {accounts.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No MyPlusLeads accounts are registered yet. Add one from the <span className="font-bold">Accounts</span> tab first, then come back here to link it.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Account</label>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Account</label>
+            {isLoadingPortalAccounts ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fetching your MyPlusLeads accounts…</p>
+            ) : portalAccountsFailed ? (
+              <p className="text-sm text-red-500 mt-1">{portalAccountsError || "Failed to fetch accounts from MyPlusLeads."}</p>
+            ) : (
               <select
-                value={selectedConfigId}
+                value={selectedPortalAccountId}
                 onChange={(e) => handleSelectAccount(e.target.value)}
                 className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
               >
-                <option value="">Select account…</option>
-                {accounts.map((a) => (
+                <option value="">Select MyPlusLeads account…</option>
+                {portalAccounts.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.label || a.subAccountEmail || a.id} — registered for {a.user.fullName || a.user.email}
+                    {a.name} — {a.email} ({a.status})
                   </option>
                 ))}
               </select>
-            </div>
-
-            {selectedConfigId && (
-              <div>
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  Data package to assign
-                </label>
-                {isLoadingPackages ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fetching packages from MyPlusLeads…</p>
-                ) : packagesFailed ? (
-                  <p className="text-sm text-red-500 mt-1">{packagesError || "Failed to fetch packages for this account."}</p>
-                ) : packages.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This account has no listings yet — nothing to assign.</p>
-                ) : (
-                  <select
-                    value={selectedPackage}
-                    onChange={(e) => setSelectedPackage(e.target.value)}
-                    className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
-                  >
-                    <option value="">Select package…</option>
-                    {packages.map((p) => (
-                      <option key={p.package} value={p.package}>
-                        {p.package} ({p.count} leads)
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
             )}
           </div>
-        )}
+
+          {selectedPortalAccountId && !matchedExisting && !confirmedConfigId && (
+            <div>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Password (not registered yet — enter it once)
+              </label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="password"
+                  placeholder="MyPlusLeads sub-account password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="flex-1 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+                />
+                <button
+                  onClick={handleUsePassword}
+                  disabled={registerAccount.isPending}
+                  className="px-4 py-2.5 rounded-lg text-sm font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 disabled:opacity-60 shrink-0"
+                >
+                  {registerAccount.isPending ? "Checking…" : "Continue"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {confirmedConfigId && (
+            <div>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Data package to assign
+              </label>
+              {isLoadingPackages ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fetching packages from MyPlusLeads…</p>
+              ) : packagesFailed ? (
+                <p className="text-sm text-red-500 mt-1">{packagesError || "Failed to fetch packages for this account."}</p>
+              ) : packages.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This account has no listings yet — nothing to assign.</p>
+              ) : (
+                <select
+                  value={selectedPackage}
+                  onChange={(e) => setSelectedPackage(e.target.value)}
+                  className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
+                >
+                  <option value="">Select package…</option>
+                  {packages.map((p) => (
+                    <option key={p.package} value={p.package}>
+                      {p.package} ({p.count} leads)
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+        </div>
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
 
@@ -111,7 +173,7 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
             Cancel
           </button>
-          {accounts.length > 0 && (
+          {confirmedConfigId && (
             <button
               onClick={handleSave}
               disabled={linkAccount.isPending}
