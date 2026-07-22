@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSuperAdminLeadStoreRequests, useSuperAdminMyPlusLeadsAccounts } from "@/hooks/useSuperAdminLeadStore";
+import { useSuperAdminLeadStoreRequests, useSuperAdminMyPlusLeadsAccounts, useAccountPackages } from "@/hooks/useSuperAdminLeadStore";
 import type { LeadStoreRequest } from "@/hooks/useSuperAdminLeadStore";
 import { FiX } from "react-icons/fi";
 
@@ -16,16 +16,31 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
   const { linkAccount } = useSuperAdminLeadStoreRequests();
   const { accounts } = useSuperAdminMyPlusLeadsAccounts();
   const [selectedConfigId, setSelectedConfigId] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState("");
   const [error, setError] = useState("");
+  const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(selectedConfigId || null);
 
   const sameCustomerAccounts = accounts.filter((a) => a.user.id === request.user.id);
+
+  const handleSelectAccount = (configId: string) => {
+    setSelectedConfigId(configId);
+    setSelectedPackage("");
+    setError("");
+  };
 
   const handleSave = () => {
     if (!selectedConfigId) {
       setError("Select an account to link.");
       return;
     }
-    linkAccount.mutate({ leadStoreId: request.id, myPlusLeadsConfigId: selectedConfigId }, { onSuccess: onClose });
+    if (!selectedPackage) {
+      setError("Select which data package to assign.");
+      return;
+    }
+    linkAccount.mutate(
+      { leadStoreId: request.id, myPlusLeadsConfigId: selectedConfigId, assignedPackage: selectedPackage },
+      { onSuccess: onClose },
+    );
   };
 
   return (
@@ -45,18 +60,51 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
             No MyPlusLeads accounts are registered for this customer yet. Add one from the <span className="font-bold">Accounts</span> tab first, then come back here to link it.
           </p>
         ) : (
-          <select
-            value={selectedConfigId}
-            onChange={(e) => setSelectedConfigId(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mb-2"
-          >
-            <option value="">Select account…</option>
-            {sameCustomerAccounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.label || a.subAccountEmail || a.id}
-              </option>
-            ))}
-          </select>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Account</label>
+              <select
+                value={selectedConfigId}
+                onChange={(e) => handleSelectAccount(e.target.value)}
+                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
+              >
+                <option value="">Select account…</option>
+                {sameCustomerAccounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.label || a.subAccountEmail || a.id}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedConfigId && (
+              <div>
+                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Data package to assign
+                </label>
+                {isLoadingPackages ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fetching packages from MyPlusLeads…</p>
+                ) : packagesFailed ? (
+                  <p className="text-sm text-red-500 mt-1">{packagesError || "Failed to fetch packages for this account."}</p>
+                ) : packages.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This account has no listings yet — nothing to assign.</p>
+                ) : (
+                  <select
+                    value={selectedPackage}
+                    onChange={(e) => setSelectedPackage(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
+                  >
+                    <option value="">Select package…</option>
+                    {packages.map((p) => (
+                      <option key={p.package} value={p.package}>
+                        {p.package} ({p.count} leads)
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
@@ -118,7 +166,14 @@ const SuperAdminLeadStoreRequests = () => {
                     {r.billingPaused && <div className="text-[10px] text-red-500 font-bold mt-1">BILLING PAUSED</div>}
                   </td>
                   <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                    {r.myPlusLeadsConfig ? r.myPlusLeadsConfig.label || r.myPlusLeadsConfig.subAccountEmail : "—"}
+                    {r.myPlusLeadsConfig ? (
+                      <>
+                        <div>{r.myPlusLeadsConfig.label || r.myPlusLeadsConfig.subAccountEmail}</div>
+                        {r.assignedPackage && <div className="text-xs text-gray-500 dark:text-gray-400">Package: {r.assignedPackage}</div>}
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right">

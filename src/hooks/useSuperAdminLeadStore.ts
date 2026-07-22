@@ -9,9 +9,15 @@ export interface LeadStoreRequest {
   price: number;
   createdAt: string;
   billingPaused: boolean;
+  assignedPackage: string | null;
   user: { id: string; fullName: string | null; email: string };
   service: { id: string; name: string };
   myPlusLeadsConfig: { id: string; label: string | null; subAccountEmail: string | null; status: string } | null;
+}
+
+export interface AccountPackage {
+  package: string;
+  count: number;
 }
 
 export interface MyPlusLeadsAccount {
@@ -36,9 +42,9 @@ export const useSuperAdminLeadStoreRequests = () => {
   });
 
   const linkAccount = useMutation({
-    mutationFn: async (params: { leadStoreId: string; myPlusLeadsConfigId: string }) => {
-      const { leadStoreId, myPlusLeadsConfigId } = params;
-      const response = await api.post(`/super-admin/lead-store/${leadStoreId}/link`, { myPlusLeadsConfigId });
+    mutationFn: async (params: { leadStoreId: string; myPlusLeadsConfigId: string; assignedPackage: string }) => {
+      const { leadStoreId, ...body } = params;
+      const response = await api.post(`/super-admin/lead-store/${leadStoreId}/link`, body);
       return response.data.data;
     },
     onSuccess: () => {
@@ -101,6 +107,21 @@ export const useSuperAdminMyPlusLeadsAccounts = () => {
   });
 
   return { accounts, isLoading, registerAccount };
+};
+
+/** Live-fetches the data packages currently on a MyPlusLeads account (e.g. "Expired (128)"). */
+export const useAccountPackages = (configId: string | null) => {
+  const { data: packages = [], isLoading, isError, error } = useQuery<AccountPackage[]>({
+    queryKey: ["superAdminAccountPackages", configId],
+    queryFn: async () => {
+      const response = await api.get(`/super-admin/lead-store/accounts/${configId}/packages`);
+      return response.data.data;
+    },
+    enabled: !!configId,
+    retry: false,
+  });
+
+  return { packages, isLoading, isError, error: (error as any)?.response?.data?.message as string | undefined };
 };
 
 export interface SuperAdminCustomer {
