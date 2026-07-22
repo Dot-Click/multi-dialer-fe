@@ -20,8 +20,6 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
   const [error, setError] = useState("");
   const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(selectedConfigId || null);
 
-  const sameCustomerAccounts = accounts.filter((a) => a.user.id === request.user.id);
-
   const handleSelectAccount = (configId: string) => {
     setSelectedConfigId(configId);
     setSelectedPackage("");
@@ -55,9 +53,9 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           {request.service.name} for {request.user.fullName || request.user.email}
         </p>
 
-        {sameCustomerAccounts.length === 0 ? (
+        {accounts.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No MyPlusLeads accounts are registered for this customer yet. Add one from the <span className="font-bold">Accounts</span> tab first, then come back here to link it.
+            No MyPlusLeads accounts are registered yet. Add one from the <span className="font-bold">Accounts</span> tab first, then come back here to link it.
           </p>
         ) : (
           <div className="space-y-3">
@@ -69,9 +67,9 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
                 className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white mt-1"
               >
                 <option value="">Select account…</option>
-                {sameCustomerAccounts.map((a) => (
+                {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.label || a.subAccountEmail || a.id}
+                    {a.label || a.subAccountEmail || a.id} — registered for {a.user.fullName || a.user.email}
                   </option>
                 ))}
               </select>
@@ -113,7 +111,7 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
             Cancel
           </button>
-          {sameCustomerAccounts.length > 0 && (
+          {accounts.length > 0 && (
             <button
               onClick={handleSave}
               disabled={linkAccount.isPending}
