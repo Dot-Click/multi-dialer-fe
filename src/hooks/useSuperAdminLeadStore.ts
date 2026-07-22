@@ -36,16 +36,9 @@ export const useSuperAdminLeadStoreRequests = () => {
   });
 
   const linkAccount = useMutation({
-    mutationFn: async (params: {
-      leadStoreId: string;
-      myPlusLeadsConfigId?: string;
-      subAccountEmail?: string;
-      subAccountPassword?: string;
-      subAccountId?: string;
-      label?: string;
-    }) => {
-      const { leadStoreId, ...body } = params;
-      const response = await api.post(`/super-admin/lead-store/${leadStoreId}/link`, body);
+    mutationFn: async (params: { leadStoreId: string; myPlusLeadsConfigId: string }) => {
+      const { leadStoreId, myPlusLeadsConfigId } = params;
+      const response = await api.post(`/super-admin/lead-store/${leadStoreId}/link`, { myPlusLeadsConfigId });
       return response.data.data;
     },
     onSuccess: () => {
@@ -77,6 +70,8 @@ export const useSuperAdminLeadStoreRequests = () => {
 };
 
 export const useSuperAdminMyPlusLeadsAccounts = () => {
+  const queryClient = useQueryClient();
+
   const { data: accounts = [], isLoading } = useQuery<MyPlusLeadsAccount[]>({
     queryKey: ["superAdminMyPlusLeadsAccounts"],
     queryFn: async () => {
@@ -85,5 +80,44 @@ export const useSuperAdminMyPlusLeadsAccounts = () => {
     },
   });
 
-  return { accounts, isLoading };
+  const registerAccount = useMutation({
+    mutationFn: async (params: {
+      userId: string;
+      subAccountEmail: string;
+      subAccountPassword: string;
+      subAccountId?: string;
+      label?: string;
+    }) => {
+      const response = await api.post("/super-admin/lead-store/accounts", params);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["superAdminMyPlusLeadsAccounts"] });
+      toast.success("MyPlusLeads account registered");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to register account");
+    },
+  });
+
+  return { accounts, isLoading, registerAccount };
+};
+
+export interface SuperAdminCustomer {
+  id: string;
+  fullName: string | null;
+  email: string;
+}
+
+/** Lightweight customer picker source — reuses the existing /user list endpoint. */
+export const useSuperAdminCustomers = () => {
+  const { data: customers = [], isLoading } = useQuery<SuperAdminCustomer[]>({
+    queryKey: ["superAdminCustomers"],
+    queryFn: async () => {
+      const response = await api.get("/user");
+      return response.data.data;
+    },
+  });
+
+  return { customers, isLoading };
 };

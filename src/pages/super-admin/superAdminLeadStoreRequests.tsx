@@ -15,33 +15,17 @@ const StatusBadge = ({ status }: { status: LeadStoreRequest["status"] }) => {
 const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onClose: () => void }) => {
   const { linkAccount } = useSuperAdminLeadStoreRequests();
   const { accounts } = useSuperAdminMyPlusLeadsAccounts();
-  const [mode, setMode] = useState<"existing" | "new">("new");
   const [selectedConfigId, setSelectedConfigId] = useState("");
-  const [label, setLabel] = useState("");
-  const [subAccountEmail, setSubAccountEmail] = useState("");
-  const [subAccountPassword, setSubAccountPassword] = useState("");
-  const [subAccountId, setSubAccountId] = useState("");
   const [error, setError] = useState("");
 
   const sameCustomerAccounts = accounts.filter((a) => a.user.id === request.user.id);
 
   const handleSave = () => {
-    if (mode === "existing") {
-      if (!selectedConfigId) {
-        setError("Select an account to link.");
-        return;
-      }
-      linkAccount.mutate({ leadStoreId: request.id, myPlusLeadsConfigId: selectedConfigId }, { onSuccess: onClose });
-    } else {
-      if (!subAccountEmail || !subAccountPassword) {
-        setError("Email and password are required.");
-        return;
-      }
-      linkAccount.mutate(
-        { leadStoreId: request.id, subAccountEmail, subAccountPassword, subAccountId: subAccountId || undefined, label: label || undefined },
-        { onSuccess: onClose },
-      );
+    if (!selectedConfigId) {
+      setError("Select an account to link.");
+      return;
     }
+    linkAccount.mutate({ leadStoreId: request.id, myPlusLeadsConfigId: selectedConfigId }, { onSuccess: onClose });
   };
 
   return (
@@ -56,23 +40,11 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           {request.service.name} for {request.user.fullName || request.user.email}
         </p>
 
-        <div className="flex gap-2 mb-5">
-          <button
-            onClick={() => setMode("new")}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${mode === "new" ? "bg-yellow-400 text-black" : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300"}`}
-          >
-            Enter New Account
-          </button>
-          <button
-            onClick={() => setMode("existing")}
-            disabled={sameCustomerAccounts.length === 0}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold disabled:opacity-40 ${mode === "existing" ? "bg-yellow-400 text-black" : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300"}`}
-          >
-            Reuse Existing
-          </button>
-        </div>
-
-        {mode === "existing" ? (
+        {sameCustomerAccounts.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No MyPlusLeads accounts are registered for this customer yet. Add one from the <span className="font-bold">Accounts</span> tab first, then come back here to link it.
+          </p>
+        ) : (
           <select
             value={selectedConfigId}
             onChange={(e) => setSelectedConfigId(e.target.value)}
@@ -85,34 +57,6 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
               </option>
             ))}
           </select>
-        ) : (
-          <div className="space-y-3">
-            <input
-              placeholder="Label (optional, e.g. FSBO Bundle)"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-            />
-            <input
-              placeholder="MyPlusLeads sub-account email"
-              value={subAccountEmail}
-              onChange={(e) => setSubAccountEmail(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-            />
-            <input
-              type="password"
-              placeholder="MyPlusLeads sub-account password"
-              value={subAccountPassword}
-              onChange={(e) => setSubAccountPassword(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-            />
-            <input
-              placeholder="Sub-account ID (optional)"
-              value={subAccountId}
-              onChange={(e) => setSubAccountId(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-            />
-          </div>
         )}
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
@@ -121,13 +65,15 @@ const LinkAccountModal = ({ request, onClose }: { request: LeadStoreRequest; onC
           <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={linkAccount.isPending}
-            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-60"
-          >
-            {linkAccount.isPending ? "Linking…" : "Link & Sync"}
-          </button>
+          {sameCustomerAccounts.length > 0 && (
+            <button
+              onClick={handleSave}
+              disabled={linkAccount.isPending}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-60"
+            >
+              {linkAccount.isPending ? "Linking…" : "Link & Sync"}
+            </button>
+          )}
         </div>
       </div>
     </div>

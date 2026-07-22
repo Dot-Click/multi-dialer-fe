@@ -1,19 +1,124 @@
-import { useSuperAdminMyPlusLeadsAccounts } from "@/hooks/useSuperAdminLeadStore";
+import { useState } from "react";
+import { useSuperAdminMyPlusLeadsAccounts, useSuperAdminCustomers } from "@/hooks/useSuperAdminLeadStore";
+import { FiX } from "react-icons/fi";
+
+const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
+  const { registerAccount } = useSuperAdminMyPlusLeadsAccounts();
+  const { customers } = useSuperAdminCustomers();
+  const [userId, setUserId] = useState("");
+  const [label, setLabel] = useState("");
+  const [subAccountEmail, setSubAccountEmail] = useState("");
+  const [subAccountPassword, setSubAccountPassword] = useState("");
+  const [subAccountId, setSubAccountId] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSave = () => {
+    if (!userId || !subAccountEmail || !subAccountPassword) {
+      setError("Customer, email, and password are required.");
+      return;
+    }
+    registerAccount.mutate(
+      { userId, subAccountEmail, subAccountPassword, subAccountId: subAccountId || undefined, label: label || undefined },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[1300] p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full p-8 relative border dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600">
+          <FiX size={18} className="text-gray-600 dark:text-gray-300" />
+        </button>
+
+        <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1">Register MyPlusLeads Account</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Records the login for an account you already created on MyPlusLeads' own site. This never creates anything on MyPlusLeads — it only stores credentials here so we can pull leads.
+        </p>
+
+        <div className="space-y-3">
+          <select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          >
+            <option value="">Select customer…</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.fullName || c.email} ({c.email})
+              </option>
+            ))}
+          </select>
+          <input
+            placeholder="Label (optional, e.g. FSBO Bundle)"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            placeholder="MyPlusLeads sub-account email"
+            value={subAccountEmail}
+            onChange={(e) => setSubAccountEmail(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            type="password"
+            placeholder="MyPlusLeads sub-account password"
+            value={subAccountPassword}
+            onChange={(e) => setSubAccountPassword(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+          <input
+            placeholder="Sub-account ID (optional)"
+            value={subAccountId}
+            onChange={(e) => setSubAccountId(e.target.value)}
+            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+          />
+        </div>
+
+        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={registerAccount.isPending}
+            className="px-5 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-60"
+          >
+            {registerAccount.isPending ? "Saving…" : "Save Account"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SuperAdminLeadStoreAccounts = () => {
   const { accounts, isLoading } = useSuperAdminMyPlusLeadsAccounts();
+  const [isAdding, setIsAdding] = useState(false);
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">MyPlusLeads Accounts</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Every MyPlusLeads account entered so far, and which customer purchases each is linked to. New accounts are entered from the Lead Store Requests screen when linking a purchase.
-      </p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">MyPlusLeads Accounts</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Every MyPlusLeads account you've registered, and which customer purchases each is linked to.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAdding(true)}
+          className="px-4 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black shrink-0"
+        >
+          Register Account
+        </button>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
       ) : accounts.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">No MyPlusLeads accounts have been entered yet.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No MyPlusLeads accounts have been registered yet.</p>
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
@@ -56,6 +161,8 @@ const SuperAdminLeadStoreAccounts = () => {
           </table>
         </div>
       )}
+
+      {isAdding && <RegisterAccountModal onClose={() => setIsAdding(false)} />}
     </div>
   );
 };
