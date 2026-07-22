@@ -109,6 +109,30 @@ export const useSuperAdminMyPlusLeadsAccounts = () => {
   return { accounts, isLoading, registerAccount };
 };
 
+export interface PortalAccount {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  billingType: string;
+  monthlyFee: number;
+  baseZip: string | null;
+}
+
+/** Live list of every sub-account on Client's MyPlusLeads enterprise portal. */
+export const useSuperAdminPortalAccounts = () => {
+  const { data: portalAccounts = [], isLoading, isError, error } = useQuery<PortalAccount[]>({
+    queryKey: ["superAdminPortalAccounts"],
+    queryFn: async () => {
+      const response = await api.get("/super-admin/lead-store/portal-accounts");
+      return response.data.data;
+    },
+    retry: false,
+  });
+
+  return { portalAccounts, isLoading, isError, error: (error as any)?.response?.data?.message as string | undefined };
+};
+
 /** Live-fetches the data packages currently on a MyPlusLeads account (e.g. "Expired (128)"). */
 export const useAccountPackages = (configId: string | null) => {
   const { data: packages = [], isLoading, isError, error } = useQuery<AccountPackage[]>({

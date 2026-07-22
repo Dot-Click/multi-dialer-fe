@@ -1,20 +1,32 @@
 import { useState } from "react";
-import { useSuperAdminMyPlusLeadsAccounts, useSuperAdminCustomers } from "@/hooks/useSuperAdminLeadStore";
+import { useSuperAdminMyPlusLeadsAccounts, useSuperAdminCustomers, useSuperAdminPortalAccounts } from "@/hooks/useSuperAdminLeadStore";
 import { FiX } from "react-icons/fi";
 
 const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
   const { registerAccount } = useSuperAdminMyPlusLeadsAccounts();
   const { customers } = useSuperAdminCustomers();
+  const { portalAccounts, isLoading: isLoadingPortalAccounts, isError: portalAccountsFailed, error: portalAccountsError } = useSuperAdminPortalAccounts();
   const [userId, setUserId] = useState("");
+  const [selectedPortalAccountId, setSelectedPortalAccountId] = useState("");
   const [label, setLabel] = useState("");
   const [subAccountEmail, setSubAccountEmail] = useState("");
   const [subAccountPassword, setSubAccountPassword] = useState("");
   const [subAccountId, setSubAccountId] = useState("");
   const [error, setError] = useState("");
 
+  const handleSelectPortalAccount = (portalAccountId: string) => {
+    setSelectedPortalAccountId(portalAccountId);
+    const account = portalAccounts.find((a) => a.id === portalAccountId);
+    if (account) {
+      setSubAccountEmail(account.email);
+      setSubAccountId(account.id);
+      setLabel(account.name);
+    }
+  };
+
   const handleSave = () => {
     if (!userId || !subAccountEmail || !subAccountPassword) {
-      setError("Customer, email, and password are required.");
+      setError("Customer, account, and password are required.");
       return;
     }
     registerAccount.mutate(
@@ -48,6 +60,28 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
               </option>
             ))}
           </select>
+
+          <div>
+            {isLoadingPortalAccounts ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">Fetching your MyPlusLeads accounts…</p>
+            ) : portalAccountsFailed ? (
+              <p className="text-sm text-red-500">{portalAccountsError || "Failed to fetch accounts from MyPlusLeads."}</p>
+            ) : (
+              <select
+                value={selectedPortalAccountId}
+                onChange={(e) => handleSelectPortalAccount(e.target.value)}
+                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+              >
+                <option value="">Select MyPlusLeads account…</option>
+                {portalAccounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} — {a.email} ({a.status})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <input
             placeholder="Label (optional, e.g. FSBO Bundle)"
             value={label}
