@@ -33,6 +33,8 @@ export default function Page() {
   const [openUserModal, setOpenUserModal] = useState(false);
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState<ManagedUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [fullName, setFullName] = useState("");
@@ -122,6 +124,10 @@ export default function Page() {
       );
       return;
     }
+    if (isEditing && password && password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -130,8 +136,12 @@ export default function Page() {
           fullName,
           email,
           role: role.toUpperCase(),
-          ...(password ? { password } : {}),
         });
+        // Password changes go through the dedicated Better Auth-backed
+        // endpoint — the main update route only touches profile fields.
+        if (password) {
+          await api.put(`/user/${editingUser.id}/password`, { password });
+        }
         toast.success("User updated successfully");
       } else {
         const result = await authClient.admin.createUser({
@@ -174,6 +184,21 @@ export default function Page() {
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deletingUser) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/user/${deletingUser.id}`);
+      toast.success("User deleted successfully");
+      setDeletingUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -335,6 +360,15 @@ export default function Page() {
                         >
                           Edit User
                         </button>
+                        <button
+                          onClick={() => {
+                            setDeletingUser(user);
+                            setOpenActionMenu(null);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium transition-colors text-red-600 dark:text-red-400"
+                        >
+                          Delete User
+                        </button>
                       </div>
                     )}
                   </div>
@@ -455,21 +489,22 @@ export default function Page() {
                 />
               </div>
 
-              {!editingUser && (
-                <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
-                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
-                    Temporary Password
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter temporary password"
-                    className="w-full bg-transparent border-none outline-none text-sm dark:text-white dark:placeholder-gray-400 py-1"
-                    required
-                  />
-                </div>
-              )}
+              <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
+                <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                  {editingUser ? "New Password" : "Temporary Password"}
+                  {editingUser && (
+                    <span className="normal-case font-normal text-gray-400"> (leave blank to keep current)</span>
+                  )}
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={editingUser ? "Enter new password" : "Enter temporary password"}
+                  className="w-full bg-transparent border-none outline-none text-sm dark:text-white dark:placeholder-gray-400 py-1"
+                  required={!editingUser}
+                />
+              </div>
 
               <div className="bg-gray-100 dark:bg-slate-700 px-4 py-2 rounded-xl focus-within:ring-2 focus-within:ring-yellow-400 transition">
                 <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
@@ -512,6 +547,49 @@ export default function Page() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE USER CONFIRMATION MODAL */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-40">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl p-6 animate-fadeIn">
+            <h2 className="text-lg font-semibold dark:text-white mb-2">
+              Delete User
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {deletingUser.fullName || deletingUser.name || deletingUser.email}
+              </span>
+              ? This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingUser(null)}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-xl bg-gray-200 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 font-semibold hover:bg-gray-300 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteUser}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete User"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
