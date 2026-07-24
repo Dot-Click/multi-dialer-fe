@@ -42,6 +42,7 @@ export default function CustomCalendar() {
       await updateEvent(evt.id, { status: "MET" });
       setEvents((prev) => prev.filter((e) => e.id !== evt.id));
       toast.success("Event marked as completed");
+      window.dispatchEvent(new CustomEvent("CALENDAR_UPDATED"));
     } catch {
       toast.error("Failed to update event");
     }
@@ -55,6 +56,11 @@ export default function CustomCalendar() {
   useEffect(() => {
     fetchEvents();
 
+    // Picks up appointments/callbacks/tasks created or completed elsewhere
+    // (e.g. a contact's Activities tab) without requiring a full remount.
+    const handleCalendarUpdated = () => fetchEvents();
+    window.addEventListener("CALENDAR_UPDATED", handleCalendarUpdated);
+
     // Dark Mode Observer logic (Syncs Ant Design with Tailwind class)
     if (typeof document !== "undefined") {
       const checkDarkMode = () => document.documentElement.classList.contains("dark");
@@ -65,8 +71,13 @@ export default function CustomCalendar() {
         attributes: true,
         attributeFilter: ["class"],
       });
-      return () => observer.disconnect();
+      return () => {
+        observer.disconnect();
+        window.removeEventListener("CALENDAR_UPDATED", handleCalendarUpdated);
+      };
     }
+
+    return () => window.removeEventListener("CALENDAR_UPDATED", handleCalendarUpdated);
   }, []);
 
   // Agents only see events assigned to/by them, even though the backend

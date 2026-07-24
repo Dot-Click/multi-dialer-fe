@@ -223,12 +223,18 @@ const Activities = () => {
           )}
         </div>
 
-        <AddEventForm 
+        <AddEventForm
           open={isEditModalOpen}
           onClose={(success) => {
             setIsEditModalOpen(false);
             setSelectedEvent(null);
-            if (success) fetchEvents();
+            if (success) {
+              fetchEvents();
+              // Let any open Calendar view (or other listeners) know so a
+              // completed/cancelled event drops off it immediately instead
+              // of only updating this contact's own Activities list.
+              window.dispatchEvent(new CustomEvent('CALENDAR_UPDATED'));
+            }
           }}
           event={selectedEvent as unknown as CalendarEventType}
           contactId={currentContact?.id}
