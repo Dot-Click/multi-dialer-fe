@@ -72,17 +72,17 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col h-full w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
+        <section className="bg-white dark:bg-slate-800 flex flex-col h-full min-h-[600px] w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
             {/* Tabs */}
-            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto no-scrollbar p-1.5 shrink-0">
+            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto no-scrollbar p-2 shrink-0">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
                         onClick={() => setOpenStatus(stg.name)}
-                        className={`${openStatus === stg.name 
-                            ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm" 
-                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"} 
-                            px-4 py-2 rounded-xl cursor-pointer text-xs font-bold transition-all whitespace-nowrap min-w-[100px]`}
+                        className={`${openStatus === stg.name
+                            ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}
+                            px-4 py-3.5 rounded-xl cursor-pointer text-xs font-bold transition-all whitespace-nowrap min-w-[100px]`}
                     >
                         {stg.name}
                     </button>
