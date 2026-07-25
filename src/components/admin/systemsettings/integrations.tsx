@@ -3,7 +3,6 @@ import { FiLoader, FiX } from 'react-icons/fi';
 import stanppLogo from "../../../assets/stamnp.png";
 import bombLogo from "/images/bombbomb_icon.png";
 import { useIntegrations, type Integration } from '../../../hooks/useSystemSettings';
-import MyPlusLeadsIntegration from '../settings/MyPlusLeadsIntegration';
 import SmtpIntegration from '../settings/SmtpIntegration';
 import CalendarIntegration from './calendarintegration';
 import toast from 'react-hot-toast';
@@ -286,9 +285,6 @@ const Integrations: React.FC = () => {
 
         {/* Email Sending (SMTP) */}
         <SmtpIntegration />
-
-        {/* MyPlusLeads Custom Integration Card */}
-        <MyPlusLeadsIntegration />
 
         {/* Calendar Integration */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-slate-700 shadow-sm">

@@ -40,10 +40,11 @@ export interface DialerHealth {
     id: string;
     name: string;
     contact: string;
-    health: 'healthy' | 'unhealthy';
+    health: 'healthy' | 'at-risk' | 'unhealthy' | 'unchecked';
     type: 'ai' | 'reputation';
     reputation?: string;
-    score?: number;
+    score?: number | null;
+    lastReputationCheck?: string | null;
 }
 
 export interface SalesAgentPerformance {

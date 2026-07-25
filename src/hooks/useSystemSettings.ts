@@ -25,6 +25,11 @@ export interface CallerId {
   callCount?: number;
   frozenAt?: string | null;
   unfreezeAt?: string | null;
+
+  // Reputation — populated by the dialer health cron / manual refresh
+  reputationStatus?: "clean" | "warning" | "flagged" | "unchecked" | null;
+  reputationScore?: number | null;
+  lastReputationCheck?: string | null;
 }
 
 export interface DialerSettings {

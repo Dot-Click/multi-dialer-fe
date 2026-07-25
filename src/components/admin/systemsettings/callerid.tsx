@@ -204,9 +204,17 @@ const CallerId: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full ${number.status === 'Healthy' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800' : 'bg-gray-900 dark:bg-slate-200 text-white dark:text-slate-900'}`}>
-                          {number.status === 'Healthy' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
-                          {number.status || 'Active'}
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full ${
+                          number.reputationStatus === 'clean'    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800' :
+                          number.reputationStatus === 'warning'  ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800' :
+                          number.reputationStatus === 'flagged'  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800' :
+                          'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-600'
+                        }`}>
+                          {number.reputationStatus === 'clean' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+                          {number.reputationStatus === 'flagged'  ? 'Flagged'   :
+                           number.reputationStatus === 'warning'  ? 'At Risk'   :
+                           number.reputationStatus === 'clean'    ? 'Healthy'   :
+                           'Unchecked'}
                         </span>
                       </td>
                       <td className="px-6 py-5 text-[13px] font-medium text-gray-500 dark:text-gray-400">

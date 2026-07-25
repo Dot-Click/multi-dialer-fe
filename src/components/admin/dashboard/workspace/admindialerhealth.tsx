@@ -74,11 +74,17 @@ const AdminDialerHealth = () => {
 
       {/* Summary Cards */}
       {dialers && dialers.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <div className="bg-green-50/50 dark:bg-green-500/5 p-3 rounded-2xl border border-green-100/50 dark:border-green-500/10">
             <span className="text-[10px] font-black text-green-600 dark:text-green-500 uppercase tracking-widest block mb-1">Healthy</span>
             <span className="text-[20px] font-bold text-gray-900 dark:text-white leading-none">
               {dialers.filter(d => d.health === 'healthy').length}
+            </span>
+          </div>
+          <div className="bg-amber-50/50 dark:bg-amber-500/5 p-3 rounded-2xl border border-amber-100/50 dark:border-amber-500/10">
+            <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest block mb-1">At Risk</span>
+            <span className="text-[20px] font-bold text-gray-900 dark:text-white leading-none">
+              {dialers.filter(d => d.health === 'at-risk').length}
             </span>
           </div>
           <div className="bg-red-50/50 dark:bg-red-500/5 p-3 rounded-2xl border border-red-100/50 dark:border-red-500/10">
@@ -130,7 +136,7 @@ const AdminDialerHealth = () => {
                     </span>
                   </div>
 
-                  {/* Badge — Frozen takes precedence over CLEAN/SPAM */}
+                  {/* Badge — Frozen takes precedence over reputation badges */}
                   {isFrozen ? (
                     <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
                       <div className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
@@ -145,28 +151,51 @@ const AdminDialerHealth = () => {
                     </div>
                   ) : (
                     <div className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shrink-0 ml-2 ${
-                      isUnhealthy
-                        ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400'
-                        : 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400'
+                      dial.health === 'unhealthy' ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400'
+                      : dial.health === 'at-risk' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                      : dial.health === 'healthy' ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500'
                     }`}>
-                      {isUnhealthy ? 'SPAM' : 'CLEAN'}
+                      {dial.health === 'unhealthy' ? 'SPAM'
+                       : dial.health === 'at-risk'  ? 'AT RISK'
+                       : dial.health === 'healthy'  ? 'CLEAN'
+                       : 'UNCHECKED'}
                     </div>
                   )}
                 </div>
 
-                {/* Reputation bar — dims when frozen */}
-                <div className={`space-y-1.5 ${isFrozen ? 'opacity-40' : ''}`}>
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-gray-400 uppercase tracking-tighter">Reputation Score</span>
-                    <span className={isUnhealthy ? 'text-red-500' : 'text-green-500'}>{score}%</span>
+                {/* Reputation bar — dims when frozen, hidden when unchecked */}
+                {dial.health !== 'unchecked' ? (
+                  <div className={`space-y-1.5 ${isFrozen ? 'opacity-40' : ''}`}>
+                    <div className="flex justify-between items-center text-[10px] font-bold">
+                      <span className="text-gray-400 uppercase tracking-tighter">Reputation Score</span>
+                      <span className={
+                        dial.health === 'unhealthy' ? 'text-red-500'
+                        : dial.health === 'at-risk' ? 'text-amber-500'
+                        : 'text-green-500'
+                      }>{score != null ? `${score}%` : '—'}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-1000 ${
+                          dial.health === 'unhealthy' ? 'bg-red-500'
+                          : dial.health === 'at-risk' ? 'bg-amber-500'
+                          : 'bg-green-500'
+                        }`}
+                        style={{ width: `${score ?? 0}%` }}
+                      />
+                    </div>
+                    {dial.lastReputationCheck && (
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        Checked {new Date(dial.lastReputationCheck).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    )}
                   </div>
-                  <div className="h-1.5 w-full bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-1000 ${isUnhealthy ? 'bg-red-500' : 'bg-green-500'}`}
-                      style={{ width: `${score}%` }}
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 italic">
+                    Not yet scanned — click refresh to check this number.
+                  </p>
+                )}
 
                 {/* Frozen status bar */}
                 {isFrozen && (
