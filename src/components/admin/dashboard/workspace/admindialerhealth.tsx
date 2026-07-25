@@ -110,8 +110,7 @@ const AdminDialerHealth = () => {
             const isFrozen = freeze?.isFrozen ?? false;
             const unfreezeAt = freeze?.unfreezeAt ?? null;
 
-            const isUnhealthy = dial.health === 'unhealthy';
-            const score = dial.score || 100;
+            const score = dial.score ?? null;
 
             return (
               <div

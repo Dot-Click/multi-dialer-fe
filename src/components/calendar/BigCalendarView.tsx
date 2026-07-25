@@ -283,7 +283,7 @@ const BigCalendarView = ({ events, loading, onMarkComplete, onUpdateEventTime, o
           date={currentDate}
           view={view}
           onNavigate={setCurrentDate}
-          onView={(v) => setView(v)}
+          onView={(v: any) => setView(v)}
           toolbar={false}
           selectable
           resizable
