@@ -13,7 +13,7 @@ const AdminCallMetrics = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-4 rounded-4xl px-6 py-5 md:w-[50%]  w-full ">
+    <div className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-4 rounded-4xl px-6 py-5 md:w-[50%]  w-full shadow-md">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white ">
         Agent Call Metrics
       </h2>

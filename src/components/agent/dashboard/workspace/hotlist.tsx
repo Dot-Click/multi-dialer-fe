@@ -57,7 +57,7 @@ const HotList = () => {
   }, []);
 
   return (
-    <section className="bg-white dark:bg-slate-800 flex h-fit md:h-[35vh] lg:h-[50vh] flex-col gap-3 rounded-[32px] px-[24px] pt-[24px] pb-[32px] lg:w-[45%] w-full">
+    <section className="bg-white dark:bg-slate-800 flex h-fit md:h-[35vh] lg:h-[50vh] flex-col gap-3 rounded-[32px] px-[24px] pt-[24px] pb-[32px] lg:w-[45%] w-full shadow-md">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

@@ -50,7 +50,7 @@ const DialerHealth = () => {
     }
 
     return (
-        <section className="relative bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-6 rounded-[32px] px-6 py-6 w-full overflow-hidden">
+        <section className="relative bg-white dark:bg-slate-800 flex flex-col h-fit lg:h-[75vh] gap-6 rounded-[32px] px-6 py-6 w-full overflow-hidden shadow-md">
             {!advancedDeliverabilityEnabled && (
                 <FeatureLockedOverlay
                     featureName="Advanced Deliverability"

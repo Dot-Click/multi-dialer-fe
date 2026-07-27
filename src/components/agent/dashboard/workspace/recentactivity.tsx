@@ -17,7 +17,7 @@ const RecentActivity = () => {
     const recentActivity = audits || [];
 
     return (
-        <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full '>
+        <section className='bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] md:w-[50%]  w-full shadow-md'>
             <div className="flex flex-col justify-between gap-1.5">
                 <h1 className="text-[20px] dark:text-white text-[#000000] font-medium">Recent Activity</h1>
             </div>

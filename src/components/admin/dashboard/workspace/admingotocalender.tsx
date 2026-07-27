@@ -34,7 +34,7 @@ const AdminGoToCalender = () => {
   }
 
   return (
-    <section className="bg-white dark:bg-slate-800 h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] ">
+    <section className="bg-white dark:bg-slate-800 h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] shadow-md">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-[14px] text-[#2B3034] dark:text-gray-400 font-medium">

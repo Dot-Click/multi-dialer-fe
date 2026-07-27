@@ -28,7 +28,7 @@ const CallStatistics = () => {
     const interestedPercent = stats?.goals.interested.target ? Math.round((stats.goals.interested.current / stats.goals.interested.target) * 100) : 0;
 
     return (
-        <section className='bg-white dark:bg-slate-800 flex h-fit lg:h-[75vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full '>
+        <section className='bg-white dark:bg-slate-800 flex h-fit lg:h-[75vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md'>
             <div className="flex flex-col gap-3">
                 <div>
                     <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Call Statistics</h1>

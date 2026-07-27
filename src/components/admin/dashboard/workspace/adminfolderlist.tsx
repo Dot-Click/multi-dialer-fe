@@ -20,7 +20,7 @@ const AdminFoldersList = () => {
   }
 
   return (
-    <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-3 rounded-4xl px-6 py-5 md:w-[50%]  w-full ">
+    <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-3 rounded-4xl px-6 py-5 md:w-[50%]  w-full shadow-md">
         <div className="flex items-center gap-6 mb-2 border-b border-gray-100 dark:border-slate-700">
                 <button 
                     onClick={() => setActiveTab('lists')}
