@@ -31,7 +31,7 @@ const Library = () => {
   };
 
   return (
-    <div className=" pr-10 min-h-screen bg-white dark:bg-slate-900 transition-colors">
+    <div className="pr-5 pt-1 pb-4">
 
       <h1 className="text-2xl sm:text-4xl font-medium text-gray-800 dark:text-white">Library</h1>
 
