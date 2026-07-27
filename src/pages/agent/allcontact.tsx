@@ -38,7 +38,7 @@ const AllContact = () => {
   };
 
   return (
-    <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all relative">
+    <section className="pr-7 flex flex-col gap-3 h-full overflow-hidden px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all relative">
       {/* Breadcrumb + Heading */}
       <div className="flex flex-col">
         {getBreadcrumb() && (

@@ -157,7 +157,7 @@ const AdminAllContact = () => {
     };
 
     return (
-        <section className="pr-7 flex flex-col h-screen w-full sm:px-6 py-4 lg:py-1 transition-all relative overflow-hidden">
+        <section className="pr-7 flex flex-col h-full w-full sm:px-6 py-4 lg:py-1 transition-all relative overflow-hidden">
             {/* Sticky Header */}
             <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 pb-2 -mx-4 sm:-mx-6 md:-mx-10 lg:-mx-3 px-4 sm:px-6 md:px-10 lg:px-3 pt-2 flex-shrink-0">
                 {/* Breadcrumb + Heading */}
