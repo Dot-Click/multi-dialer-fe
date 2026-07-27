@@ -60,7 +60,6 @@ const CallStatistics = () => {
                     <p className='flex gap-2 items-center'>
                         <span className='text-[16px] dark:text-white text-[#000000] font-[500]'>{stats?.connectionRate || '0%'}</span>
                         {/* Decorative badge as per design mockup */}
-                        <span className='bg-[#1EAC221A] dark:bg-green-500/20 text-[12px] text-[#1EAC22] px-3 rounded-[100px] '>5%</span>
                     </p>
                 </div>
             </div>

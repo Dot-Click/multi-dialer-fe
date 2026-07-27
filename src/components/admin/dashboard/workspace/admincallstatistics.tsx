@@ -69,9 +69,6 @@ const AdminCallStatistics = () => {
             <span className="text-[16px] text-[#000000] dark:text-white font-[500]">
               {stats?.connectionRate || '0%'}
             </span>
-            <span className="bg-[#1EAC221A] text-[12px] text-[#1EAC22] px-3 rounded-[100px] ">
-              5%
-            </span>
           </p>
         </div>
       </div>
