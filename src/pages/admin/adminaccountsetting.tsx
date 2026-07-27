@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiChevronUp, FiChevronDown, FiUser, FiMail, FiHash } from "react-icons/fi";
+import { FiChevronUp, FiChevronDown, FiUser, FiMail, FiHash, FiBriefcase } from "react-icons/fi";
 import { Loader2, Check, X, Camera } from "lucide-react";
 import "react-phone-number-input/style.css";
 import { authClient } from "../../lib/auth-client";
@@ -9,10 +9,16 @@ import toast from "react-hot-toast";
 const AdminAccountSetting = () => {
   const { data: sessionData, refetch } = authClient.useSession();
   const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
+  const [isCompanyOpen, setCompanyOpen] = useState(true);
 
   const [fullName, setFullName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isUpdatingName, setIsUpdatingName] = useState(false);
+
+  const [companyName, setCompanyName] = useState("");
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [isUpdatingCompany, setIsUpdatingCompany] = useState(false);
+  const [savedCompanyName, setSavedCompanyName] = useState("");
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,10 +28,37 @@ const AdminAccountSetting = () => {
   useEffect(() => {
     if (sessionData?.user) {
       setFullName(sessionData.user.name || "");
-      // Assuming phone might be in custom properties or not yet supported
-      // setPhoneNumber((sessionData.user as any).phone || "");
     }
   }, [sessionData]);
+
+  useEffect(() => {
+    api.get("/company/my-company")
+      .then(({ data }) => {
+        const name = data?.data?.companyName || "";
+        setCompanyName(name);
+        setSavedCompanyName(name);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCompanyUpdate = async () => {
+    if (!companyName.trim() || companyName === savedCompanyName) {
+      setIsEditingCompany(false);
+      return;
+    }
+
+    setIsUpdatingCompany(true);
+    try {
+      await api.post("/company/create", { companyName: companyName.trim() });
+      setSavedCompanyName(companyName.trim());
+      toast.success("Company name saved");
+      setIsEditingCompany(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to save company name");
+    } finally {
+      setIsUpdatingCompany(false);
+    }
+  };
 
 
   const handleNameUpdate = async () => {
@@ -278,6 +311,71 @@ const AdminAccountSetting = () => {
                   >
                     Change Password
                   </button>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Company Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+            <button
+              className="flex items-center justify-between w-full p-6 text-left hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors"
+              onClick={() => setCompanyOpen(!isCompanyOpen)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-400/10 rounded-lg">
+                  <FiBriefcase className="text-yellow-600 dark:text-yellow-400 w-5 h-5" />
+                </div>
+                <h2 className="text-[20px] font-bold text-[#17181B] dark:text-white">
+                  Company
+                </h2>
+              </div>
+              <div className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                {isCompanyOpen ? <FiChevronUp size={20} className="text-gray-400" /> : <FiChevronDown size={20} className="text-gray-400" />}
+              </div>
+            </button>
+
+            {isCompanyOpen && (
+              <div className="px-6 pb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Your company name is required to use features like SMTP email sending.
+                </p>
+                <div className="space-y-2 max-w-md">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <FiBriefcase size={14} className="text-gray-400" />
+                    Company Name
+                  </label>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => {
+                        setCompanyName(e.target.value);
+                        setIsEditingCompany(true);
+                      }}
+                      className={`w-full px-4 py-3 bg-white dark:bg-slate-900 border ${isEditingCompany ? 'border-yellow-400 ring-2 ring-yellow-400/10' : 'border-gray-200 dark:border-slate-700'} rounded-xl text-[15px] font-medium text-gray-900 dark:text-white outline-none transition-all placeholder:text-gray-400`}
+                      placeholder="Acme Realty"
+                    />
+                    {isEditingCompany && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <button
+                          onClick={handleCompanyUpdate}
+                          disabled={isUpdatingCompany}
+                          className="p-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all shadow-sm"
+                        >
+                          {isUpdatingCompany ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCompanyName(savedCompanyName);
+                            setIsEditingCompany(false);
+                          }}
+                          className="p-1.5 bg-gray-100 dark:bg-slate-800 text-gray-500 rounded-lg hover:bg-gray-200 transition-all"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
