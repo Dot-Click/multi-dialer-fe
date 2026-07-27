@@ -12,11 +12,12 @@ import AdminAllContactSidebar from "@/components/admin/common/adminallcontactsid
 import { TbInfoTriangle } from "react-icons/tb";
 import { bulkDeleteContacts, fetchContacts, fetchContactsByFolder, fetchContactsByList } from "@/store/slices/contactSlice";
 import toast from "react-hot-toast";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import MoveToModal from "@/components/modal/movetomodal";
 
 const ContactLayout = () => {
   const dispatch = useAppDispatch();
+  const { pagination } = useAppSelector((state) => state.contacts);
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -206,9 +207,62 @@ const ContactLayout = () => {
           </span>
         </Link>
 
+        {/* Pagination — only shown for all-contacts view and when there are multiple pages */}
+        {activeItem.type === "allContacts" && pagination.totalPages > 1 && (
+          <div className="flex items-center gap-1 ml-auto mr-4">
+            <button
+              onClick={() => dispatch(fetchContacts(pagination.currentPage - 1))}
+              disabled={pagination.currentPage <= 1}
+              className="w-7 h-7 flex items-center justify-center rounded text-xs font-bold text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              ‹
+            </button>
+
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+              .filter((p) => {
+                const cur = pagination.currentPage;
+                return p === 1 || p === pagination.totalPages || Math.abs(p - cur) <= 1;
+              })
+              .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${idx}`} className="w-7 h-7 flex items-center justify-center text-xs text-gray-400 dark:text-slate-500">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => dispatch(fetchContacts(p as number))}
+                    className={`w-7 h-7 flex items-center justify-center rounded text-xs font-bold transition-colors
+                      ${pagination.currentPage === p
+                        ? "bg-yellow-400 text-black"
+                        : "text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+                      }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+            <button
+              onClick={() => dispatch(fetchContacts(pagination.currentPage + 1))}
+              disabled={pagination.currentPage >= pagination.totalPages}
+              className="w-7 h-7 flex items-center justify-center rounded text-xs font-bold text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              ›
+            </button>
+
+            <span className="text-[10px] text-gray-400 dark:text-slate-500 ml-1">
+              {pagination.total} total
+            </span>
+          </div>
+        )}
+
         {/* Delete Button */}
         <button
-          className="flex items-center gap-1.5 hover:opacity-80 ml-auto"
+          className={`flex items-center gap-1.5 hover:opacity-80 ${activeItem.type !== "allContacts" || pagination.totalPages <= 1 ? "ml-auto" : ""}`}
           onClick={() => setShowDeleteModal(true)}
         >
           <span className="text-[11px] text-[#D43435] font-bold uppercase tracking-wider">Delete Selected</span>

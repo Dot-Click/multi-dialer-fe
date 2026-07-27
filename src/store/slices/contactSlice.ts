@@ -51,7 +51,6 @@ interface ContactState {
   lists: ContactList[];
   groups: ContactGroup[];
   isLoading: boolean;
-  isLoadingMore: boolean;
   error: string | null;
   duplicateContacts: Contact[];
   pagination: {
@@ -98,7 +97,6 @@ const initialState: ContactState = {
   lists: [],
   groups: [],
   isLoading: false,
-  isLoadingMore: false,
   error: null,
   duplicateContacts: [],
   pagination: {
@@ -178,30 +176,13 @@ const mapContact = (c: any) => ({
 
 export const fetchContacts = createAsyncThunk(
   "contacts/fetchContacts",
-  async (_, { rejectWithValue }) => {
+  async (page: number | void, { rejectWithValue }) => {
     try {
-      const response = await api.get("/contact", { params: { page: 1, limit: 50 } });
+      const currentPage = page || 1;
+      const response = await api.get("/contact", { params: { page: currentPage, limit: 50 } });
       if (response.data.success) {
         const { contacts, total, totalPages } = response.data.data;
-        return { contacts: contacts.map(mapContact), total, totalPages };
-      }
-      return rejectWithValue("Failed to fetch contacts");
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Error fetching contacts",
-      );
-    }
-  },
-);
-
-export const fetchMoreContacts = createAsyncThunk(
-  "contacts/fetchMoreContacts",
-  async (page: number, { rejectWithValue }) => {
-    try {
-      const response = await api.get("/contact", { params: { page, limit: 50 } });
-      if (response.data.success) {
-        const { contacts, total, totalPages } = response.data.data;
-        return { contacts: contacts.map(mapContact), total, totalPages, page };
+        return { contacts: contacts.map(mapContact), total, totalPages, page: currentPage };
       }
       return rejectWithValue("Failed to fetch contacts");
     } catch (error: any) {
@@ -991,33 +972,14 @@ export const contactSlice = createSlice({
         state.isLoading = false;
         state.contacts = action.payload.contacts;
         state.pagination = {
-          currentPage: 1,
-          totalPages: action.payload.totalPages,
-          total: action.payload.total,
-          hasMore: action.payload.totalPages > 1,
-        };
-      })
-      .addCase(fetchContacts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-
-      // ── fetchMoreContacts ──────────────────────────────────────────────────
-      .addCase(fetchMoreContacts.pending, (state) => {
-        state.isLoadingMore = true;
-      })
-      .addCase(fetchMoreContacts.fulfilled, (state, action) => {
-        state.isLoadingMore = false;
-        state.contacts = [...state.contacts, ...action.payload.contacts];
-        state.pagination = {
           currentPage: action.payload.page,
           totalPages: action.payload.totalPages,
           total: action.payload.total,
           hasMore: action.payload.page < action.payload.totalPages,
         };
       })
-      .addCase(fetchMoreContacts.rejected, (state, action) => {
-        state.isLoadingMore = false;
+      .addCase(fetchContacts.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload as string;
       })
 

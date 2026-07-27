@@ -8,7 +8,7 @@ import { checkBoxProps } from "@/components/common/tablecomponent";
 import callsicon from "../../../assets/callsicon.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchContacts, fetchMoreContacts, fetchContactsByList, fetchContactsByFolder, type Contact } from "@/store/slices/contactSlice";
+import { fetchContacts, fetchContactsByList, fetchContactsByFolder, type Contact } from "@/store/slices/contactSlice";
 import type { Disposition } from "@/store/slices/dispositionSlice";
 import { fetchDispositions } from "@/store/slices/dispositionSlice";
 
@@ -80,7 +80,7 @@ const ContactTableSkeleton = () => {
 const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searchTerm, miscFieldNames = [] }: AllContactProps) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const { contacts, isLoading, isLoadingMore, error, pagination } = useAppSelector((state) => state.contacts);
+  const { contacts, isLoading, error } = useAppSelector((state) => state.contacts);
   const { dispositions } = useAppSelector((state) => state.dispositions);
 
   const isAdmin = location.pathname.startsWith("/admin");
@@ -341,19 +341,6 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
                 </>
               )}
             </TableProvider>
-
-            {/* Load More — only for all-contacts view, not list/folder views */}
-            {!listId && !folderId && pagination.hasMore && (
-              <div className="flex justify-center py-4">
-                <button
-                  onClick={() => dispatch(fetchMoreContacts(pagination.currentPage + 1))}
-                  disabled={isLoadingMore}
-                  className="px-6 py-2.5 rounded-lg text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-60 transition-colors"
-                >
-                  {isLoadingMore ? "Loading…" : `Load More (${contacts.length} of ${pagination.total})`}
-                </button>
-              </div>
-            )}
           </div>
         )}
       </main>
