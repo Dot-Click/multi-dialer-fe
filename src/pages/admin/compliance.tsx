@@ -169,7 +169,7 @@ const Compliance = () => {
   }, [auditPage, auditTotalPages]);
 
   return (
-    <Box className="min-h-screen pr-3 lg:pr-6 bg-white dark:bg-slate-900 transition-colors">
+    <Box className="pr-3 lg:pr-6 pb-4">
       {/* Page Title */}
       <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Compliance & DNC</h1>
 
