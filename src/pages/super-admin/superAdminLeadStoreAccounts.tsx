@@ -26,7 +26,7 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleSave = () => {
-    if (!userId || !subAccountEmail || !subAccountPassword) {
+    if (!userId || !selectedPortalAccountId || !subAccountPassword) {
       setError("Customer, account, and password are required.");
       return;
     }
@@ -45,7 +45,7 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
 
         <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1">Register MyPlusLeads Account</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Records the login for an account you already created on MyPlusLeads' own site. This never creates anything on MyPlusLeads — it only stores credentials here so we can pull leads.
+          Select a customer and one of your MyPlusLeads sub-accounts, then enter its password so we can pull leads.
         </p>
 
         <div className="space-y-3">
@@ -73,7 +73,7 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
                 onChange={(e) => handleSelectPortalAccount(e.target.value)}
                 className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
               >
-                <option value="">Select MyPlusLeads account…</option>
+                <option value="">Select MyPlusLeads sub-account…</option>
                 {portalAccounts.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name} — {a.email} ({a.status})
@@ -84,28 +84,10 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
           </div>
 
           <input
-            placeholder="Label (optional, e.g. FSBO Bundle)"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
-          <input
-            placeholder="MyPlusLeads sub-account email"
-            value={subAccountEmail}
-            onChange={(e) => setSubAccountEmail(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
-          <input
             type="password"
-            placeholder="MyPlusLeads sub-account password"
+            placeholder="Sub-account password"
             value={subAccountPassword}
             onChange={(e) => setSubAccountPassword(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
-          <input
-            placeholder="Sub-account ID (optional)"
-            value={subAccountId}
-            onChange={(e) => setSubAccountId(e.target.value)}
             className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
           />
         </div>
@@ -131,15 +113,27 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
 
 const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; onClose: () => void }) => {
   const { updateAccount } = useSuperAdminMyPlusLeadsAccounts();
-  const [label, setLabel] = useState(account.label || "");
+  const { portalAccounts, isLoading: isLoadingPortalAccounts, isError: portalAccountsFailed, error: portalAccountsError } = useSuperAdminPortalAccounts();
+  const [selectedPortalAccountId, setSelectedPortalAccountId] = useState(account.subAccountId || "");
   const [subAccountEmail, setSubAccountEmail] = useState(account.subAccountEmail || "");
-  const [subAccountPassword, setSubAccountPassword] = useState("");
   const [subAccountId, setSubAccountId] = useState(account.subAccountId || "");
+  const [label, setLabel] = useState(account.label || "");
+  const [subAccountPassword, setSubAccountPassword] = useState("");
   const [error, setError] = useState("");
+
+  const handleSelectPortalAccount = (portalAccountId: string) => {
+    setSelectedPortalAccountId(portalAccountId);
+    const found = portalAccounts.find((a) => a.id === portalAccountId);
+    if (found) {
+      setSubAccountEmail(found.email);
+      setSubAccountId(found.id);
+      setLabel(found.name);
+    }
+  };
 
   const handleSave = () => {
     if (!subAccountEmail) {
-      setError("Email is required.");
+      setError("Please select a sub-account.");
       return;
     }
     updateAccount.mutate(
@@ -163,33 +157,36 @@ const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; o
 
         <h2 className="text-xl font-black text-gray-900 dark:text-white mb-1">Edit MyPlusLeads Account</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Fix a mis-entered credential — the new password (if changed) is re-validated against MyPlusLeads before saving.
+          Switch the linked sub-account or update the password.
         </p>
 
         <div className="space-y-3">
-          <input
-            placeholder="Label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
-          <input
-            placeholder="MyPlusLeads sub-account email"
-            value={subAccountEmail}
-            onChange={(e) => setSubAccountEmail(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
+          <div>
+            {isLoadingPortalAccounts ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">Fetching your MyPlusLeads accounts…</p>
+            ) : portalAccountsFailed ? (
+              <p className="text-sm text-red-500">{portalAccountsError || "Failed to fetch accounts from MyPlusLeads."}</p>
+            ) : (
+              <select
+                value={selectedPortalAccountId}
+                onChange={(e) => handleSelectPortalAccount(e.target.value)}
+                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+              >
+                <option value="">Select MyPlusLeads sub-account…</option>
+                {portalAccounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} — {a.email} ({a.status})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <input
             type="password"
             placeholder="New password (leave blank to keep current)"
             value={subAccountPassword}
             onChange={(e) => setSubAccountPassword(e.target.value)}
-            className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
-          />
-          <input
-            placeholder="Sub-account ID (optional)"
-            value={subAccountId}
-            onChange={(e) => setSubAccountId(e.target.value)}
             className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
           />
         </div>
