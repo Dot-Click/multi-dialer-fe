@@ -51,8 +51,15 @@ interface ContactState {
   lists: ContactList[];
   groups: ContactGroup[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   duplicateContacts: Contact[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 export interface ContactList {
@@ -91,8 +98,15 @@ const initialState: ContactState = {
   lists: [],
   groups: [],
   isLoading: false,
+  isLoadingMore: false,
   error: null,
   duplicateContacts: [],
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    hasMore: false,
+  },
 };
 
 export interface CreateContactEmail {
@@ -141,32 +155,53 @@ export interface CreateContactPayload {
 // THUNKS
 // ---------------------------------------------------------------------------
 
+const mapContact = (c: any) => ({
+  id: c.id,
+  name: c.fullName || "-",
+  lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
+  phone: c.phones?.[0]?.number || "-",
+  phones: c.phones || [],
+  email: c.emails?.[0]?.email || "-",
+  list: c.source || "-",
+  tags: normalizeTags(c.tags).join(", ") || "-",
+  address: c.address || "-",
+  city: c.city || "-",
+  state: c.state || "-",
+  zip: c.zip || "-",
+  description: c.description || "-",
+  status: c.status || "-",
+  miscValues: c.miscValues || {},
+  leadsheetValues: c.leadsheetValues || {},
+  notes: c.notes || [],
+  disposition: c.disposition || null,
+});
+
 export const fetchContacts = createAsyncThunk(
   "contacts/fetchContacts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/contact");
+      const response = await api.get("/contact", { params: { page: 1, limit: 50 } });
       if (response.data.success) {
-        return response.data.data.map((c: any) => ({
-          id: c.id,
-          name: c.fullName || "-",
-          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
-          phone: c.phones?.[0]?.number || "-",
-          phones: c.phones || [],
-          email: c.emails?.[0]?.email || "-",
-          list: c.source || "-",
-          tags: normalizeTags(c.tags).join(", ") || "-",
-          address: c.address || "-",
-          city: c.city || "-",
-          state: c.state || "-",
-          zip: c.zip || "-",
-          description: c.description || "-",
-          status: c.status || "-",
-          miscValues: c.miscValues || {},
-          leadsheetValues: c.leadsheetValues || {},
-          notes: c.notes || [],
-          disposition: c.disposition || null,
-        }));
+        const { contacts, total, totalPages } = response.data.data;
+        return { contacts: contacts.map(mapContact), total, totalPages };
+      }
+      return rejectWithValue("Failed to fetch contacts");
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching contacts",
+      );
+    }
+  },
+);
+
+export const fetchMoreContacts = createAsyncThunk(
+  "contacts/fetchMoreContacts",
+  async (page: number, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/contact", { params: { page, limit: 50 } });
+      if (response.data.success) {
+        const { contacts, total, totalPages } = response.data.data;
+        return { contacts: contacts.map(mapContact), total, totalPages, page };
       }
       return rejectWithValue("Failed to fetch contacts");
     } catch (error: any) {
@@ -183,33 +218,12 @@ export const fetchContactsByList = createAsyncThunk(
     try {
       const response = await api.get(`/contact/contacts-list/${listId}`);
       if (response.data.success) {
-        return response.data.data.map((c: any) => ({
-          id: c.id,
-          name: c.fullName || "-",
-          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
-          phone: c.phones?.[0]?.number || "-",
-          phones: c.phones || [],
-          email: c.emails?.[0]?.email || "-",
-          list: c.source || "-",
-          tags: normalizeTags(c.tags).join(", ") || "-",
-          address: c.address || "-",
-          city: c.city || "-",
-          state: c.state || "-",
-          zip: c.zip || "-",
-          description: c.description || "-",
-          status: c.status || "-",
-          miscValues: c.miscValues || {},
-          leadsheetValues: c.leadsheetValues || {},
-          notes: c.notes || [],
-          folderId: c.folderId || null,
-          disposition: c.disposition || null,
-        }));
+        return response.data.data.map((c: any) => ({ ...mapContact(c), folderId: c.folderId || null }));
       }
       return rejectWithValue("Failed to fetch contacts for this list");
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          "Error fetching contacts for this list",
+        error.response?.data?.message || "Error fetching contacts for this list",
       );
     }
   },
@@ -221,33 +235,12 @@ export const fetchContactsByFolder = createAsyncThunk(
     try {
       const response = await api.get(`/contact/contacts-folder/${folderId}`);
       if (response.data.success) {
-        return response.data.data.map((c: any) => ({
-          id: c.id,
-          name: c.fullName || "-",
-          lastDialedDate: c.callRecords?.[0]?.startTime ? new Date(c.callRecords[0].startTime).toLocaleDateString() : "-",
-          phone: c.phones?.[0]?.number || "-",
-          phones: c.phones || [],
-          email: c.emails?.[0]?.email || "-",
-          list: c.source || "-",
-          tags: normalizeTags(c.tags).join(", ") || "-",
-          address: c.address || "-",
-          city: c.city || "-",
-          state: c.state || "-",
-          zip: c.zip || "-",
-          description: c.description || "-",
-          status: c.status || "-",
-          miscValues: c.miscValues || {},
-          leadsheetValues: c.leadsheetValues || {},
-          notes: c.notes || [],
-          folderId: c.folderId || null,
-          disposition: c.disposition || null,
-        }));
+        return response.data.data.map((c: any) => ({ ...mapContact(c), folderId: c.folderId || null }));
       }
       return rejectWithValue("Failed to fetch contacts for this folder");
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          "Error fetching contacts for this folder",
+        error.response?.data?.message || "Error fetching contacts for this folder",
       );
     }
   },
@@ -996,10 +989,35 @@ export const contactSlice = createSlice({
       })
       .addCase(fetchContacts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.contacts = action.payload;
+        state.contacts = action.payload.contacts;
+        state.pagination = {
+          currentPage: 1,
+          totalPages: action.payload.totalPages,
+          total: action.payload.total,
+          hasMore: action.payload.totalPages > 1,
+        };
       })
       .addCase(fetchContacts.rejected, (state, action) => {
         state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // ── fetchMoreContacts ──────────────────────────────────────────────────
+      .addCase(fetchMoreContacts.pending, (state) => {
+        state.isLoadingMore = true;
+      })
+      .addCase(fetchMoreContacts.fulfilled, (state, action) => {
+        state.isLoadingMore = false;
+        state.contacts = [...state.contacts, ...action.payload.contacts];
+        state.pagination = {
+          currentPage: action.payload.page,
+          totalPages: action.payload.totalPages,
+          total: action.payload.total,
+          hasMore: action.payload.page < action.payload.totalPages,
+        };
+      })
+      .addCase(fetchMoreContacts.rejected, (state, action) => {
+        state.isLoadingMore = false;
         state.error = action.payload as string;
       })
 
