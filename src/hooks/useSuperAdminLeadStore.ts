@@ -72,7 +72,41 @@ export const useSuperAdminLeadStoreRequests = () => {
     },
   });
 
-  return { requests, isLoading, linkAccount, unlinkAccount };
+  const grantServices = useMutation({
+    mutationFn: async (params: { userId: string; serviceIds: string[] }) => {
+      const response = await api.post("/super-admin/lead-store/grant", params);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["superAdminLeadStoreRequests"] });
+      toast.success("Package(s) granted");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to grant package(s)");
+    },
+  });
+
+  return { requests, isLoading, linkAccount, unlinkAccount, grantServices };
+};
+
+export interface LeadStoreService {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+}
+
+/** The Lead Store product catalog — reuses the customer-facing /lead-store/services endpoint. */
+export const useSuperAdminLeadStoreServices = () => {
+  const { data: services = [], isLoading } = useQuery<LeadStoreService[]>({
+    queryKey: ["superAdminLeadStoreServices"],
+    queryFn: async () => {
+      const response = await api.get("/lead-store/services");
+      return response.data.data;
+    },
+  });
+
+  return { services, isLoading };
 };
 
 export const useSuperAdminMyPlusLeadsAccounts = () => {

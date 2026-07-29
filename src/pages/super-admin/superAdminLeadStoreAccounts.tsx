@@ -4,6 +4,7 @@ import {
   useSuperAdminCustomers,
   useSuperAdminPortalAccounts,
   useSuperAdminLeadStoreRequests,
+  useSuperAdminLeadStoreServices,
   useAccountPackages,
 } from "@/hooks/useSuperAdminLeadStore";
 import type { MyPlusLeadsAccount } from "@/hooks/useSuperAdminLeadStore";
@@ -120,7 +121,8 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
 const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; onClose: () => void }) => {
   const { updateAccount } = useSuperAdminMyPlusLeadsAccounts();
   const { portalAccounts, isLoading: isLoadingPortalAccounts, isError: portalAccountsFailed, error: portalAccountsError } = useSuperAdminPortalAccounts();
-  const { requests, linkAccount } = useSuperAdminLeadStoreRequests();
+  const { requests, linkAccount, grantServices } = useSuperAdminLeadStoreRequests();
+  const { services } = useSuperAdminLeadStoreServices();
   const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(account.id);
   const [selectedPortalAccountId, setSelectedPortalAccountId] = useState(account.subAccountId || "");
   const [subAccountEmail, setSubAccountEmail] = useState(account.subAccountEmail || "");
@@ -129,10 +131,30 @@ const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; o
   const [subAccountPassword, setSubAccountPassword] = useState("");
   const [error, setError] = useState("");
   const [pendingPackageChoices, setPendingPackageChoices] = useState<Record<string, string>>({});
+  const [selectedGrantServiceIds, setSelectedGrantServiceIds] = useState<string[]>([]);
 
   const pendingPurchases = requests.filter(
     (r) => r.user.id === account.user.id && r.status === "PENDING_SETUP" && !r.myPlusLeadsConfig,
   );
+
+  const customerServiceIds = new Set(
+    requests.filter((r) => r.user.id === account.user.id && r.status !== "CANCELLED").map((r) => r.service.id),
+  );
+  const grantableServices = services.filter((s) => !customerServiceIds.has(s.id));
+
+  const toggleGrantService = (serviceId: string) => {
+    setSelectedGrantServiceIds((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId],
+    );
+  };
+
+  const handleGrant = () => {
+    if (selectedGrantServiceIds.length === 0) return;
+    grantServices.mutate(
+      { userId: account.user.id, serviceIds: selectedGrantServiceIds },
+      { onSuccess: () => setSelectedGrantServiceIds([]) },
+    );
+  };
 
   const handleAssignPackage = (leadStoreId: string, pkg: string) => {
     if (!pkg) return;
@@ -210,6 +232,37 @@ const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; o
         </div>
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
+        {grantableServices.length > 0 && (
+          <div className="border-t border-gray-100 dark:border-slate-700 mt-6 pt-5">
+            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Grant Additional Products
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              Give {account.user.fullName || account.user.email} access to more products directly — no charge, no checkout. They'll need a package assigned below before they count as subscribed.
+            </p>
+            <div className="space-y-1.5 mb-3">
+              {grantableServices.map((s) => (
+                <label key={s.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedGrantServiceIds.includes(s.id)}
+                    onChange={() => toggleGrantService(s.id)}
+                    className="rounded border-gray-300"
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={handleGrant}
+              disabled={selectedGrantServiceIds.length === 0 || grantServices.isPending}
+              className="px-4 py-2 rounded-lg text-xs font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 disabled:opacity-40"
+            >
+              {grantServices.isPending ? "Granting…" : `Grant Selected (${selectedGrantServiceIds.length})`}
+            </button>
+          </div>
+        )}
 
         <div className="border-t border-gray-100 dark:border-slate-700 mt-6 pt-5">
           <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
