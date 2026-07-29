@@ -12,6 +12,7 @@ const ReportAnalytics = () => {
   const [_isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
   const { getAgentReport, report, loading } = useReports();
 
@@ -55,8 +56,8 @@ const ReportAnalytics = () => {
   useEffect(() => {
     // No agent selected → show the admin's own data (the backend defaults to
     // the requester when userId is omitted). Selecting an agent scopes to them.
-    getAgentReport({ userId: selectedAgentId || undefined });
-  }, [selectedAgentId, getAgentReport]);
+    getAgentReport({ userId: selectedAgentId || undefined, ...dateRange });
+  }, [selectedAgentId, dateRange, getAgentReport]);
 
   return (
     <div className="min-h-screen mr-10">
@@ -82,7 +83,7 @@ const ReportAnalytics = () => {
           )}
         </div>
 
-        <AnalyticsDashboard data={report} loading={loading} />
+        <AnalyticsDashboard data={report} loading={loading} onDateRangeChange={setDateRange} />
         <ReportDashboard userId={selectedAgentId} />
       </div>
     </div>

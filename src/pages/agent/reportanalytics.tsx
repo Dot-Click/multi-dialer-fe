@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 const ReportAnalytics = () => {
   const { getAgentReport, report, loading } = useReports();
   const [userId, setUserId] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{ startDate?: string; endDate?: string }>({});
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -31,9 +32,9 @@ const ReportAnalytics = () => {
 
   useEffect(() => {
     if (userId) {
-      getAgentReport({ userId });
+      getAgentReport({ userId, ...dateRange });
     }
-  }, [userId, getAgentReport]);
+  }, [userId, dateRange, getAgentReport]);
 
   return (
     <div className=" min-h-screen pb-7  mr-10">
@@ -44,7 +45,7 @@ const ReportAnalytics = () => {
         </h1>
 
         {/* Import and render the AnalyticsDashboard component */}
-        <AnalyticsDashboard data={report} loading={loading} />
+        <AnalyticsDashboard data={report} loading={loading} onDateRangeChange={setDateRange} />
         {userId && <ReportDashboard userId={userId} />}
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import AnalyticCard from "./analyticcard";
 import dialingicon from "../../../assets/dialingicon.png";
 import callsicon from "../../../assets/callsicon.png";
@@ -38,11 +40,91 @@ interface AgentReport {
 interface AnalyticsDashboardProps {
   data: AgentReport | null;
   loading: boolean;
+  onDateRangeChange?: (range: { startDate?: string; endDate?: string }) => void;
 }
+
+const DateRangeFilter: React.FC<{
+  onChange: (range: { startDate?: string; endDate?: string }) => void;
+}> = ({ onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [appliedLabel, setAppliedLabel] = useState("All Dates");
+
+  const handleApply = () => {
+    onChange({ startDate: startDate || undefined, endDate: endDate || undefined });
+    setAppliedLabel(startDate && endDate ? `${startDate} - ${endDate}` : "All Dates");
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    setStartDate("");
+    setEndDate("");
+    setAppliedLabel("All Dates");
+    onChange({ startDate: undefined, endDate: undefined });
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex items-center gap-2 border border-[#D8DCE1] dark:border-slate-700 dark:bg-slate-800 rounded-[12px] px-[16px] h-[40px] text-[14px] text-[#495057] dark:text-gray-200 whitespace-nowrap"
+      >
+        <span>{appliedLabel}</span>
+        <FaChevronDown className="text-[11px] text-[#71717A] dark:text-gray-400" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-[#D8DCE1] dark:border-slate-700 rounded-[12px] shadow-lg p-4 z-20">
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-400 block mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full border border-[#D8DCE1] dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-[8px] px-2 py-1.5 text-[13px]"
+              />
+            </div>
+            <div>
+              <label className="text-[12px] font-[500] text-[#495057] dark:text-gray-400 block mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border border-[#D8DCE1] dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-[8px] px-2 py-1.5 text-[13px]"
+              />
+            </div>
+            <div className="flex justify-between gap-2 mt-1">
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-[13px] font-[500] text-[#495057] dark:text-gray-400 hover:underline"
+              >
+                All Dates
+              </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={!startDate || !endDate}
+                className="px-3 py-1.5 rounded-[8px] text-[13px] font-[500] bg-[#FFCA06] text-black disabled:opacity-40"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   data,
   loading,
+  onDateRangeChange,
 }) => {
   const stats = [
     {
@@ -136,9 +218,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     <div className="bg-white dark:bg-slate-800 rounded-[24px] p-[24px] shadow-md w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-        <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
-          Analytics
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-[24px] font-[500] text-[#17181B] dark:text-white">
+            Analytics
+          </h2>
+          {onDateRangeChange && <DateRangeFilter onChange={onDateRangeChange} />}
+        </div>
 
         <button
           onClick={handleExport}

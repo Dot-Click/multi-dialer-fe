@@ -241,7 +241,7 @@ const Session: React.FC<SessionProps> = ({ userId }) => {
                               <div className="p-4">
                                 <div className="grid border-b dark:border-slate-700 p-2 grid-cols-2 gap-4 items-center mb-2 font-[500] text-[14px] text-[#0E1011] dark:text-white">
                                   <span>Appts / Leads</span>
-                                  <span>Dial Time</span>
+                                  <span>Total</span>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-2 gap-4 items-start font-[400] text-[14px] text-[#495057] dark:text-gray-300">
                                   <div>
