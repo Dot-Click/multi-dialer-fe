@@ -27,7 +27,7 @@ export interface MyPlusLeadsAccount {
   subAccountId: string | null;
   status: string;
   user: { id: string; fullName: string | null; email: string };
-  leadStores: { id: string; title: string; status: string; userId: string }[];
+  leadStores: { id: string; title: string; status: string; userId: string; assignedPackage: string | null }[];
 }
 
 export const useSuperAdminLeadStoreRequests = () => {

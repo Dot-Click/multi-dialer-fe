@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { useSuperAdminMyPlusLeadsAccounts, useSuperAdminCustomers, useSuperAdminPortalAccounts } from "@/hooks/useSuperAdminLeadStore";
+import {
+  useSuperAdminMyPlusLeadsAccounts,
+  useSuperAdminCustomers,
+  useSuperAdminPortalAccounts,
+  useSuperAdminLeadStoreRequests,
+  useAccountPackages,
+} from "@/hooks/useSuperAdminLeadStore";
 import type { MyPlusLeadsAccount } from "@/hooks/useSuperAdminLeadStore";
 import { FiX } from "react-icons/fi";
 
@@ -114,12 +120,24 @@ const RegisterAccountModal = ({ onClose }: { onClose: () => void }) => {
 const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; onClose: () => void }) => {
   const { updateAccount } = useSuperAdminMyPlusLeadsAccounts();
   const { portalAccounts, isLoading: isLoadingPortalAccounts, isError: portalAccountsFailed, error: portalAccountsError } = useSuperAdminPortalAccounts();
+  const { requests, linkAccount } = useSuperAdminLeadStoreRequests();
+  const { packages, isLoading: isLoadingPackages, isError: packagesFailed, error: packagesError } = useAccountPackages(account.id);
   const [selectedPortalAccountId, setSelectedPortalAccountId] = useState(account.subAccountId || "");
   const [subAccountEmail, setSubAccountEmail] = useState(account.subAccountEmail || "");
   const [subAccountId, setSubAccountId] = useState(account.subAccountId || "");
   const [label, setLabel] = useState(account.label || "");
   const [subAccountPassword, setSubAccountPassword] = useState("");
   const [error, setError] = useState("");
+  const [pendingPackageChoices, setPendingPackageChoices] = useState<Record<string, string>>({});
+
+  const pendingPurchases = requests.filter(
+    (r) => r.user.id === account.user.id && r.status === "PENDING_SETUP" && !r.myPlusLeadsConfig,
+  );
+
+  const handleAssignPackage = (leadStoreId: string, pkg: string) => {
+    if (!pkg) return;
+    linkAccount.mutate({ leadStoreId, myPlusLeadsConfigId: account.id, assignedPackage: pkg });
+  };
 
   const handleSelectPortalAccount = (portalAccountId: string) => {
     setSelectedPortalAccountId(portalAccountId);
@@ -192,6 +210,79 @@ const EditAccountModal = ({ account, onClose }: { account: MyPlusLeadsAccount; o
         </div>
 
         {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
+        <div className="border-t border-gray-100 dark:border-slate-700 mt-6 pt-5">
+          <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+            Assign Data Package{linkAccount.isPending ? " (saving…)" : ""}
+          </h3>
+
+          {isLoadingPackages ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">Fetching packages from MyPlusLeads…</p>
+          ) : packagesFailed ? (
+            <p className="text-sm text-red-500">{packagesError || "Failed to fetch packages for this account."}</p>
+          ) : packages.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">This account has no listings yet — nothing to assign.</p>
+          ) : (
+            <div className="space-y-3">
+              {account.leadStores.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Linked purchases — change the assigned package:</p>
+                  {account.leadStores.map((ls) => (
+                    <div key={ls.id} className="flex items-center gap-2">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 truncate">{ls.title}</span>
+                      <select
+                        value={ls.assignedPackage || ""}
+                        onChange={(e) => handleAssignPackage(ls.id, e.target.value)}
+                        className="border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+                      >
+                        <option value="">Unassigned</option>
+                        {packages.map((p) => (
+                          <option key={p.package} value={p.package}>
+                            {p.package} ({p.count})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {pendingPurchases.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Pending purchases for {account.user.fullName || account.user.email} — link + assign:</p>
+                  {pendingPurchases.map((r) => (
+                    <div key={r.id} className="flex items-center gap-2">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 truncate">{r.service.name}</span>
+                      <select
+                        value={pendingPackageChoices[r.id] || ""}
+                        onChange={(e) => setPendingPackageChoices((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                        className="border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-slate-900 dark:text-white"
+                      >
+                        <option value="">Select package…</option>
+                        {packages.map((p) => (
+                          <option key={p.package} value={p.package}>
+                            {p.package} ({p.count})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleAssignPackage(r.id, pendingPackageChoices[r.id] || "")}
+                        disabled={!pendingPackageChoices[r.id] || linkAccount.isPending}
+                        className="text-xs font-bold text-yellow-600 hover:underline disabled:opacity-40 disabled:no-underline shrink-0"
+                      >
+                        Link
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {account.leadStores.length === 0 && pendingPurchases.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No purchases to link for this customer yet.</p>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex justify-end gap-2 mt-6">
           <button onClick={onClose} className="px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
