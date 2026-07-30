@@ -19,6 +19,10 @@ export interface CallDetailsFilters {
     userId?: string;
     page?: number;
     limit?: number;
+    callerId?: string;
+    dayOfWeek?: string; // comma-separated day numbers, 0=Sun..6=Sat
+    timeFrameStart?: string; // "HH:mm"
+    timeFrameEnd?: string; // "HH:mm"
 }
 
 export interface CallDetailsResponse {
@@ -48,6 +52,10 @@ export const useCallDetailsReport = () => {
             if (filters.userId) params.append('userId', filters.userId);
             if (filters.page) params.append('page', filters.page.toString());
             if (filters.limit) params.append('limit', filters.limit.toString());
+            if (filters.callerId) params.append('callerId', filters.callerId);
+            if (filters.dayOfWeek) params.append('dayOfWeek', filters.dayOfWeek);
+            if (filters.timeFrameStart) params.append('timeFrameStart', filters.timeFrameStart);
+            if (filters.timeFrameEnd) params.append('timeFrameEnd', filters.timeFrameEnd);
 
             const response = await api.get(`/reports/call-details?${params.toString()}`);
             const result = response.data.data;

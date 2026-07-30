@@ -17,7 +17,8 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const [filters, setFilters] = useState({
         countryCode: 'US',
         cityName: '',
-        state: ''
+        state: '',
+        areaCode: ''
     });
 
     const countries = Country.getAllCountries();
@@ -115,7 +116,7 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
 
                 <div className="p-8 pt-4 space-y-6">
                     {/* Filters */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">Country</label>
                             <select
@@ -125,6 +126,18 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             >
                                 {countries.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
                             </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">Area Code</label>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={3}
+                                placeholder="e.g. 212"
+                                value={filters.areaCode}
+                                onChange={(e) => setFilters({ ...filters, areaCode: e.target.value.replace(/\D/g, '').slice(0, 3) })}
+                                className="w-full bg-[#F3F4F8] dark:bg-slate-700 dark:text-white rounded-xl py-3 px-3 text-[13px] outline-none placeholder:text-gray-400"
+                            />
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-extrabold text-[#9CA3AF] tracking-wider ml-1 uppercase">State</label>
@@ -159,6 +172,9 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                             </select>
                         </div>
                     </div>
+                    <p className="text-[10px] text-gray-400 -mt-3 ml-1">
+                        Search by area code alone, or by state &amp; city — you can also combine both to narrow further.
+                    </p>
 
                     {/* Numbers List */}
                     <div className="bg-[#F9FAFB] dark:bg-slate-900/50 rounded-3xl p-4">
@@ -170,10 +186,10 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                         </div>
 
                         <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
-                            {!filters.countryCode || !filters.state || !filters.cityName ? (
+                            {!filters.countryCode || !(filters.areaCode || (filters.state && filters.cityName)) ? (
                                 <div className="text-center py-10">
                                     <p className="text-[12px] font-bold text-gray-400">
-                                        Select a country, state & city to see available numbers
+                                        Enter an area code, or select a state & city, to see available numbers
                                     </p>
                                 </div>
                             ) : availableNumbers.isLoading || availableNumbers.isFetching ? (
@@ -200,8 +216,13 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                             className={selectedNumber === item.phoneNumber ? 'text-yellow-500' : 'text-gray-400'}
                                         />
                                         <div className="flex-1">
-                                            <p className="text-[14px] font-bold text-gray-900 dark:text-white">
+                                            <p className="text-[14px] font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                 {item.friendlyName || item.phoneNumber}
+                                                {item.areaCode && (
+                                                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                                        {item.areaCode}
+                                                    </span>
+                                                )}
                                             </p>
                                             <p className="text-[10px] font-extrabold text-[#9CA3AF] dark:text-gray-500 uppercase tracking-tight">
                                                 {item.locality ?? '—'}, {item.region ?? '—'} ({item.isoCountry})

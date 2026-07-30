@@ -226,6 +226,7 @@ export interface TwilioNumberCapabilities {
 export interface TwilioNumber {
   friendlyName: string;
   phoneNumber: string;
+  areaCode: string | null;
   locality: string | null;
   region: string | null;
   isoCountry: string;
@@ -683,6 +684,7 @@ export const useTwilioNumbers = (
     countryCode?: string;
     cityName?: string;
     state?: string;
+    areaCode?: string;
   },
   // Optional: lets an OWNER/SUPER_ADMIN act on behalf of another user's Twilio account.
   targetUserId?: string,
@@ -699,7 +701,9 @@ export const useTwilioNumbers = (
       return response.data.data || response.data;
     },
     staleTime: 0,
-    enabled: !!(filters?.countryCode && filters?.state && filters?.cityName), // 👈 only fetch when all 3 are selected
+    // Fetch once there's enough to narrow the search: either an area code on
+    // its own, or state + city together.
+    enabled: !!(filters?.countryCode && (filters?.areaCode || (filters?.state && filters?.cityName))),
   });
 
   const buyNumberMutation = useMutation({

@@ -28,7 +28,7 @@ const AdminCreateContact = () => {
     };
 
     return (
-        <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-7 py-2 lg:py-1 lg:px-3 bg-white dark:bg-slate-900 text-gray-950 dark:text-white transition-all">
+        <section className="pr-7 flex flex-col gap-3 h-full overflow-y-auto px-4 sm:px-6 md:px-7 py-2 lg:py-1 lg:px-3 bg-white dark:bg-slate-900 text-gray-950 dark:text-white transition-all">
             {/* 🔹 Breadcrumb + Heading */}
             <div className="flex flex-col">
 

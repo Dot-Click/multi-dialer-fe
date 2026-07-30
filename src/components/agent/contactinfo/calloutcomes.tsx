@@ -5,7 +5,7 @@ import { fetchFolders } from "@/store/slices/contactStructureSlice";
 import { Phone, User, Check, Loader2, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTwilio } from "@/providers/twilio.provider";
-import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/detail";
+import { ICON_MAP, COLOR_ACTIVE, COLOR_IDLE } from "../contactdetail/dispositionStyles";
 import api from "@/lib/axios";
 
 interface CallOutcomesProps {
