@@ -65,6 +65,7 @@ import SuperAdminSetting from "./pages/super-admin/superAdminSetting";
 import SuperAdminSubscriptionPlan from "./pages/super-admin/superAdminSubscriptionPlan";
 import SuperAdminAuditLogs from "./pages/super-admin/superAdminAuditLogs";
 import SuperAdminLeadStore from "./pages/super-admin/superAdminLeadStore";
+import SuperAdminEmailAnalytics from "./pages/super-admin/superAdminEmailAnalytics";
 
 const Router: React.FC = () => {
   return (
@@ -133,6 +134,7 @@ const Router: React.FC = () => {
               <Route path="create-setting" element={<AdminCreateCallSetting />} />
               <Route path="create-setting/:id" element={<AdminCreateCallSetting />} />
               <Route path="action-plan" element={<AdminActionPlan />} />
+              <Route path="action-plan/:id" element={<AdminActionPlan />} />
               <Route path="billing" element={<Billing />} />
 
               <Route path="lead-store" element={<LeadStore />} />
@@ -165,6 +167,7 @@ const Router: React.FC = () => {
             <Route path="lead-store" element={<SuperAdminLeadStore />} />
             <Route path="setting" element={<SuperAdminSetting />} />
             <Route path="audit-logs" element={<SuperAdminAuditLogs />} />
+            <Route path="email-analytics" element={<SuperAdminEmailAnalytics />} />
           </Route>
         </Route>
 

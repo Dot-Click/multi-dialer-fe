@@ -9,6 +9,7 @@ import userReportIcon from "@/assets/userReportIcon.png";
 import subsIcon from "@/assets/subsIcon.png";
 import userIcon from "@/assets/userIcon.png";
 import dashIcon from "@/assets/dashIcon.png";
+import emailIcon from "@/assets/emailIcon.png";
 
 import { FiMenu } from "react-icons/fi";
 import Loader from "@/components/common/Loader";
@@ -84,6 +85,12 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
       name: "Settings",
       link: "/super-admin/setting",
       icon: settingicon,
+    },
+    {
+      id: 12,
+      name: "Email Analytics",
+      link: "/super-admin/email-analytics",
+      icon: emailIcon,
     },
     // {
     //   id: 10,

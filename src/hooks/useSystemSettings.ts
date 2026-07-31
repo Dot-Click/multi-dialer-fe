@@ -529,6 +529,48 @@ export const useNotificationSettings = () => {
   };
 };
 
+export interface EmailPreferences {
+  trialReminders: boolean;
+  inactivityNudges: boolean;
+  marketingEmails: boolean;
+  updatedAt?: string;
+}
+
+// Account-level opt-out for lifecycle/marketing emails (trial reminders,
+// inactivity nudges, reactivation/marketing). Distinct from NotificationSettings
+// above — those control report/appointment/compliance notifications, this
+// controls the MailerSend lifecycle-email cadence (see userLifecycle.job.ts).
+export const useEmailPreferences = () => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["email-preferences"],
+    queryFn: async (): Promise<EmailPreferences> => {
+      const response = await api.get("/email-preferences");
+      return response.data.data;
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: Partial<EmailPreferences>) => {
+      const response = await api.patch("/email-preferences", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["email-preferences"] });
+      toast.success("Email preferences updated");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update email preferences");
+    },
+  });
+
+  return {
+    ...query,
+    updateEmailPreferences: updateMutation,
+  };
+};
+
 // 6. Appearance Settings Hook
 export const useAppearanceSettings = () => {
   const queryClient = useQueryClient();
@@ -620,6 +662,57 @@ export const useMiscFields = () => {
 };
 
 // 8. Action Plans Hook
+// Single plan with its steps, for the edit wizard (the list endpoint only
+// returns a steps _count, not the actual step rows).
+export const useActionPlan = (id?: string) => {
+  return useQuery({
+    queryKey: ["action-plan", id],
+    queryFn: async (): Promise<ActionPlan> => {
+      const response = await api.get(`/system-settings/action-plans/${id}`);
+      return response.data.data;
+    },
+    enabled: !!id,
+  });
+};
+
+export interface ContactActionPlanAssignment {
+  id: string;
+  contactId: string;
+  planId: string;
+  plan: { id: string; name: string };
+  assignedTo: { id: string; fullName?: string | null; email: string };
+  startDate: string;
+  status: "ACTIVE" | "COMPLETED" | "REMOVED";
+  createdAt: string;
+}
+
+// Real "is this contact on a plan" status — distinct from the Calendar rows
+// assignToContact() creates for each step, which aren't queryable as a
+// current-assignment state.
+export const useContactActionPlans = (contactId?: string) => {
+  return useQuery({
+    queryKey: ["contact-action-plans", contactId],
+    queryFn: async (): Promise<ContactActionPlanAssignment[]> => {
+      const response = await api.get(`/system-settings/action-plans/contact/${contactId}`);
+      return response.data.data;
+    },
+    enabled: !!contactId,
+  });
+};
+
+export const useUnassignActionPlan = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (assignmentId: string) => {
+      const response = await api.patch(`/system-settings/action-plans/assignment/${assignmentId}/unassign`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact-action-plans"] });
+    },
+  });
+};
+
 export const useActionPlans = () => {
   const queryClient = useQueryClient();
 

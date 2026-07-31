@@ -14,9 +14,9 @@ const Setting = () => {
   const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
 
   // Email Change States
-  // const [isEditingEmail, setIsEditingEmail] = useState(false);
-  const [_newEmail, setNewEmail] = useState('');
-  // const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
   const { data: sessionData, refetch } = authClient.useSession();
   const currentAgentId = sessionData?.user?.id;
@@ -57,31 +57,31 @@ const Setting = () => {
     }
   }, [dialerSettings]);
 
-  // const handleChangeEmail = async () => {
-  //   if (!newEmail || newEmail === sessionData?.user?.email) {
-  //     setIsEditingEmail(false);
-  //     return;
-  //   }
+  const handleChangeEmail = async () => {
+    if (!newEmail || newEmail === sessionData?.user?.email) {
+      setIsEditingEmail(false);
+      return;
+    }
 
-  //   setIsUpdatingEmail(true);
-  //   try {
-  //     const { error } = await authClient.changeEmail({
-  //       newEmail: newEmail,
-  //       // callbackURL: window.location.origin + '/agent/login', 
-  //     });
+    setIsUpdatingEmail(true);
+    try {
+      const { error } = await authClient.changeEmail({
+        newEmail: newEmail,
+        callbackURL: window.location.href,
+      });
 
-  //     if (error) {
-  //       toast.error(error.message || 'Failed to change email');
-  //     } else {
-  //       toast.success('Verification email sent to your new address!');
-  //       setIsEditingEmail(false);
-  //     }
-  //   } catch (err: any) {
-  //     toast.error(err.message || 'An unexpected error occurred');
-  //   } finally {
-  //     setIsUpdatingEmail(false);
-  //   }
-  // };
+      if (error) {
+        toast.error(error.message || 'Failed to change email');
+      } else {
+        toast.success('Check your new inbox — confirm the change to finish.');
+        setIsEditingEmail(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
 
   // Filter caller IDs assigned to the current agent
   const agentCallerIds = currentAgentId
@@ -205,16 +205,14 @@ const Setting = () => {
                           <input
                             type="email"
                             id="email"
-                            value={sessionData?.user?.email || ''}
+                            value={isEditingEmail ? newEmail : (sessionData?.user?.email || '')}
                             onChange={(e) => setNewEmail(e.target.value)}
-                            // readOnly={!isEditingEmail}
-                            readOnly
-                            disabled
-                            className={`w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none }`}
+                            readOnly={!isEditingEmail}
+                            className={`w-full bg-transparent text-[16px] dark:text-white text-[#0E1011] font-normal focus:outline-none ${isEditingEmail ? 'border-b border-yellow-400/50' : ''}`}
                             placeholder="Enter new email"
                           />
                         </div>
-                        {/* {isEditingEmail ? (
+                        {isEditingEmail ? (
                           <div className="flex items-center gap-2 w-full sm:w-auto">
                             <button
                               onClick={handleChangeEmail}
@@ -235,7 +233,7 @@ const Setting = () => {
                             </button>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => {
                               setIsEditingEmail(true);
                               setNewEmail(sessionData?.user?.email || '');
@@ -244,7 +242,7 @@ const Setting = () => {
                           >
                             Change Email
                           </button>
-                        )} */}
+                        )}
                       </div>
                     </div>
                   </div>

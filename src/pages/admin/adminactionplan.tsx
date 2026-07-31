@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Steps, message, ConfigProvider } from "antd";
+import { Steps, message, ConfigProvider, Tooltip } from "antd";
 import { FiHelpCircle, FiPlus, FiX } from "react-icons/fi";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useEmailTemplate } from "../../hooks/useEmailTemplate";
 import { useScript } from "../../hooks/useScript";
 import { useContact } from "../../hooks/useContact";
-import { useActionPlans } from "../../hooks/useSystemSettings";
-import { useNavigate } from "react-router-dom";
+import { useActionPlans, useActionPlan } from "../../hooks/useSystemSettings";
+import { useNavigate, useParams } from "react-router-dom";
 
 
 // ---------------- Step 1 Components ----------------
-const RadioGroup = ({ title, description, name, options, selectedValue, onChange }: any) => (
+const RadioGroup = ({ title, description, tooltip, name, options, selectedValue, onChange }: any) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2">
       <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-      <FiHelpCircle className="text-gray-400" size={18} />
+      {tooltip && (
+        <Tooltip title={tooltip} placement="right">
+          <span className="inline-flex cursor-help">
+            <FiHelpCircle className="text-gray-400" size={18} />
+          </span>
+        </Tooltip>
+      )}
     </div>
     {description && <p className="text-sm text-gray-500">{description}</p>}
     <div className="space-y-2 mt-1">
@@ -53,6 +59,7 @@ const Step1Content = ({ formData, setFormData }: any) => {
 
       <RadioGroup
         title="Select Your Scheduling Type"
+        tooltip="Intended to control whether each step's timing is a rolling day-count from when a contact enters this plan (Frequency-Based) or pinned to fixed calendar dates (Date-Based). Not yet wired up — every step currently runs on its own 'Begin on Day' offset below regardless of this choice."
         name="schedulingType"
         options={[
           { label: "Frequency-Based", value: "frequency" },
@@ -63,19 +70,9 @@ const Step1Content = ({ formData, setFormData }: any) => {
       />
 
       <RadioGroup
-        title="Select Your Scheduling Logic"
-        name="schedulingLogic"
-        options={[
-          { label: "Frequency-Based", value: "frequency" },
-          { label: "Date-Based", value: "date" },
-        ]}
-        selectedValue={formData.schedulingLogic}
-        onChange={(value: string) => handleRadioChange("schedulingLogic", value)}
-      />
-
-      <RadioGroup
         title="Select Weekend Scheduling"
         description="Do you want steps to be scheduled on weekends?"
+        tooltip="Reserved for future use — steps currently fire on their scheduled day even if it falls on a weekend."
         name="weekendScheduling"
         options={[
           { label: "Frequency-Based", value: "frequency" },
@@ -129,6 +126,23 @@ const DaySelector = ({ value, onChange }: any) => (
 const ActionStepCard = ({ step, index, onUpdate, onDelete, emailTemplates, scripts }: any) => {
   const handleFieldChange = (field: string, value: any) => onUpdate(index, { ...step, [field]: value });
 
+  // Switching "Action" via the dropdown previously kept whatever fields the
+  // step already had (e.g. a Task's `subject`) and never initialized the new
+  // type's own field (e.g. `template` for Email) — so the field the new type
+  // actually needs stayed undefined, silently, until Save failed. Reset to a
+  // clean step of the new type instead.
+  const handleTypeChange = (newType: string) => {
+    const base = { day: step.day || 0 };
+    switch (newType) {
+      case 'Email': return onUpdate(index, { ...base, type: 'Email', template: '' });
+      case 'Phone Call': return onUpdate(index, { ...base, type: 'Phone Call', script: '', subject: '', details: '' });
+      case 'Task': return onUpdate(index, { ...base, type: 'Task', subject: '' });
+      case 'Letter': return onUpdate(index, { ...base, type: 'Letter', template: '' });
+      case 'Mailing Label': return onUpdate(index, { ...base, type: 'Mailing Label', title: '' });
+      default: return onUpdate(index, { ...base, type: newType });
+    }
+  };
+
   const actionOptions = ["Email", "Phone Call", "Task", "Letter", "Mailing Label"];
   const templateOptions = (emailTemplates || []).map((t: any) => ({ label: t.templateName, value: t.id }));
   const scriptOptions = (scripts || []).map((s: any) => ({ label: s.scriptName, value: s.id }));
@@ -144,7 +158,7 @@ const ActionStepCard = ({ step, index, onUpdate, onDelete, emailTemplates, scrip
         <div className="flex-grow w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
 
-            <CustomDropdown label="Action" options={actionOptions} value={step.type} onChange={(e: any) => handleFieldChange('type', e.target.value)} />
+            <CustomDropdown label="Action" options={actionOptions} value={step.type} onChange={(e: any) => handleTypeChange(e.target.value)} />
 
             {step.type === "Email" && (
               <CustomDropdown label="Template" options={templateOptions} value={step.template} onChange={(e: any) => handleFieldChange('template', e.target.value)} />
@@ -443,11 +457,14 @@ const Step4Content = ({ endLogicData, setEndLogicData, groups, actionPlans }: an
 const AdminActionPlan = () => {
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id: string }>();
+  const isEditMode = !!editId;
   const { getEmailTemplates } = useEmailTemplate();
   const { getScripts } = useScript();
   const { getContactGroups, getContactLists } = useContact();
-  const { data: allActionPlans, createActionPlan } = useActionPlans();
-  const isSaving = createActionPlan.isPending;
+  const { data: allActionPlans, createActionPlan, updateActionPlan } = useActionPlans();
+  const { data: existingPlan, isLoading: isLoadingPlan } = useActionPlan(editId);
+  const isSaving = createActionPlan.isPending || updateActionPlan.isPending;
 
   const [emailTemplates, setEmailTemplates] = useState<any[]>([]);
   const [scripts, setScripts] = useState<any[]>([]);
@@ -499,6 +516,46 @@ const AdminActionPlan = () => {
     repeatDay: '1'
   });
 
+  // Load an existing plan's data into the wizard when editing — reverses the
+  // exact mapping handleSave below uses to build the create/update payload.
+  useEffect(() => {
+    if (!isEditMode || !existingPlan) return;
+
+    setFormData({
+      label: existingPlan.name,
+      schedulingType: existingPlan.schedulingType === 'FREQUENCY_BASED' ? 'frequency' : 'date',
+      schedulingLogic: existingPlan.schedulingLogic === 'FREQUENCY_BASED' ? 'frequency' : 'date',
+      weekendScheduling: existingPlan.weekendScheduling === 'FREQUENCY_BASED' ? 'frequency' : 'date',
+    });
+
+    const sortedSteps = [...(existingPlan.steps || [])].sort((a, b) => a.order - b.order);
+    setActionSteps(sortedSteps.map((step) => {
+      const day = step.dayOffset || 0;
+      switch (step.actionType) {
+        case 'EMAIL': return { type: 'Email', template: step.contentValue, day };
+        case 'PHONE_CALL': return { type: 'Phone Call', script: step.contentValue, subject: '', details: '', day };
+        case 'TASK': return { type: 'Task', subject: step.contentValue, day };
+        case 'LETTER': return { type: 'Letter', template: step.contentValue, day };
+        case 'MAILING_LABEL': return { type: 'Mailing Label', title: step.contentValue, day };
+        default: return { type: 'Task', subject: step.contentValue, day };
+      }
+    }));
+
+    setTriggerData({
+      selectedTrigger: existingPlan.triggerType === 'NONE' ? 'none' : (existingPlan.triggerType === 'CALLING_LIST' ? 'calling_list' : 'group'),
+      triggerSourceId: existingPlan.triggerSourceId || '',
+      removeOnRemove: existingPlan.removeOnTriggerExit,
+    });
+
+    setEndLogicData({
+      selectedEndLogic: existingPlan.endLogic === 'DO_NOTHING' ? 'do_nothing' : (existingPlan.endLogic === 'REPEAT_PLAN' ? 'repeat_plan' : 'start_other_plan'),
+      assignGroup: existingPlan.assignGroupEnabled,
+      selectedGroup: existingPlan.assignGroupId || '',
+      selectedOtherPlan: existingPlan.nextPlanId || '',
+      repeatDay: existingPlan.endLogicValue || '1',
+    });
+  }, [isEditMode, existingPlan]);
+
   const steps = [
     { title: "Action Plan", content: <Step1Content formData={formData} setFormData={setFormData} /> },
     { title: "Action Steps", content: <Step2Content actionSteps={actionSteps} setActionSteps={setActionSteps} emailTemplates={emailTemplates} scripts={scripts} /> },
@@ -514,6 +571,22 @@ const AdminActionPlan = () => {
       if (!formData.label) {
         message.error("Please enter a label for the Action Plan");
         return;
+      }
+
+      for (let i = 0; i < actionSteps.length; i++) {
+        const step = actionSteps[i];
+        const fieldByType: Record<string, { key: string; label: string }> = {
+          Email: { key: 'template', label: 'an email template' },
+          'Phone Call': { key: 'script', label: 'a script' },
+          Task: { key: 'subject', label: 'a subject' },
+          Letter: { key: 'template', label: 'a letter template' },
+          'Mailing Label': { key: 'title', label: 'a title' },
+        };
+        const requirement = fieldByType[step.type];
+        if (requirement && !step[requirement.key]) {
+          message.error(`Step ${i + 1} (${step.type}): please select ${requirement.label} before saving.`);
+          return;
+        }
       }
 
       const payload: any = {
@@ -546,8 +619,13 @@ const AdminActionPlan = () => {
         })
       };
 
-      await createActionPlan.mutateAsync(payload);
-      message.success('Action Plan Saved!');
+      if (isEditMode && editId) {
+        await updateActionPlan.mutateAsync({ id: editId, data: payload });
+        message.success('Action Plan Updated!');
+      } else {
+        await createActionPlan.mutateAsync(payload);
+        message.success('Action Plan Saved!');
+      }
       navigate("/admin/system-settings"); // Go back to settings
     } catch (error: any) {
       message.error(error.response?.data?.message || error.message || "Failed to save action plan");
@@ -572,17 +650,21 @@ const AdminActionPlan = () => {
         <div className="max-w-7xl mx-auto">
 
           <header className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Action Plan</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{isEditMode ? "Edit Action Plan" : "Create Action Plan"}</h1>
             <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold text-sm hover:bg-gray-300">
               Cancel
             </button>
           </header>
 
-          <div className="mb-8 px-4">
-            <Steps current={current} items={steps.map(s => ({ key: s.title, title: s.title }))} />
-          </div>
+          {isEditMode && isLoadingPlan ? (
+            <div className="text-center py-20 text-gray-500">Loading Action Plan...</div>
+          ) : (
+            <>
+              <div className="mb-8 px-4">
+                <Steps current={current} items={steps.map(s => ({ key: s.title, title: s.title }))} />
+              </div>
 
-          <main>{steps[current].content}</main>
+              <main>{steps[current].content}</main>
 
           <footer className="flex justify-between items-center mt-8">
 
@@ -627,12 +709,14 @@ const AdminActionPlan = () => {
                   disabled={isSaving}
                   className="px-4 py-2 w-28 rounded-lg bg-yellow-400 text-gray-900 font-medium hover:bg-yellow-500 disabled:opacity-50"
                 >
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? 'Saving...' : (isEditMode ? 'Update' : 'Save')}
                 </button>
               )}
             </div>
 
           </footer>
+            </>
+          )}
         </div>
 
       </section>

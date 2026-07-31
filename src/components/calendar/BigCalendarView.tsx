@@ -49,8 +49,8 @@ const toRbcEvent = (evt: CalendarEvent): RbcEvent => {
   } else if (evt.endDate) {
     end = new Date(evt.endDate);
   } else {
-    // No explicit end — give it a visible 30-minute block in week/day view.
-    end = dayjs(start).add(30, "minute").toDate();
+    // No explicit end (Start Only) — highlight the full hour in week/day view.
+    end = dayjs(start).add(1, "hour").toDate();
   }
   return { id: evt.id, title: evt.title, start, end, allDay: evt.eventType === "ALL_DAY", resource: evt };
 };

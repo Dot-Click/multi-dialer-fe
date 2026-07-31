@@ -1,4 +1,4 @@
-import { useNotificationSettings } from '@/hooks/useSystemSettings';
+import { useNotificationSettings, useEmailPreferences } from '@/hooks/useSystemSettings';
 import React, { useEffect, useState } from 'react';
 // import { FiCheck } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -24,6 +24,65 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ enabled, onChange, label })
         <span className="text-[14px] font-medium text-[#0E1011] dark:text-gray-300">{label}</span>
     </div>
 );
+
+// Self-contained: its own data source (UserEmailPreferences, not
+// NotificationSetting) and own save action, separate from the
+// "Save All Changes" button above which only writes NotificationSetting.
+const EmailPreferencesSection: React.FC = () => {
+    const { data: prefs, isLoading, updateEmailPreferences } = useEmailPreferences();
+    const [trialReminders, setTrialReminders] = useState(true);
+    const [inactivityNudges, setInactivityNudges] = useState(true);
+    const [marketingEmails, setMarketingEmails] = useState(true);
+
+    useEffect(() => {
+        if (prefs) {
+            setTrialReminders(prefs.trialReminders);
+            setInactivityNudges(prefs.inactivityNudges);
+            setMarketingEmails(prefs.marketingEmails);
+        }
+    }, [prefs]);
+
+    const handleSave = () => {
+        updateEmailPreferences.mutate({ trialReminders, inactivityNudges, marketingEmails });
+    };
+
+    if (isLoading) return null;
+
+    return (
+        <section className="border-t border-gray-100 dark:border-slate-800 pt-10 mt-10">
+            <div className="flex justify-between items-start mb-8">
+                <div>
+                    <h2 className="text-[18px] font-bold dark:text-white">Email Preferences</h2>
+                    <p className="text-[13px] text-[#848C94] dark:text-gray-400 mt-1 max-w-2xl">
+                        Control which lifecycle and marketing emails Slingvo sends to your account. Billing and security emails are always sent regardless of these settings.
+                    </p>
+                </div>
+                <button
+                    onClick={handleSave}
+                    disabled={updateEmailPreferences.isPending}
+                    className="bg-[#FFCA06] text-[#0E1011] text-[13px] font-semibold px-6 py-2.5 rounded-lg hover:bg-[#e6b605] transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                    {updateEmailPreferences.isPending ? 'Saving...' : 'Save'}
+                </button>
+            </div>
+
+            <div className="space-y-6">
+                <div>
+                    <ToggleSwitch label="Trial reminder emails" enabled={trialReminders} onChange={setTrialReminders} />
+                    <p className="text-[12px] text-[#848C94] dark:text-gray-500 mt-1 ml-[52px]">Reminders as your free trial nears its end.</p>
+                </div>
+                <div>
+                    <ToggleSwitch label="Inactivity nudges" enabled={inactivityNudges} onChange={setInactivityNudges} />
+                    <p className="text-[12px] text-[#848C94] dark:text-gray-500 mt-1 ml-[52px]">A nudge if you haven't logged in for a few days.</p>
+                </div>
+                <div>
+                    <ToggleSwitch label="Marketing emails" enabled={marketingEmails} onChange={setMarketingEmails} />
+                    <p className="text-[12px] text-[#848C94] dark:text-gray-500 mt-1 ml-[52px]">Product updates, tips, and win-back offers if you cancel.</p>
+                </div>
+            </div>
+        </section>
+    );
+};
 
 const Notifications: React.FC = () => {
     const { data: remoteSettings, isLoading, updateNotificationSettings } = useNotificationSettings();
@@ -170,6 +229,8 @@ const Notifications: React.FC = () => {
                     <ToggleSwitch label="Enable" enabled={complianceAlertsEnabled} onChange={setComplianceAlertsEnabled} />
                 </div>
             </section>
+
+            <EmailPreferencesSection />
         </div>
     );
 };

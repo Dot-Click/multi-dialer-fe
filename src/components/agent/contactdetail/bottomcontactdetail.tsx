@@ -53,6 +53,7 @@ import Activities from "@/components/agent/contactdetail/activities";
 import History from "@/components/agent/contactdetail/history";
 import LeadSheet from "@/components/agent/contactdetail/leadsheet";
 import AiCallSentiment from "@/components/agent/contactdetail/aicallsentiment";
+import ActionPlans from "@/components/agent/contactdetail/actionplans";
 import Email from "./email";
 
 const BottomContactDetail = () => {
@@ -69,6 +70,7 @@ const BottomContactDetail = () => {
         { id: 10, name: "Lead Sheet" },
         { id: 11, name: "Attachments" },
         { id: 12, name: "AI Sidekick" },
+        { id: 13, name: "Action Plans" },
     ];
 
     return (
@@ -101,6 +103,7 @@ const BottomContactDetail = () => {
                 {openStatus === "Lead Sheet" && (<LeadSheet />)}
                 {openStatus === "Attachments" && (<Attachments />)}
                 {openStatus === "AI Sidekick" && (<AiCallSentiment />)}
+                {openStatus === "Action Plans" && (<ActionPlans />)}
             </div>
         </section>
     );
