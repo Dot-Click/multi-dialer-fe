@@ -55,12 +55,12 @@ const FoldersList = () => {
                             >
                                 <div className="flex flex-col justify-between w-full">
                                     <h1 className="text-[14px] dark:text-white font-medium text-[#0E1011]">{list.name}</h1>
-                                    <h1 className="text-[12px] dark:text-gray-400 font-normal text-[#6B7280]">Contacts: {list.contactIds?.length || 0}</h1>
+                                    <h1 className="text-[12px] font-normal text-black">Contacts: {list.contactIds?.length || 0}</h1>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-10 text-gray-500">No lists found.</div>
+                        <div className="text-center py-10 text-black">No lists found.</div>
                     )
                 ) : (
                     (folders || []).length > 0 ? (
@@ -72,12 +72,12 @@ const FoldersList = () => {
                             >
                                 <div className="flex flex-col justify-between w-full">
                                     <h1 className="text-[14px] dark:text-white font-medium text-[#0E1011]">{folder.name}</h1>
-                                    <h1 className="text-[12px] dark:text-gray-400 font-normal text-[#6B7280]">Lists: {folder.listIds?.length || 0}</h1>
+                                    <h1 className="text-[12px] font-normal text-black">Lists: {folder.listIds?.length || 0}</h1>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-10 text-gray-500">No folders found.</div>
+                        <div className="text-center py-10 text-black">No folders found.</div>
                     )
                 )}
             </div>

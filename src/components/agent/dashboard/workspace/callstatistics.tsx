@@ -31,7 +31,7 @@ const CallStatistics = () => {
         <section className='bg-white dark:bg-slate-800 flex h-fit lg:h-[75vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md'>
             <div className="flex flex-col gap-3">
                 <div>
-                    <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Call Statistics</h1>
+                    <h1 className="text-[20px] text-yellow-500 font-bold">Call Statistics</h1>
                 </div>
                 <div className='flex gap-3'>
                     {date.map((dt) => (
@@ -41,7 +41,7 @@ const CallStatistics = () => {
                             className={
                                 active === dt
                                     ? "border px-2.5 rounded-md font-[500] cursor-pointer py-1.5 dark:bg-slate-700 text-[14px] bg-[#0E1011] text-white"
-                                    : "border px-2.5 rounded-md text-gray-950 dark:text-gray-400 font-[500] cursor-pointer hover:bg-gray-200 py-1.5 text-[14px]"
+                                    : "border px-2.5 rounded-md text-black font-[500] cursor-pointer hover:bg-gray-200 py-1.5 text-[14px]"
                             }
                         >
                             {dt}
@@ -52,11 +52,11 @@ const CallStatistics = () => {
 
             <div className='flex justify-between lg:pr-20 items-center'>
                 <div>
-                    <h1 className='text-[#495057] dark:text-gray-400 font-[500] text-[16px]'>Total Calls</h1>
+                    <h1 className='text-black font-bold text-[16px]'>Total Calls</h1>
                     <h4 className='text-[16px] dark:text-white text-[#000000] font-[500]'>{stats?.totalCalls || 0}</h4>
                 </div>
                 <div>
-                    <h1 className='text-[#495057] dark:text-gray-400 font-[500] text-[16px]'>Connection Rate</h1>
+                    <h1 className='text-black font-bold text-[16px]'>Connection Rate</h1>
                     <p className='flex gap-2 items-center'>
                         <span className='text-[16px] dark:text-white text-[#000000] font-[500]'>{stats?.connectionRate || '0%'}</span>
                         {/* Decorative badge as per design mockup */}
@@ -65,7 +65,7 @@ const CallStatistics = () => {
             </div>
 
             <div className='flex flex-col '>
-                <h1 className='text-[16px] dark:text-gray-400 text-[#495057] font-[500]'>Call Outcomes</h1>
+                <h1 className='text-[16px] text-black font-bold'>Call Outcomes</h1>
 
                 <div className='flex flex-col lg:flex-row gap-3 items-center'>
                     <div className='h-40 flex justify-center items-center'>
@@ -76,25 +76,25 @@ const CallStatistics = () => {
                         <div className='flex gap-3 flex-col'>
                             <span className='flex items-center gap-2'>
                                 <h1 className='h-2 w-2 rounded-full bg-[#37B5EF]'></h1>
-                                <h1 className='text-[14px] dark:text-gray-400 font-[500] text-[#2B3034]'>Interested: {stats?.outcomes.interested || 0}</h1>
+                                <h1 className='text-[14px] font-[500] text-black'>Interested: {stats?.outcomes.interested || 0}</h1>
                             </span>
                             <span className='flex items-center gap-2'>
                                 <h1 className='h-2 w-2 rounded-full bg-[#9400BD]'></h1>
-                                <h1 className='text-[14px] dark:text-gray-400 font-[500] text-[#2B3034]'>Follow-Up: {stats?.outcomes.followup || 0}</h1>
+                                <h1 className='text-[14px] font-[500] text-black'>Follow-Up: {stats?.outcomes.followup || 0}</h1>
                             </span>
                             <span className='flex items-center gap-2'>
                                 <h1 className='h-2 w-2 rounded-full bg-[#FF7F3A]'></h1>
-                                <h1 className='text-[14px] dark:text-gray-400 font-[500] text-[#2B3034]'>No Answer: {stats?.outcomes.noAnswer || 0}</h1>
+                                <h1 className='text-[14px] font-[500] text-black'>No Answer: {stats?.outcomes.noAnswer || 0}</h1>
                             </span>
                         </div>
                         <div className='flex gap-3 flex-col'>
                             <span className='flex items-center gap-2'>
                                 <h1 className='h-2 w-2 rounded-full bg-[#F91E4A]'></h1>
-                                <h1 className='text-[14px] dark:text-gray-400 font-[500] text-[#2B3034]'>Not Intersted: {stats?.outcomes.notInterested || 0}</h1>
+                                <h1 className='text-[14px] font-[500] text-black'>Not Intersted: {stats?.outcomes.notInterested || 0}</h1>
                             </span>
                             <span className='flex items-center gap-2'>
                                 <h1 className='h-2 w-2 rounded-full bg-[#EC7490]'></h1>
-                                <h1 className='text-[14px] dark:text-gray-400 font-[500] text-[#2B3034]'>DNC: {stats?.outcomes.dnc || 0}</h1>
+                                <h1 className='text-[14px] font-[500] text-black'>DNC: {stats?.outcomes.dnc || 0}</h1>
                             </span>
                         </div>
                     </div>
@@ -102,13 +102,13 @@ const CallStatistics = () => {
             </div>
 
             <div className="flex flex-col gap-3">
-                <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">Outcome Goals</h1>
+                <h1 className="text-[20px] text-black font-bold">Outcome Goals</h1>
 
                 <div className='flex justify-between items-center'>
                     <div className='flex flex-col w-[45%] gap-2'>
                         <div className='flex justify-between items-center'>
-                            <h1 className='text-[16px] dark:text-gray-400 text-[#2B3034] font-[500]'>Follow-Up</h1>
-                            <h1 className='text-[14px] dark:text-gray-400 text-[#2B3034] font-[600]'>{stats?.goals.followup.current}/{stats?.goals.followup.target}</h1>
+                            <h1 className='text-[16px] text-black font-[500]'>Follow-Up</h1>
+                            <h1 className='text-[14px] dark:text-white text-[#2B3034] font-[600]'>{stats?.goals.followup.current}/{stats?.goals.followup.target}</h1>
                         </div>
                         <div className='w-full h-1.5 bg-[#EBEDF0] dark:bg-slate-700/50 rounded-md overflow-hidden'>
                             <div className='h-full bg-[#1EAC22] transition-all duration-500' style={{ width: `${Math.min(followupPercent, 100)}%` }}></div>
@@ -117,8 +117,8 @@ const CallStatistics = () => {
 
                     <div className='flex flex-col  w-[45%] gap-2'>
                         <div className='flex justify-between items-center'>
-                            <h1 className='text-[16px] dark:text-gray-400 text-[#2B3034] font-[500]'>Interested Leads</h1>
-                            <h1 className='text-[14px] dark:text-gray-400 text-[#2B3034] font-[600]'>{stats?.goals.interested.current}/{stats?.goals.interested.target}</h1>
+                            <h1 className='text-[16px] text-black font-[500]'>Interested Leads</h1>
+                            <h1 className='text-[14px] dark:text-white text-[#2B3034] font-[600]'>{stats?.goals.interested.current}/{stats?.goals.interested.target}</h1>
                         </div>
                         <div className='w-full h-1.5 bg-[#EBEDF0] dark:bg-slate-700/50 rounded-md overflow-hidden'>
                             <div className='h-full bg-[#1EAC22] transition-all duration-500' style={{ width: `${Math.min(interestedPercent, 100)}%` }}></div>

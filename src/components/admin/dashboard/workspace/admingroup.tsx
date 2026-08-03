@@ -17,7 +17,7 @@ const AdminGroup = () => {
   return (
     <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[38vh] gap-5  rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full ">
       <div className="flex justify-between items-center">
-        <h1 className="text-[20px] text-[#000000] dark:text-white font-medium">
+        <h1 className="text-[20px] text-yellow-500 font-bold">
           Groups
         </h1>
       </div>
@@ -33,14 +33,14 @@ const AdminGroup = () => {
                 <h1 className="text-[14px] font-medium text-[#000000] dark:text-white">
                   {gr.name}
                 </h1>
-                <h1 className="text-[14px] font-normal text-[#495057] dark:text-gray-400">
+                <h1 className="text-[14px] font-normal text-black">
                   Contacts: {gr.contactIds?.length || 0}
                 </h1>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-10 text-gray-500">No groups found.</div>
+          <div className="text-center py-10 text-black">No groups found.</div>
         )}
       </div>
     </section>

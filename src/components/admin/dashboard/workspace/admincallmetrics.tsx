@@ -14,7 +14,7 @@ const AdminCallMetrics = () => {
 
   return (
     <div className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-4 rounded-4xl px-6 py-5 md:w-[50%]  w-full shadow-md">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white ">
+      <h2 className="text-xl font-bold text-yellow-500 ">
         Agent Call Metrics
       </h2>
 
@@ -23,7 +23,7 @@ const AdminCallMetrics = () => {
         <table className="w-full text-left">
           <thead>
             {/* Table Header */}
-            <tr className="text-[11px] text-gray-500 dark:text-gray-400">
+            <tr className="text-[11px] font-bold text-black">
               <th className="font-medium p-2  whitspace-nowrap ">Agent Name</th>
               <th className="font-medium p-2  whitspace-nowrap ">
                 Avg. Tal Time
@@ -47,20 +47,20 @@ const AdminCallMetrics = () => {
                   <td className="p-3 text-[11px] font-medium  text-gray-900 dark:text-white">
                     {agent.name}
                   </td>
-                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                  <td className="p-3 text-[11px]  text-black">
                     {agent.avgcalltime}
                   </td>
-                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                  <td className="p-3 text-[11px]  text-black">
                     {agent.objhandling}
                   </td>
-                  <td className="p-3 text-[11px]  text-gray-700 dark:text-gray-300">
+                  <td className="p-3 text-[11px]  text-black">
                     {agent.interest}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="p-10 text-center text-gray-500 text-sm">
+                <td colSpan={4} className="p-10 text-center text-black text-sm">
                   No call metrics data available for this month.
                 </td>
               </tr>

@@ -37,16 +37,16 @@ const AdminGoToCalender = () => {
     <section className="bg-white dark:bg-slate-800 h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] shadow-md">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[14px] text-[#2B3034] dark:text-gray-400 font-medium">
+          <h1 className="text-[14px] text-black font-bold">
             {moment().format("dddd")}
           </h1>
-          <h1 className="text-[20px] text-[#0E1011] dark:text-white font-medium">
+          <h1 className="text-[20px] text-yellow-500 font-bold">
             {moment().format("MMMM DD")}
           </h1>
         </div>
         <div
           onClick={() => navigate(role === "ADMIN" ? "/admin/calendar" : "/calendar")}
-          className="flex gap-1 cursor-pointer text-[#2B3034] dark:text-gray-300 dark:hover:text-white items-center"
+          className="flex gap-1 cursor-pointer text-black items-center"
         >
           <span className="text-[16px] font-medium">Go To Calender</span>
           <span>
@@ -56,7 +56,7 @@ const AdminGoToCalender = () => {
       </div>
 
       <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 h-full">
-        <h1 className="text-[14px] font-medium text-[#495057] dark:text-gray-300">
+        <h1 className="text-[14px] font-bold text-black">
           Latest Incomplete Events
         </h1>
         <div className="flex flex-col gap-3">
@@ -77,11 +77,11 @@ const AdminGoToCalender = () => {
                   <h1 className="text-[16px] font-medium text-[#0E1011] dark:text-white">
                     {ev.title}
                   </h1>
-                  <span className="text-[12px] text-gray-500 dark:text-gray-400">
+                  <span className="text-[12px] text-black">
                     {moment(ev.startDate).format("MMM DD")}
                   </span>
                 </div>
-                <h1 className="text-[14px] font-normal text-[#848C94] dark:text-gray-400">
+                <h1 className="text-[14px] font-normal text-black">
                   {moment(ev.startDate).format("hh:mm A")} -{" "}
                   {ev.endDate ? moment(ev.endDate).format("hh:mm A") : "..."}
                 </h1>
@@ -93,7 +93,7 @@ const AdminGoToCalender = () => {
               </div>
             ))
           ) : (
-            <div className="flex items-center justify-center h-32 text-gray-400">
+            <div className="flex items-center justify-center h-32 text-black">
               No incomplete events
             </div>
           )}

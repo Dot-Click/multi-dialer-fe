@@ -57,14 +57,14 @@ const AdminFoldersList = () => {
                         <h1 className="text-[14px] font-medium text-gray-950 dark:text-white">
                           {list.name}
                         </h1>
-                        <h1 className="text-[12px] font-normal text-[#495057] dark:text-gray-400">
+                        <h1 className="text-[12px] font-normal text-black">
                           Contacts: {list.contactIds?.length || 0}
                         </h1>
                       </div>
                     </div>
                 ))
             ) : (
-                <div className="text-center py-10 text-gray-500">No lists found.</div>
+                <div className="text-center py-10 text-black">No lists found.</div>
             )
         ) : (
             (folders || []).length > 0 ? (
@@ -78,14 +78,14 @@ const AdminFoldersList = () => {
                         <h1 className="text-[14px] font-medium text-gray-950 dark:text-white">
                           {folder.name}
                         </h1>
-                        <h1 className="text-[12px] font-normal text-[#495057] dark:text-gray-400">
+                        <h1 className="text-[12px] font-normal text-black">
                           Lists: {folder.listIds?.length || 0}
                         </h1>
                       </div>
                     </div>
                 ))
             ) : (
-                <div className="text-center py-10 text-gray-500">No folders found.</div>
+                <div className="text-center py-10 text-black">No folders found.</div>
             )
         )}
       </div>

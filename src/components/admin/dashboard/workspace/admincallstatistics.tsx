@@ -31,7 +31,7 @@ const AdminCallStatistics = () => {
     <section className="bg-white dark:bg-slate-800 flex h-fit lg:h-[75vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md">
       <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-[20px] text-[#000000] dark:text-white font-[500]">
+          <h1 className="text-[20px] text-yellow-500 font-bold">
             Call Statistics
           </h1>
         </div>
@@ -43,7 +43,7 @@ const AdminCallStatistics = () => {
               className={
                 active === dt
                   ? "border px-2.5 rounded-md font-[500] cursor-pointer py-1.5 text-[14px] bg-[#0E1011] dark:bg-slate-600 text-white"
-                  : "border px-2.5 rounded-md text-gray-950 dark:text-gray-300 font-[500] cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 py-1.5 text-[14px]"
+                  : "border px-2.5 rounded-md text-black font-[500] cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 py-1.5 text-[14px]"
               }
             >
               {dt}
@@ -54,7 +54,7 @@ const AdminCallStatistics = () => {
 
       <div className="flex justify-between lg:pr-20 items-center">
         <div>
-          <h1 className="text-[#495057] dark:text-gray-300 font-[500] text-[16px]">
+          <h1 className="text-black font-bold text-[16px]">
             Total Calls
           </h1>
           <h4 className="text-[16px] text-[#000000] dark:text-white font-[500]">
@@ -62,7 +62,7 @@ const AdminCallStatistics = () => {
           </h4>
         </div>
         <div>
-          <h1 className="text-[#495057] dark:text-gray-300 font-[500] text-[16px]">
+          <h1 className="text-black font-bold text-[16px]">
             Connection Rate
           </h1>
           <p className="flex gap-2 items-center">
@@ -74,7 +74,7 @@ const AdminCallStatistics = () => {
       </div>
 
       <div className="flex flex-col ">
-        <h1 className="text-[16px] text-[#495057] dark:text-white font-[500]">
+        <h1 className="text-[16px] text-black font-bold">
           Call Outcomes
         </h1>
 
@@ -87,19 +87,19 @@ const AdminCallStatistics = () => {
             <div className="flex gap-3 flex-col">
               <span className="flex items-center gap-2">
                 <h1 className="h-2 w-2 rounded-full bg-[#37B5EF]"></h1>
-                <h1 className="text-[14px] font-[500] text-[#2B3034] dark:text-gray-200">
+                <h1 className="text-[14px] font-[500] text-black">
                   Interested: {stats?.outcomes.interested || 0}
                 </h1>
               </span>
               <span className="flex items-center gap-2">
                 <h1 className="h-2 w-2 rounded-full bg-[#9400BD]"></h1>
-                <h1 className="text-[14px] font-[500] text-[#2B3034] dark:text-gray-200">
+                <h1 className="text-[14px] font-[500] text-black">
                   Follow-Up: {stats?.outcomes.followup || 0}
                 </h1>
               </span>
               <span className="flex items-center gap-2">
                 <h1 className="h-2 w-2 rounded-full bg-[#FF7F3A]"></h1>
-                <h1 className="text-[14px] font-[500] text-[#2B3034] dark:text-gray-200">
+                <h1 className="text-[14px] font-[500] text-black">
                   No Answer: {stats?.outcomes.noAnswer || 0}
                 </h1>
               </span>
@@ -107,13 +107,13 @@ const AdminCallStatistics = () => {
             <div className="flex gap-3 flex-col">
               <span className="flex items-center gap-2">
                 <h1 className="h-2 w-2 rounded-full bg-[#F91E4A]"></h1>
-                <h1 className="text-[14px] font-[500] text-[#2B3034] dark:text-gray-200">
+                <h1 className="text-[14px] font-[500] text-black">
                   Not Intersted: {stats?.outcomes.notInterested || 0}
                 </h1>
               </span>
               <span className="flex items-center gap-2">
                 <h1 className="h-2 w-2 rounded-full bg-[#EC7490]"></h1>
-                <h1 className="text-[14px] font-[500] text-[#2B3034] dark:text-gray-200">
+                <h1 className="text-[14px] font-[500] text-black">
                   DNC: {stats?.outcomes.dnc || 0}
                 </h1>
               </span>
@@ -123,14 +123,14 @@ const AdminCallStatistics = () => {
       </div>
 
       <div className="flex flex-col gap-3">
-        <h1 className="text-[20px]  text-[#000000] dark:text-white font-[500]">
+        <h1 className="text-[20px]  text-black font-bold">
           Outcome Goals
         </h1>
 
         <div className="flex justify-between items-center">
           <div className="flex flex-col w-[45%] gap-2">
             <div className="flex justify-between items-center">
-              <h1 className="text-[16px] text-[#2B3034] dark:text-gray-300 font-[500]">
+              <h1 className="text-[16px] text-black font-[500]">
                 Follow-Up
               </h1>
               <h1 className="text-[14px] text-[#2B3034] dark:text-white font-[600]">
@@ -144,7 +144,7 @@ const AdminCallStatistics = () => {
 
           <div className="flex flex-col  w-[45%] gap-2">
             <div className="flex justify-between items-center">
-              <h1 className="text-[16px] text-[#2B3034] dark:text-gray-300 font-[500]">
+              <h1 className="text-[16px] text-black font-[500]">
                 Interested Leads
               </h1>
               <h1 className="text-[14px] text-[#2B3034] dark:text-white font-[600]">

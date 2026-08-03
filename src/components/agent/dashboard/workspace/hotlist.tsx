@@ -61,16 +61,16 @@ const HotList = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[20px] dark:text-white text-[#000000] font-[500]">
+          <h1 className="text-[20px] text-yellow-500 font-bold">
             Hotlist
           </h1>
-          <p className="text-[11px] text-[#6c757d] dark:text-gray-400 mt-0.5">
+          <p className="text-[11px] font-bold text-black mt-0.5">
             Top contacts by dialing time
           </p>
         </div>
         <Link
           to="/data-dialer"
-          className="flex gap-1 dark:text-gray-300 dark:hover:text-white text-[#2B3034] items-center"
+          className="flex gap-1 text-black items-center"
         >
           <span className="text-[14px] font-[500]">See all</span>
           <span>
@@ -97,10 +97,10 @@ const HotList = () => {
         ) : contacts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-8 gap-2 text-center">
             <span className="text-3xl">📋</span>
-            <p className="text-[13px] text-[#6c757d] dark:text-gray-400">
+            <p className="text-[13px] text-black">
               No hotlist data yet.
             </p>
-            <p className="text-[11px] text-[#adb5bd] dark:text-gray-500">
+            <p className="text-[11px] text-black">
               Data appears after contacts are called.
             </p>
           </div>
@@ -125,7 +125,7 @@ const HotList = () => {
                   <h1 className="text-[14px] font-[500] text-[#000000] dark:text-white leading-tight">
                     {cont.fullName}
                   </h1>
-                  <p className="text-[12px] font-[400] text-[#495057] dark:text-gray-400">
+                  <p className="text-[12px] font-[400] text-black">
                     {cont.phone ?? "No phone"}
                   </p>
                 </div>
@@ -133,7 +133,7 @@ const HotList = () => {
                 {/* Confidence + Sentiment */}
                 <div className="flex flex-col items-end gap-1">
                   <SentimentBadge sentiment={cont.sentiment} />
-                  <span className="text-[10px] text-[#6c757d] dark:text-gray-400">
+                  <span className="text-[10px] text-black">
                     {Math.round(cont.avgConfidence * 100)}% conf.
                   </span>
                 </div>

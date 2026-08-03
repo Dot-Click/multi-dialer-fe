@@ -20,17 +20,17 @@ const GoToCalender = () => {
         <section className='bg-white dark:bg-slate-800  h-fit lg:h-[50vh]  flex flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px]  w-full lg:w-[55%] shadow-md'>
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-[14px] dark:text-white text-[#2B3034] font-medium">{moment().format("dddd")}</h1>
-                    <h1 className="text-[20px] dark:text-white text-[#0E1011] font-medium">{moment().format("MMMM DD")}</h1>
+                    <h1 className="text-[14px] text-black font-bold">{moment().format("dddd")}</h1>
+                    <h1 className="text-[20px] text-yellow-500 font-bold">{moment().format("MMMM DD")}</h1>
                 </div>
-                <div onClick={() => navigate("/calendar")} className="flex gap-1  cursor-pointer dark:text-white text-[#2B3034] items-center ">
+                <div onClick={() => navigate("/calendar")} className="flex gap-1  cursor-pointer text-black items-center ">
                     <span className="text-[16px] font-medium">Go To Calender</span>
                     <span ><IoIosArrowForward className="text-[19px] font-normal" /></span>
                 </div>
             </div>
 
             <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 h-full">
-                <h1 className="text-[14px] font-medium dark:text-white text-[#495057]">Latest Incomplete Events</h1>
+                <h1 className="text-[14px] font-bold text-black">Latest Incomplete Events</h1>
                 <div className="flex flex-col gap-3">
                     {events && events.length > 0 ? (
                         events.map((ev) => (
@@ -42,17 +42,17 @@ const GoToCalender = () => {
                             >
                                 <div className="flex justify-between items-start">
                                     <h1 className="text-[16px] dark:text-white font-medium text-[#0E1011]">{ev.title}</h1>
-                                    <span className="text-[12px] text-gray-500 dark:text-gray-400">
+                                    <span className="text-[12px] text-black">
                                         {moment(ev.startDate).format("MMM DD")}
                                     </span>
                                 </div>
-                                <h1 className="text-[14px] dark:text-gray-400 font-normal text-[#848C94]">
+                                <h1 className="text-[14px] font-normal text-black">
                                     {moment(ev.startDate).format("hh:mm A")} - {ev.endDate ? moment(ev.endDate).format("hh:mm A") : "..."}
                                 </h1>
                             </div>
                         ))
                     ) : (
-                        <div className="flex items-center justify-center h-32 text-gray-400">
+                        <div className="flex items-center justify-center h-32 text-black">
                             No incomplete events
                         </div>
                     )}

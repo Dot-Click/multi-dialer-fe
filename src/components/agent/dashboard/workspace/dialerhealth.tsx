@@ -60,10 +60,10 @@ const DialerHealth = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
-                    <h1 className="text-[20px] text-gray-900 dark:text-white font-bold tracking-tight">
+                    <h1 className="text-[20px] text-yellow-500 font-bold tracking-tight">
                         Dialer Health
                     </h1>
-                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest">Live Twilio Status</p>
+                    <p className="text-[11px] text-black font-bold uppercase tracking-widest">Live Twilio Status</p>
                 </div>
                 <button
                     onClick={() => refresh()}
@@ -133,7 +133,7 @@ const DialerHealth = () => {
                                             }`}>
                                             {dial.name}
                                         </span>
-                                        <span className="text-[12px] font-medium text-gray-400 font-mono">
+                                        <span className="text-[12px] font-medium text-black font-mono">
                                             {dial.contact}
                                         </span>
                                     </div>
@@ -170,7 +170,7 @@ const DialerHealth = () => {
                                 {dial.health !== "unchecked" ? (
                                     <div className={`space-y-1.5 ${isFrozen ? "opacity-40" : ""}`}>
                                         <div className="flex justify-between items-center text-[10px] font-bold">
-                                            <span className="text-gray-400 uppercase tracking-tighter">Reputation Score</span>
+                                            <span className="text-black uppercase tracking-tighter">Reputation Score</span>
                                             <span className={
                                                 dial.health === "unhealthy" ? "text-red-500"
                                                 : dial.health === "at-risk" ? "text-amber-500"
@@ -188,13 +188,13 @@ const DialerHealth = () => {
                                             />
                                         </div>
                                         {dial.lastReputationCheck && (
-                                            <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                                            <p className="text-[10px] text-black">
                                                 Checked {new Date(dial.lastReputationCheck).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                                             </p>
                                         )}
                                     </div>
                                 ) : (
-                                    <p className="text-[11px] text-gray-400 dark:text-gray-500 italic">
+                                    <p className="text-[11px] text-black italic">
                                         Not yet scanned — click refresh to check this number.
                                     </p>
                                 )}
@@ -218,7 +218,7 @@ const DialerHealth = () => {
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full py-10 opacity-40">
                         <RefreshCw className="w-8 h-8 mb-2 text-gray-300" />
-                        <p className="text-[13px] font-medium text-gray-400">Syncing with Twilio...</p>
+                        <p className="text-[13px] font-medium text-black">Syncing with Twilio...</p>
                     </div>
                 )}
             </div>
