@@ -6,6 +6,7 @@ import { MdOutlineCall } from "react-icons/md";
 import { IoIosSearch } from "react-icons/io";
 import { FiEdit, FiRefreshCw } from "react-icons/fi";
 import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
+import { useLeadStore } from "@/hooks/useLeadStore";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
@@ -61,7 +62,10 @@ const AdminAllContact = () => {
 
     const { activeItem, selectedContacts, setSelectedContacts } = useOutletContext<OutletContextType>();
     const { configs, syncNow } = useMyPlusLeads();
+    const { subscriptions } = useLeadStore();
     const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
+    const hasActiveSubscription = subscriptions.some((s) => s.status === "ACTIVE");
+    const canSyncMpl = hasMplConnected && hasActiveSubscription;
 
     const fetchUsers = async () => {
         if (!session?.user?.id) return;
@@ -197,7 +201,7 @@ const AdminAllContact = () => {
 
                         {/* Manage Columns + New Contact Buttons */}
                         <div className="flex items-center gap-5">
-                            {hasMplConnected && (
+                            {canSyncMpl && (
                                 <button
                                     type="button"
                                     onClick={() => syncNow.mutate()}

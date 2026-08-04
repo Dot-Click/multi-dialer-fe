@@ -10,6 +10,7 @@ import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
 import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
+import { useLeadStore } from "@/hooks/useLeadStore";
 import toast from "react-hot-toast";
 
 type OutletContextType = {
@@ -26,7 +27,10 @@ const AllContact = () => {
 
   const { activeItem } = useOutletContext<OutletContextType>();
   const { configs, syncNow } = useMyPlusLeads();
+  const { subscriptions } = useLeadStore();
   const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
+  const hasActiveSubscription = subscriptions.some((s) => s.status === "ACTIVE");
+  const canSyncMpl = hasMplConnected && hasActiveSubscription;
 
   const getBreadcrumb = () => {
     if (activeItem.type === "allContacts") return "";
@@ -56,7 +60,7 @@ const AllContact = () => {
           </h1>
 
           <div className="flex items-center gap-2">
-          {hasMplConnected && (
+          {canSyncMpl && (
             <button
               type="button"
               onClick={() => syncNow.mutate()}
