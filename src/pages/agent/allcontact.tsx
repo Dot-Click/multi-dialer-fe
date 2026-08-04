@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { IoFilter } from "react-icons/io5";
 import { IoIosSearch } from "react-icons/io";
+import { FiRefreshCw } from "react-icons/fi";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
+import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
 import toast from "react-hot-toast";
 
 type OutletContextType = {
@@ -23,6 +25,8 @@ const AllContact = () => {
   const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
 
   const { activeItem } = useOutletContext<OutletContextType>();
+  const { configs, syncNow } = useMyPlusLeads();
+  const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
 
   const getBreadcrumb = () => {
     if (activeItem.type === "allContacts") return "";
@@ -51,6 +55,20 @@ const AllContact = () => {
             {renderHeading()}
           </h1>
 
+          <div className="flex items-center gap-2">
+          {hasMplConnected && (
+            <button
+              type="button"
+              onClick={() => syncNow.mutate()}
+              disabled={syncNow.isPending}
+              className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md px-3 py-1.5 items-center justify-center bg-transparent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <FiRefreshCw className={`text-[14px] text-[#495057] dark:text-slate-300 ${syncNow.isPending ? "animate-spin" : ""}`} />
+              <span className="text-[13px] font-bold text-[#495057] dark:text-slate-300 uppercase tracking-wide">
+                {syncNow.isPending ? "Syncing..." : "Sync MPL"}
+              </span>
+            </button>
+          )}
           {/* Manage Columns button */}
           <div
             className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-1.5 items-center justify-center bg-transparent transition-colors"
@@ -64,6 +82,7 @@ const AllContact = () => {
             <span className="text-[13px] font-bold text-[#495057] dark:text-slate-300 uppercase tracking-wide">
               Manage Columns
             </span>
+          </div>
           </div>
         </div>
       </div>

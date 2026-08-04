@@ -4,7 +4,8 @@ import { GrSplits } from "react-icons/gr";
 import { IoAdd, IoFilter } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
 import { IoIosSearch } from "react-icons/io";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiRefreshCw } from "react-icons/fi";
+import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
@@ -59,6 +60,8 @@ const AdminAllContact = () => {
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
     const { activeItem, selectedContacts, setSelectedContacts } = useOutletContext<OutletContextType>();
+    const { configs, syncNow } = useMyPlusLeads();
+    const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
 
     const fetchUsers = async () => {
         if (!session?.user?.id) return;
@@ -194,6 +197,19 @@ const AdminAllContact = () => {
 
                         {/* Manage Columns + New Contact Buttons */}
                         <div className="flex items-center gap-5">
+                            {hasMplConnected && (
+                                <button
+                                    type="button"
+                                    onClick={() => syncNow.mutate()}
+                                    disabled={syncNow.isPending}
+                                    className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    <FiRefreshCw className={`text-base ${syncNow.isPending ? "animate-spin" : ""}`} />
+                                    <span className="text-sm font-medium">
+                                        {syncNow.isPending ? "Syncing..." : "Sync MPL"}
+                                    </span>
+                                </button>
+                            )}
                             <Link
                                 to="/admin/create-contact"
                                 className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-2 items-center justify-center bg-transparent transition-colors text-[#495057] dark:text-slate-300"
