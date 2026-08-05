@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 
 const AdminFindDuplicate = () => {
     const location = useLocation();
-    const { listId, listName } = (location.state as { listId?: string; listName?: string } | null) ?? {};
+    const { listId, folderId, listName } = (location.state as { listId?: string; folderId?: string; listName?: string } | null) ?? {};
 
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
@@ -75,7 +75,7 @@ const AdminFindDuplicate = () => {
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar mt-2">
-                <FindDuplicates onSelectionChange={setSelectedContacts} listId={listId} />
+                <FindDuplicates onSelectionChange={setSelectedContacts} listId={listId} folderId={folderId} />
             </div>
 
             {/* 🔹 Modals */}

@@ -112,16 +112,18 @@ const columns = [
 const FindDuplicates = ({
   onSelectionChange,
   listId,
+  folderId,
 }: {
   onSelectionChange?: (rows: any[]) => void
   listId?: string
+  folderId?: string
 }) => {
   const dispatch = useAppDispatch();
   const { duplicateContacts, isLoading } = useAppSelector((state) => state.contacts);
 
   useEffect(() => {
-    dispatch(fetchDuplicateContacts(listId));
-  }, [dispatch, listId]);
+    dispatch(fetchDuplicateContacts({ listId, folderId }));
+  }, [dispatch, listId, folderId]);
 
   if (isLoading) {
     return (

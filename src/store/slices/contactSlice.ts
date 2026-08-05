@@ -893,10 +893,14 @@ export const addContactNote = createAsyncThunk(
 
 export const fetchDuplicateContacts = createAsyncThunk(
   "contacts/fetchDuplicateContacts",
-  async (listId: string | undefined, { rejectWithValue }) => {
+  async (scope: { listId?: string; folderId?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await api.get("/contact/duplicates", {
-        params: listId ? { listId } : undefined,
+        params: scope?.listId
+          ? { listId: scope.listId }
+          : scope?.folderId
+            ? { folderId: scope.folderId }
+            : undefined,
       });
       if (response.data.success) {
         return response.data.data.map((c: any) => ({
@@ -1303,6 +1307,9 @@ export const contactSlice = createSlice({
       .addCase(fetchDuplicateContacts.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        // Clear immediately so a stale count/list from the previous
+        // list/folder never renders while the new scope is loading.
+        state.duplicateContacts = [];
       })
       .addCase(fetchDuplicateContacts.fulfilled, (state, action) => {
         state.isLoading = false;
