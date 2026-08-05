@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { GrSplits } from "react-icons/gr";
 import mergeduplicates from "../../assets/mergeduplicates.png"
 import FilterModal from "@/components/modal/filtercontactmodal";
@@ -9,11 +10,14 @@ import { useAppSelector } from "@/store/hooks";
 import toast from "react-hot-toast";
 
 const AdminFindDuplicate = () => {
+    const location = useLocation();
+    const { listId, listName } = (location.state as { listId?: string; listName?: string } | null) ?? {};
+
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [showMergeModal, setShowMergeModal] = useState(false);
     const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
-    
+
     const { duplicateContacts } = useAppSelector((state) => state.contacts);
 
     const handleMergeClick = () => {
@@ -25,14 +29,19 @@ const AdminFindDuplicate = () => {
     };
 
     return (
-        <section className="pr-7 flex flex-col gap-3 min-h-screen px-4 sm:px-6 md:px-10 py-4 lg:py-1 lg:px-3 transition-all">
+        <section className="pr-7 flex flex-col gap-3 h-full overflow-hidden sm:px-6 py-4 lg:py-1 lg:px-3 transition-all">
             {/* 🔹 Breadcrumb + Heading — sticky so the Merge Duplicates button stays
                 reachable while scrolling through a long duplicates list */}
-            <div className="sticky top-0 z-20 bg-[#F7F7F7] dark:bg-slate-900 -mx-4 sm:-mx-6 md:-mx-10 lg:-mx-3 px-4 sm:px-6 md:px-10 lg:px-3 pb-3 pt-1 flex flex-col">
+            <div className="sticky top-0 z-20 bg-[#F7F7F7] dark:bg-slate-900 sm:-mx-6 lg:-mx-3 sm:px-6 lg:px-3 pb-3 pt-1 flex flex-col">
 
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <h1 className="text-[24px] sm:text-[28px] font-[500] dark:text-white">
                         Duplicates Found: {duplicateContacts.length}
+                        {listName && (
+                            <span className="text-sm sm:text-base font-normal text-[#495057] dark:text-slate-400 ml-2">
+                                in "{listName}"
+                            </span>
+                        )}
                     </h1>
 
                     {/* Manage Columns button */}
@@ -65,8 +74,8 @@ const AdminFindDuplicate = () => {
             </div>
 
             {/* 🔹 Table / Contact List */}
-            <div className="flex-1  sm:-ml-10 mt-2">
-                <FindDuplicates onSelectionChange={setSelectedContacts} />
+            <div className="flex-1 overflow-y-auto custom-scrollbar mt-2">
+                <FindDuplicates onSelectionChange={setSelectedContacts} listId={listId} />
             </div>
 
             {/* 🔹 Modals */}

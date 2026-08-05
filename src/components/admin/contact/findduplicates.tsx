@@ -109,19 +109,21 @@ const columns = [
 
 // --- Final Component ---
 
-const FindDuplicates = ({ 
-  onSelectionChange 
-}: { 
-  onSelectionChange?: (rows: any[]) => void 
+const FindDuplicates = ({
+  onSelectionChange,
+  listId,
+}: {
+  onSelectionChange?: (rows: any[]) => void
+  listId?: string
 }) => {
   const dispatch = useAppDispatch();
   const { duplicateContacts, isLoading } = useAppSelector((state) => state.contacts);
 
   useEffect(() => {
-    dispatch(fetchDuplicateContacts());
-  }, [dispatch]);
+    dispatch(fetchDuplicateContacts(listId));
+  }, [dispatch, listId]);
 
-  if (isLoading && duplicateContacts.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-20">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFCA06]"></div>

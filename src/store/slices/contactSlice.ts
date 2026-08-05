@@ -893,9 +893,11 @@ export const addContactNote = createAsyncThunk(
 
 export const fetchDuplicateContacts = createAsyncThunk(
   "contacts/fetchDuplicateContacts",
-  async (_, { rejectWithValue }) => {
+  async (listId: string | undefined, { rejectWithValue }) => {
     try {
-      const response = await api.get("/contact/duplicates");
+      const response = await api.get("/contact/duplicates", {
+        params: listId ? { listId } : undefined,
+      });
       if (response.data.success) {
         return response.data.data.map((c: any) => ({
           id: c.id,

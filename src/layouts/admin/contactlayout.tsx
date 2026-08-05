@@ -197,7 +197,11 @@ const ContactLayout = () => {
           <span className="text-[11px] text-[#495057] dark:text-slate-300 font-bold uppercase tracking-wider">Export</span>
         </button>
 
-        <Link className="flex items-center gap-1.5 hover:opacity-80" to="/admin/find-duplicate">
+        <Link
+          className="flex items-center gap-1.5 hover:opacity-80"
+          to="/admin/find-duplicate"
+          state={activeItem.type === "list" && activeItem.id ? { listId: activeItem.id, listName: activeItem.name } : undefined}
+        >
           <img src={duplicatesicon} className="w-3.5 grayscale brightness-50 dark:invert" alt="duplicatesicon" />
           <span className="text-[11px] text-[#495057] dark:text-slate-300 font-bold uppercase tracking-wider">
             Find Duplicates
