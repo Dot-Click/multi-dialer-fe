@@ -162,10 +162,34 @@ const NumberSettingsModal: React.FC<NumberSettingsModalProps> = ({ isOpen, onClo
                 <div className="flex items-center justify-center py-4">
                   <Loader2 size={20} className="animate-spin text-yellow-500" />
                 </div>
-              ) : agents.length === 0 ? (
-                <p className="text-[11px] text-gray-400 py-2">No agents found created by you.</p>
               ) : (
                 <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2">
+                  {session?.user?.id && (
+                    <label
+                      key={session.user.id}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${selectedAgentIds.includes(session.user.id) ? 'bg-white dark:bg-slate-800 border-yellow-300 dark:border-yellow-600 shadow-sm' : 'bg-transparent border-transparent hover:bg-gray-100 dark:hover:bg-slate-600'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedAgentIds.includes(session.user.id)}
+                        onChange={() => {
+                          setSelectedAgentIds(prev =>
+                            prev.includes(session.user.id)
+                              ? prev.filter(id => id !== session.user.id)
+                              : [...prev, session.user.id]
+                          );
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-bold text-gray-800 dark:text-white truncate">{(session.user as any).fullName || session.user.name || 'Myself'} (You)</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{session.user.email}</p>
+                      </div>
+                    </label>
+                  )}
+                  {agents.length === 0 && (
+                    <p className="text-[11px] text-gray-400 py-2">No agents found created by you.</p>
+                  )}
                   {agents.map(agent => (
                     <label
                       key={agent.id}

@@ -238,8 +238,16 @@ const CreateCallSettingModal: React.FC<CreateCallSettingModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (callerIdsData) setCallerIds(callerIdsData as CallerId[]);
-  }, [callerIdsData]);
+    if (!callerIdsData) return;
+    const userId = session?.user?.id;
+    // Numbers an admin buys are the company's pool, but only ones the admin has
+    // assigned to themselves should show up for dialing — everything else is
+    // either unassigned or handed off to an agent.
+    const assignedToMe = (callerIdsData as CallerId[]).filter((c) =>
+      c.agents?.some((a) => a.id === userId)
+    );
+    setCallerIds(assignedToMe);
+  }, [callerIdsData, session?.user?.id]);
 
   // ── Freeze status polling while modal is open ────────────────────────────
   const fetchFreezeStatus = useCallback(async (ids: CallerId[]) => {
