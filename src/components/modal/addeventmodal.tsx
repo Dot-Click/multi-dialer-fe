@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Input, Radio, DatePicker, TimePicker } from 'antd';
 import { IoClose } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
-import { useCalendar, type CalendarEvent, type EventType, type EventStatus, type EventCategory } from '@/hooks/useCalendar';
+import { useCalendar, getStatusLabel, type CalendarEvent, type EventType, type EventStatus, type EventCategory } from '@/hooks/useCalendar';
 import { useUser, type User } from '@/hooks/useUser';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -163,7 +163,7 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10 transition-colors">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Add New Event</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{event?.id ? "Edit Event" : "Add New Event"}</h2>
           <button onClick={() => onClose()}>
             <IoClose className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl" />
           </button>
@@ -367,9 +367,9 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
               value={formData.status}
               className="w-full flex gap-4"
             >
-              <Radio value="SET">Set</Radio>
-              <Radio value="MET">Completed</Radio>
-              <Radio value="CANCELLED">Cancelled</Radio>
+              <Radio value="SET">{getStatusLabel('SET', formData.category)}</Radio>
+              <Radio value="MET">{getStatusLabel('MET', formData.category)}</Radio>
+              <Radio value="CANCELLED">{getStatusLabel('CANCELLED', formData.category)}</Radio>
             </Radio.Group>
           </div>
         </div>

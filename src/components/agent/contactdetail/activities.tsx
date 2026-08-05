@@ -7,7 +7,7 @@ import api from '@/lib/axios';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import AddEventForm from '@/components/modal/addeventmodal';
-import type { CalendarEvent as CalendarEventType } from '@/hooks/useCalendar';
+import { getStatusLabel, type CalendarEvent as CalendarEventType, type EventStatus } from '@/hooks/useCalendar';
 
 interface CalendarEvent {
   id: string;
@@ -38,15 +38,17 @@ const getEventCategory = (event: CalendarEvent): 'appointment' | 'task' | 'callb
   return 'task';
 };
 
-const StatusBadge = ({ status }: { status: string }) => {
+const StatusBadge = ({ status, category }: { status: string, category?: string }) => {
   const map: Record<string, string> = {
     SET: 'bg-yellow-100 text-yellow-700',
     MET: 'bg-green-100 text-green-700',
     CANCELLED: 'bg-red-100 text-red-700',
+    NO_SHOW: 'bg-red-100 text-red-700',
   };
+  const label = getStatusLabel(status as EventStatus, category as CalendarEventType['category']);
   return (
     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
-      {status}
+      {label}
     </span>
   );
 };
@@ -72,7 +74,7 @@ const EventCard = ({ event, onClick }: { event: CalendarEvent, onClick?: () => v
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[11px] font-semibold uppercase tracking-wide ${config.color}`}>{config.label}</span>
-            <StatusBadge status={event.status} />
+            <StatusBadge status={event.status} category={event.category} />
           </div>
         </div>
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white mt-0.5 truncate">{event.title}</h3>

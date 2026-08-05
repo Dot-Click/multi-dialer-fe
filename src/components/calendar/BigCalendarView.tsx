@@ -16,8 +16,7 @@ import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { FiClipboard, FiCalendar, FiPhone, FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
 import AddEventForm from "@/components/modal/addeventmodal";
-import ContactDetailModal from "@/components/modal/ContactDetailModal";
-import type { CalendarEvent } from "@/hooks/useCalendar";
+import { getStatusLabel, type CalendarEvent } from "@/hooks/useCalendar";
 import Loader from "@/components/common/Loader";
 
 const localizer = dayjsLocalizer(dayjs);
@@ -109,7 +108,6 @@ const BigCalendarView = ({ events, loading, onMarkComplete, onUpdateEventTime, o
   const [addOpen, setAddOpen] = useState(false);
   const [showAllOpen, setShowAllOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [contactModalOpen, setContactModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
@@ -151,10 +149,8 @@ const BigCalendarView = ({ events, loading, onMarkComplete, onUpdateEventTime, o
   };
 
   const openDetail = (ev: CalendarEvent) => {
-    if (ev.contactId || ev.contact?.id) {
-      setSelectedEvent(ev);
-      setContactModalOpen(true);
-    }
+    setSelectedEvent(ev);
+    setAddOpen(true);
   };
 
   const navigateBy = (direction: 1 | -1) => {
@@ -382,7 +378,7 @@ const BigCalendarView = ({ events, loading, onMarkComplete, onUpdateEventTime, o
                   </button>
                 )}
                 {evt.status === "MET" && (
-                  <span className="mt-1 text-[11px] text-green-500 font-medium">Completed</span>
+                  <span className="mt-1 text-[11px] text-green-500 font-medium">{getStatusLabel(evt.status, evt.category)}</span>
                 )}
               </div>
             </div>
@@ -394,16 +390,6 @@ const BigCalendarView = ({ events, loading, onMarkComplete, onUpdateEventTime, o
           )}
         </div>
       </Modal>
-
-      {/* ------- contact-detail modal ------- */}
-      <ContactDetailModal
-        isOpen={contactModalOpen}
-        onClose={() => {
-          setContactModalOpen(false);
-          setSelectedEvent(null);
-        }}
-        contactId={selectedEvent?.contactId || selectedEvent?.contact?.id}
-      />
 
       {/* ------- filter modal ------- */}
       <Modal

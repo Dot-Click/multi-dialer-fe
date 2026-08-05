@@ -3,7 +3,17 @@ import api from '../lib/axios';
 
 export type EventType = 'START_ONLY' | 'FROM_TO' | 'ALL_DAY';
 export type EventCategory = 'TASK' | 'APPOINTMENT' | 'FOLLOW_UP';
-export type EventStatus = 'SET' | 'MET' | 'CANCELLED';
+export type EventStatus = 'SET' | 'MET' | 'CANCELLED' | 'NO_SHOW';
+
+// "MET" only reads as "Met" for an actual appointment (you set it, you met the
+// person). Tasks/follow-up calls reuse the same status enum but should read as
+// "Completed" instead — there's no one to "meet" on a call or a task.
+export const getStatusLabel = (status: EventStatus, category?: EventCategory): string => {
+    if (status === 'MET') return category === 'APPOINTMENT' ? 'Met' : 'Completed';
+    if (status === 'NO_SHOW') return 'No Show';
+    if (status === 'CANCELLED') return 'Cancelled';
+    return 'Set';
+};
 
 export interface CalendarEvent {
     id: string;
