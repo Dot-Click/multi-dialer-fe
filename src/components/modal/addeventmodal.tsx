@@ -328,9 +328,6 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ open, onClose, event, conta
                   value={formData.assignToId}
                   className="w-full"
                 >
-                  <div key="none" className={`p-2 border-b dark:border-slate-700 last:border-b-0 ${formData.assignToId === 'None' ? 'bg-gray-100 dark:bg-slate-700' : ''}`}>
-                    <Radio value="None" className="w-full transition-colors">None</Radio>
-                  </div>
                   {currentUser?.id && (
                     <div key="self" className={`p-2 border-b dark:border-slate-700 last:border-b-0 ${formData.assignToId === currentUser.id ? 'bg-gray-100 dark:bg-slate-700' : ''}`}>
                       <Radio value={currentUser.id} className="w-full transition-colors">{currentUserName} (You)</Radio>
