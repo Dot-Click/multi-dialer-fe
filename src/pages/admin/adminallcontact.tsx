@@ -337,7 +337,7 @@ const AdminAllContact = () => {
                                 placeholder="Search agents..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg pl-3 pr-10 py-2 text-sm outline-none focus:ring-1 focus:ring-[#FFCA06] transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500"
+                                className="w-full border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-lg pl-3 pr-10 py-2 text-sm outline-none focus:ring-1 focus:ring-[#FFCA06] transition-all text-gray-800 dark:text-white placeholder:text-ink-4 dark:placeholder:text-slate-500"
                             />
                             <IoIosSearch className="absolute right-3 top-2.5 text-gray-400 dark:text-slate-500 text-lg" />
                         </div>
@@ -345,11 +345,11 @@ const AdminAllContact = () => {
                         {/* User List */}
                         <div className="max-h-[280px] custom-scrollbar overflow-y-auto space-y-1 mb-6 pr-1">
                             {isLoadingUsers ? (
-                                <div className="flex justify-center py-10 text-gray-400 dark:text-slate-500 text-sm italic">
+                                <div className="flex justify-center py-10 text-ink-3 dark:text-slate-500 text-sm italic">
                                     Loading agents...
                                 </div>
                             ) : realUsers.length === 0 ? (
-                                <div className="text-center py-10 text-gray-400 dark:text-slate-500 text-sm">
+                                <div className="text-center py-10 text-ink-3 dark:text-slate-500 text-sm">
                                     No agents found
                                 </div>
                             ) : (

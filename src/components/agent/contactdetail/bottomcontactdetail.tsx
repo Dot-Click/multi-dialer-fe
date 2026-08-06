@@ -74,7 +74,7 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col h-full min-h-[600px] w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
+        <section className="bg-white dark:bg-slate-800 flex flex-col h-full min-h-0 w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
             {/* Tabs */}
             <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto no-scrollbar p-2 shrink-0">
                 {stages.map((stg) => (
@@ -92,7 +92,7 @@ const BottomContactDetail = () => {
             </div>
 
             {/* Content Section - Scrollable internally */}
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar">
                 {openStatus === "Notes" && (<Notes />)}
                 {openStatus === "Profile" && (<Misc />)}
                 {openStatus === "Activities" && (<Activities />)}

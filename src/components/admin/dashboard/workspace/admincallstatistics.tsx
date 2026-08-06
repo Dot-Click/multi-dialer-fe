@@ -31,7 +31,7 @@ const AdminCallStatistics = () => {
     <section className="bg-white dark:bg-slate-800 flex h-fit lg:h-[75vh] flex-col gap-5 rounded-[32px] px-[24px] pt-[24px] pb-[32px] w-full shadow-md">
       <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-[20px] text-yellow-500 font-bold">
+          <h1 className="text-[20px] text-heading font-bold">
             Call Statistics
           </h1>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { TableComponent } from "@/components/common/tablecomponent";
+import { TableComponent, SortedHeader } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -127,8 +127,7 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     },
     {
       accessorKey: "name",
-      header: "Name",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Name" />,
       cell: (info: any) => (
         <Link
           to={`${linkPath}/${info.row.original.id}`}
@@ -140,16 +139,14 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     },
     {
       accessorKey: "lastDialedDate",
-      header: "Last Dialed Date",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Last Dialed Date" />,
       cell: (info: any) => (
         <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
       ),
     },
     {
       accessorKey: "phone",
-      header: "Phone Number",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Phone Number" />,
       cell: (info: any) => (
         <div className="flex items-center gap-2">
           <img
@@ -157,30 +154,27 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
             alt="call"
             className="w-4 h-4 object-contain dark:invert dark:opacity-60"
           />
-          <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
+          <span className="text-[#495057] dark:text-slate-300 tabular-nums">{info.getValue()}</span>
         </div>
       ),
     },
     {
       accessorKey: "email",
-      header: "Email",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Email" />,
       cell: (info: any) => (
         <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
       ),
     },
     {
       accessorKey: "list",
-      header: "List",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="List" />,
       cell: (info: any) => (
         <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>
       ),
     },
     {
       accessorKey: "tags",
-      header: "Tags",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Tags" />,
       cell: (info: any) => {
         const tags = info.getValue()?.split(",") || [];
         return (
@@ -194,7 +188,7 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
                   {tag.trim()}
                 </Badge>
               ) : (
-                <span key={index} className="text-gray-400 dark:text-slate-500">-</span>
+                <span key={index} className="text-ink-3 dark:text-slate-500">-</span>
               )
             )}
           </div>
@@ -203,45 +197,39 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     },
     {
       accessorKey: "address",
-      header: "Address",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Address" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     {
       accessorKey: "city",
-      header: "City",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="City" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     {
       accessorKey: "state",
-      header: "State",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="State" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     {
       accessorKey: "zip",
-      header: "Zip",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Zip" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     {
       accessorKey: "description",
-      header: "Description",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Description" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     {
       accessorKey: "status",
-      header: "Status",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Status" />,
       cell: (info: any) => <span className="text-[#495057] dark:text-slate-300">{info.getValue()}</span>,
     },
     // Dynamic misc field columns — one per custom field name
     ...miscFieldNames.map((fieldName) => ({
       id: `misc_${fieldName}`,
-      header: fieldName,
-      enableSorting: false,
+      accessorFn: (row: any) => row.miscValues?.[fieldName] ?? "",
+      header: (info: any) => <SortedHeader header={info.header} label={fieldName} />,
       cell: (info: any) => {
         const val = info.row.original.miscValues?.[fieldName];
         return <span className="text-[#495057] dark:text-slate-300">{val ?? "-"}</span>;
@@ -249,13 +237,12 @@ const AllContact = ({ onSelectionChange, listId, folderId, visibleColumns, searc
     })),
     {
       accessorKey: "disposition",
-      header: "Disposition",
-      enableSorting: false,
+      header: (info: any) => <SortedHeader header={info.header} label="Disposition" />,
       cell: (info: any) => {
         const value: string | null = info.getValue();
         if (!value) return null;
         const disp = dispositions.find((d: Disposition) => d.value === value);
-        if (!disp) return <span className="text-xs text-gray-400">{value}</span>;
+        if (!disp) return <span className="text-xs text-ink-3">{value}</span>;
         const dotColors: Record<string, string> = {
           red: "bg-red-500", orange: "bg-orange-500", yellow: "bg-yellow-400",
           green: "bg-emerald-500", blue: "bg-blue-500", purple: "bg-violet-500",

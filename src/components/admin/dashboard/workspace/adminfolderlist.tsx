@@ -26,7 +26,7 @@ const AdminFoldersList = () => {
                     onClick={() => setActiveTab('lists')}
                     className={`pb-2 text-[15px] font-semibold transition-all relative ${
                         activeTab === 'lists' 
-                        ? 'text-[#0E1011] dark:text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400' 
+                        ? 'text-[#0E1011] dark:text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-brand-yellow' 
                         : 'text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-gray-300'
                     }`}
                 >
@@ -36,7 +36,7 @@ const AdminFoldersList = () => {
                     onClick={() => setActiveTab('folders')}
                     className={`pb-2 text-[15px] font-semibold transition-all relative ${
                         activeTab === 'folders' 
-                        ? 'text-[#0E1011] dark:text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400' 
+                        ? 'text-[#0E1011] dark:text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-brand-yellow' 
                         : 'text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-gray-300'
                     }`}
                 >

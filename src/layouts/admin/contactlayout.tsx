@@ -240,14 +240,14 @@ const ContactLayout = () => {
               }, [])
               .map((p, idx) =>
                 p === "…" ? (
-                  <span key={`ellipsis-${idx}`} className="w-7 h-7 flex items-center justify-center text-xs text-gray-400 dark:text-slate-500">…</span>
+                  <span key={`ellipsis-${idx}`} className="w-7 h-7 flex items-center justify-center text-xs text-ink-3 dark:text-slate-500">…</span>
                 ) : (
                   <button
                     key={p}
                     onClick={() => dispatch(fetchContacts(p as number))}
                     className={`w-7 h-7 flex items-center justify-center rounded text-xs font-bold transition-colors
                       ${pagination.currentPage === p
-                        ? "bg-yellow-400 text-black"
+                        ? "bg-brand-yellow text-black"
                         : "text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                       }`}
                   >
@@ -264,7 +264,7 @@ const ContactLayout = () => {
               ›
             </button>
 
-            <span className="text-[10px] text-gray-400 dark:text-slate-500 ml-1">
+            <span className="text-[10px] text-ink-3 dark:text-slate-500 ml-1">
               {pagination.total} total
             </span>
           </div>

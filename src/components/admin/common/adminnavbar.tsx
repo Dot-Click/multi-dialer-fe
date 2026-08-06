@@ -117,7 +117,7 @@ const AdminNavbar = () => {
                 {unreadCount > 0 && (
                   <button
                     onClick={() => markAllRead.mutate()}
-                    className="text-xs text-yellow-500 hover:text-yellow-600 font-medium flex items-center gap-1"
+                    className="text-xs text-yellow-text hover:opacity-80 font-medium flex items-center gap-1"
                   >
                     <FiCheckSquare size={12} />
                     Mark all as read
@@ -181,13 +181,13 @@ const AdminNavbar = () => {
                             {n.title}
                           </p>
                           {!n.isRead && (
-                            <span className="w-2 h-2 bg-yellow-400 rounded-full shrink-0 mt-1"></span>
+                            <span className="w-2 h-2 bg-brand-yellow rounded-full shrink-0 mt-1"></span>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                           {n.description}
                         </p>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 font-medium">
+                        <p className="text-[10px] text-ink-3 dark:text-gray-500 mt-2 font-medium">
                           {formatDistanceToNow(new Date(n.createdAt), {
                             addSuffix: true,
                           })}

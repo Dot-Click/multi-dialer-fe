@@ -61,7 +61,7 @@ const AdminHotList = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[20px] text-yellow-500 font-bold">
+          <h1 className="text-[20px] text-heading font-bold">
             Hotlist
           </h1>
           <p className="text-[11px] font-bold text-black mt-0.5">
@@ -125,7 +125,7 @@ const AdminHotList = () => {
                   <h1 className="text-[14px] font-[500] text-[#000000] dark:text-white leading-tight">
                     {cont.fullName}
                   </h1>
-                  <p className="text-[12px] font-[400] text-black">
+                  <p className="text-[12px] font-[400] text-black tabular-nums">
                     {cont.phone ?? "No phone"}
                   </p>
                 </div>

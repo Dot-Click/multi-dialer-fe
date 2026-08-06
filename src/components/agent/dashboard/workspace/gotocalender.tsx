@@ -6,7 +6,17 @@ import moment from "moment";
 
 const GoToCalender = () => {
     const navigate = useNavigate();
-    const { data: events, isLoading } = useCalendarEvents();
+    const { data: allEvents, isLoading } = useCalendarEvents();
+
+    // Widget is a quick "what's coming up" glance — only today and tomorrow.
+    const events = (() => {
+        const windowStart = moment().startOf("day");
+        const windowEnd = moment().add(1, "day").endOf("day");
+        return (allEvents || []).filter((ev) => {
+            const start = moment(ev.startDate);
+            return start.isSameOrAfter(windowStart) && start.isSameOrBefore(windowEnd);
+        });
+    })();
 
     if (isLoading) {
         return (
@@ -30,7 +40,7 @@ const GoToCalender = () => {
             </div>
 
             <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 h-full">
-                <h1 className="text-[14px] font-bold text-black">Latest Incomplete Events</h1>
+                <h1 className="text-[14px] font-bold text-black">Today &amp; Tomorrow</h1>
                 <div className="flex flex-col gap-3">
                     {events && events.length > 0 ? (
                         events.map((ev) => (
@@ -53,7 +63,7 @@ const GoToCalender = () => {
                         ))
                     ) : (
                         <div className="flex items-center justify-center h-32 text-black">
-                            No incomplete events
+                            No events today or tomorrow
                         </div>
                     )}
                 </div>

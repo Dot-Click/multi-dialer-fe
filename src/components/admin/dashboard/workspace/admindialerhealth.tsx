@@ -57,7 +57,7 @@ const AdminDialerHealth = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <h1 className="text-[20px] text-yellow-500 font-bold tracking-tight">
+          <h1 className="text-[20px] text-heading font-bold tracking-tight">
             Dialer Health
           </h1>
           <p className="text-[11px] text-black font-bold uppercase tracking-widest">Live Twilio Status</p>
@@ -126,11 +126,11 @@ const AdminDialerHealth = () => {
                     <span className={`text-[14px] font-bold transition-colors truncate
                       ${isFrozen
                         ? 'text-orange-700 dark:text-orange-300'
-                        : 'text-gray-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-500'
+                        : 'text-gray-900 dark:text-white group-hover:text-yellow-text dark:group-hover:text-yellow-500'
                       }`}>
                       {dial.name}
                     </span>
-                    <span className="text-[12px] font-medium text-black font-mono">
+                    <span className="text-[12px] font-medium text-black font-mono tabular-nums">
                       {dial.contact}
                     </span>
                   </div>

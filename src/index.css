@@ -41,6 +41,23 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Design-audit tokens (Phase 1, white surface).
+     Ratios measured against #FFFFFF. Every admin color must resolve through
+     one of these, no hardcoded hex at call sites. Phase 2 (dark/black
+     surface) will redefine the underlying ink/surface/line values inside a
+     future .dark block; call sites never change. */
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-yellow-text: var(--yellow-text);
+  --color-orange-text: var(--orange-text);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-surface: var(--surface);
+  --color-heading: var(--heading);
 }
 
 :root {
@@ -76,6 +93,19 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* Design-audit tokens (Phase 1, white surface) */
+  --ink-1: #0B1220;        /* 18.7:1 - headings, names, KPI values */
+  --ink-2: #384252;        /* 10.2:1 - body, table cells */
+  --ink-3: #5A6678;        /* 5.8:1 - meta, timestamps, dates */
+  --ink-4: #6B7686;        /* 4.6:1 - labels ONLY (uppercase, >=650 weight) */
+  --brand-yellow: #FFCA06; /* fill on white, text on black - never text on white */
+  --yellow-text: #8A6600;  /* 5.3:1 - yellow-family text on white */
+  --orange-text: #B84800;  /* 5.3:1 - rank numbers, alerts */
+  --line: #E4E8EF;
+  --line-strong: #CFD6E1;
+  --surface: #F6F8FB;
+  --heading: #0E1011; /* dashboard widget headings */
 }
 
 .dark {

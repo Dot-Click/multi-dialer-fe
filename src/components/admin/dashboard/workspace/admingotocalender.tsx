@@ -15,13 +15,23 @@ const AdminGoToCalender = () => {
 
   // For ADMIN: merge own events + all agent events (deduplicated by id)
   const events = (() => {
-    if (role !== "ADMIN") return ownEvents || [];
-    const combined = [...(allEvents || []), ...(ownEvents || [])];
-    const seen = new Set<string>();
-    return combined.filter((ev) => {
-      if (seen.has(ev.id)) return false;
-      seen.add(ev.id);
-      return true;
+    const merged = (() => {
+      if (role !== "ADMIN") return ownEvents || [];
+      const combined = [...(allEvents || []), ...(ownEvents || [])];
+      const seen = new Set<string>();
+      return combined.filter((ev) => {
+        if (seen.has(ev.id)) return false;
+        seen.add(ev.id);
+        return true;
+      });
+    })();
+
+    // Widget is a quick "what's coming up" glance — only today and tomorrow.
+    const windowStart = moment().startOf("day");
+    const windowEnd = moment().add(1, "day").endOf("day");
+    return merged.filter((ev) => {
+      const start = moment(ev.startDate);
+      return start.isSameOrAfter(windowStart) && start.isSameOrBefore(windowEnd);
     });
   })();
 
@@ -40,7 +50,7 @@ const AdminGoToCalender = () => {
           <h1 className="text-[14px] text-black font-bold">
             {moment().format("dddd")}
           </h1>
-          <h1 className="text-[20px] text-yellow-500 font-bold">
+          <h1 className="text-[20px] text-heading font-bold">
             {moment().format("MMMM DD")}
           </h1>
         </div>
@@ -57,7 +67,7 @@ const AdminGoToCalender = () => {
 
       <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 h-full">
         <h1 className="text-[14px] font-bold text-black">
-          Latest Incomplete Events
+          Today &amp; Tomorrow
         </h1>
         <div className="flex flex-col gap-3">
           {events && events.length > 0 ? (
@@ -94,7 +104,7 @@ const AdminGoToCalender = () => {
             ))
           ) : (
             <div className="flex items-center justify-center h-32 text-black">
-              No incomplete events
+              No events today or tomorrow
             </div>
           )}
         </div>
