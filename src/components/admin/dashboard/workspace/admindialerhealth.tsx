@@ -57,10 +57,10 @@ const AdminDialerHealth = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <h1 className="text-[20px] text-heading font-bold tracking-tight">
+          <h1 className="text-[20px] text-heading font-medium tracking-tight">
             Dialer Health
           </h1>
-          <p className="text-[11px] text-black font-bold uppercase tracking-widest">Live Twilio Status</p>
+          <p className="text-[11px] text-secondary-heading font-medium uppercase tracking-widest">Live Twilio Status</p>
         </div>
         <button
           onClick={() => refresh()}

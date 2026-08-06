@@ -58,6 +58,7 @@
   --color-line-strong: var(--line-strong);
   --color-surface: var(--surface);
   --color-heading: var(--heading);
+  --color-secondary-heading: var(--secondary-heading);
 }
 
 :root {
@@ -106,6 +107,7 @@
   --line-strong: #CFD6E1;
   --surface: #F6F8FB;
   --heading: #0E1011; /* dashboard widget headings */
+  --secondary-heading: #2B3034; /* secondary headings, font-medium */
 }
 
 .dark {

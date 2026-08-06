@@ -18,7 +18,7 @@ const AdminRecentActivity = () => {
   return (
     <section className="bg-white dark:bg-slate-800 flex flex-col h-[35vh] md:h-[28vh] lg:h-[45vh] gap-5 rounded-4xl px-6 py-5 md:w-[50%]  w-full shadow-md">
       <div className="flex flex-col justify-between gap-1.5">
-        <h1 className="text-[20px] font-bold text-heading">
+        <h1 className="text-[20px] font-medium text-heading">
           Recent Activity
         </h1>
       </div>

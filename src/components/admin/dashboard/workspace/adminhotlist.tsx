@@ -61,18 +61,18 @@ const AdminHotList = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[20px] text-heading font-bold">
+          <h1 className="text-[20px] text-heading font-medium">
             Hotlist
           </h1>
-          <p className="text-[11px] font-bold text-black mt-0.5">
+          <p className="text-[11px] font-medium text-secondary-heading mt-0.5">
             Top contacts by dialing time
           </p>
         </div>
         <Link
           to="/admin/data-dialer"
-          className="flex gap-1 text-black items-center"
+          className="flex gap-1 text-secondary-heading items-center"
         >
-          <span className="text-[14px] font-[500]">See all</span>
+          <span className="text-[14px] font-medium">See all</span>
           <span>
             <IoIosArrowForward className="text-[16px]" />
           </span>
