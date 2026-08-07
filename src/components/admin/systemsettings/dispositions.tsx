@@ -41,7 +41,7 @@ function slugify(label: string) {
 
 // Protected default dispositions: seeded by the system and shown in the user's
 // Dispositions list, but they cannot be edited or deleted.
-const PROTECTED_DEFAULT_VALUES = ["TRASH"]
+const PROTECTED_DEFAULT_VALUES = ["TRASH", "LEAD"]
 function isProtectedDisposition(value: string) {
     return PROTECTED_DEFAULT_VALUES.includes(value.toUpperCase())
 }

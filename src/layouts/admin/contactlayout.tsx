@@ -42,6 +42,17 @@ const ContactLayout = () => {
     }
   }, [location.state]);
 
+  // This layout (and its selectedContacts state, read by the "Delete Selected"
+  // bar below) stays mounted across every nested /admin/* contact route —
+  // switching folders/lists or navigating to Find Duplicates does NOT remount
+  // it. Without this, a selection made on one page (or folder/list) silently
+  // carries over to whatever page you land on next, so "Delete Selected"
+  // deletes/unlinks contacts you never actually checked there. Clear it on
+  // every view change so it always reflects only what's checked right now.
+  useEffect(() => {
+    setSelectedContacts([]);
+  }, [activeItem, location.pathname]);
+
   // ✅ Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
@@ -72,6 +83,11 @@ const ContactLayout = () => {
     }
   };
 
+  // On the Duplicates page, "Delete Selected" means "purge these — they're
+  // clutter," not "unlink from the current folder/list" (there is no single
+  // folder/list context there anyway once a search spans multiple lists).
+  const isDuplicatesPage = location.pathname.startsWith("/admin/find-duplicate");
+
   // ✅ Delete handler
   const handleConfirmDelete = async () => {
     setLoading(true);
@@ -83,19 +99,21 @@ const ContactLayout = () => {
     }
     try {
       const contactIds = selectedContacts.map(c => c.id).filter(Boolean);
-      
+
       const payload = {
         contactIds,
-        folderId: activeItem.type === "folder" ? activeItem.id : undefined,
-        listId: activeItem.type === "list" ? activeItem.id : undefined,
-        hardDelete: false
+        folderId: !isDuplicatesPage && activeItem.type === "folder" ? activeItem.id : undefined,
+        listId: !isDuplicatesPage && activeItem.type === "list" ? activeItem.id : undefined,
+        hardDelete: isDuplicatesPage
       };
 
       await dispatch(bulkDeleteContacts(payload)).unwrap();
-      
-      const successMsg = activeItem.type === "folder" 
-        ? "Contact(s) removed from folder successfully" 
-        : "Contact(s) deleted successfully";
+
+      const successMsg = isDuplicatesPage
+        ? "Contact(s) permanently deleted"
+        : activeItem.type === "folder"
+          ? "Contact(s) removed from folder successfully"
+          : "Contact(s) deleted successfully";
         
       toast.success(successMsg);
       setSelectedContacts([]);
@@ -296,12 +314,14 @@ const ContactLayout = () => {
               <TbInfoTriangle />
             </div>
             <h2 className="text-lg font-medium mb-1 dark:text-white">
-              {activeItem.type === "folder" ? "Remove from Folder?" : "Delete Lead?"}
+              {isDuplicatesPage ? "Permanently Delete?" : activeItem.type === "folder" ? "Remove from Folder?" : "Delete Lead?"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-              {activeItem.type === "folder" 
-                ? `This will remove the selected leads from the "${activeItem.name}" folder. They will remain in your database.`
-                : "Once deleted, this action cannot be undone. Are you sure you want to proceed?"}
+              {isDuplicatesPage
+                ? `This will permanently delete ${selectedContacts.length} contact(s) from the database — not just this list. This cannot be undone.`
+                : activeItem.type === "folder"
+                  ? `This will remove the selected leads from the "${activeItem.name}" folder. They will remain in your database.`
+                  : "Once deleted, this action cannot be undone. Are you sure you want to proceed?"}
             </p>
 
             {/* Buttons */}

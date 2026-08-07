@@ -1,13 +1,36 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useOutletContext } from "react-router-dom";
 import { GrSplits } from "react-icons/gr";
 import mergeduplicates from "../../assets/mergeduplicates.png"
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
-import FindDuplicates from "@/components/admin/contact/findduplicates";
+import FindDuplicates, { DEFAULT_DUPLICATE_VISIBLE_COLUMNS } from "@/components/admin/contact/findduplicates";
 import MergeDuplicateModal from "@/components/modal/mergeduplicatemodal";
 import { useAppSelector } from "@/store/hooks";
 import toast from "react-hot-toast";
+
+type OutletContextType = {
+    activeItem: { type: string; id?: string; name: string };
+    selectedContacts: any[];
+    setSelectedContacts: (contacts: any[]) => void;
+};
+
+const VISIBLE_COLUMNS_STORAGE_KEY = "admin-find-duplicate-visible-columns";
+
+const loadVisibleColumns = (): string[] => {
+    try {
+        const stored = localStorage.getItem(VISIBLE_COLUMNS_STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
+                return parsed;
+            }
+        }
+    } catch {
+        // Corrupt/inaccessible storage — fall back to defaults.
+    }
+    return DEFAULT_DUPLICATE_VISIBLE_COLUMNS;
+};
 
 const AdminFindDuplicate = () => {
     const location = useLocation();
@@ -16,7 +39,13 @@ const AdminFindDuplicate = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showColumnsModal, setShowColumnsModal] = useState(false);
     const [showMergeModal, setShowMergeModal] = useState(false);
-    const [selectedContacts, setSelectedContacts] = useState<any[]>([]);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+    // Selection is shared with the layout via Outlet context — this is what the
+    // persistent "Delete Selected" bottom bar reads. Keeping our own separate
+    // local state here was the bug: checking a duplicate never reached the bar,
+    // so "Delete Selected" acted on whatever was leftover-selected on whichever
+    // page you were on before navigating here.
+    const { selectedContacts, setSelectedContacts } = useOutletContext<OutletContextType>();
 
     const { duplicateContacts } = useAppSelector((state) => state.contacts);
 
@@ -75,13 +104,25 @@ const AdminFindDuplicate = () => {
 
             {/* 🔹 Table / Contact List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar mt-2">
-                <FindDuplicates onSelectionChange={setSelectedContacts} listId={listId} folderId={folderId} />
+                <FindDuplicates onSelectionChange={setSelectedContacts} listId={listId} folderId={folderId} visibleColumns={visibleColumns} />
             </div>
 
             {/* 🔹 Modals */}
             {isFilterOpen && <FilterModal onClose={() => setIsFilterOpen(false)} />}
             {showColumnsModal && (
-                <ManageColumnsModal onClose={() => setShowColumnsModal(false)} />
+                <ManageColumnsModal
+                    onClose={() => setShowColumnsModal(false)}
+                    initialDisplayColumns={visibleColumns}
+                    onApply={(columns) => {
+                        setVisibleColumns(columns);
+                        try {
+                            localStorage.setItem(VISIBLE_COLUMNS_STORAGE_KEY, JSON.stringify(columns));
+                        } catch {
+                            // Best-effort persistence; ignore storage failures (e.g. private browsing).
+                        }
+                        setShowColumnsModal(false);
+                    }}
+                />
             )}
             {showMergeModal && (
                 <MergeDuplicateModal 
