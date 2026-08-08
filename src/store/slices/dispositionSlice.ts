@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
 import { setCurrentContactFields } from "./contactSlice";
 
@@ -131,7 +131,17 @@ export const applyDisposition = createAsyncThunk(
 const dispositionSlice = createSlice({
     name: "dispositions",
     initialState,
-    reducers: {},
+    reducers: {
+        // Optimistically applies a new order client-side so the list re-sorts
+        // instantly on drop, instead of waiting on the reorderDispositions
+        // round-trip (which would otherwise cause a visible jump/flicker).
+        reorderLocal(state, action: PayloadAction<{ id: string; order: number }[]>) {
+            action.payload.forEach(({ id, order }) => {
+                const item = state.dispositions.find(d => d.id === id);
+                if (item) item.order = order;
+            });
+        },
+    },
     extraReducers: (builder) => {
         builder
             // Fetch All
@@ -160,13 +170,19 @@ const dispositionSlice = createSlice({
             .addCase(deleteDisposition.fulfilled, (state, action) => {
                 state.dispositions = state.dispositions.filter(d => d.id !== action.payload);
             })
-            // Reorder
+            // Reorder — the backend only returns the subset of dispositions whose
+            // order changed (e.g. just the "custom" section), so merge by id
+            // instead of replacing the whole array (that would drop every
+            // disposition from the other section out of the store).
             .addCase(reorderDispositions.fulfilled, (state, action) => {
-                // If the backend returns all or updated, we can just replace or re-sort
-                // For now, let's assume we need to re-fetch or the payload is enough
-                state.dispositions = action.payload;
+                const updated = action.payload as Disposition[];
+                updated.forEach((u) => {
+                    const index = state.dispositions.findIndex(d => d.id === u.id);
+                    if (index !== -1) state.dispositions[index] = u;
+                });
             });
     },
 });
 
+export const { reorderLocal } = dispositionSlice.actions;
 export default dispositionSlice.reducer;

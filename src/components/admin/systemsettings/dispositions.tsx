@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/store/store"
 import {
@@ -6,9 +6,28 @@ import {
     createDisposition,
     updateDisposition,
     deleteDisposition,
+    reorderDispositions,
+    reorderLocal,
 } from "@/store/slices/dispositionSlice"
 import type { Disposition, DispositionColor } from "@/store/slices/dispositionSlice"
 import { fetchFolders } from "@/store/slices/contactStructureSlice"
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+    SortableContext,
+    arrayMove,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import {
     Plus,
     Pencil,
@@ -300,6 +319,11 @@ export default function DispositionSettings() {
     const [showAddForm, setShowAddForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    )
+
     useEffect(() => {
         dispatch(fetchDispositions())
         dispatch(fetchFolders())
@@ -365,8 +389,34 @@ export default function DispositionSettings() {
         }
     }
 
-    const systemDispositions = dispositions.filter(d => d.isSystem)
-    const customDispositions = dispositions.filter(d => !d.isSystem)
+    // Reordering is scoped per section (system call outcomes reorder among
+    // themselves, custom dispositions among themselves) since that's how the
+    // list is rendered as two separate groups.
+    function handleDragEnd(event: DragEndEvent, sectionList: Disposition[]) {
+        const { active, over } = event
+        if (!over || active.id === over.id) return
+
+        const fromIndex = sectionList.findIndex(d => d.id === active.id)
+        const toIndex = sectionList.findIndex(d => d.id === over.id)
+        if (fromIndex === -1 || toIndex === -1) return
+
+        const reordered = arrayMove(sectionList, fromIndex, toIndex)
+        const orderData = reordered.map((d, idx) => ({ id: d.id, order: idx }))
+
+        // Apply instantly client-side so the list settles into its new order
+        // with no wait on the network round-trip, then persist in the background.
+        dispatch(reorderLocal(orderData))
+        dispatch(reorderDispositions(orderData))
+    }
+
+    const systemDispositions = useMemo(
+        () => [...dispositions].filter(d => d.isSystem).sort((a, b) => a.order - b.order),
+        [dispositions]
+    )
+    const customDispositions = useMemo(
+        () => [...dispositions].filter(d => !d.isSystem).sort((a, b) => a.order - b.order),
+        [dispositions]
+    )
 
     return (
         <div className="flex flex-col gap-6">
@@ -407,20 +457,28 @@ export default function DispositionSettings() {
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E9ECEF] dark:border-slate-700 overflow-hidden">
-                    {systemDispositions.map((disp, idx) => (
-                        <DispositionRow
-                            key={disp.id}
-                            disposition={disp}
-                            folders={folders}
-                            isEditing={editingId === disp.id}
-                            isLast={idx === systemDispositions.length - 1}
-                            onEdit={() => setEditingId(disp.id)}
-                            onSaveEdit={(data) => handleEdit(disp.id, data)}
-                            onCancelEdit={() => setEditingId(null)}
-                            onToggle={() => handleToggleActive(disp.id)}
-                            onDelete={null}
-                        />
-                    ))}
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(e) => handleDragEnd(e, systemDispositions)}
+                    >
+                        <SortableContext items={systemDispositions.map(d => d.id)} strategy={verticalListSortingStrategy}>
+                            {systemDispositions.map((disp, idx) => (
+                                <SortableDispositionRow
+                                    key={disp.id}
+                                    disposition={disp}
+                                    folders={folders}
+                                    isEditing={editingId === disp.id}
+                                    isLast={idx === systemDispositions.length - 1}
+                                    onEdit={() => setEditingId(disp.id)}
+                                    onSaveEdit={(data) => handleEdit(disp.id, data)}
+                                    onCancelEdit={() => setEditingId(null)}
+                                    onToggle={() => handleToggleActive(disp.id)}
+                                    onDelete={null}
+                                />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
                 </div>
             </div>
 
@@ -443,24 +501,32 @@ export default function DispositionSettings() {
                     </div>
                 ) : (
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E9ECEF] dark:border-slate-700 overflow-hidden">
-                        {customDispositions.map((disp, idx) => {
-                            const protectedDisp = isProtectedDisposition(disp.value)
-                            return (
-                                <DispositionRow
-                                    key={disp.id}
-                                    disposition={disp}
-                                    folders={folders}
-                                    isEditing={editingId === disp.id}
-                                    isLast={idx === customDispositions.length - 1}
-                                    isProtected={protectedDisp}
-                                    onEdit={() => setEditingId(disp.id)}
-                                    onSaveEdit={(data) => handleEdit(disp.id, data)}
-                                    onCancelEdit={() => setEditingId(null)}
-                                    onToggle={() => handleToggleActive(disp.id)}
-                                    onDelete={protectedDisp ? null : () => handleDelete(disp.id)}
-                                />
-                            )
-                        })}
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(e) => handleDragEnd(e, customDispositions)}
+                        >
+                            <SortableContext items={customDispositions.map(d => d.id)} strategy={verticalListSortingStrategy}>
+                                {customDispositions.map((disp, idx) => {
+                                    const protectedDisp = isProtectedDisposition(disp.value)
+                                    return (
+                                        <SortableDispositionRow
+                                            key={disp.id}
+                                            disposition={disp}
+                                            folders={folders}
+                                            isEditing={editingId === disp.id}
+                                            isLast={idx === customDispositions.length - 1}
+                                            isProtected={protectedDisp}
+                                            onEdit={() => setEditingId(disp.id)}
+                                            onSaveEdit={(data) => handleEdit(disp.id, data)}
+                                            onCancelEdit={() => setEditingId(null)}
+                                            onToggle={() => handleToggleActive(disp.id)}
+                                            onDelete={protectedDisp ? null : () => handleDelete(disp.id)}
+                                        />
+                                    )
+                                })}
+                            </SortableContext>
+                        </DndContext>
                     </div>
                 )}
             </div>
@@ -469,6 +535,41 @@ export default function DispositionSettings() {
 }
 
 // ─── Row ─────────────────────────────────────────────────────────────────────
+
+// Wraps DispositionRow with dnd-kit's sortable behavior: the wrapper div
+// gets the transform/transition needed for the smooth reorder animation,
+// while only the grip icon receives the drag listeners so clicks on the
+// toggle/edit/delete buttons elsewhere in the row aren't hijacked.
+function SortableDispositionRow(props: {
+    disposition: Disposition
+    folders: any[]
+    isEditing: boolean
+    isLast: boolean
+    isProtected?: boolean
+    onEdit: () => void
+    onSaveEdit: (data: FormState) => void
+    onCancelEdit: () => void
+    onToggle: () => void
+    onDelete: (() => void) | null
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: props.disposition.id,
+        disabled: props.isEditing,
+    })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 1 : "auto",
+    }
+
+    return (
+        <div ref={setNodeRef} style={style}>
+            <DispositionRow {...props} dragHandleProps={{ ...attributes, ...listeners }} />
+        </div>
+    )
+}
 
 function DispositionRow({
     disposition,
@@ -481,6 +582,7 @@ function DispositionRow({
     onCancelEdit,
     onToggle,
     onDelete,
+    dragHandleProps,
 }: {
     disposition: Disposition
     folders: any[]
@@ -492,6 +594,7 @@ function DispositionRow({
     onCancelEdit: () => void
     onToggle: () => void
     onDelete: (() => void) | null
+    dragHandleProps?: Record<string, any>
 }) {
     const linkedFolder = folders?.find(f => f.id === disposition.targetFolderId)
 
@@ -499,7 +602,12 @@ function DispositionRow({
         <div className={`${!isLast ? "border-b border-[#F1F3F5] dark:border-slate-700" : ""}`}>
             <div className={`flex items-center gap-3 px-4 py-3 ${!disposition.isActive ? "opacity-50" : ""}`}>
                 {/* Drag handle */}
-                <GripVertical className="w-4 h-4 text-[#CED4DA] dark:text-gray-600 cursor-grab flex-shrink-0" />
+                <span
+                    {...dragHandleProps}
+                    className={`flex-shrink-0 ${isEditing ? "cursor-not-allowed opacity-40" : "cursor-grab active:cursor-grabbing"}`}
+                >
+                    <GripVertical className="w-4 h-4 text-[#CED4DA] dark:text-gray-600" />
+                </span>
 
                 {/* Color dot */}
                 <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${COLOR_MAP[disposition.color]?.dot ?? "bg-gray-400"}`} />
