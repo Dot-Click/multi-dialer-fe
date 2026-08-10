@@ -675,6 +675,23 @@ export const useActionPlan = (id?: string) => {
   });
 };
 
+export interface ContactActionPlanStepExecution {
+  id: string;
+  dueAt: string;
+  status: "PENDING" | "PROCESSING" | "SENT" | "FAILED" | "SKIPPED";
+  step: {
+    id: string;
+    order: number;
+    actionType: "EMAIL" | "PHONE_CALL" | "TASK" | "LETTER" | "MAILING_LABEL";
+    dayOffset: number;
+    contentValue: string;
+  };
+  // Populated once a PHONE_CALL/TASK step has fired — the live status of the
+  // Callback/Task it created is more current than the execution row itself.
+  callback: { id: string; status: string; scheduledAt: string } | null;
+  task: { id: string; status: string; dueAt: string } | null;
+}
+
 export interface ContactActionPlanAssignment {
   id: string;
   contactId: string;
@@ -684,6 +701,7 @@ export interface ContactActionPlanAssignment {
   startDate: string;
   status: "ACTIVE" | "COMPLETED" | "REMOVED";
   createdAt: string;
+  stepExecutions: ContactActionPlanStepExecution[];
 }
 
 // Real "is this contact on a plan" status — distinct from the Calendar rows
