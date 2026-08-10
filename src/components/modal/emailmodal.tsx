@@ -39,6 +39,16 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, initialData, i
       toast.error("Please enter an email address");
       return;
     }
+    // The backend intentionally doesn't enforce email format here anymore —
+    // this contact's other, untouched emails may be legacy junk from an
+    // import (e.g. "none", or several addresses crammed into one field with
+    // semicolons) that would otherwise block every future edit to the
+    // contact. This is the one place a human actually types a new address,
+    // so it's the right place to catch an obvious typo before it's saved.
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
 
     const emailEntry = {
       email: email,
