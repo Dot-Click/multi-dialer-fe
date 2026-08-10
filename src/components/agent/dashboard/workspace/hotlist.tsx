@@ -2,40 +2,14 @@ import { useEffect, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
 import { Link } from "react-router-dom";
 import api from "@/lib/axios";
+import dayjs from "dayjs";
 
 interface HotlistContact {
   id: string;
   fullName: string;
   phone: string | null;
-  totalDialingTime: number; // seconds
-  avgConfidence: number;
-  sentiment: string;
-}
-
-function formatSeconds(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${s}s`;
-  return `${s}s`;
-}
-
-function SentimentBadge({ sentiment }: { sentiment: string }) {
-  const colors: Record<string, string> = {
-    positive: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
-    neutral: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
-    negative: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
-  };
-  return (
-    <span
-      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
-        colors[sentiment] ?? colors.neutral
-      }`}
-    >
-      {sentiment}
-    </span>
-  );
+  markedAt: string;
+  markedBy: string | null;
 }
 
 const HotList = () => {
@@ -65,7 +39,7 @@ const HotList = () => {
             Hotlist
           </h1>
           <p className="text-[11px] font-bold text-black mt-0.5">
-            Top contacts by dialing time
+            Marked as Lead today
           </p>
         </div>
         <Link
@@ -98,10 +72,10 @@ const HotList = () => {
           <div className="flex flex-col items-center justify-center h-full py-8 gap-2 text-center">
             <span className="text-3xl">📋</span>
             <p className="text-[13px] text-black">
-              No hotlist data yet.
+              No leads marked yet today.
             </p>
             <p className="text-[11px] text-black">
-              Data appears after contacts are called.
+              Contacts appear here as soon as they're marked as a Lead.
             </p>
           </div>
         ) : (
@@ -111,11 +85,11 @@ const HotList = () => {
               to={`/data-dialer/contact-detail/${cont.id}`}
               className="flex mx-1 rounded-lg border gap-0 items-center border-[#F3F4F7] dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-900/50 transition-colors duration-150"
             >
-              {/* Rank / Dialing time badge */}
+              {/* Rank badge */}
               <div className="bg-[#FFF7DB] dark:bg-orange-900/30 rounded-l-lg text-[#D66400] dark:text-orange-400 flex flex-col items-center justify-center px-3 py-3 min-w-[52px]">
                 <span className="text-[13px] font-bold">#{idx + 1}</span>
-                <span className="text-[9px] font-medium leading-tight text-center mt-0.5">
-                  {formatSeconds(cont.totalDialingTime)}
+                <span className="text-[9px] font-medium leading-tight text-center mt-0.5 tabular-nums">
+                  {dayjs(cont.markedAt).format("h:mm A")}
                 </span>
               </div>
 
@@ -125,18 +99,16 @@ const HotList = () => {
                   <h1 className="text-[14px] font-[500] text-[#000000] dark:text-white leading-tight">
                     {cont.fullName}
                   </h1>
-                  <p className="text-[12px] font-[400] text-black">
+                  <p className="text-[12px] font-[400] text-black tabular-nums">
                     {cont.phone ?? "No phone"}
                   </p>
                 </div>
 
-                {/* Confidence + Sentiment */}
-                <div className="flex flex-col items-end gap-1">
-                  <SentimentBadge sentiment={cont.sentiment} />
-                  <span className="text-[10px] text-black">
-                    {Math.round(cont.avgConfidence * 100)}% conf.
+                {cont.markedBy && (
+                  <span className="text-[10px] text-black text-right">
+                    by {cont.markedBy}
                   </span>
-                </div>
+                )}
               </div>
             </Link>
           ))
