@@ -22,7 +22,7 @@ const getContactName = (cb: DueCallback) => cb.contact?.fullName || cb.lead?.ful
 const getDialablePhone = (cb: DueCallback) => {
     const phones = cb.contact?.phones || [];
     const dialable = phones.filter((p) => p.isValid !== false && !p.isDnc);
-    return dialable.find((p) => p.isPrimary)?.number || dialable[0]?.number || null;
+    return dialable.find((p) => p.isBestNumber)?.number || dialable[0]?.number || null;
 };
 
 const getOverdueLabel = (scheduledAt: string) => {

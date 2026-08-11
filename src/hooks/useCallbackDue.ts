@@ -6,7 +6,7 @@ export type CallbackStatus = "PENDING" | "DUE" | "COMPLETED" | "MISSED" | "CANCE
 export interface DueCallbackContact {
     id: string;
     fullName: string;
-    phones?: { number: string; isPrimary: boolean; isValid?: boolean; isDnc?: boolean }[];
+    phones?: { number: string; isBestNumber: boolean; isValid?: boolean; isDnc?: boolean }[];
 }
 
 export interface DueCallback {

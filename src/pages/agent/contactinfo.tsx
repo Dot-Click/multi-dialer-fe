@@ -781,7 +781,7 @@ const ContactInfo = () => {
     // queue), then dial it directly with the agent's current caller ID.
     const handleCallbackDueCallNow = useCallback(async (callback: DueCallback) => {
         const contactId = callback.contactId || callback.contact?.id;
-        const phone = callback.contact?.phones?.find((p) => p.isPrimary && p.isValid !== false && !p.isDnc)?.number
+        const phone = callback.contact?.phones?.find((p) => p.isBestNumber && p.isValid !== false && !p.isDnc)?.number
             || callback.contact?.phones?.find((p) => p.isValid !== false && !p.isDnc)?.number;
 
         if (!contactId || !phone) {

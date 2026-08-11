@@ -34,7 +34,7 @@ const GoToCalender = () => {
             style={{ borderColor: ev.color || '#D43435' }}
         >
             <h1 className="text-[15px] font-medium text-[#0E1011] dark:text-white truncate">{ev.title}</h1>
-            <h1 className="text-[13px] font-normal text-black">
+            <h1 className="text-[13px] font-normal text-secondary-heading">
                 {moment(ev.startDate).format("HH:mm")} - {ev.endDate ? moment(ev.endDate).format("HH:mm") : "..."}
             </h1>
         </div>
@@ -48,7 +48,7 @@ const GoToCalender = () => {
                     <h1 className="text-[20px] text-heading font-medium">{today.format("MMMM DD")}</h1>
                 </div>
                 <div onClick={() => goToCalendar()} className="flex gap-1 cursor-pointer items-center text-secondary-heading">
-                    <span className="text-[16px] font-medium">Go to Calendar</span>
+                    <span className="text-[13px] font-medium">Go to Calendar</span>
                     <span><IoIosArrowForward className="text-[19px] font-normal" /></span>
                 </div>
             </div>
