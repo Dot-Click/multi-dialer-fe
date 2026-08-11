@@ -63,6 +63,8 @@ const SuperAdminUserManagement = () => {
   const [invoicesUser, setInvoicesUser] = useState<any | null>(null);
   const [phoneNumbersUser, setPhoneNumbersUser] = useState<any | null>(null);
   const [changeCardUser, setChangeCardUser] = useState<any | null>(null);
+  const [deletingUser, setDeletingUser] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -281,7 +283,7 @@ const SuperAdminUserManagement = () => {
                 Change Card
               </button>
               <button
-                onClick={() => handleDelete(user.id)}
+                onClick={() => { setDeletingUser(user); setOpenMenuUserId(null); }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
               >
                 Delete
@@ -302,12 +304,16 @@ const SuperAdminUserManagement = () => {
   ];
   const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
 
-  const handleDelete = async (userId: string) => {
-    const success = await deleteUser(userId);
-    if (success) {
-      await fetchUsers();
+  const confirmDelete = async () => {
+    if (!deletingUser) return;
+    setIsDeleting(true);
+    try {
+      const success = await deleteUser(deletingUser.id);
+      if (success) await fetchUsers();
+    } finally {
+      setIsDeleting(false);
+      setDeletingUser(null);
     }
-    setOpenMenuUserId(null);
   };
 
   return (
@@ -323,6 +329,48 @@ const SuperAdminUserManagement = () => {
         onClose={() => setEditingUser(null)}
         onSuccess={fetchUsers}
       />
+
+      {deletingUser && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4"
+          onClick={() => !isDeleting && setDeletingUser(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 w-full max-w-[420px] rounded-[16px] shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-[18px] font-semibold text-[#111] dark:text-white mb-2">
+              Delete user?
+            </h3>
+            <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed">
+              Permanently delete{" "}
+              <strong className="text-[#111] dark:text-white">
+                {deletingUser.fullName || deletingUser.name || deletingUser.email}
+              </strong>
+              ? This cancels any linked Twilio numbers, releases the account's
+              stored files, and cannot be undone.
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeletingUser(null)}
+                className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-2.5 rounded-[10px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                className="flex-1 bg-red-600 text-white font-[500] py-2.5 rounded-[10px] hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <UserInvoicesModal
         isOpen={!!invoicesUser}
