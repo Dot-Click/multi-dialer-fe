@@ -291,7 +291,6 @@ function EmailList({ contact, onEdit, dispatch }: EmailListProps) {
         </div>
     );
 }
-import RealtorLogo from '@/assets/realtor.png';
 import GoogleMapsLogo from '@/assets/googlemap.png';
 import toast from 'react-hot-toast'
 import { TbEdit } from "react-icons/tb";
@@ -356,7 +355,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     const [emailModal, setEmailModal] = useState(false);
     const [editingEmail, setEditingEmail] = useState<any>(null);
     const [editingEmailIndex, setEditingEmailIndex] = useState<number | undefined>(undefined);
-    const [isOpeningRealtor, setIsOpeningRealtor] = useState(false);
+    const [isOpeningZillow, setIsOpeningZillow] = useState(false);
 
     const [_selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [selectedListId, setSelectedListId] = useState<string>('');
@@ -440,7 +439,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         }
     }
 
-    const handleOpenRealtor = async () => {
+    const handleOpenZillow = async () => {
         if (!currentContact?.id) {
             toast.error("No contact loaded");
             return;
@@ -451,28 +450,28 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
             return;
         }
 
-        setIsOpeningRealtor(true);
+        setIsOpeningZillow(true);
 
         try {
-            console.log("[Realtor] Fetching realtor link for contact:", currentContact.id);
-            const response = await api.get(`/contact/${currentContact.id}/realtor-link`);
-            console.log("[Realtor] Response:", response);
-            
-            const realtorUrl = response.data?.data?.realtorUrl;
-            if (!realtorUrl) {
-                throw new Error("No Realtor property link was returned");
+            console.log("[Zillow] Fetching Zillow link for contact:", currentContact.id);
+            const response = await api.get(`/contact/${currentContact.id}/zillow-link`);
+            console.log("[Zillow] Response:", response);
+
+            const zillowUrl = response.data?.data?.zillowUrl;
+            if (!zillowUrl) {
+                throw new Error("No Zillow property link was returned");
             }
 
-            console.log("[Realtor] Opening URL:", realtorUrl);
-            window.open(realtorUrl, "_blank", "noopener,noreferrer");
-            toast.success("Realtor page opened");
+            console.log("[Zillow] Opening URL:", zillowUrl);
+            window.open(zillowUrl, "_blank", "noopener,noreferrer");
+            toast.success("Zillow page opened");
         } catch (error: any) {
-            console.error("[Realtor] Error:", error);
-            const errorMessage = error?.response?.data?.message || error?.message || "Unable to open Realtor property page";
-            console.error("[Realtor] Error message:", errorMessage);
+            console.error("[Zillow] Error:", error);
+            const errorMessage = error?.response?.data?.message || error?.message || "Unable to open Zillow property page";
+            console.error("[Zillow] Error message:", errorMessage);
             toast.error(errorMessage);
         } finally {
-            setIsOpeningRealtor(false);
+            setIsOpeningZillow(false);
         }
     };
 
@@ -645,13 +644,19 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                         <div className="flex flex-wrap gap-2">
                             <button
                                 type="button"
-                                onClick={handleOpenRealtor}
-                                disabled={!propertyAddressQuery || isOpeningRealtor}
-                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 transition-all hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-slate-700 dark:hover:bg-slate-600 ${!propertyAddressQuery || isOpeningRealtor ? "cursor-not-allowed opacity-50" : ""
+                                onClick={handleOpenZillow}
+                                disabled={!propertyAddressQuery || isOpeningZillow}
+                                className={`inline-flex w-fit items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 transition-all hover:bg-gray-50 active:scale-95 dark:border-white/10 dark:bg-slate-700 dark:hover:bg-slate-600 ${!propertyAddressQuery || isOpeningZillow ? "cursor-not-allowed opacity-50" : ""
                                     }`}
-                                title="Realtor"
+                                title="Open on Zillow"
                             >
-                                <img src={RealtorLogo} alt="Realtor" className="h-4 w-auto object-contain" />
+                                <span
+                                    className="flex h-4 w-4 items-center justify-center rounded-[3px] text-[11px] font-extrabold leading-none text-white"
+                                    style={{ backgroundColor: "#006AFF" }}
+                                    aria-label="Zillow"
+                                >
+                                    Z
+                                </span>
                             </button>
                             <a
                                 href={googleMapsUrl || undefined}
