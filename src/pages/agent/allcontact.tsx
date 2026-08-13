@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { IoFilter } from "react-icons/io5";
 import { IoIosSearch } from "react-icons/io";
-import { FiRefreshCw } from "react-icons/fi";
+// import { FiRefreshCw } from "react-icons/fi";
 import AllContactComponent from "@/components/agent/contact/allcontact";
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
 import callIcon from "../../assets/callsicon.png";
 import managecolicon from "../../assets/managecolicon.png";
 import CreateCallSettingModal from "@/components/admin/systemsettings/CreateCallSettingModal";
-import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
-import { useLeadStore } from "@/hooks/useLeadStore";
+// import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
+// import { useLeadStore } from "@/hooks/useLeadStore";
 import toast from "react-hot-toast";
 
 type OutletContextType = {
@@ -26,11 +26,11 @@ const AllContact = () => {
   const [isDialSettingOpen, setIsDialSettingOpen] = useState(false);
 
   const { activeItem } = useOutletContext<OutletContextType>();
-  const { configs, syncNow } = useMyPlusLeads();
-  const { subscriptions } = useLeadStore();
-  const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
-  const hasActiveSubscription = subscriptions.some((s) => s.status === "ACTIVE");
-  const canSyncMpl = hasMplConnected && hasActiveSubscription;
+  // const { configs, syncNow } = useMyPlusLeads();
+  // const { subscriptions } = useLeadStore();
+  // const hasMplConnected = configs.some((c) => c.status === "CONNECTED");
+  // const hasActiveSubscription = subscriptions.some((s) => s.status === "ACTIVE");
+  // const canSyncMpl = hasMplConnected && hasActiveSubscription;
 
   const getBreadcrumb = () => {
     if (activeItem.type === "allContacts") return "";
@@ -60,7 +60,7 @@ const AllContact = () => {
           </h1>
 
           <div className="flex items-center gap-2">
-          {canSyncMpl && (
+          {/* {canSyncMpl && (
             <button
               type="button"
               onClick={() => syncNow.mutate()}
@@ -72,7 +72,7 @@ const AllContact = () => {
                 {syncNow.isPending ? "Syncing..." : "Sync MPL"}
               </span>
             </button>
-          )}
+          )} */}
           {/* Manage Columns button */}
           <div
             className="flex gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md cursor-pointer px-3 py-1.5 items-center justify-center bg-transparent transition-colors"
