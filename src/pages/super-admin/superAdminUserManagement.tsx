@@ -65,6 +65,7 @@ const SuperAdminUserManagement = () => {
   const [changeCardUser, setChangeCardUser] = useState<any | null>(null);
   const [deletingUser, setDeletingUser] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
 
   const fetchUsers = async () => {
@@ -304,15 +305,21 @@ const SuperAdminUserManagement = () => {
   ];
   const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
 
+  const closeDeleteModal = () => {
+    setDeletingUser(null);
+    setDeleteConfirmText("");
+  };
+
   const confirmDelete = async () => {
     if (!deletingUser) return;
+    if (deleteConfirmText.trim().toLowerCase() !== deletingUser.email?.toLowerCase()) return;
     setIsDeleting(true);
     try {
       const success = await deleteUser(deletingUser.id);
       if (success) await fetchUsers();
     } finally {
       setIsDeleting(false);
-      setDeletingUser(null);
+      closeDeleteModal();
     }
   };
 
@@ -333,7 +340,7 @@ const SuperAdminUserManagement = () => {
       {deletingUser && (
         <div
           className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4"
-          onClick={() => !isDeleting && setDeletingUser(null)}
+          onClick={() => !isDeleting && closeDeleteModal()}
         >
           <div
             className="bg-white dark:bg-slate-800 w-full max-w-[420px] rounded-[16px] shadow-xl p-6"
@@ -350,20 +357,33 @@ const SuperAdminUserManagement = () => {
               ? This cancels any linked Twilio numbers, releases the account's
               stored files, and cannot be undone.
             </p>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-4 mb-1.5">
+              Type <strong className="text-[#111] dark:text-white">{deletingUser.email}</strong> to confirm.
+            </p>
+            <input
+              type="text"
+              autoFocus
+              autoComplete="off"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Enter account email"
+              disabled={isDeleting}
+              className="w-full bg-gray-100 dark:bg-slate-700 border-none outline-none text-sm dark:text-white dark:placeholder-gray-400 rounded-[10px] px-4 py-2.5 focus:ring-2 focus:ring-red-400 transition disabled:opacity-50"
+            />
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
                 disabled={isDeleting}
-                onClick={() => setDeletingUser(null)}
+                onClick={closeDeleteModal}
                 className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-2.5 rounded-[10px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                disabled={isDeleting}
+                disabled={isDeleting || deleteConfirmText.trim().toLowerCase() !== deletingUser.email?.toLowerCase()}
                 onClick={confirmDelete}
-                className="flex-1 bg-red-600 text-white font-[500] py-2.5 rounded-[10px] hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex-1 bg-red-600 text-white font-[500] py-2.5 rounded-[10px] hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isDeleting ? "Deleting…" : "Delete"}
               </button>
