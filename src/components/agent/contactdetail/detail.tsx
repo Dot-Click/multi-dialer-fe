@@ -8,7 +8,7 @@ import {
     assignContactToList,
     setCurrentContactFields,
 } from '@/store/slices/contactSlice';
-import { fetchDispositions, applyDisposition } from '@/store/slices/dispositionSlice';
+import { fetchDispositions, applyDisposition, fetchContactDispositions, setContactDispositions } from '@/store/slices/dispositionSlice';
 import { MapPin, Mail, Phone, Plus, MoreVertical, User, Check, Tag, MessageSquare, List, Star, Pencil, Copy, Trash2 } from "lucide-react";
 import EditModal from '@/components/modal/editmodal';
 import PhoneModal from '@/components/modal/phonemodal';
@@ -367,6 +367,13 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     const [overrideFolderId, _setOverrideFolderId] = useState<string | null>(null);
     const [showApplyModal, setShowApplyModal] = useState(false);
 
+    // ── Tag-disposition state (multi-select; see ContactDisposition join
+    // table — separate from selectedDisp above, which remains the single
+    // folder-moving disposition a contact can be "in" at a time) ──
+    const [savedTagIds, setSavedTagIds] = useState<Set<string>>(new Set());
+    const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
+    const [savingTags, setSavingTags] = useState(false);
+
     // const SMART_VALUES = ["CONTACT", "NO_ANSWER", "BAD_NUMBER", "VOICEMAIL", "DNC_CONTACT", "DNC_NUMBER"];
 
     useEffect(() => {
@@ -393,6 +400,22 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
             setSavedDisp(d);
         }
     }, [currentContact?.id, currentContact?.disposition]);
+
+    // Load this contact's currently-applied tag dispositions
+    useEffect(() => {
+        if (!currentContact?.id) {
+            setSavedTagIds(new Set());
+            setSelectedTagIds(new Set());
+            return;
+        }
+        dispatch(fetchContactDispositions(currentContact.id)).then((result) => {
+            if (fetchContactDispositions.fulfilled.match(result)) {
+                const ids = new Set(result.payload);
+                setSavedTagIds(ids);
+                setSelectedTagIds(new Set(ids));
+            }
+        });
+    }, [currentContact?.id]);
 
     useEffect(() => {
         if (currentContact) {
@@ -548,6 +571,38 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         }
     }
 
+    function toggleTag(dispositionId: string) {
+        setSelectedTagIds(prev => {
+            const next = new Set(prev);
+            next.has(dispositionId) ? next.delete(dispositionId) : next.add(dispositionId);
+            return next;
+        });
+    }
+
+    async function handleSaveTags() {
+        if (!currentContact?.id) { toast.error("No contact loaded"); return; }
+        const unchanged =
+            selectedTagIds.size === savedTagIds.size &&
+            [...selectedTagIds].every(id => savedTagIds.has(id));
+        if (unchanged) { toast("No disposition changes to save"); return; }
+
+        setSavingTags(true);
+        const result = await dispatch(
+            setContactDispositions({
+                contactId: currentContact.id,
+                dispositionIds: [...selectedTagIds],
+            })
+        );
+        if (setContactDispositions.fulfilled.match(result)) {
+            setSavedTagIds(new Set(result.payload));
+            setSelectedTagIds(new Set(result.payload));
+            toast.success("Dispositions updated");
+        } else {
+            toast.error((result.payload as string) ?? "Failed to update dispositions");
+        }
+        setSavingTags(false);
+    }
+
     // function getDispLabel(value: string) {
     //     return dispositions.find(d => d.value === value)?.label ?? value;
     // }
@@ -582,7 +637,17 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
 
     const activeDispositions = dispositions.filter(d => d.isActive);
     // const smartItems = activeDispositions.filter(d => SMART_VALUES.includes(d.value.toUpperCase()));
-    const customDispositions = activeDispositions.filter(d => !d.isSystem);
+    const allCustomDispositions = activeDispositions.filter(d => !d.isSystem);
+    // Folder-moving dispositions (e.g. Trash) stay single-select — a contact
+    // can only be in one folder at a time, so exclusivity is a real
+    // constraint. Everything else is a non-exclusive tag: multiple can be
+    // applied to the same contact at once (e.g. "Not Interested" + "Warm").
+    const customDispositions = allCustomDispositions.filter(d => d.targetFolderId);
+    const tagCustomDispositions = allCustomDispositions.filter(d => !d.targetFolderId);
+    const isTagsDirty = !(
+        selectedTagIds.size === savedTagIds.size &&
+        [...selectedTagIds].every(id => savedTagIds.has(id))
+    );
 
     // "Calls" counts how many times this contact was brought to the dialer, not
     // how many lines were dialed. Records sharing a sessionId came from the same
@@ -760,6 +825,47 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                                         : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
                                         }`}
                                 >
+                                    <Icon className="w-3 h-3 shrink-0" />
+                                    {d.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM DISPOSITIONS — MULTI-SELECT TAGS */}
+            {tagCustomDispositions.length > 0 && (
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-white/5 pb-1">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Tag size={13} className="text-gray-400 dark:text-gray-500" />
+                            <h1 className='text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-gray-400'>Dispositions</h1>
+                        </div>
+                        {isTagsDirty && (
+                            <button
+                                onClick={handleSaveTags}
+                                disabled={savingTags}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold rounded-full bg-[#FFCA06] hover:bg-[#f0bc00] text-gray-900 transition-all active:scale-95"
+                            >
+                                {savingTags ? "Saving…" : "Update Dispositions"}
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {tagCustomDispositions.map(d => {
+                            const Icon = ICON_MAP[d.icon] ?? User;
+                            const isActive = selectedTagIds.has(d.id);
+                            return (
+                                <button
+                                    key={d.id}
+                                    onClick={() => toggleTag(d.id)}
+                                    className={`inline-flex items-center gap-2 px-3 py-1 text-[11px] rounded-full border font-bold transition-all duration-150 active:scale-95 ${isActive
+                                        ? (COLOR_ACTIVE[d.color] || COLOR_ACTIVE.red)
+                                        : (COLOR_IDLE[d.color] || COLOR_IDLE.red)
+                                        }`}
+                                >
+                                    {isActive && <Check className="w-3 h-3 shrink-0" />}
                                     <Icon className="w-3 h-3 shrink-0" />
                                     {d.label}
                                 </button>
