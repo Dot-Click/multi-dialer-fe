@@ -113,10 +113,15 @@ const ContactLayout = () => {
         ? "Contact(s) permanently deleted"
         : activeItem.type === "folder"
           ? "Contact(s) removed from folder successfully"
-          : "Contact(s) deleted successfully";
-        
+          : "Contact(s) moved to Trash";
+
       toast.success(successMsg);
-      setSelectedContacts([]);
+      // Unlike the optimistic Redux removal this relied on before, a
+      // refetch is needed here too — the backend now moves contacts to the
+      // Trash folder (via a plain contact.updateMany, not a Redux-visible
+      // list mutation), so the source view can otherwise show a contact
+      // that's actually gone until the next full reload.
+      refreshActiveView();
       setShowDeleteModal(false);
     } catch (error: any) {
       setLoading(false);
