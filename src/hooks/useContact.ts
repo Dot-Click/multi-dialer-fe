@@ -114,8 +114,13 @@ export const useContact = () => {
   const getContacts = async (): Promise<ContactBackend[]> => {
     setLoading(true);
     try {
-      const response = await api.get("/contact");
-      return response.data.data;
+      // GET /contact is paginated — response.data.data is
+      // { contacts, total, page, totalPages }, not a bare array (see
+      // contactSlice.ts's fetchContacts thunk for the same shape). Request
+      // the max page size since callers of this hook function want the
+      // full list, not just the first page.
+      const response = await api.get("/contact", { params: { limit: 200 } });
+      return response.data.data?.contacts ?? [];
     } catch (err: any) {
       console.error("Error fetching contacts:", err);
       return [];
