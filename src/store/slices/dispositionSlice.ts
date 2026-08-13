@@ -128,6 +128,36 @@ export const applyDisposition = createAsyncThunk(
     }
 );
 
+// Currently-applied "tag" dispositions for a contact — independent of the
+// single folder-moving applyDisposition flow above. Lets a contact carry
+// more than one non-exclusive disposition at once (e.g. "Hot Lead" + "Follow
+// Up"), unlike Contact.disposition (a scalar).
+export const fetchContactDispositions = createAsyncThunk(
+    "dispositions/fetchForContact",
+    async (contactId: string, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/system-settings/dispositions/contact/${contactId}`);
+            if (response.data.success) return response.data.data.dispositionIds as string[];
+            return rejectWithValue(response.data.message || "Failed to fetch contact dispositions");
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const setContactDispositions = createAsyncThunk(
+    "dispositions/setForContact",
+    async ({ contactId, dispositionIds }: { contactId: string; dispositionIds: string[] }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/system-settings/dispositions/contact/${contactId}`, { dispositionIds });
+            if (response.data.success) return response.data.data.dispositionIds as string[];
+            return rejectWithValue(response.data.message || "Failed to update contact dispositions");
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 const dispositionSlice = createSlice({
     name: "dispositions",
     initialState,
