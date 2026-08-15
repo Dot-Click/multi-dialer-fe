@@ -84,10 +84,22 @@ const TableComponent: FC<
         fetchNextPage();
       }
     }, [isIntersecting, hasNextPage, fetchNextPage]);
+    // Sticky columns (position: sticky on <td>/<th>) silently break under the
+    // default border-collapse: collapse table styling — a well-known
+    // cross-browser limitation, not just a Tailwind quirk. border-separate is
+    // required for sticky cells to actually stay put. Scoped to only tables
+    // that use a sticky column so no other table's border rendering changes.
+    const hasStickyColumn = table
+      .getAllLeafColumns()
+      .some((col) => col.columnDef.meta?.sticky);
     return (
       <>
         <Table
-          className={cn("overflow-hidden text-[13px]", isLoading && "min-h-[50vh]")}
+          className={cn(
+            "overflow-hidden text-[13px]",
+            isLoading && "min-h-[50vh]",
+            hasStickyColumn && "border-separate border-spacing-0"
+          )}
         >
           <TableHeader className="bg-slate-50 sticky top-0 z-10 dark:bg-slate-800/50 text-slate-700 font-semibold text-[13px]">
             {table.getHeaderGroups().map((headerGroup) => (

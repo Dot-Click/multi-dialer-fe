@@ -24,7 +24,6 @@ const PLAIN_TEXT_FIELDS: { key: string; accessorKey: string; label: string }[] =
   { key: "City", accessorKey: "city", label: "City" },
   { key: "State", accessorKey: "state", label: "State" },
   { key: "Zip", accessorKey: "zip", label: "Zip" },
-  { key: "Description", accessorKey: "description", label: "Description" },
   { key: "Status", accessorKey: "status", label: "Status" },
 ];
 
@@ -103,6 +102,22 @@ const tagsColumn = {
   },
 };
 
+const descriptionColumn = {
+  accessorKey: "description",
+  header: (info: any) => <SortedHeader header={info.header} label="Description" />,
+  cell: ({ getValue }: any) => {
+    const value = getValue();
+    return (
+      <span
+        title={value || undefined}
+        className="text-[#495057] dark:text-gray-300 block max-w-[220px] truncate"
+      >
+        {value || "-"}
+      </span>
+    );
+  },
+};
+
 // Fixed pixel widths so the two sticky-right columns stack cleanly without
 // overlapping (Locations is the rightmost, at offset 0; Reason sits just to
 // its left, offset by Locations' own width).
@@ -155,6 +170,7 @@ const colByLabel: Record<string, any> = {
   Phone: phoneColumn,
   Email: emailColumn,
   Tags: tagsColumn,
+  Description: descriptionColumn,
   ...plainColumns,
 };
 
