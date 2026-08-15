@@ -30,6 +30,9 @@ interface ManageColumnsModalProps {
   onClose: () => void;
   initialDisplayColumns?: string[];
   onApply?: (columns: string[]) => void;
+  // Page-specific fields to offer alongside the static list (e.g. Find
+  // Duplicates' "Reason"/"Locations", which aren't real contact fields).
+  extraFields?: string[];
 }
 
 // A single draggable row in the "Fields to display" list — the grip handle
@@ -77,6 +80,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   onClose,
   initialDisplayColumns,
   onApply,
+  extraFields,
 }) => {
   const { data: miscFields } = useMiscFields();
 
@@ -93,10 +97,10 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   );
 
   // allFields is derived — recalculates whenever miscFieldNames loads/changes.
-  const allFields = useMemo(
-    () => [...STATIC_FIELDS, ...miscFieldNames.filter((f) => !STATIC_FIELDS.includes(f))],
-    [miscFieldNames]
-  );
+  const allFields = useMemo(() => {
+    const base = [...STATIC_FIELDS, ...(extraFields ?? [])];
+    return [...base, ...miscFieldNames.filter((f) => !base.includes(f))];
+  }, [miscFieldNames, extraFields]);
 
   const defaultDisplay = initialDisplayColumns ?? allFields.slice(0, 4);
 

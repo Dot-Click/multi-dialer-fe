@@ -13,9 +13,12 @@ import { fetchDuplicateContacts } from "@/store/slices/contactSlice";
 import { FiSmartphone } from "react-icons/fi";
 
 // --- Column Definitions ---
-// Labels match ManageColumnsModal's STATIC_FIELDS so "Manage Columns" can
-// toggle/reorder these. "Reason" and "Locations" aren't part of that list —
-// they're specific to this page and always shown, same treatment as "select".
+// Labels match ManageColumnsModal's fields so "Manage Columns" can
+// toggle/reorder these. "Reason" and "Locations" are page-specific extra
+// fields (passed to the modal via `extraFields`) — like every other column,
+// their position in the table is just wherever they land in visibleColumns,
+// so the user can drag them next to Name if they want them always in view
+// without scrolling.
 
 const PLAIN_TEXT_FIELDS: { key: string; accessorKey: string; label: string }[] = [
   { key: "Last Dialed", accessorKey: "lastDialedDate", label: "Last Dialed Date" },
@@ -27,7 +30,12 @@ const PLAIN_TEXT_FIELDS: { key: string; accessorKey: string; label: string }[] =
   { key: "Status", accessorKey: "status", label: "Status" },
 ];
 
-export const DEFAULT_DUPLICATE_VISIBLE_COLUMNS = ["Name", "Last Dialed", "Phone", "Email", "Tags"];
+export const DEFAULT_DUPLICATE_VISIBLE_COLUMNS = ["Name", "Last Dialed", "Phone", "Email", "Tags", "Reason", "Locations"];
+
+// The extra, page-specific fields Manage Columns should offer here in
+// addition to its own static list — these aren't real contact fields, they're
+// unique to the duplicates view.
+export const DUPLICATE_EXTRA_FIELDS = ["Reason", "Locations"];
 
 const selectColumn = {
   id: "select",
@@ -118,12 +126,6 @@ const descriptionColumn = {
   },
 };
 
-// Fixed pixel widths so the two sticky-right columns stack cleanly without
-// overlapping (Locations is the rightmost, at offset 0; Reason sits just to
-// its left, offset by Locations' own width).
-const LOCATIONS_STICKY_WIDTH = 160;
-const REASON_STICKY_WIDTH = 130;
-
 const reasonColumn = {
   accessorKey: "duplicateReason",
   header: (info: any) => <SortedHeader header={info.header} label="Reason" />,
@@ -132,11 +134,6 @@ const reasonColumn = {
       {getValue() || "Unknown"}
     </span>
   ),
-  meta: {
-    sticky: "right" as const,
-    stickyOffsetPx: LOCATIONS_STICKY_WIDTH,
-    stickyWidthPx: REASON_STICKY_WIDTH,
-  },
 };
 
 const locationsColumn = {
@@ -147,11 +144,6 @@ const locationsColumn = {
       {getValue() || "-"}
     </span>
   ),
-  meta: {
-    sticky: "right" as const,
-    stickyOffsetPx: 0,
-    stickyWidthPx: LOCATIONS_STICKY_WIDTH,
-  },
 };
 
 const plainColumns = PLAIN_TEXT_FIELDS.reduce<Record<string, any>>((acc, { key, accessorKey, label }) => {
@@ -171,6 +163,8 @@ const colByLabel: Record<string, any> = {
   Email: emailColumn,
   Tags: tagsColumn,
   Description: descriptionColumn,
+  Reason: reasonColumn,
+  Locations: locationsColumn,
   ...plainColumns,
 };
 
@@ -197,7 +191,7 @@ const FindDuplicates = ({
   const columns = useMemo(() => {
     const labels = visibleColumns && visibleColumns.length > 0 ? visibleColumns : DEFAULT_DUPLICATE_VISIBLE_COLUMNS;
     const ordered = labels.map((label) => colByLabel[label]).filter(Boolean);
-    return [selectColumn, ...ordered, reasonColumn, locationsColumn];
+    return [selectColumn, ...ordered];
   }, [visibleColumns]);
 
   if (isLoading) {

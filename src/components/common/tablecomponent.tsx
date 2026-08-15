@@ -35,14 +35,6 @@ import { Stack } from "@/components/ui/stack";
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TData, TValue> {
     mobileHeader?: string;
-    // Opt-in horizontal sticky column (stays visible while the table scrolls
-    // sideways) — e.g. for a wide table with many optional columns where a
-    // couple should always stay in view. `stickyOffsetPx` lets multiple
-    // sticky-right/left columns stack without overlapping (each one's offset
-    // = the combined width of the sticky columns already "outside" it).
-    sticky?: "left" | "right";
-    stickyOffsetPx?: number;
-    stickyWidthPx?: number;
   }
 }
 interface WithVirtualScroll {
@@ -84,22 +76,10 @@ const TableComponent: FC<
         fetchNextPage();
       }
     }, [isIntersecting, hasNextPage, fetchNextPage]);
-    // Sticky columns (position: sticky on <td>/<th>) silently break under the
-    // default border-collapse: collapse table styling — a well-known
-    // cross-browser limitation, not just a Tailwind quirk. border-separate is
-    // required for sticky cells to actually stay put. Scoped to only tables
-    // that use a sticky column so no other table's border rendering changes.
-    const hasStickyColumn = table
-      .getAllLeafColumns()
-      .some((col) => col.columnDef.meta?.sticky);
     return (
       <>
         <Table
-          className={cn(
-            "overflow-hidden text-[13px]",
-            isLoading && "min-h-[50vh]",
-            hasStickyColumn && "border-separate border-spacing-0"
-          )}
+          className={cn("overflow-hidden text-[13px]", isLoading && "min-h-[50vh]")}
         >
           <TableHeader className="bg-slate-50 sticky top-0 z-10 dark:bg-slate-800/50 text-slate-700 font-semibold text-[13px]">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -114,34 +94,10 @@ const TableComponent: FC<
                 )}
               >
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
                   return (
                     <TableHead
                       key={header.id}
-                      className={cn(
-                        "py-3.5 text-left dark:bg-slate-800 dark:text-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px] px-5",
-                        // z-30 (above both the thead's own z-10 and the body
-                        // sticky cells' z-10) so this "frozen corner" cell —
-                        // sticky on both the top AND left/right axes at once —
-                        // never gets visually covered by scrolling content.
-                        meta?.sticky && "sticky z-30 bg-slate-50 dark:bg-slate-800",
-                        meta?.sticky === "right" && "border-l border-slate-200 dark:border-slate-700"
-                      )}
-                      style={
-                        meta?.sticky
-                          ? {
-                              [meta.sticky]: meta.stickyOffsetPx ?? 0,
-                              // Sticky on the top axis too — without this, the
-                              // cell only inherits vertical position from the
-                              // (also-sticky) <thead>, which isn't enough to
-                              // guarantee it stays put once it's independently
-                              // sticky on the right/left axis as well.
-                              top: 0,
-                              width: meta.stickyWidthPx,
-                              minWidth: meta.stickyWidthPx,
-                            }
-                          : undefined
-                      }
+                      className="py-3.5 text-left dark:bg-slate-800 dark:text-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px] px-5"
                     >
                       {header.isPlaceholder
                         ? null
@@ -168,9 +124,7 @@ const TableComponent: FC<
                       "cursor-pointer"
                   )}
                 >
-                  {row.getVisibleCells().map((cell, i) => {
-                    const meta = cell.column.columnDef.meta;
-                    return (
+                  {row.getVisibleCells().map((cell, i) => (
                     <TableCell
                       key={i}
                       onClick={() => {
@@ -183,20 +137,7 @@ const TableComponent: FC<
                           onDoubleClickHandler?.(row);
                         }
                       }}
-                      className={cn(
-                        "py-3 text-slate-600 dark:text-slate-300 px-5 font-medium",
-                        meta?.sticky ? "sticky z-10 bg-white dark:bg-slate-900 border-0" : "border-0",
-                        meta?.sticky === "right" && "border-l border-slate-200 dark:border-slate-700"
-                      )}
-                      style={
-                        meta?.sticky
-                          ? {
-                              [meta.sticky]: meta.stickyOffsetPx ?? 0,
-                              width: meta.stickyWidthPx,
-                              minWidth: meta.stickyWidthPx,
-                            }
-                          : undefined
-                      }
+                      className="py-3 text-slate-600 dark:text-slate-300 px-5 border-0 font-medium"
                     >
                       {row.id === selectedRowId ? (
                         <Skeleton className="size-full h-10" />
@@ -207,8 +148,7 @@ const TableComponent: FC<
                         )
                       )}
                     </TableCell>
-                  );
-                  })}
+                  ))}
                 </TableRow>
               ))
             ) : !isLoading ? (

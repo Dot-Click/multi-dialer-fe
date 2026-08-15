@@ -4,7 +4,7 @@ import { GrSplits } from "react-icons/gr";
 import mergeduplicates from "../../assets/mergeduplicates.png"
 import FilterModal from "@/components/modal/filtercontactmodal";
 import ManageColumnsModal from "@/components/modal/managecolumnmodal";
-import FindDuplicates, { DEFAULT_DUPLICATE_VISIBLE_COLUMNS } from "@/components/admin/contact/findduplicates";
+import FindDuplicates, { DEFAULT_DUPLICATE_VISIBLE_COLUMNS, DUPLICATE_EXTRA_FIELDS } from "@/components/admin/contact/findduplicates";
 import MergeDuplicateModal from "@/components/modal/mergeduplicatemodal";
 import { useAppSelector } from "@/store/hooks";
 import toast from "react-hot-toast";
@@ -23,7 +23,11 @@ const loadVisibleColumns = (): string[] => {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
-                return parsed;
+                // Reason/Locations are meant to be on by default for everyone —
+                // merge them in for anyone with a saved preference that predates
+                // them, so it's not just new users who see them out of the box.
+                const missingDefaults = DUPLICATE_EXTRA_FIELDS.filter((f) => !parsed.includes(f));
+                return missingDefaults.length ? [...parsed, ...missingDefaults] : parsed;
             }
         }
     } catch {
@@ -113,6 +117,7 @@ const AdminFindDuplicate = () => {
                 <ManageColumnsModal
                     onClose={() => setShowColumnsModal(false)}
                     initialDisplayColumns={visibleColumns}
+                    extraFields={DUPLICATE_EXTRA_FIELDS}
                     onApply={(columns) => {
                         setVisibleColumns(columns);
                         try {
