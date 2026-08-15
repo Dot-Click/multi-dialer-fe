@@ -625,7 +625,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         <section className='bg-white dark:bg-[#1A1F2E] flex flex-col gap-4 px-6 py-5 w-full mx-auto rounded-[20px] shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300'>
   
             <div className='flex flex-col md:flex-row md:justify-between md:items-start'>
-                <div className='flex flex-col lg:flex-row lg:gap-14 lg:items-center'>
+                <div className='flex flex-col lg:flex-row lg:gap-2 lg:items-center'>
                     <div className='flex flex-col'>
                         <div className='flex items-center gap-3 flex-wrap'>
                             <h1 className='text-[20px] md:text-[24px] text-[#0E1011] dark:text-white font-bold tracking-tight'>
@@ -653,9 +653,9 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                             </div>
                         </div>
                     </div>
-                    <div className='flex flex-wrap items-center gap-4 lg:gap-6'>
+                    <div className='flex flex-nowrap items-center gap-3 lg:gap-6 overflow-x-auto'>
                         {stats.map((dt) => (
-                            <span key={dt.id} className='flex text-[14px] gap-2 items-center px-2'>
+                            <span key={dt.id} className='flex shrink-0 text-[14px] gap-2 items-center px-2'>
                                 <dt.icon size={14} className="text-[#FFCA06]" />
                                 <div className="flex items-center gap-1.5">
                                     <h1 className='text-[#6B7280] dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]'>{dt.name}</h1>
@@ -663,7 +663,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                                 </div>
                             </span>
                         ))}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex shrink-0 gap-2">
                             <button
                                 type="button"
                                 onClick={handleOpenZillow}
