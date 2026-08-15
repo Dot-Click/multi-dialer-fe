@@ -1,7 +1,25 @@
 import { useMemo, useState } from "react";
 import { IoClose, IoSearch } from "react-icons/io5";
 import { LuArrowDownAZ } from "react-icons/lu";
+import { GripVertical } from "lucide-react";
 import { useMiscFields } from "@/hooks/useSystemSettings";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const STATIC_FIELDS = [
   "Name", "Email", "Phone", "Last Dialed", "List", "Tags",
@@ -12,6 +30,47 @@ interface ManageColumnsModalProps {
   onClose: () => void;
   initialDisplayColumns?: string[];
   onApply?: (columns: string[]) => void;
+}
+
+// A single draggable row in the "Fields to display" list — the grip handle
+// drives dnd-kit's sortable behavior, independent of the checkbox so
+// unchecking still works without accidentally starting a drag.
+function SortableDisplayField({
+  field,
+  onRemove,
+}: {
+  field: string;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 1 : "auto",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 text-[15px] dark:text-white text-gray-900 rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+    >
+      <span {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-400 shrink-0">
+        <GripVertical size={16} />
+      </span>
+      <label className="flex items-center gap-2 cursor-pointer flex-1">
+        <input
+          type="checkbox"
+          checked
+          onChange={onRemove}
+          className="w-4 h-4 accent-gray-900 cursor-pointer"
+        />
+        {field}
+      </label>
+    </div>
+  );
 }
 
 const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
@@ -43,6 +102,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
   // Only display[] is stored in state; available is always derived so new
   // misc fields appear automatically even if the API responded after mount.
+  // The array's order IS the column order — drag-and-drop below reorders it directly.
   const [display, setDisplay] = useState<string[]>(defaultDisplay);
 
   const available = useMemo(
@@ -54,6 +114,11 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   const [searchDisplay, setSearchDisplay] = useState("");
   const [sortAZ, setSortAZ] = useState(false);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const sortMaybe = (list: string[]) =>
     sortAZ ? [...list].sort((a, b) => a.localeCompare(b)) : list;
 
@@ -64,8 +129,24 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     display.filter((item) => item.toLowerCase().includes(searchDisplay.toLowerCase()))
   );
 
+  // Drag-to-reorder only makes sense against the true, unfiltered, manual
+  // order — A-Z sort and an active search both imply a different ordering
+  // rule, so dragging is disabled (grip hidden) while either is active.
+  const canReorder = !sortAZ && !searchDisplay.trim();
+
   const moveToDisplay = (field: string) => setDisplay((prev) => [...prev, field]);
   const moveToAvailable = (field: string) => setDisplay((prev) => prev.filter((f) => f !== field));
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const fromIndex = display.indexOf(active.id as string);
+    const toIndex = display.indexOf(over.id as string);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    setDisplay((prev) => arrayMove(prev, fromIndex, toIndex));
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-2 sm:p-4">
@@ -138,9 +219,14 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
             {/* Display */}
             <div className="rounded-xl p-4 h-[380px] flex flex-col">
-              <h3 className="text-[15px] dark:text-white font-medium mb-3 text-gray-800">
-                Fields to display:
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[15px] dark:text-white font-medium text-gray-800">
+                  Fields to display:
+                </h3>
+                {canReorder && (
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500">Drag to reorder</span>
+                )}
+              </div>
               <div className="relative mb-3">
                 <input
                   type="text"
@@ -153,20 +239,34 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
               </div>
               <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar">
                 {filteredDisplay.length ? (
-                  filteredDisplay.map((field) => (
-                    <label
-                      key={field}
-                      className="flex items-center gap-2 text-[15px] dark:text-white text-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition"
-                    >
-                      <input
-                        type="checkbox"
-                        checked
-                        onChange={() => moveToAvailable(field)}
-                        className="w-4 h-4 accent-gray-900 cursor-pointer"
-                      />
-                      {field}
-                    </label>
-                  ))
+                  canReorder ? (
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={filteredDisplay} strategy={verticalListSortingStrategy}>
+                        {filteredDisplay.map((field) => (
+                          <SortableDisplayField
+                            key={field}
+                            field={field}
+                            onRemove={() => moveToAvailable(field)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    filteredDisplay.map((field) => (
+                      <label
+                        key={field}
+                        className="flex items-center gap-2 text-[15px] dark:text-white text-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition"
+                      >
+                        <input
+                          type="checkbox"
+                          checked
+                          onChange={() => moveToAvailable(field)}
+                          className="w-4 h-4 accent-gray-900 cursor-pointer"
+                        />
+                        {field}
+                      </label>
+                    ))
+                  )
                 ) : (
                   <p className="text-xs dark:text-white text-gray-500 text-center">No fields found</p>
                 )}

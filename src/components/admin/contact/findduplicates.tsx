@@ -103,6 +103,12 @@ const tagsColumn = {
   },
 };
 
+// Fixed pixel widths so the two sticky-right columns stack cleanly without
+// overlapping (Locations is the rightmost, at offset 0; Reason sits just to
+// its left, offset by Locations' own width).
+const LOCATIONS_STICKY_WIDTH = 160;
+const REASON_STICKY_WIDTH = 130;
+
 const reasonColumn = {
   accessorKey: "duplicateReason",
   header: (info: any) => <SortedHeader header={info.header} label="Reason" />,
@@ -111,6 +117,11 @@ const reasonColumn = {
       {getValue() || "Unknown"}
     </span>
   ),
+  meta: {
+    sticky: "right" as const,
+    stickyOffsetPx: LOCATIONS_STICKY_WIDTH,
+    stickyWidthPx: REASON_STICKY_WIDTH,
+  },
 };
 
 const locationsColumn = {
@@ -121,6 +132,11 @@ const locationsColumn = {
       {getValue() || "-"}
     </span>
   ),
+  meta: {
+    sticky: "right" as const,
+    stickyOffsetPx: 0,
+    stickyWidthPx: LOCATIONS_STICKY_WIDTH,
+  },
 };
 
 const plainColumns = PLAIN_TEXT_FIELDS.reduce<Record<string, any>>((acc, { key, accessorKey, label }) => {
