@@ -6,7 +6,7 @@ import {
     createDisposition,
     updateDisposition,
     deleteDisposition,
-    reorderDispositions,
+    setPersonalDispositionOrder,
     reorderLocal,
 } from "@/store/slices/dispositionSlice"
 import type { Disposition } from "@/store/slices/dispositionSlice"
@@ -31,19 +31,17 @@ import {
     slugify,
     DispositionForm,
     SortableDispositionRow,
+    DispositionRow,
     type FormState,
 } from "@/components/common/dispositionUI"
 
-// Protected default dispositions: seeded by the system and shown in the user's
-// Dispositions list, but they cannot be edited or deleted.
-const PROTECTED_DEFAULT_VALUES = ["TRASH", "LEAD"]
-function isProtectedDisposition(value: string) {
-    return PROTECTED_DEFAULT_VALUES.includes(value.toUpperCase())
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-export default function DispositionSettings() {
+// Agent-facing Dispositions settings: agents see the team's shared
+// dispositions alongside their own personal ones in a single list they can
+// freely create/reorder for their own tagging needs. Team-owned rows can be
+// dragged (a personal-order preference, doesn't affect the admin's or other
+// agents' view) but can't be edited/deleted here — that stays admin-only.
+// System "Call Outcomes" are a separate, admin-ordered, non-draggable category.
+export default function AgentDispositionSettings() {
     const dispatch = useDispatch<AppDispatch>()
     const { dispositions } = useSelector((state: RootState) => state.dispositions)
     const { folders } = useSelector((state: RootState) => state.contactStructure)
@@ -61,6 +59,22 @@ export default function DispositionSettings() {
         dispatch(fetchFolders())
     }, [dispatch])
 
+    // System "Call Outcomes" stay a separate, admin-ordered category — not
+    // part of the mergeable/draggable Dispositions list below.
+    const callOutcomes = useMemo(
+        () => [...dispositions].filter(d => d.isOwn === false && d.isSystem).sort((a, b) => a.order - b.order),
+        [dispositions]
+    )
+    // The merged Dispositions list: team dispositions (isOwn === false) plus
+    // this agent's own (isOwn === true), sorted by the agent's effective
+    // order (personal override if set, else the row's own order — see
+    // getDispositions on the backend).
+    const mergedDispositions = useMemo(
+        () => [...dispositions].filter(d => !d.isSystem).sort((a, b) => a.order - b.order),
+        [dispositions]
+    )
+    const myDispositionCount = useMemo(() => dispositions.filter(d => d.isOwn === true).length, [dispositions])
+
     function handleAdd(data: FormState) {
         const payload: any = {
             label: data.label,
@@ -69,7 +83,7 @@ export default function DispositionSettings() {
             icon: data.icon,
             isSystem: false,
             isActive: true,
-            order: dispositions.length + 1,
+            order: myDispositionCount + 1,
         }
 
         if (data.folderMode === "auto") {
@@ -93,11 +107,9 @@ export default function DispositionSettings() {
         }
 
         if (data.folderMode === "auto") {
-            // If already linked, keep existing folder — no new folder created on edit
             if (existing?.targetFolderId) {
                 updatePayload.targetFolderId = existing.targetFolderId
             } else {
-                // No existing folder → signal backend to auto-create
                 updatePayload.autoCreateFolder = true
             }
         } else if (data.folderMode === "existing") {
@@ -121,34 +133,23 @@ export default function DispositionSettings() {
         }
     }
 
-    // Reordering is scoped per section (system call outcomes reorder among
-    // themselves, custom dispositions among themselves) since that's how the
-    // list is rendered as two separate groups.
-    function handleDragEnd(event: DragEndEvent, sectionList: Disposition[]) {
+    // Dragging any row — team-owned or personal — just reshuffles this
+    // agent's own view. Persisted as a personal-order overlay, never as a
+    // write to the shared Disposition.order field.
+    function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
         if (!over || active.id === over.id) return
 
-        const fromIndex = sectionList.findIndex(d => d.id === active.id)
-        const toIndex = sectionList.findIndex(d => d.id === over.id)
+        const fromIndex = mergedDispositions.findIndex(d => d.id === active.id)
+        const toIndex = mergedDispositions.findIndex(d => d.id === over.id)
         if (fromIndex === -1 || toIndex === -1) return
 
-        const reordered = arrayMove(sectionList, fromIndex, toIndex)
+        const reordered = arrayMove(mergedDispositions, fromIndex, toIndex)
         const orderData = reordered.map((d, idx) => ({ id: d.id, order: idx }))
 
-        // Apply instantly client-side so the list settles into its new order
-        // with no wait on the network round-trip, then persist in the background.
         dispatch(reorderLocal(orderData))
-        dispatch(reorderDispositions(orderData))
+        dispatch(setPersonalDispositionOrder(orderData))
     }
-
-    const systemDispositions = useMemo(
-        () => [...dispositions].filter(d => d.isSystem).sort((a, b) => a.order - b.order),
-        [dispositions]
-    )
-    const customDispositions = useMemo(
-        () => [...dispositions].filter(d => !d.isSystem).sort((a, b) => a.order - b.order),
-        [dispositions]
-    )
 
     return (
         <div className="flex flex-col gap-6">
@@ -159,7 +160,7 @@ export default function DispositionSettings() {
                         Dispositions
                     </h2>
                     <p className="text-sm text-[#6C757D] dark:text-gray-400 mt-0.5">
-                        Manage call outcomes used to mark contacts after a call
+                        Team dispositions are set by your admin — you can reorder them for yourself and add your own.
                     </p>
                 </div>
                 <button
@@ -167,7 +168,7 @@ export default function DispositionSettings() {
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FFCA06] text-black text-sm font-medium hover:bg-[#f0bc00] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
-                    Add Disposition
+                    Add My Disposition
                 </button>
             </div>
 
@@ -179,51 +180,16 @@ export default function DispositionSettings() {
                 />
             )}
 
-            {/* System Dispositions — Call Outcomes */}
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
-                        CALL OUTCOMES
-                    </span>
-                    <span className="text-xs text-[#ADB5BD] dark:text-gray-500">(cannot be deleted)</span>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E9ECEF] dark:border-slate-700 overflow-hidden">
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={(e) => handleDragEnd(e, systemDispositions)}
-                    >
-                        <SortableContext items={systemDispositions.map(d => d.id)} strategy={verticalListSortingStrategy}>
-                            {systemDispositions.map((disp, idx) => (
-                                <SortableDispositionRow
-                                    key={disp.id}
-                                    disposition={disp}
-                                    folders={folders}
-                                    isEditing={editingId === disp.id}
-                                    isLast={idx === systemDispositions.length - 1}
-                                    onEdit={() => setEditingId(disp.id)}
-                                    onSaveEdit={(data) => handleEdit(disp.id, data)}
-                                    onCancelEdit={() => setEditingId(null)}
-                                    onToggle={() => handleToggleActive(disp.id)}
-                                    onDelete={null}
-                                />
-                            ))}
-                        </SortableContext>
-                    </DndContext>
-                </div>
-            </div>
-
-            {/* Custom Dispositions */}
+            {/* Dispositions — team + mine, merged, personally reorderable */}
             <div className="flex flex-col gap-3">
                 <span className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
                     DISPOSITIONS
                 </span>
 
-                {customDispositions.length === 0 ? (
+                {mergedDispositions.length === 0 ? (
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-dashed border-[#DEE2E6] dark:border-slate-600 p-8 flex flex-col items-center gap-2">
                         <Tag className="w-8 h-8 text-[#ADB5BD] dark:text-gray-500" />
-                        <p className="text-sm text-[#6C757D] dark:text-gray-400">No custom dispositions yet</p>
+                        <p className="text-sm text-[#6C757D] dark:text-gray-400">No dispositions yet</p>
                         <button
                             onClick={() => setShowAddForm(true)}
                             className="text-sm text-[#FFCA06] font-medium hover:underline"
@@ -236,31 +202,56 @@ export default function DispositionSettings() {
                         <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
-                            onDragEnd={(e) => handleDragEnd(e, customDispositions)}
+                            onDragEnd={handleDragEnd}
                         >
-                            <SortableContext items={customDispositions.map(d => d.id)} strategy={verticalListSortingStrategy}>
-                                {customDispositions.map((disp, idx) => {
-                                    const protectedDisp = isProtectedDisposition(disp.value)
-                                    return (
-                                        <SortableDispositionRow
-                                            key={disp.id}
-                                            disposition={disp}
-                                            folders={folders}
-                                            isEditing={editingId === disp.id}
-                                            isLast={idx === customDispositions.length - 1}
-                                            isProtected={protectedDisp}
-                                            onEdit={() => setEditingId(disp.id)}
-                                            onSaveEdit={(data) => handleEdit(disp.id, data)}
-                                            onCancelEdit={() => setEditingId(null)}
-                                            onToggle={() => handleToggleActive(disp.id)}
-                                            onDelete={protectedDisp ? null : () => handleDelete(disp.id)}
-                                        />
-                                    )
-                                })}
+                            <SortableContext items={mergedDispositions.map(d => d.id)} strategy={verticalListSortingStrategy}>
+                                {mergedDispositions.map((disp, idx) => (
+                                    <SortableDispositionRow
+                                        key={disp.id}
+                                        disposition={disp}
+                                        folders={folders}
+                                        isEditing={editingId === disp.id}
+                                        isLast={idx === mergedDispositions.length - 1}
+                                        canManage={disp.isOwn === true}
+                                        onEdit={() => setEditingId(disp.id)}
+                                        onSaveEdit={(data) => handleEdit(disp.id, data)}
+                                        onCancelEdit={() => setEditingId(null)}
+                                        onToggle={() => handleToggleActive(disp.id)}
+                                        onDelete={disp.isOwn ? () => handleDelete(disp.id) : null}
+                                    />
+                                ))}
                             </SortableContext>
                         </DndContext>
                     </div>
                 )}
+            </div>
+
+            {/* Call Outcomes — read-only, admin-ordered */}
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider">
+                        CALL OUTCOMES
+                    </span>
+                    <span className="text-xs text-[#ADB5BD] dark:text-gray-500">(managed by your admin)</span>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E9ECEF] dark:border-slate-700 overflow-hidden">
+                    {callOutcomes.map((disp, idx) => (
+                        <DispositionRow
+                            key={disp.id}
+                            disposition={disp}
+                            folders={folders}
+                            isEditing={false}
+                            isLast={idx === callOutcomes.length - 1}
+                            isReadOnly
+                            onEdit={() => { }}
+                            onSaveEdit={() => { }}
+                            onCancelEdit={() => { }}
+                            onToggle={() => { }}
+                            onDelete={null}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     )

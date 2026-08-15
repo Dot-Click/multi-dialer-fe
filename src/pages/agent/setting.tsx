@@ -5,13 +5,14 @@ import { authClient } from '../../lib/auth-client';
 import api from '../../lib/axios';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
-import A2PRegistrationPanel from '@/components/common/A2PRegistrationPanel';
+import AgentDispositionSettings from '@/components/agent/systemsettings/dispositions';
 
 const Setting = () => {
   const [activeTab, setActiveTab] = useState('personal');
   const [isPersonalInfoOpen, setPersonalInfoOpen] = useState(true);
   const [isNotificationsOpen, setNotificationsOpen] = useState(true);
   const [liveAnswerBeep, setLiveAnswerBeep] = useState(false);
+  const [previewSheet, setPreviewSheet] = useState<LeadSheet | null>(null);
 
   // Email Change States
   const [isEditingEmail, setIsEditingEmail] = useState(false);
@@ -93,10 +94,9 @@ const Setting = () => {
 
   const tabs = [
     { id: "personal", label: "Personal Info & Notification" },
-    { id: "sms-compliance", label: "SMS Registration" },
     { id: "caller-id", label: "Caller ID & Campaigns" },
-    { id: "dialer", label: "Dialer Settings" },
-    { id: "touch-points", label: "Touch Points" },
+    { id: "dialer", label: "Dialer Settings & Touch Points" },
+    { id: "dispositions", label: "Dispositions" },
     { id: "lead-sheet", label: "Lead Sheet Templates" },
   ];
 
@@ -472,8 +472,6 @@ const Setting = () => {
             </>
           )}
 
-          {activeTab === "sms-compliance" && <A2PRegistrationPanel />}
-
           {activeTab === 'caller-id' && (
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
               <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white mb-6">Caller ID & Campaigns</h2>
@@ -562,90 +560,127 @@ const Setting = () => {
           )}
 
           {activeTab === "dialer" && (
-            <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
-                  Dialer Settings
-                </h2>
-                {isLoadingDialer && <Loader2 className="w-5 h-5 animate-spin text-yellow-400" />}
-              </div>
+            <>
+              <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
+                    Dialer Settings
+                  </h2>
+                  {isLoadingDialer && <Loader2 className="w-5 h-5 animate-spin text-yellow-400" />}
+                </div>
 
-              <div className="space-y-8">
-                {/* Live Answer Beep */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10 hover:border-yellow-400/30 transition-all">
-                  <div className="flex-1">
-                    <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
-                      Live Answer Beep
+                <div className="space-y-8">
+                  {/* Voicemail Handling */}
+                  <div>
+                    <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-1">
+                      Voicemail Handling
                     </h3>
-                    <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                      Play a beep sound when a live person answers
+                    <p className="text-[14px] text-[#495057] dark:text-gray-400 mb-3">
+                      Choose how to handle voicemail messages
                     </p>
+                    <div className="space-y-2">
+                      {[
+                        { val: "manual", label: "Manual Voicemail", desc: "Agent manually drops voicemail during the call." },
+                        { val: "auto", label: "Auto Drop Voicemail", desc: "System automatically drops pre-recorded voicemail." },
+                      ].map((option) => (
+                        <label
+                          key={option.val}
+                          className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10 hover:border-yellow-400/30 transition-all cursor-pointer"
+                        >
+                          <input
+                            type="radio"
+                            name="voicemailMode"
+                            checked={(dialerSettings?.voicemailMode ?? "auto") === option.val}
+                            onChange={() => updateDialerSettings.mutate({ voicemailMode: option.val })}
+                            className="mt-1 appearance-none h-5 w-5 cursor-pointer rounded-full border-2 border-gray-300 bg-white dark:bg-slate-700 checked:border-4 checked:border-[#34363B] dark:checked:border-yellow-400 focus:outline-none focus:ring-0"
+                          />
+                          <div>
+                            <p className="text-[16px] font-medium text-[#34363B] dark:text-gray-200">{option.label}</p>
+                            <p className="text-[14px] text-[#495057] dark:text-gray-400">{option.desc}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      const newVal = !liveAnswerBeep;
-                      setLiveAnswerBeep(newVal);
-                      updateDialerSettings.mutate({ useAnswerNotificationTone: newVal });
-                    }}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${liveAnswerBeep
-                      ? "bg-yellow-400"
-                      : "bg-gray-300 dark:bg-slate-700"
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${liveAnswerBeep ? "translate-x-6" : "translate-x-1"
+
+                  {/* Live Answer Beep */}
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10 hover:border-yellow-400/30 transition-all">
+                    <div className="flex-1">
+                      <h3 className="text-[18px] font-medium text-[#34363B] dark:text-gray-200 mb-2">
+                        Live Answer Beep
+                      </h3>
+                      <p className="text-[14px] text-[#495057] dark:text-gray-400">
+                        Play a beep sound when a live person answers
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newVal = !liveAnswerBeep;
+                        setLiveAnswerBeep(newVal);
+                        updateDialerSettings.mutate({ useAnswerNotificationTone: newVal });
+                      }}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:focus:ring-offset-slate-800 ${liveAnswerBeep
+                        ? "bg-yellow-400"
+                        : "bg-gray-300 dark:bg-slate-700"
                         }`}
-                    />
-                  </button>
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${liveAnswerBeep ? "translate-x-6" : "translate-x-1"
+                          }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {activeTab === "touch-points" && (
-            <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
-              {/* Header with title and Create button */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
-                  Touch Point
-                </h2>
-                {/* <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
-                  Create Touch Point
-                </button> */}
-              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
+                {/* Header with title and Create button */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                  <h2 className="text-[24px] font-medium text-[#17181B] dark:text-white">
+                    Touch Point
+                  </h2>
+                  {/* Create/Edit are admin-only server-side today — re-enable once
+                      agents get their own scoped action-plan write access. */}
+                  {/* <button className="px-4 py-2 bg-black dark:bg-yellow-400 text-white dark:text-black text-sm font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-yellow-500 transition-colors w-full sm:w-auto shadow-sm">
+                    Create Touch Point
+                  </button> */}
+                </div>
 
-              {/* Touch Point Cards */}
-              <div className="space-y-4">
-                {isLoadingActionPlans ? (
-                  <div className="flex justify-center py-10">
-                    <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
-                  </div>
-                ) : actionPlans.length > 0 ? (
-                  actionPlans.map((plan: ActionPlan) => (
-                    <div key={plan.id} className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
-                      <div className="flex-1">
-                        <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
-                          {plan.name}
-                        </h3>
-                        <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                          {plan.steps?.length || 0} Steps • Trigger: {plan.triggerType.replace(/_/g, ' ')}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12px] px-2 py-1 bg-gray-100 dark:bg-slate-600 rounded text-gray-600 dark:text-gray-300">
-                          {plan.schedulingType.replace(/_/g, ' ')}
-                        </span>
-                      </div>
+                {/* Touch Point Cards */}
+                <div className="space-y-4">
+                  {isLoadingActionPlans ? (
+                    <div className="flex justify-center py-10">
+                      <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
-                    <p className="text-gray-500">No touch points available.</p>
-                  </div>
-                )}
+                  ) : actionPlans.length > 0 ? (
+                    actionPlans.map((plan: ActionPlan) => (
+                      <div key={plan.id} className="flex items-center justify-between px-3 py-4 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700 rounded-lg transition-all hover:shadow-md hover:border-yellow-400/50">
+                        <div className="flex-1">
+                          <h3 className="text-[16px] font-bold text-[#17181B] dark:text-white mb-1">
+                            {plan.name}
+                          </h3>
+                          <p className="text-[14px] text-[#495057] dark:text-gray-400">
+                            {plan.steps?.length || 0} Steps • Trigger: {plan.triggerType.replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[12px] px-2 py-1 bg-gray-100 dark:bg-slate-600 rounded text-gray-600 dark:text-gray-300">
+                            {plan.schedulingType.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg">
+                      <p className="text-gray-500">No touch points available.</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </>
           )}
+
+          {activeTab === "dispositions" && <AgentDispositionSettings />}
 
           {activeTab === "lead-sheet" && (
             <div className="bg-white dark:bg-slate-800 rounded-[12px] shadow-sm p-6">
@@ -673,9 +708,15 @@ const Setting = () => {
                           {sheet.title}
                         </h3>
                         <p className="text-[14px] text-[#495057] dark:text-gray-400">
-                          {sheet.questions?.length || 0} fields • Created {sheet.createdAt ? new Date(sheet.createdAt).toLocaleDateString() : 'N/A'}
+                          {sheet.questions?.length || 0} fields • Last updated {(sheet.updatedAt || sheet.createdAt) ? new Date((sheet.updatedAt || sheet.createdAt) as string).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
+                      <button
+                        onClick={() => setPreviewSheet(sheet)}
+                        className="px-4 py-2 bg-gray-100 dark:bg-slate-600 text-[#0E1011] dark:text-white text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors whitespace-nowrap"
+                      >
+                        Select
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -688,6 +729,47 @@ const Setting = () => {
           )}
         </main>
       </div>
+
+      {/* Lead Sheet preview modal — read-only, "Select" just previews the fields */}
+      {previewSheet && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={() => setPreviewSheet(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-[12px] shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[20px] font-medium text-[#17181B] dark:text-white">
+                {previewSheet.title}
+              </h2>
+              <button
+                onClick={() => setPreviewSheet(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="space-y-3">
+              {previewSheet.questions && previewSheet.questions.length > 0 ? (
+                previewSheet.questions.map((q, idx) => (
+                  <div key={q.id || idx} className="p-3 rounded-lg border border-gray-100 dark:border-slate-700/50 bg-gray-50/30 dark:bg-slate-900/10">
+                    <p className="text-[14px] font-medium text-[#34363B] dark:text-gray-200">
+                      {q.text}{q.required && <span className="text-red-500"> *</span>}
+                    </p>
+                    <p className="text-[12px] text-[#495057] dark:text-gray-400 mt-1">
+                      {q.type}{q.options?.length ? ` — ${q.options.join(', ')}` : ''}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">This template has no fields.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

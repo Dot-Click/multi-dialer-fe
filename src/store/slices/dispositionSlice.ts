@@ -15,6 +15,10 @@ export interface Disposition {
     isActive: boolean
     order: number
     targetFolderId?: string | null
+    // True for dispositions the caller owns/can manage: for an ADMIN/OWNER
+    // that's every team disposition; for an AGENT, only their own personal
+    // ones (team dispositions come back with isOwn: false, read-only).
+    isOwn?: boolean
 }
 
 interface DispositionState {
@@ -89,6 +93,23 @@ export const reorderDispositions = createAsyncThunk(
             const response = await api.put("/system-settings/dispositions/reorder", { orderData });
             if (response.data.success) return response.data.data;
             return rejectWithValue(response.data.message || "Failed to reorder dispositions");
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+// An agent's personal reorder of the merged team+own Dispositions list — a
+// per-agent overlay, doesn't touch the shared Disposition.order other
+// viewers see. Use reorderLocal for the instant client-side reorder; this
+// just persists it in the background.
+export const setPersonalDispositionOrder = createAsyncThunk(
+    "dispositions/setPersonalOrder",
+    async (orderData: { id: string; order: number }[], { rejectWithValue }) => {
+        try {
+            const response = await api.put("/system-settings/dispositions/personal-order", { orderData });
+            if (response.data.success) return response.data.data;
+            return rejectWithValue(response.data.message || "Failed to save personal disposition order");
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || error.message);
         }

@@ -602,7 +602,9 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     // set (selectedTagIds), so more than one can stay lit at once. Folder
     // movers (e.g. Trash) additionally trigger a real folder move when
     // turned on (see handleToggleDisposition).
-    const allCustomDispositions = activeDispositions.filter(d => !d.isSystem);
+    // Sorted by `order` so this matches the agent's own arrangement from the
+    // Dispositions settings page (team + personal, merged, drag-reordered).
+    const allCustomDispositions = activeDispositions.filter(d => !d.isSystem).sort((a, b) => a.order - b.order);
 
     // "Calls" counts how many times this contact was brought to the dialer, not
     // how many lines were dialed. Records sharing a sessionId came from the same

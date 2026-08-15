@@ -302,8 +302,10 @@ const ContactDisposition = ({}: ContactDispositionProps) => {
   // can only be in one folder at a time, so exclusivity is a real constraint,
   // not a UI limitation. Everything else is a non-exclusive tag: multiple
   // can be applied to the same contact at once (the actual QA finding).
-  const otherItems = nonSmartItems.filter(d => d.targetFolderId);
-  const tagItems = nonSmartItems.filter(d => !d.targetFolderId);
+  // Sorted by `order` so this matches the agent's own arrangement from the
+  // Dispositions settings page (team + personal, merged, drag-reordered).
+  const otherItems = nonSmartItems.filter(d => d.targetFolderId).sort((a, b) => a.order - b.order);
+  const tagItems = nonSmartItems.filter(d => !d.targetFolderId).sort((a, b) => a.order - b.order);
   const isTagsDirty = !(
     selectedTagIds.size === savedTagIds.size &&
     [...selectedTagIds].every(id => savedTagIds.has(id))
