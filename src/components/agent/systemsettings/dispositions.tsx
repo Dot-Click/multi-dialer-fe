@@ -9,7 +9,6 @@ import {
     setPersonalDispositionOrder,
     reorderLocal,
 } from "@/store/slices/dispositionSlice"
-import type { Disposition } from "@/store/slices/dispositionSlice"
 import { fetchFolders } from "@/store/slices/contactStructureSlice"
 import {
     DndContext,
