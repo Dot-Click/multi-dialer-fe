@@ -61,6 +61,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   const sidebarLinks = [
     { id: 1, name: "Dashboard", link: "/admin", icon: dashboardicon },
+    { id: 1.5, name: "Prospecting Tracker", link: "/admin/prospecting-tracker", icon: reporticon, badge: "NEW" },
     { id: 2, name: "Inbox", link: "/admin/inbox", icon: emailIcon },
     {
       id: 3,
@@ -185,7 +186,14 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   className="h-4 w-4 dark:invert object-contain"
                 />
                 {isOpen && (
-                  <span className="text-[12px] font-medium">{slinks.name}</span>
+                  <span className="text-[12px] font-medium flex items-center gap-1.5">
+                    {slinks.name}
+                    {"badge" in slinks && slinks.badge && (
+                      <span className="text-[8px] font-semibold bg-gray-900 text-white px-1.5 py-0.5 rounded-full tracking-wide">
+                        {slinks.badge}
+                      </span>
+                    )}
+                  </span>
                 )}
               </NavLink>
             ))}

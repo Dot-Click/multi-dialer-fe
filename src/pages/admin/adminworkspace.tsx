@@ -10,6 +10,11 @@ import { useAppSelector } from '@/store/hooks'
 import type { AppearanceSettings } from '@/store/slices/appearanceSlice'
 import { usePlanLimits } from '@/hooks/usePlanLimits'
 import FeatureLockedOverlay from '@/components/common/FeatureLockedOverlay'
+import {
+  ProspectingScoreboardWidget,
+  ProspectingPaceWidget,
+  ProspectingFunnelWidget,
+} from '@/components/agent/dashboard/workspace/prospectingwidgets'
 
 const AdminWorkspace = () => {
   const { settings } = useAppSelector((state) => state.appearance);
@@ -27,6 +32,12 @@ const AdminWorkspace = () => {
         {show('calendar') && <AdminGoToCalender />}
         {show('hotlist') && <AdminHotList />}
       </div>
+
+      <div className='grid md:grid-cols-2 gap-3'>
+        <ProspectingScoreboardWidget />
+        <ProspectingPaceWidget />
+      </div>
+      <ProspectingFunnelWidget />
 
       <div className='flex flex-col md:flex-row gap-2'>
         {(show('callingGroupsWorkspace') || show('dialerHealth')) && (

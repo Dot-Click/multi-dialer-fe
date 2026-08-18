@@ -25,6 +25,7 @@ import Library from "@/pages/agent/library";
 import ReportAnalytics from "@/pages/agent/reportanalytics";
 import ContactInfo from "@/pages/agent/contactinfo";
 import Calender from "@/pages/agent/calender";
+import ProspectingTracker from "@/pages/agent/prospectingtracker";
 
 
 
@@ -93,6 +94,7 @@ const Router: React.FC = () => {
           <Route element={<A2PProvider><TwilioProvider><Outlet /></TwilioProvider></A2PProvider>}>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<AgentHome />} />
+              <Route path="prospecting-tracker" element={<ProspectingTracker />} />
               <Route path="inbox" element={<Inbox />} />
               <Route path="library" element={<Library />} />
               <Route path="calendar" element={<Calender />} />
@@ -123,6 +125,7 @@ const Router: React.FC = () => {
             {/* ✅ Admin Dashboard Section */}
             <Route path="/admin" element={<AdminDashboardLayout />}>
               <Route index element={<AdminHome />} />
+              <Route path="prospecting-tracker" element={<ProspectingTracker />} />
               <Route path="inbox" element={<Inbox />} />
 
               <Route path="calendar" element={<AdminCalender />} />
