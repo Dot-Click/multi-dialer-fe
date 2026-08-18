@@ -42,9 +42,25 @@ export const useMyPlusLeads = () => {
     },
   });
 
+  const repairLists = useMutation({
+    mutationFn: async () => {
+      const response = await api.post(`/integrations/myplusleads/repair`);
+      return response.data as { message: string; data: { status: string; tagged: number; added: number; alreadyIn: number }[] };
+    },
+    onSuccess: (payload) => {
+      queryClient.invalidateQueries({ queryKey: ["contactList"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      toast.success(payload.message ?? "MyPlusLeads lists repaired");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to repair MyPlusLeads lists");
+    },
+  });
+
   return {
     configs,
     isLoading,
     syncNow,
+    repairLists,
   };
 };

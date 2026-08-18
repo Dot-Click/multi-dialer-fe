@@ -1,11 +1,18 @@
 import { useMyPlusLeads } from "@/hooks/useMyPlusLeads";
-import { FiX, FiRefreshCw } from "react-icons/fi";
+import { FiX, FiRefreshCw, FiTool } from "react-icons/fi";
 import myplusLogo from "@/assets/myplus.png";
 import { useState } from "react";
 
 const MyPlusLeadsIntegration = () => {
-  const { configs, isLoading, syncNow } = useMyPlusLeads();
+  const { configs, isLoading, syncNow, repairLists } = useMyPlusLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onRepairClick = () => {
+    const ok = window.confirm(
+      "This will re-add every MyPlusLeads-tagged contact back into its status list (Expired, Withdrawn, FSBO, etc.). It is additive — nothing will be removed from any other list.\n\nUse this only when you want to realign lists with tags. Continue?",
+    );
+    if (ok) repairLists.mutate();
+  };
 
   if (isLoading) {
     return (
@@ -98,14 +105,25 @@ const MyPlusLeadsIntegration = () => {
             )}
 
             {isConnected && (
-              <button
-                onClick={() => syncNow.mutate()}
-                disabled={syncNow.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black transition-all hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <FiRefreshCw size={13} className={syncNow.isPending ? "animate-spin" : ""} />
-                {syncNow.isPending ? "Syncing..." : "Sync Now"}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => syncNow.mutate()}
+                  disabled={syncNow.isPending || repairLists.isPending}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black transition-all hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <FiRefreshCw size={13} className={syncNow.isPending ? "animate-spin" : ""} />
+                  {syncNow.isPending ? "Syncing..." : "Sync Now"}
+                </button>
+                <button
+                  onClick={onRepairClick}
+                  disabled={syncNow.isPending || repairLists.isPending}
+                  title="Re-add every MPL-tagged contact into its status list. Additive — nothing gets removed."
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-gray-800 dark:text-slate-200 transition-all hover:bg-gray-50 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <FiTool size={13} className={repairLists.isPending ? "animate-spin" : ""} />
+                  {repairLists.isPending ? "Repairing..." : "Repair Lists"}
+                </button>
+              </div>
             )}
           </div>
         </div>
