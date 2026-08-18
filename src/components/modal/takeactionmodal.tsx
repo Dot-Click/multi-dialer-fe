@@ -12,6 +12,16 @@ interface TakeActionModalProps {
   contactId?: string;
 }
 
+// <input type="datetime-local"> displays and reports values in the browser's
+// local time with no timezone marker at all. toISOString() is UTC-based, so
+// using it here would show the wrong "now" the instant the modal opens for
+// anyone not in UTC — this formats using local getters instead, matching
+// what the picker itself will display.
+function toLocalDatetimeInputValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 const TakeActionModal: React.FC<TakeActionModalProps> = ({ isOpen, onClose, contactId }) => {
   const dispatch = useAppDispatch();
   const { actionPlans } = useAppSelector((state) => state.contactStructure);
@@ -23,7 +33,7 @@ const TakeActionModal: React.FC<TakeActionModalProps> = ({ isOpen, onClose, cont
   const [formData, setFormData] = useState({
     planId: '',
     assignToId: '',
-    startDate: new Date().toISOString().slice(0, 16) // Default to now
+    startDate: toLocalDatetimeInputValue(new Date()) // Default to now, in the agent's own local time
   });
 
   useEffect(() => {
@@ -45,11 +55,20 @@ const TakeActionModal: React.FC<TakeActionModalProps> = ({ isOpen, onClose, cont
 
     setLoading(true);
     try {
+      // formData.startDate is a naive "YYYY-MM-DDTHH:mm" string with no
+      // timezone marker — the browser's Date constructor correctly treats it
+      // as local time (same context the picker displayed it in), so
+      // converting to an ISO string here bakes in an unambiguous UTC instant.
+      // Sending the naive string as-is would let the backend's `new
+      // Date(startDate)` reinterpret "14:30" as 14:30 in the SERVER's
+      // timezone instead of the agent's, shifting every step's due date.
+      const startDateUtc = new Date(formData.startDate).toISOString();
+
       await dispatch(assignActionPlan({
         contactId,
         planId: formData.planId,
         assignToId: formData.assignToId,
-        startDate: formData.startDate
+        startDate: startDateUtc
       })).unwrap();
       
       toast.success("Action Plan assigned successfully!");
