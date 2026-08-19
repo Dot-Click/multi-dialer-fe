@@ -55,6 +55,11 @@ const TableComponent: FC<
     doubleClickTooltipProps?: ITooltip;
     selectedRowId?: string;
     isLoading?: boolean;
+    // Optional per-row extra className, e.g. to band adjacent rows that
+    // belong to the same group (Find Duplicates uses this to visually
+    // couple matched contacts together). Purely additive — omit it and
+    // rows render exactly as before.
+    getRowClassName?: (row: any, index: number) => string | undefined;
   } & (WithVirtualScroll | WithOutVirtualScroll)
 > = memo(
   ({
@@ -67,6 +72,7 @@ const TableComponent: FC<
     hasNextPage,
     isLoading,
     isVirtual,
+    getRowClassName,
   }) => {
     const { table, onDoubleClickHandler, onSingleClickHandler } =
       useGlobalTable();
@@ -121,7 +127,8 @@ const TableComponent: FC<
                     "border-b border-slate-200 last:border-b-0",
                     "double-click-indicator single-click-indicator",
                     (withDoubleClickIndication || withSingleClickIndication) &&
-                      "cursor-pointer"
+                      "cursor-pointer",
+                    getRowClassName?.(row, key)
                   )}
                 >
                   {row.getVisibleCells().map((cell, i) => (

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { FiCheckCircle, FiLoader, FiMail, FiAlertTriangle } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { FiCheckCircle, FiLoader, FiMail } from "react-icons/fi";
 import toast from "react-hot-toast";
-import api from "@/lib/axios";
 import { useSmtpSettings, type SmtpConfigFormValues } from "@/hooks/useSmtpSettings";
 
 const EMPTY_FORM: SmtpConfigFormValues = {
@@ -18,15 +16,6 @@ const EMPTY_FORM: SmtpConfigFormValues = {
 const SmtpIntegration = () => {
   const { data: config, isLoading, saveAndTest, testConfig } = useSmtpSettings();
   const [form, setForm] = useState<SmtpConfigFormValues>(EMPTY_FORM);
-  const [hasCompany, setHasCompany] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    api.get("/company/my-company")
-      .then(({ data }) => {
-        setHasCompany(!!(data?.data?.companyName));
-      })
-      .catch(() => setHasCompany(false));
-  }, []);
 
   useEffect(() => {
     if (!config) return;
@@ -79,18 +68,6 @@ const SmtpIntegration = () => {
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
-      {hasCompany === false && (
-        <div className="flex items-start gap-3 mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <FiAlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
-          <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
-            You need to set up your company before configuring SMTP.{" "}
-            <Link to="/admin/account-setting" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-100">
-              Go to Account Settings → Company
-            </Link>
-          </p>
-        </div>
-      )}
-
       <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
         <div className="w-20 h-20 bg-gray-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center p-3 shrink-0">
           <FiMail size={36} className="text-gray-400" />
@@ -192,7 +169,7 @@ const SmtpIntegration = () => {
 
       <button
         onClick={handleSaveAndTest}
-        disabled={pending || hasCompany === false}
+        disabled={pending}
         className="w-full sm:w-auto px-6 py-3 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg hover:shadow-yellow-400/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {pending ? <FiLoader className="animate-spin" /> : null}

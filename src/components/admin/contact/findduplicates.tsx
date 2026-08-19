@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
@@ -10,15 +10,15 @@ import { fetchDuplicateContacts } from "@/store/slices/contactSlice";
 // import callsicon from "../../../assets/callsicon.png";
 // --- Icons imported from react-icons library ---
 // import { BsFillGrid3X3GapFill } from "react-icons/bs";
-import { FiSmartphone } from "react-icons/fi";
+import { FiSmartphone, FiMail, FiHome, FiMapPin, FiUsers } from "react-icons/fi";
 
 // --- Column Definitions ---
 // Labels match ManageColumnsModal's fields so "Manage Columns" can
-// toggle/reorder these. "Reason" and "Locations" are page-specific extra
-// fields (passed to the modal via `extraFields`) — like every other column,
-// their position in the table is just wherever they land in visibleColumns,
-// so the user can drag them next to Name if they want them always in view
-// without scrolling.
+// toggle/reorder these. "Group", "Reason" and "Locations" are page-specific
+// extra fields (passed to the modal via `extraFields`) — like every other
+// column, their position in the table is just wherever they land in
+// visibleColumns, so the user can drag them next to Name if they want them
+// always in view without scrolling.
 
 const PLAIN_TEXT_FIELDS: { key: string; accessorKey: string; label: string }[] = [
   { key: "Last Dialed", accessorKey: "lastDialedDate", label: "Last Dialed Date" },
@@ -30,12 +30,12 @@ const PLAIN_TEXT_FIELDS: { key: string; accessorKey: string; label: string }[] =
   { key: "Status", accessorKey: "status", label: "Status" },
 ];
 
-export const DEFAULT_DUPLICATE_VISIBLE_COLUMNS = ["Name", "Last Dialed", "Phone", "Email", "Tags", "Reason", "Locations"];
+export const DEFAULT_DUPLICATE_VISIBLE_COLUMNS = ["Name", "Group", "Last Dialed", "Phone", "Email", "Tags", "Reason", "Locations"];
 
 // The extra, page-specific fields Manage Columns should offer here in
 // addition to its own static list — these aren't real contact fields, they're
 // unique to the duplicates view.
-export const DUPLICATE_EXTRA_FIELDS = ["Reason", "Locations"];
+export const DUPLICATE_EXTRA_FIELDS = ["Group", "Reason", "Locations"];
 
 const selectColumn = {
   id: "select",
@@ -126,14 +126,79 @@ const descriptionColumn = {
   },
 };
 
+// Badge styling per match reason, so it's immediately clear WHY two contacts
+// were flagged together — not just that they were. Colors are distinct per
+// field so a contact matched on multiple fields (e.g. Phone + Address) shows
+// a stack of differently-colored badges instead of one ambiguous label.
+const REASON_BADGE_STYLES: Record<string, { className: string; icon: ReactNode }> = {
+  "Phone Match": {
+    className: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/40",
+    icon: <FiSmartphone size={11} />,
+  },
+  "Email Match": {
+    className: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/40",
+    icon: <FiMail size={11} />,
+  },
+  "Property Address Match": {
+    className: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/40",
+    icon: <FiHome size={11} />,
+  },
+  "Mailing Address Match": {
+    className: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/40",
+    icon: <FiMapPin size={11} />,
+  },
+};
+
 const reasonColumn = {
   accessorKey: "duplicateReason",
-  header: (info: any) => <SortedHeader header={info.header} label="Reason" />,
-  cell: ({ getValue }: any) => (
-    <span className="text-red-500 font-medium text-xs dark:text-red-400">
-      {getValue() || "Unknown"}
-    </span>
-  ),
+  header: (info: any) => <SortedHeader header={info.header} label="Match Reason" />,
+  cell: ({ getValue }: any) => {
+    const raw = getValue();
+    const reasons = typeof raw === "string" && raw.length > 0 && raw !== "-"
+      ? raw.split(",").map((r: string) => r.trim()).filter(Boolean)
+      : [];
+
+    if (reasons.length === 0) {
+      return <span className="text-gray-400 text-xs">Unknown</span>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {reasons.map((reason: string) => {
+          const style = REASON_BADGE_STYLES[reason] || {
+            className: "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/40",
+            icon: null,
+          };
+          return (
+            <span
+              key={reason}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border whitespace-nowrap ${style.className}`}
+            >
+              {style.icon}
+              {reason}
+            </span>
+          );
+        })}
+      </div>
+    );
+  },
+};
+
+// "Group of N" badge — the plainest possible signal that this row is part of
+// a matched cluster and roughly how big that cluster is, reinforcing the row
+// banding below (getRowClassName) that visually couples the group together.
+const groupColumn = {
+  accessorKey: "duplicateGroupSize",
+  header: (info: any) => <SortedHeader header={info.header} label="Group" />,
+  cell: ({ getValue }: any) => {
+    const size = getValue() || 1;
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
+        <FiUsers size={11} />
+        Group of {size}
+      </span>
+    );
+  },
 };
 
 const locationsColumn = {
@@ -159,6 +224,7 @@ const plainColumns = PLAIN_TEXT_FIELDS.reduce<Record<string, any>>((acc, { key, 
 
 const colByLabel: Record<string, any> = {
   Name: nameColumn,
+  Group: groupColumn,
   Phone: phoneColumn,
   Email: emailColumn,
   Tags: tagsColumn,
@@ -194,6 +260,51 @@ const FindDuplicates = ({
     return [selectColumn, ...ordered];
   }, [visibleColumns]);
 
+  // The backend already returns duplicateContacts pre-sorted so every member
+  // of a matched cluster (same duplicateGroupId) is adjacent. Derive a stable
+  // 0-based order index per group here so we can alternate a background tint
+  // across groups, and mark each group's first row with a top border — the
+  // "coupled right near one another" visual Jason asked for, on top of the
+  // Match Reason / Group badges above.
+  //
+  // This index is only meaningful in that default, server-grouped order:
+  // TanStack's client-side getSortedRowModel is a per-column sort (Name,
+  // Phone, Email, ...), and duplicate members of a group almost never share
+  // those values, so a re-sort scatters a group's rows across the table
+  // instead of keeping them adjacent. Recomputing this index from the
+  // post-sort row order wouldn't produce coherent banding either — there's
+  // no "first row of the cluster" once the cluster isn't contiguous, so the
+  // tint/border would still land on effectively arbitrary rows. Instead we
+  // suppress the tint/border entirely while a column sort is active (see
+  // `isDefaultOrder` below) and keep the "Group of N" / Match Reason badges,
+  // which stay correct regardless of row order.
+  const { groupOrderIndex, groupStartIds } = useMemo(() => {
+    const orderIndex = new Map<string, number>();
+    const startIds = new Set<string>();
+    let nextIndex = 0;
+    for (const c of duplicateContacts) {
+      const groupId = (c as any).duplicateGroupId;
+      if (!groupId) continue;
+      if (!orderIndex.has(groupId)) {
+        orderIndex.set(groupId, nextIndex++);
+        startIds.add(c.id);
+      }
+    }
+    return { groupOrderIndex: orderIndex, groupStartIds: startIds };
+  }, [duplicateContacts]);
+
+  const getRowClassName = (row: any) => {
+    const original = row.original || {};
+    const groupId = original.duplicateGroupId;
+    if (!groupId) return undefined;
+    const idx = groupOrderIndex.get(groupId) ?? 0;
+    const isGroupStart = groupStartIds.has(original.id);
+    return [
+      idx % 2 === 0 ? "bg-amber-50/50 dark:bg-amber-900/10" : "",
+      isGroupStart ? "border-t-2 border-t-[#FFCA06]" : "",
+    ].filter(Boolean).join(" ");
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-20">
@@ -217,13 +328,26 @@ const FindDuplicates = ({
           </div>
         ) : (
           <TableProvider data={duplicateContacts} columns={columns}>
-            {({ selectedRows }) => {
+            {({ selectedRows, table }) => {
               // Sync selected rows back to parent
               useEffect(() => {
                 onSelectionChange?.(selectedRows || []);
               }, [selectedRows]);
 
-              return <TableComponent />;
+              // Group banding assumes the server's default clustered order.
+              // Once the user clicks a column header (TanStack's client-side
+              // getSortedRowModel takes over), that adjacency is gone, so
+              // stop passing getRowClassName rather than render a tint/border
+              // pattern that no longer lines up with the actual clusters.
+              // "Group of N" and Match Reason badges are unaffected — they're
+              // derived per-row from the contact's own data, not row order.
+              const isDefaultOrder = table.getState().sorting.length === 0;
+
+              return (
+                <TableComponent
+                  getRowClassName={isDefaultOrder ? getRowClassName : undefined}
+                />
+              );
             }}
           </TableProvider>
         )}
