@@ -38,6 +38,13 @@ export interface Contact {
   statusQuo?: boolean;
   timeline?: boolean;
   agent?: boolean;
+  // Present only on rows returned by fetchDuplicateContacts — identifies the
+  // duplicate cluster this contact belongs to (contacts sharing a phone,
+  // email, or address, transitively) and how many contacts are in it, so the
+  // Find Duplicates UI can group and visually couple matched contacts
+  // instead of scattering them across a flat sorted list.
+  duplicateGroupId?: string;
+  duplicateGroupSize?: number;
 }
 
 interface ContactState {
@@ -925,6 +932,11 @@ export const fetchDuplicateContacts = createAsyncThunk(
           locationContext: c.locationContext || "-",
           folderNames: c.folderNames || [],
           listNames: c.listNames || [],
+          // Comes pre-sorted from the backend so members of the same cluster
+          // are adjacent — keep the id/size through so the table can render
+          // an explicit "Group of N" badge and band adjacent rows together.
+          duplicateGroupId: c.duplicateGroupId,
+          duplicateGroupSize: c.duplicateGroupSize || 1,
         }));
       }
       return rejectWithValue("Failed to fetch duplicate contacts");
@@ -1264,7 +1276,7 @@ export const contactSlice = createSlice({
       })
       .addCase(bulkAssignContactsToList.fulfilled, (state, action) => {
         const { contactIds, listName } = action.payload;
-        
+
         state.contacts = state.contacts.map((c) => {
           if (contactIds.includes(c.id)) {
             return { ...c, list: listName || "-" };
@@ -1325,4 +1337,3 @@ export const contactSlice = createSlice({
 export const { setQueue, setCurrentContact, setCurrentContactFields, removeFromQueue, removeContactById } = contactSlice.actions;
 
 export default contactSlice.reducer;
-
