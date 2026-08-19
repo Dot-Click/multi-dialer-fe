@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { SortedHeader, TableComponent } from "@/components/common/tablecomponent";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
@@ -130,7 +130,7 @@ const descriptionColumn = {
 // were flagged together — not just that they were. Colors are distinct per
 // field so a contact matched on multiple fields (e.g. Phone + Address) shows
 // a stack of differently-colored badges instead of one ambiguous label.
-const REASON_BADGE_STYLES: Record<string, { className: string; icon: JSX.Element }> = {
+const REASON_BADGE_STYLES: Record<string, { className: string; icon: ReactNode }> = {
   "Phone Match": {
     className: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/40",
     icon: <FiSmartphone size={11} />,
