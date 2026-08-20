@@ -57,7 +57,7 @@ export interface StageAttainment {
   stage: StageId; actual: number; target: number; attainment: number | null;
 }
 
-export type DashboardPeriod = "this_week" | "this_month" | "this_year" | "all_time";
+export type DashboardPeriod = "today" | "this_week" | "this_month" | "this_year" | "all_time";
 
 export interface DashboardResponse {
   period: { key: DashboardPeriod; from: string; to: string };
@@ -77,6 +77,9 @@ export interface FunnelResponse {
   range: { from: string; to: string; source: string | null };
   stages: Array<{ id: StageId; value: number }>;
   steps: Array<{ from: StageId; to: StageId; label: string; kpiKey: string; display: "rate" | "pct"; value: number | null }>;
+  /** Lead disposition → Listing Taken disposition, spanning appt set + met.
+   *  null when there are no leads — not computable, which is not zero. */
+  leadToTaken: number | null;
 }
 
 export interface ChannelRow {

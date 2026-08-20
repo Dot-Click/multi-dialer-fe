@@ -161,7 +161,7 @@ export function BusinessPlanTab() {
               <span>
                 Track Under Contract as its own stage
                 <span className="block text-[11px] font-normal text-muted-foreground">
-                  Off = identical to Saleslytics (8 stages)
+                  Off = 8 stages instead of 9
                 </span>
               </span>
             </label>

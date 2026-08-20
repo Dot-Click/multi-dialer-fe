@@ -25,8 +25,23 @@ export function ConversionFunnel({ funnel, loading }: { funnel?: FunnelResponse;
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Conversion funnel</CardTitle>
-        <CardDescription>Cumulative — total ÷ total, never clamped</CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardTitle>Conversion funnel</CardTitle>
+            <CardDescription>Cumulative — total ÷ total, never clamped</CardDescription>
+          </div>
+          {/* Lead → Listing Taken. The one rate that spans the whole CRM
+              stretch of the funnel, so it survives an agent skipping an
+              intermediate disposition. Em dash when there are no leads. */}
+          <div className="text-right">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Lead → Listing taken
+            </div>
+            <div className="text-2xl font-semibold leading-tight">
+              {funnel.leadToTaken == null ? "—" : formatPct(funnel.leadToTaken, 1)}
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {funnel.stages.map((stage, i) => {

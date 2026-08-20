@@ -8,6 +8,7 @@ import {
 import type { DashboardPeriod } from "@/hooks/useTracker";
 
 const OPTIONS: Array<{ value: DashboardPeriod; label: string }> = [
+  { value: "today", label: "Today" },
   { value: "this_week", label: "This Week" },
   { value: "this_month", label: "This Month" },
   { value: "this_year", label: "This Year" },
