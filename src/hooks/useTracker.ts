@@ -77,6 +77,9 @@ export interface FunnelResponse {
   range: { from: string; to: string; source: string | null };
   stages: Array<{ id: StageId; value: number }>;
   steps: Array<{ from: StageId; to: StageId; label: string; kpiKey: string; display: "rate" | "pct"; value: number | null }>;
+  /** Lead disposition → Listing Taken disposition, spanning appt set + met.
+   *  null when there are no leads — not computable, which is not zero. */
+  leadToTaken: number | null;
 }
 
 export interface ChannelRow {
