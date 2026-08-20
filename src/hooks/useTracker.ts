@@ -57,7 +57,7 @@ export interface StageAttainment {
   stage: StageId; actual: number; target: number; attainment: number | null;
 }
 
-export type DashboardPeriod = "this_week" | "this_month" | "this_year" | "all_time";
+export type DashboardPeriod = "today" | "this_week" | "this_month" | "this_year" | "all_time";
 
 export interface DashboardResponse {
   period: { key: DashboardPeriod; from: string; to: string };
