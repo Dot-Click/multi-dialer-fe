@@ -17,9 +17,6 @@ const ProspectingTracker = () => {
             <h1 className="text-[#0E1011] text-[20px] md:text-[26px] dark:text-white lg:text-[28px] font-medium">
               Prospecting Tracker
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Business plan · targets derived on read, never stored
-            </p>
           </div>
           <div className="flex items-center gap-3">
             <TabsList>
