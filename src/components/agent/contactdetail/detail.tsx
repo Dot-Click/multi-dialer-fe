@@ -178,7 +178,7 @@ function PhoneList({ contact, activePhoneIndex, onEdit, dispatch }: PhoneListPro
     }
 
     return (
-        <div className="flex flex-col gap-1 max-h-[110px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <div className="flex flex-col gap-1 max-h-[38px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {phones.map((phone: any, index: number) => {
                 const isBest = !!phone.isBestNumber;
                 const isInvalid = phone.isValid === false;
@@ -272,7 +272,7 @@ function EmailList({ contact, onEdit, dispatch }: EmailListProps) {
     }
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-h-[38px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {emails.map((emailObj: any, index: number) => (
                 <div
                     key={index}
@@ -653,7 +653,8 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                             </div>
                         </div>
                     </div>
-                    <div className='flex flex-nowrap items-center gap-3 lg:gap-6 overflow-x-auto'>
+                    <div className='flex items-center gap-2'>
+                        <div className='flex flex-nowrap items-center gap-3 lg:gap-6 overflow-x-auto'>
                         {stats.map((dt) => (
                             <span key={dt.id} className='flex shrink-0 text-[14px] gap-2 items-center px-2'>
                                 <dt.icon size={14} className="text-[#FFCA06]" />
@@ -663,6 +664,7 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
                                 </div>
                             </span>
                         ))}
+                        </div>
                         <div className="flex shrink-0 gap-2">
                             <button
                                 type="button"
