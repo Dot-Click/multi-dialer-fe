@@ -15,6 +15,7 @@ import companySettingReducer from "./slices/companySettingSlice";
 import dispositionReducer from "./slices/dispositionSlice";
 import a2pReducer from "./slices/a2pSlice";
 import voiceIntegrityReducer from "./slices/voiceIntegritySlice";
+import cnamReducer from "./slices/cnamSlice";
 import contactAnalysisReducer from "./slices/contactAnalysisSlice";
 import superAdminCallerIdReducer from "./slices/superAdminCallerIdSlice";
 import planLimitsReducer from "./slices/planLimitsSlice";
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   dispositions: dispositionReducer,
   a2p: a2pReducer,
   voiceIntegrity: voiceIntegrityReducer,
+  cnam: cnamReducer,
   contactAnalysis: contactAnalysisReducer,
   superAdminCallerIds: superAdminCallerIdReducer,
   planLimits: planLimitsReducer,

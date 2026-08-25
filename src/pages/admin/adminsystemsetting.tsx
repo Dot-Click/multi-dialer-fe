@@ -11,7 +11,7 @@ import Integrations from "@/components/admin/systemsettings/integrations"
 import MiscField from "@/components/admin/systemsettings/miscfield"
 import DataManagement from "@/components/admin/systemsettings/datamanagement"
 import DispositionSettings from "@/components/admin/systemsettings/dispositions"
-import A2PRegistrationPanel from "@/components/common/A2PRegistrationPanel"
+import DeliverabilityPanel from "@/components/common/DeliverabilityPanel"
 
 // Dummy components for each button
 
@@ -29,7 +29,7 @@ const AdminSystemSetting = () => {
         { id: 5, name: "Lead Sheet", component: <LeadSheet /> },
         { id: 6, name: "Profile Fields", component: <MiscField /> },
         { id: 7, name: "Data Management", component: <DataManagement /> },
-        { id: 12, name: "A2P Registration", component: <A2PRegistrationPanel /> },
+        { id: 12, name: "Deliverability & Trust", component: <DeliverabilityPanel /> },
     ]
 
     const secondRowButtons = [

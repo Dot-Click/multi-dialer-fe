@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Clock, ShieldAlert, X } from 'lucide-react';
+import { CheckCircle2, Clock, FileWarning, ShieldAlert, X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
     submitVoiceIntegrityOnboarding,
     refreshVoiceIntegrityStatus,
 } from '@/store/slices/voiceIntegritySlice';
 import type { VoiceIntegrityAttributes } from '@/store/slices/voiceIntegritySlice';
+import { useA2P } from '@/providers/a2p.provider';
 
 interface Props {
     isOpen: boolean;
@@ -42,6 +43,7 @@ const defaultFormData: VoiceIntegrityAttributes = {
  */
 const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
     const dispatch = useAppDispatch();
+    const { openModal: openA2PModal } = useA2P();
     const { status, rejectionReason, loading, error } = useAppSelector(
         (state) => state.voiceIntegrity
     );
@@ -80,6 +82,12 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
 
     const showForm = status === 'not-started' || status === 'twilio-rejected' || status === 'draft';
     const showPending = status === 'pending-review';
+    const showNeedsA2P = status === 'blocked-no-business-profile';
+
+    const handleGoToA2P = () => {
+        onClose();       // close VI modal
+        openA2PModal();  // open A2P registration modal in its place
+    };
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
@@ -127,6 +135,47 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
                             <p className="mt-2 text-[12px] text-red-600">
                                 Correct the details below and resubmit.
                             </p>
+                        </div>
+                    )}
+
+                    {showNeedsA2P && (
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <FileWarning className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                                <div>
+                                    <p className="text-[14px] font-semibold text-amber-900">
+                                        Complete your A2P registration first
+                                    </p>
+                                    <p className="mt-1 text-[13px] text-amber-800">
+                                        Voice Integrity attaches to your Business Profile, which is
+                                        created during A2P registration. You need to finish A2P
+                                        onboarding before we can register your numbers with the
+                                        carriers.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p className="text-[13px] text-[#6B7280]">
+                                A2P takes just a few minutes. Once your Business Profile is
+                                approved by Twilio, Voice Integrity registration unlocks
+                                automatically.
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleGoToA2P}
+                                    className="flex-1 rounded-xl bg-[#FFCA06] py-3.5 font-semibold text-black transition-all hover:shadow-lg"
+                                >
+                                    Register for A2P
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 rounded-xl bg-gray-100 py-3.5 font-semibold text-gray-700 transition-all hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     )}
 

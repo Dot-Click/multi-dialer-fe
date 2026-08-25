@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchVoiceIntegrityStatus } from '@/store/slices/voiceIntegritySlice';
 import type { VoiceIntegrityStatus } from '@/store/slices/voiceIntegritySlice';
@@ -35,44 +35,29 @@ export const VoiceIntegrityProvider: React.FC<{ children: React.ReactNode }> = (
 }) => {
     const dispatch = useAppDispatch();
     const { isAuthenticated } = useAppSelector((state) => state.auth);
-    const { status, lastFetchedAt } = useAppSelector((state) => state.voiceIntegrity);
-    // Session-scoped dismiss flag: the user pressed Cancel this session. Cleared
-    // on logout (auth flips false), so the modal re-prompts on next login —
-    // that keeps the "prompt until approved" spirit without trapping the user
-    // in the modal for a full 24-48h review window.
-    const [dismissedThisSession, setDismissedThisSession] = useState(false);
+    const { status } = useAppSelector((state) => state.voiceIntegrity);
+    // The form modal no longer auto-opens on login — the lightweight
+    // DeliverabilityReminderModal drives the nudge. This modal only opens
+    // when the user explicitly clicks "Set up Voice Integrity" from the
+    // Deliverability & Trust settings panel (openModal() below).
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchVoiceIntegrityStatus());
         } else {
-            setDismissedThisSession(false);
+            setIsModalOpen(false);
         }
     }, [isAuthenticated, dispatch]);
 
-    // If the status transitions back into a state that needs action (e.g. from
-    // pending → rejected), re-prompt even if the user dismissed earlier.
-    useEffect(() => {
-        if (status === 'twilio-rejected') {
-            setDismissedThisSession(false);
-        }
-    }, [status]);
-
-    const isModalOpen = useMemo(() => {
-        if (!isAuthenticated) return false;
-        if (lastFetchedAt === null) return false;
-        if (dismissedThisSession) return false;
-        return status !== 'twilio-approved';
-    }, [isAuthenticated, lastFetchedAt, dismissedThisSession, status]);
-
-    const openModal = () => setDismissedThisSession(false);
-    const handleClose = () => setDismissedThisSession(true);
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
 
     return (
         <VoiceIntegrityContext.Provider value={{ status, isModalOpen, openModal }}>
             {children}
             {isAuthenticated && (
-                <VoiceIntegrityOnboardingModal isOpen={isModalOpen} onClose={handleClose} />
+                <VoiceIntegrityOnboardingModal isOpen={isModalOpen} onClose={closeModal} />
             )}
         </VoiceIntegrityContext.Provider>
     );

@@ -10,7 +10,16 @@ export type VoiceIntegrityStatus =
     | 'draft'
     | 'pending-review'
     | 'twilio-approved'
-    | 'twilio-rejected';
+    | 'twilio-rejected'
+    // Admin has no Twilio subaccount — VI can't proceed. Frontend hides
+    // the modal so we don't nag admins who need support to finish setup.
+    | 'blocked-no-twilio'
+    // Admin has a subaccount but no Business Profile yet (from A2P). VI
+    // needs the profile to attach its trust product to. Modal is hidden;
+    // the A2P flow drives profile creation first.
+    | 'blocked-no-business-profile'
+    // Admin's plan doesn't include VI. Modal is hidden entirely.
+    | 'blocked-plan-not-eligible';
 
 export interface VoiceIntegrityAttributes {
     useCase: string;
