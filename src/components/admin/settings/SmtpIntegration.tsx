@@ -19,15 +19,19 @@ const SmtpIntegration = () => {
 
   useEffect(() => {
     if (!config) return;
-    setForm({
+    setForm((prev) => ({
       host: config.host,
       port: config.port,
       secure: config.secure,
       username: config.username,
-      password: "", // Never prefill the real password — leave blank unless changing it.
+      // Never prefill the real password — but preserve any value the user
+      // has just typed. Save & Test triggers a refetch mid-flow, and
+      // clobbering the password field here would wipe what the user just
+      // entered (so a retry after a failed test would silently submit empty).
+      password: prev.password || "",
       fromName: config.fromName,
       fromEmail: config.fromEmail,
-    });
+    }));
   }, [config]);
 
   const handleChange = (field: keyof SmtpConfigFormValues, value: string | number | boolean) => {
