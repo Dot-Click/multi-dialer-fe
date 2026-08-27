@@ -54,7 +54,7 @@ const DeliverabilityPanel = () => {
                 rejectionReason={viRejectionReason}
                 planLocked={vi.status === 'blocked-plan-not-eligible'}
                 prerequisiteLocked={vi.status === 'blocked-no-business-profile'}
-                prerequisiteHint="Complete A2P Registration first."
+                prerequisiteHint="Submit your Business Profile via A2P Registration first — SMS Brand approval is not required for Voice Integrity."
                 actionLabel={viActionLabel(vi.status)}
                 onAction={vi.openModal}
             />
@@ -72,7 +72,7 @@ const DeliverabilityPanel = () => {
                 }
                 prerequisiteHint={
                     cnam.status === 'blocked-no-business-profile'
-                        ? 'Complete A2P Registration first.'
+                        ? 'Submit your Business Profile via A2P Registration first — SMS Brand approval is not required.'
                         : 'Complete Voice Integrity registration first.'
                 }
                 extraLine={

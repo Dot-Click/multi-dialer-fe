@@ -144,21 +144,22 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
                                 <FileWarning className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                                 <div>
                                     <p className="text-[14px] font-semibold text-amber-900">
-                                        Complete your A2P registration first
+                                        Business Profile approval needed first
                                     </p>
                                     <p className="mt-1 text-[13px] text-amber-800">
-                                        Voice Integrity attaches to your Business Profile, which is
-                                        created during A2P registration. You need to finish A2P
-                                        onboarding before we can register your numbers with the
-                                        carriers.
+                                        Voice Integrity attaches to your Business Profile.
+                                        Submit the profile through A2P Registration — you
+                                        don't need SMS Brand approval for Voice Integrity to
+                                        unlock, just the Business Profile itself.
                                     </p>
                                 </div>
                             </div>
 
                             <p className="text-[13px] text-[#6B7280]">
-                                A2P takes just a few minutes. Once your Business Profile is
-                                approved by Twilio, Voice Integrity registration unlocks
-                                automatically.
+                                Once Twilio approves your Business Profile (typically 1 – 2
+                                business days), Voice Integrity registration unlocks
+                                automatically — even if the SMS Brand step is still pending
+                                or rejected.
                             </p>
 
                             <div className="flex gap-3">
