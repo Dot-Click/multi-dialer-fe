@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { submitA2PRegistration } from '@/store/slices/a2pSlice';
+import { submitA2PRegistration, fetchA2PDetails } from '@/store/slices/a2pSlice';
 
 interface A2POnboardingModalProps {
     isOpen: boolean;
@@ -26,16 +26,43 @@ const defaultFormData = {
 
 const A2POnboardingModal: React.FC<A2POnboardingModalProps> = ({ isOpen, onClose }) => {
     const dispatch = useAppDispatch();
-    const { loading, error } = useAppSelector((state) => state.a2p);
+    const { loading, error, details } = useAppSelector((state) => state.a2p);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(defaultFormData);
 
+    // On open: pull the previous submission's values so the admin can edit
+    // rather than retype from scratch after a rejection.
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen) {
+            dispatch(fetchA2PDetails());
+        } else {
             setStep(1);
             setFormData(defaultFormData);
         }
-    }, [isOpen]);
+    }, [isOpen, dispatch]);
+
+    // Once the details land (or update), seed the form. Falls back to
+    // defaults for any field the previous submission didn't populate.
+    useEffect(() => {
+        if (!isOpen) return;
+        if (details) {
+            setFormData({
+                legalBusinessName: details.legalBusinessName || '',
+                businessType: details.businessType || '',
+                ein: details.ein || '',
+                businessWebsite: details.businessWebsite || '',
+                businessAddress: details.businessAddress || '',
+                city: details.city || '',
+                state: details.state || '',
+                postalCode: details.postalCode || '',
+                country: details.country || 'US',
+                contactFirstName: details.contactFirstName || '',
+                contactLastName: details.contactLastName || '',
+                contactEmail: details.contactEmail || '',
+                contactPhone: details.contactPhone || '',
+            });
+        }
+    }, [isOpen, details]);
 
     if (!isOpen) return null;
 
