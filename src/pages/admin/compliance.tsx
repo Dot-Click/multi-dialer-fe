@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select'
 import { Box } from '@/components/ui/box'
 import { Label } from '@/components/ui/label'
+import TimeZoneSetting from '@/components/admin/compliance/TimeZoneSetting'
 
 import { useCallerIds, useDncList, useRegulatorySettings, useAuditLogs } from '@/hooks/useSystemSettings'
 import { useNavigate } from 'react-router-dom'
@@ -392,6 +393,13 @@ const Compliance = () => {
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-6">
           Regulatory Settings
         </h2>
+
+        {/* Timezone first: it is the clock the TCPA window below is measured in,
+            and the day boundary the Prospecting Tracker counts against. */}
+        <TimeZoneSetting
+          value={regulatory?.companyTimeZone}
+          onSave={(tz) => updateRegulatorySettings.mutateAsync({ companyTimeZone: tz })}
+        />
 
         {/* TCPA Settings */}
         <div className="mb-8">
