@@ -42,6 +42,8 @@ const DeliverabilityPanel = () => {
                 rejectionReason={a2pRejectionReason}
                 planLocked={false}
                 prerequisiteLocked={false}
+                pendingLocked={a2p.status === 'PENDING'}
+                pendingHint="Twilio is reviewing your Business Profile. This typically takes 1–2 business days. Please wait for the review to complete before making changes — resubmitting while review is in progress can create a duplicate profile that Twilio will auto-reject."
                 actionLabel={a2pActionLabel(a2p.status)}
                 onAction={a2p.openModal}
             />
@@ -55,6 +57,8 @@ const DeliverabilityPanel = () => {
                 planLocked={vi.status === 'blocked-plan-not-eligible'}
                 prerequisiteLocked={vi.status === 'blocked-no-business-profile'}
                 prerequisiteHint="Submit your Business Profile via A2P Registration first — SMS Brand approval is not required for Voice Integrity."
+                pendingLocked={vi.status === 'pending-review'}
+                pendingHint="Twilio and the carriers are reviewing your Voice Integrity submission. Approval typically takes 24–48 business hours. Once approved, your numbers will be flagged as branded-caller across T-Mobile, AT&T, and Verizon."
                 actionLabel={viActionLabel(vi.status)}
                 onAction={vi.openModal}
             />
@@ -75,6 +79,8 @@ const DeliverabilityPanel = () => {
                         ? 'Submit your Business Profile via A2P Registration first — SMS Brand approval is not required.'
                         : 'Complete Voice Integrity registration first.'
                 }
+                pendingLocked={cnam.status === 'pending-review'}
+                pendingHint="Twilio is reviewing your CNAM registration. Approval typically takes 24–48 business hours. Once approved, your business name will display alongside your number on recipients' phones."
                 extraLine={
                     cnamDisplayName ? `Display name: “${cnamDisplayName}”` : undefined
                 }
@@ -100,6 +106,16 @@ const SettingCard: React.FC<{
     planLocked: boolean;
     prerequisiteLocked: boolean;
     prerequisiteHint?: string;
+    // pendingLocked disables the action button when the registration is
+    // currently under Twilio review. Two reasons this matters:
+    //   1. Nothing the user can do until Twilio decides — clicking through
+    //      to the modal only invites confusion.
+    //   2. Resubmitting a Customer Profile while the previous one is still
+    //      in-review creates a duplicate that Twilio's registry lookup
+    //      auto-rejects in seconds, which then leaks back to the user as
+    //      "rejected" even though the original submission is still viable.
+    pendingLocked?: boolean;
+    pendingHint?: string;
     extraLine?: string;
     actionLabel: string;
     onAction: () => void;
@@ -111,11 +127,13 @@ const SettingCard: React.FC<{
     planLocked,
     prerequisiteLocked,
     prerequisiteHint,
+    pendingLocked,
+    pendingHint,
     extraLine,
     actionLabel,
     onAction,
 }) => {
-    const disabled = planLocked || prerequisiteLocked;
+    const disabled = planLocked || prerequisiteLocked || !!pendingLocked;
     const finalStatus = planLocked
         ? { label: 'Not on your plan', className: 'bg-gray-100 text-gray-600' }
         : prerequisiteLocked
@@ -145,7 +163,7 @@ const SettingCard: React.FC<{
                         <p className="text-[13px] text-[#6B7280]">{extraLine}</p>
                     )}
 
-                    {rejectionReason && !planLocked && !prerequisiteLocked && (
+                    {rejectionReason && !planLocked && !prerequisiteLocked && !pendingLocked && (
                         <p className="rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-700 dark:bg-red-950/30 dark:text-red-300">
                             {rejectionReason}
                         </p>
@@ -160,12 +178,19 @@ const SettingCard: React.FC<{
                     {prerequisiteLocked && prerequisiteHint && (
                         <p className="text-[13px] text-[#6B7280]">{prerequisiteHint}</p>
                     )}
+
+                    {pendingLocked && pendingHint && (
+                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                            {pendingHint}
+                        </p>
+                    )}
                 </div>
 
                 <button
                     type="button"
                     onClick={onAction}
                     disabled={disabled}
+                    title={pendingLocked ? 'Waiting for Twilio review to complete' : undefined}
                     className={`rounded-[10px] px-4 py-3 text-[14px] font-medium transition-colors ${
                         disabled
                             ? 'cursor-not-allowed bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-gray-400'
@@ -192,7 +217,7 @@ function a2pStatusMeta(status: string): StatusMeta {
 
 function a2pActionLabel(status: string): string {
     switch (status) {
-        case 'PENDING':  return 'Submission in Review';
+        case 'PENDING':  return 'Awaiting Twilio Review';
         case 'APPROVED': return 'Approved';
         case 'REJECTED': return 'Re-open A2P Form';
         default:         return 'Open A2P Form';
@@ -210,7 +235,7 @@ function viStatusMeta(status: string): StatusMeta {
 
 function viActionLabel(status: string): string {
     switch (status) {
-        case 'pending-review':  return 'Check Status';
+        case 'pending-review':  return 'Awaiting Twilio Review';
         case 'twilio-approved': return 'Approved';
         case 'twilio-rejected': return 'Resubmit';
         default:                return 'Set up Voice Integrity';
@@ -228,7 +253,7 @@ function cnamStatusMeta(status: string): StatusMeta {
 
 function cnamActionLabel(status: string): string {
     switch (status) {
-        case 'pending-review':  return 'Check Status';
+        case 'pending-review':  return 'Awaiting Twilio Review';
         case 'twilio-approved': return 'Approved';
         case 'twilio-rejected': return 'Resubmit CNAM';
         default:                return 'Set up CNAM';
