@@ -54,7 +54,7 @@ export function LogActivityWidget() {
   const handleSave = async () => {
     try {
       await save.mutateAsync(form);
-      toast.success("Activity saved");
+      toast.success("Activity added");
       setForm(EMPTY);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? "Could not save activity");
@@ -66,7 +66,8 @@ export function LogActivityWidget() {
       <CardHeader>
         <CardTitle>Log activity</CardTitle>
         <CardDescription>
-          Manual entry — overrides what the dialer and CRM derived for this day
+          Door knocking, an open house, a conversation the dialer never saw — this
+          adds to what the dialer and CRM already recorded for the day.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -125,6 +126,14 @@ export function LogActivityWidget() {
           ))}
         </div>
 
+        {/* The zeros used to be destructive: saving with only Hours filled in
+            replaced the whole day and wiped its contacts, leads and appointments.
+            They are inert now, but say so — nobody should have to test it. */}
+        <p className="text-xs text-muted-foreground">
+          Leave anything you are not logging at zero. Zero adds nothing; it never
+          clears a figure the dialer or CRM already recorded.
+        </p>
+
         <div className="flex flex-col gap-1">
           <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Notes</Label>
           <Input
@@ -136,7 +145,7 @@ export function LogActivityWidget() {
 
         <div className="flex items-center gap-3">
           <Button onClick={handleSave} disabled={save.isPending} className="bg-[#FFCA06] text-black hover:bg-[#FFCA06]/90">
-            {save.isPending ? "Saving..." : "Save entry"}
+            {save.isPending ? "Saving..." : "Add to day"}
           </Button>
           <Button type="button" variant="outline" onClick={() => setForm(EMPTY)}>
             Clear

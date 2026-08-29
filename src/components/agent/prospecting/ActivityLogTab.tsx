@@ -1,6 +1,5 @@
 import toast from "react-hot-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -26,7 +25,9 @@ export function ActivityLogTab() {
       <CardHeader>
         <CardTitle>Activity log</CardTitle>
         <CardDescription>
-          Manual entries only — days the dialer/CRM figures were corrected or backfilled
+          Manual entries only — what you logged by hand, on top of the dialer and
+          CRM figures. One row per day and channel; deleting a row removes only
+          what was logged here.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,14 +59,10 @@ export function ActivityLogTab() {
             <TableBody>
               {sessions.map((row) => (
                 <TableRow key={row.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {row.loggedOn.slice(0, 10)}
-                    {row.isOverride && (
-                      <Badge variant="outline" className="ml-2 text-[10px]">
-                        edited
-                      </Badge>
-                    )}
-                  </TableCell>
+                  {/* No "edited" badge: isOverride defaults to true and was set on
+                      every row, so it marked nothing. These rows add to the day
+                      rather than editing it, which is the other reason it went. */}
+                  <TableCell className="whitespace-nowrap">{row.loggedOn.slice(0, 10)}</TableCell>
                   <TableCell>{row.source ?? "—"}</TableCell>
                   <TableCell className="text-right">{Number(row.hours).toFixed(1)}</TableCell>
                   <TableCell className="text-right">{row.contacts}</TableCell>
