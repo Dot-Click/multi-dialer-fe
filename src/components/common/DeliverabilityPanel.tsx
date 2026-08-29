@@ -2,6 +2,7 @@ import { useA2P } from '@/providers/a2p.provider';
 import { useVoiceIntegrity } from '@/providers/voiceIntegrity.provider';
 import { useCnam } from '@/providers/cnam.provider';
 import { useAppSelector } from '@/store/hooks';
+import type { BrandStageState, CampaignStageState, StageState } from '@/store/slices/a2pSlice';
 
 /**
  * Unified Deliverability & Trust settings panel — one card per registration
@@ -9,15 +10,17 @@ import { useAppSelector } from '@/store/hooks';
  * description, an optional rejection reason banner, and an action button
  * that opens the appropriate onboarding modal.
  *
- * The cards render in dependency order (A2P → VI → CNAM). Later cards show
- * a locked "complete previous step first" state until their prerequisites
- * are met.
+ * The A2P card renders a 3-row checklist (Business Profile → Brand →
+ * Campaign) so users see which stage failed and what they can do about
+ * it — instead of a single "A2P rejected" rollup. Voice Integrity and
+ * CNAM read `unblocksDownstream` off the A2P slice to know whether they
+ * can proceed regardless of Brand / Campaign state.
  */
 const DeliverabilityPanel = () => {
     const a2p = useA2P();
     const vi = useVoiceIntegrity();
     const cnam = useCnam();
-    const a2pRejectionReason = useAppSelector((s) => s.a2p.rejectionReason);
+    const a2pState = useAppSelector((s) => s.a2p);
     const viRejectionReason = useAppSelector((s) => s.voiceIntegrity.rejectionReason);
     const cnamRejectionReason = useAppSelector((s) => s.cnam.rejectionReason);
     const cnamDisplayName = useAppSelector((s) => s.cnam.displayName);
@@ -34,32 +37,26 @@ const DeliverabilityPanel = () => {
                 </p>
             </div>
 
-            {/* Card 1 — A2P (universal, no plan gate) */}
-            <SettingCard
-                title="A2P Registration"
-                description="Registers your business with the carriers so you can send SMS. Also produces the Business Profile that Voice Integrity and CNAM attach to."
-                status={a2pStatusMeta(a2p.status)}
-                rejectionReason={a2pRejectionReason}
-                planLocked={false}
-                prerequisiteLocked={false}
-                actionLabel={a2pActionLabel(a2p.status)}
-                onAction={a2p.openModal}
-            />
+            {/* Card 1 — A2P — stage checklist */}
+            <A2PStageCard />
 
-            {/* Card 2 — Voice Integrity (gated on advancedDeliverabilityEnabled + A2P approved) */}
+            {/* Card 2 — Voice Integrity */}
             <SettingCard
                 title="Voice Integrity"
                 description="Registers your numbers with T-Mobile, AT&T, and Verizon so they aren't labeled 'Spam Likely' on recipients' phones."
                 status={viStatusMeta(vi.status)}
                 rejectionReason={viRejectionReason}
                 planLocked={vi.status === 'blocked-plan-not-eligible'}
-                prerequisiteLocked={vi.status === 'blocked-no-business-profile'}
+                prerequisiteLocked={
+                    vi.status === 'blocked-no-business-profile' &&
+                    !a2pState.unblocksDownstream.voiceIntegrity
+                }
                 prerequisiteHint="Submit your Business Profile via A2P Registration first — SMS Brand approval is not required for Voice Integrity."
                 actionLabel={viActionLabel(vi.status)}
                 onAction={vi.openModal}
             />
 
-            {/* Card 3 — CNAM (gated on plan + VI approved) */}
+            {/* Card 3 — CNAM */}
             <SettingCard
                 title="Branded Caller Name (CNAM)"
                 description="Registers a 15-character business name that appears alongside your number on recipients' phones."
@@ -67,7 +64,8 @@ const DeliverabilityPanel = () => {
                 rejectionReason={cnamRejectionReason}
                 planLocked={cnam.status === 'blocked-plan-not-eligible'}
                 prerequisiteLocked={
-                    cnam.status === 'blocked-no-business-profile' ||
+                    (cnam.status === 'blocked-no-business-profile' &&
+                        !a2pState.unblocksDownstream.cnam) ||
                     cnam.status === 'blocked-no-voice-integrity'
                 }
                 prerequisiteHint={
@@ -76,7 +74,7 @@ const DeliverabilityPanel = () => {
                         : 'Complete Voice Integrity registration first.'
                 }
                 extraLine={
-                    cnamDisplayName ? `Display name: “${cnamDisplayName}”` : undefined
+                    cnamDisplayName ? `Display name: "${cnamDisplayName}"` : undefined
                 }
                 actionLabel={cnamActionLabel(cnam.status)}
                 onAction={cnam.openModal}
@@ -85,12 +83,150 @@ const DeliverabilityPanel = () => {
     );
 };
 
-// ---------- Sub-component ---------------------------------------------------
+// -----------------------------------------------------------------------------
+// A2P Stage Card — 3-row checklist
+// -----------------------------------------------------------------------------
+
+const A2PStageCard = () => {
+    const a2p = useA2P();
+    const state = useAppSelector((s) => s.a2p);
+    const { stages, unblocksDownstream, status: overallStatus, customerProfileApproved } = state;
+
+    const overall = overallStatusMeta(overallStatus);
+    const notStarted = overallStatus === 'NOT_STARTED';
+
+    return (
+        <div className="rounded-[12px] bg-white p-6 shadow-sm dark:bg-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 className="text-[18px] font-semibold text-[#17181B] dark:text-white">
+                        A2P Registration
+                    </h3>
+                    <p className="mt-1 max-w-3xl text-[14px] text-[#495057] dark:text-gray-400">
+                        Registers your business with the carriers so you can send SMS. Also
+                        produces the Business Profile that Voice Integrity and CNAM attach to.
+                    </p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-[12px] font-medium ${overall.className}`}>
+                    {overall.label}
+                </span>
+            </div>
+
+            {notStarted ? (
+                <div className="mt-4">
+                    <button
+                        type="button"
+                        onClick={a2p.openModal}
+                        className="rounded-[10px] bg-[#FFCA06] px-4 py-3 text-[14px] font-medium text-black hover:bg-[#e5b605]"
+                    >
+                        Open A2P Form
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <ul className="mt-5 space-y-3">
+                        <StageRow
+                            title="Business Profile"
+                            stage={stages.customerProfile}
+                            approvedLabel="Approved"
+                            onFix={a2p.openResubmitCP}
+                            fixLabel="Fix and resubmit"
+                        />
+                        <StageRow
+                            title="Brand (TCR)"
+                            stage={stages.brand}
+                            approvedLabel="Approved"
+                            waitingFor={!customerProfileApproved ? 'Waiting for Business Profile' : null}
+                            onFix={a2p.openResubmitBrand}
+                            fixLabel="Fix and resubmit"
+                            fixSuffix={` — $${stages.brand.resubmitFeeUsd} TCR fee`}
+                        />
+                        <StageRow
+                            title="Campaign"
+                            stage={stages.campaign}
+                            approvedLabel="Verified"
+                            waitingFor={
+                                stages.brand.status !== 'APPROVED'
+                                    ? 'Waiting for brand approval'
+                                    : null
+                            }
+                            onFix={a2p.openResubmitCampaign}
+                            fixLabel="Fix and resubmit"
+                        />
+                    </ul>
+
+                    {customerProfileApproved && (unblocksDownstream.voiceIntegrity || unblocksDownstream.cnam) && (
+                        <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+                            Voice Integrity and CNAM can proceed — your Business Profile is approved.
+                        </p>
+                    )}
+                </>
+            )}
+        </div>
+    );
+};
+
+// -----------------------------------------------------------------------------
+// Sub-components
+// -----------------------------------------------------------------------------
 
 interface StatusMeta {
     label: string;
     className: string;
+    icon: string;
 }
+
+const StageRow: React.FC<{
+    title: string;
+    stage: StageState | BrandStageState | CampaignStageState;
+    approvedLabel: string;
+    waitingFor?: string | null;
+    onFix: () => void;
+    fixLabel: string;
+    fixSuffix?: string;
+}> = ({ title, stage, approvedLabel, waitingFor, onFix, fixLabel, fixSuffix = '' }) => {
+    const meta = stageRowMeta(stage.status, approvedLabel, waitingFor ?? null);
+    const isRejected = meta.icon === '❌';
+    const isTerminal = isRejected && stage.retriable === false;
+
+    return (
+        <li className="flex flex-col gap-2 rounded-lg border border-gray-100 p-3 sm:flex-row sm:items-start sm:justify-between dark:border-slate-700">
+            <div className="flex items-start gap-3">
+                <span className="text-[16px] leading-6">{meta.icon}</span>
+                <div>
+                    <p className="text-[14px] font-medium text-[#17181B] dark:text-white">{title}</p>
+                    <p className={`text-[13px] ${isRejected ? 'text-red-700 dark:text-red-300' : 'text-[#6B7280]'}`}>
+                        {meta.label}
+                        {isRejected && stage.message ? ` — ${stage.message}` : ''}
+                    </p>
+                    {waitingFor && !stage.status && (
+                        <p className="text-[12px] text-[#6B7280]">{waitingFor}</p>
+                    )}
+                </div>
+            </div>
+            {isRejected && (
+                <div className="flex flex-col items-end gap-1">
+                    {isTerminal ? (
+                        <span className="text-[12px] text-[#6B7280]">
+                            Not retriable — contact support
+                        </span>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={onFix}
+                            className="rounded-[8px] bg-[#FFCA06] px-3 py-1.5 text-[13px] font-medium text-black hover:bg-[#e5b605]"
+                        >
+                            {fixLabel}
+                        </button>
+                    )}
+                    {!isTerminal && fixSuffix && (
+                        <span className="text-[11px] text-[#6B7280]">{fixSuffix.replace(/^ — /, '')}</span>
+                    )}
+                </div>
+            )}
+        </li>
+    );
+};
 
 const SettingCard: React.FC<{
     title: string;
@@ -117,9 +253,9 @@ const SettingCard: React.FC<{
 }) => {
     const disabled = planLocked || prerequisiteLocked;
     const finalStatus = planLocked
-        ? { label: 'Not on your plan', className: 'bg-gray-100 text-gray-600' }
+        ? { label: 'Not on your plan', className: 'bg-gray-100 text-gray-600', icon: '' }
         : prerequisiteLocked
-        ? { label: 'Locked', className: 'bg-gray-100 text-gray-600' }
+        ? { label: 'Locked', className: 'bg-gray-100 text-gray-600', icon: '' }
         : status;
 
     return (
@@ -179,32 +315,58 @@ const SettingCard: React.FC<{
     );
 };
 
-// ---------- Status → Badge mapping helpers ---------------------------------
+// -----------------------------------------------------------------------------
+// Status → row/badge mapping
+// -----------------------------------------------------------------------------
 
-function a2pStatusMeta(status: string): StatusMeta {
+function overallStatusMeta(status: string): StatusMeta {
     switch (status) {
-        case 'PENDING':  return { label: 'Pending review', className: 'bg-amber-100 text-amber-700' };
-        case 'APPROVED': return { label: 'Approved',       className: 'bg-emerald-100 text-emerald-700' };
-        case 'REJECTED': return { label: 'Needs update',   className: 'bg-red-100 text-red-700' };
-        default:         return { label: 'Not started',    className: 'bg-gray-100 text-gray-700' };
+        case 'PENDING':  return { label: 'In progress', className: 'bg-amber-100 text-amber-700', icon: '⏳' };
+        case 'APPROVED': return { label: 'Approved',    className: 'bg-emerald-100 text-emerald-700', icon: '✅' };
+        case 'REJECTED': return { label: 'Needs attention', className: 'bg-red-100 text-red-700', icon: '❌' };
+        default:         return { label: 'Not started', className: 'bg-gray-100 text-gray-700', icon: '' };
     }
 }
 
-function a2pActionLabel(status: string): string {
+/**
+ * Maps a per-stage raw status string to the row's icon and short label.
+ * CP + Brand + Campaign each use their own Twilio-side enum, so the
+ * function walks all three vocabularies.
+ */
+function stageRowMeta(
+    status: string | null,
+    approvedLabel: string,
+    waitingFor: string | null,
+): { label: string; icon: string } {
+    if (!status) return { label: waitingFor ?? 'Not submitted yet', icon: '⏸' };
     switch (status) {
-        case 'PENDING':  return 'Submission in Review';
-        case 'APPROVED': return 'Approved';
-        case 'REJECTED': return 'Re-open A2P Form';
-        default:         return 'Open A2P Form';
+        case 'twilio-approved':
+        case 'APPROVED':
+        case 'VERIFIED':
+            return { label: approvedLabel, icon: '✅' };
+        case 'twilio-rejected':
+        case 'FAILED':
+            return { label: 'Rejected', icon: '❌' };
+        case 'draft':
+        case 'pending-review':
+        case 'in-review':
+        case 'PENDING':
+        case 'IN_REVIEW':
+        case 'IN_PROGRESS':
+            return { label: 'Under review', icon: '⏳' };
+        case 'SUSPENDED':
+            return { label: 'Suspended', icon: '❌' };
+        default:
+            return { label: status, icon: '⏳' };
     }
 }
 
 function viStatusMeta(status: string): StatusMeta {
     switch (status) {
-        case 'pending-review':   return { label: 'Pending review', className: 'bg-amber-100 text-amber-700' };
-        case 'twilio-approved':  return { label: 'Approved',       className: 'bg-emerald-100 text-emerald-700' };
-        case 'twilio-rejected':  return { label: 'Needs update',   className: 'bg-red-100 text-red-700' };
-        default:                 return { label: 'Not started',    className: 'bg-gray-100 text-gray-700' };
+        case 'pending-review':   return { label: 'Pending review', className: 'bg-amber-100 text-amber-700', icon: '' };
+        case 'twilio-approved':  return { label: 'Approved',       className: 'bg-emerald-100 text-emerald-700', icon: '' };
+        case 'twilio-rejected':  return { label: 'Needs update',   className: 'bg-red-100 text-red-700', icon: '' };
+        default:                 return { label: 'Not started',    className: 'bg-gray-100 text-gray-700', icon: '' };
     }
 }
 
@@ -219,10 +381,10 @@ function viActionLabel(status: string): string {
 
 function cnamStatusMeta(status: string): StatusMeta {
     switch (status) {
-        case 'pending-review':  return { label: 'Pending review', className: 'bg-amber-100 text-amber-700' };
-        case 'twilio-approved': return { label: 'Approved',       className: 'bg-emerald-100 text-emerald-700' };
-        case 'twilio-rejected': return { label: 'Needs update',   className: 'bg-red-100 text-red-700' };
-        default:                return { label: 'Not started',    className: 'bg-gray-100 text-gray-700' };
+        case 'pending-review':  return { label: 'Pending review', className: 'bg-amber-100 text-amber-700', icon: '' };
+        case 'twilio-approved': return { label: 'Approved',       className: 'bg-emerald-100 text-emerald-700', icon: '' };
+        case 'twilio-rejected': return { label: 'Needs update',   className: 'bg-red-100 text-red-700', icon: '' };
+        default:                return { label: 'Not started',    className: 'bg-gray-100 text-gray-700', icon: '' };
     }
 }
 
