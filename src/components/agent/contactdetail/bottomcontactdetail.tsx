@@ -1,48 +1,3 @@
-// import { useState } from "react"
-// import Notes from "./notes"
-
-// const BottomContactDetail = () => {
-
-//     const [openStatus, setOpenStatus] = useState("Notes")
-
-//     const stages = [
-//         { id: 1, name: "Notes" },
-//         { id: 2, name: "Misc" },
-//         { id: 3, name: "Activities" },
-//         { id: 4, name: "History" },
-//         { id: 5, name: "Emails" },
-//         { id: 6, name: "SMS" },
-//         { id: 7, name: "Action Plans" },
-//         { id: 8, name: "Lead Sheet" },
-//         { id: 9, name: "Attachments" },
-//         { id: 10, name: "AI Sidekick" },
-//     ]
-
-
-
-//     return (
-//         <section className='bg-white flex flex-col gap-8 shadow-2xl  px-6 py-5 w-[96%] mx-auto rounded-[24px]'>
-
-//             <div className='flex bg-[#F3F4F7] gap-4 rounded-lg  justify-between items-center'>
-//                 {stages.map((stg) => (
-//                     <button key={stg.id} onClick={() => setOpenStatus(stg.name)}
-//                         className={`${openStatus == stg.name && "bg-[#FFCA06]"} px-6 rounded-lg py-3 cursor-pointer text-sm text-[#18181B]  font-[500]`}>{stg.name}</button>
-//                 ))}
-//             </div>
-
-
-//             <div>
-//                 <Notes/>
-//             </div>
-
-
-
-//         </section>
-//     )
-// }
-
-// export default BottomContactDetail
-
 import { useState } from "react";
 import Notes from "@/components/agent/contactdetail/notes";
 import SMS from "@/components/agent/contactdetail/sms";
@@ -74,9 +29,31 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        <section className="bg-white dark:bg-slate-800 flex flex-col h-full min-h-0 w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
-            {/* Tabs */}
-            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto no-scrollbar p-2 shrink-0">
+        // flex-1, not h-full. The parent page is `flex flex-col h-full` holding
+        // the header, the detail card and this section; h-full here asked for
+        // 100% of a container the siblings had already taken 451px of, and a
+        // flex item with a percentage height still shrinks — so this collapsed
+        // to the ~90px left over. Nothing overflowed, so the page's
+        // overflow-y-auto had nothing to scroll and no scrollbar appeared: the
+        // panel was compressed in place rather than pushed off-screen.
+        //
+        // The min-height is the floor that makes the page overflow instead of
+        // squashing this. On a tall viewport flex-1 wins and the panel scrolls
+        // internally, as designed; on a short one the page scrolls. 460px is
+        // the 60px tab strip plus a panel worth reading.
+        //
+        // min-h-0 is deliberately NOT also present. Two min-height utilities on
+        // one element is settled by stylesheet order, not by which you wrote
+        // last. The inner content div below keeps its own flex-1 min-h-0, which
+        // is what actually lets it scroll.
+        <section className="bg-white dark:bg-slate-800 flex flex-col flex-1 min-h-[460px] w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
+            {/* Tabs — no min-width floor. Eleven tabs at min-w-[100px] plus gaps
+                and padding came to 1156px inside a 1095px strip, which cut
+                "Action Plans" in half; with no-scrollbar there was no scrollbar
+                to reach it either. px-4 and whitespace-nowrap already size each
+                tab to its label. custom-scrollbar so a narrower viewport that
+                does overflow still has something to grab. */}
+            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto custom-scrollbar p-2 shrink-0">
                 {stages.map((stg) => (
                     <button
                         key={stg.id}
@@ -84,7 +61,7 @@ const BottomContactDetail = () => {
                         className={`${openStatus === stg.name
                             ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
                             : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}
-                            px-4 py-3.5 rounded-xl cursor-pointer text-xs font-bold transition-all whitespace-nowrap min-w-[100px]`}
+                            px-4 py-3.5 rounded-xl cursor-pointer text-xs font-bold transition-all whitespace-nowrap`}
                     >
                         {stg.name}
                     </button>
