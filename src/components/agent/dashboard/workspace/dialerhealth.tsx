@@ -63,7 +63,7 @@ const DialerHealth = () => {
                     <h1 className="text-[20px] text-yellow-500 font-bold tracking-tight">
                         Dialer Health
                     </h1>
-                    <p className="text-[11px] text-black font-bold uppercase tracking-widest">Live Twilio Status</p>
+                    <p className="text-[11px] text-black font-bold uppercase tracking-widest">Live Status</p>
                 </div>
                 <button
                     onClick={() => refresh()}
