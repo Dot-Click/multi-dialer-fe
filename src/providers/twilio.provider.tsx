@@ -12,10 +12,29 @@ import { useDialerSettings } from '@/hooks/useSystemSettings';
 let __twilioDeviceRegCount = 0;
 let __twilioIncomingCount = 0;
 
+// How long a dial fired before the Device finishes registering will wait for
+// it, rather than failing outright. Registration measures ~1s in production;
+// 10s covers a slow token fetch without leaving the agent staring at a dead
+// button.
+const DEVICE_READY_TIMEOUT_MS = 10_000;
+
+// A failed setup used to be permanent — deviceRef stayed null and only a page
+// reload could recover. Retry on a backoff instead.
+const MAX_SETUP_ATTEMPTS = 5;
+
+type Deferred = { promise: Promise<void>; resolve: () => void };
+
+function createDeferred(): Deferred {
+  let resolve!: () => void;
+  const promise = new Promise<void>((res) => { resolve = res; });
+  return { promise, resolve };
+}
+
 interface TwilioContextType {
   device: Device | null;
   activeCall: Call | null;
   isCalling: boolean;
+  isDeviceReady: boolean;
   appStatus: string;
   activeCallSid: string | null;
   startCall: (phone: string, from: string, contactId: string) => Promise<void>;
@@ -48,6 +67,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [device, setDevice] = useState<Device | null>(null);
   const [activeCall, setActiveCall] = useState<Call | null>(null);
   const [isCalling, setIsCalling] = useState(false);
+  const [isDeviceReady, setIsDeviceReady] = useState(false);
   const [appStatus, setAppStatus] = useState('Initializing Agent...');
   const [activeCallSid, setActiveCallSid] = useState<string | null>(null);
   const [transcriptionLogs, setTranscriptionLogs] = useState<any[]>([]);
@@ -79,6 +99,24 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // from a superseded call do NOT wipe the state for the new active call.
   const activeCallRef = useRef<Call | null>(null);
   const deviceRef = useRef<Device | null>(null);
+
+  // Readiness plumbing. `isDeviceReady` is the render-facing flag; the ref is
+  // what startCall reads (it can be invoked from a stale closure), and the
+  // deferred is what it awaits when a dial lands mid-registration.
+  const isDeviceReadyRef = useRef(false);
+  const readyDeferredRef = useRef<Deferred>(createDeferred());
+  const setupAttemptsRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // setupDevice retries itself on failure; it reaches its own latest identity
+  // through this ref so the useCallback dependency list stays stable and the
+  // mount effect never tears the Device down mid-session.
+  const setupDeviceRef = useRef<(() => Promise<void>) | null>(null);
+
+  const markDeviceReady = useCallback((ready: boolean) => {
+    isDeviceReadyRef.current = ready;
+    setIsDeviceReady(ready);
+    if (ready) readyDeferredRef.current.resolve();
+  }, []);
 
   useEffect(() => {
     isHoldRef.current = isHold;
@@ -169,6 +207,16 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [fetchVoiceToken]);
 
   const setupDevice = useCallback(async () => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+
+    // Anything awaiting the previous Device's readiness is waiting on a Device
+    // we are about to destroy — hand out a fresh deferred for this attempt.
+    markDeviceReady(false);
+    readyDeferredRef.current = createDeferred();
+
     try {
       // Clean up previous device if it exists to prevent leaks
       if (deviceRef.current) {
@@ -188,8 +236,18 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         edge: ['ashburn', 'dublin', 'singapore', 'sydney', 'frankfurt', 'tokyo'],
       });
 
+      // Publish the Device the moment it exists, BEFORE awaiting register().
+      // Outbound connect() does not require registration — that only gates
+      // incoming calls — so holding the ref back until registration resolved
+      // was what made an early dial fail with "device is not ready yet".
+      deviceRef.current = newDevice;
+      setDevice(newDevice);
+      setAppStatus('Connecting phone…');
+
       newDevice.on('registered', () => {
         __twilioDeviceRegCount += 1;
+        markDeviceReady(true);
+        setupAttemptsRef.current = 0;
         setAppStatus('Agent Ready');
         console.log("[TwilioProvider] Device registered successfully.");
         console.log("[TwilioProvider] I am registered as:", agentIdentity);
@@ -204,6 +262,8 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       newDevice.on('unregistered', () => {
+        markDeviceReady(false);
+        readyDeferredRef.current = createDeferred();
         console.warn("[TwilioDiag] Device UNREGISTERED — it can no longer receive calls until re-registered.");
       });
 
@@ -341,17 +401,37 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       await newDevice.register();
-      deviceRef.current = newDevice;
-      setDevice(newDevice);
     } catch (err: any) {
+      markDeviceReady(false);
       setAppStatus(`Setup Failed: ${err.message}`);
       console.error("[TwilioProvider] setupDevice failed:", err);
+
+      // Before this retry existed, a failed setup was terminal: deviceRef stayed
+      // null, every dial hit "Twilio device is not ready yet", and the only cure
+      // was a page reload the agent had no reason to think of.
+      setupAttemptsRef.current += 1;
+      if (setupAttemptsRef.current < MAX_SETUP_ATTEMPTS) {
+        const delay = Math.min(1000 * 2 ** (setupAttemptsRef.current - 1), 15_000);
+        console.warn(`[TwilioProvider] Retrying device setup in ${delay}ms (attempt ${setupAttemptsRef.current + 1}/${MAX_SETUP_ATTEMPTS})`);
+        retryTimerRef.current = setTimeout(() => { void setupDeviceRef.current?.(); }, delay);
+      } else {
+        console.error("[TwilioProvider] Giving up on device setup after", MAX_SETUP_ATTEMPTS, "attempts.");
+        toast.error('Could not connect the phone. Reload the page to try again.');
+      }
     }
-  }, [fetchVoiceToken, handleStopCalling, refreshDeviceToken]);
+  }, [fetchVoiceToken, handleStopCalling, refreshDeviceToken, markDeviceReady]);
+
+  useEffect(() => {
+    setupDeviceRef.current = setupDevice;
+  }, [setupDevice]);
 
   useEffect(() => {
     setupDevice();
     return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
       if (deviceRef.current) {
         console.log("[TwilioProvider] Unmounting: destroying Twilio device...");
         deviceRef.current.unregister();
@@ -361,11 +441,40 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [setupDevice]);
 
+  /**
+   * Resolves true once the Device has registered, false if it hasn't within
+   * `timeoutMs`. The dialer auto-dials the first contact the moment a session
+   * starts, which can land a few hundred milliseconds ahead of registration —
+   * waiting turns what used to be a hard failure into a slightly slower dial.
+   */
+  const waitForDeviceReady = useCallback((timeoutMs: number): Promise<boolean> => {
+    if (isDeviceReadyRef.current) return Promise.resolve(true);
+    const deferred = readyDeferredRef.current;
+    return Promise.race([
+      deferred.promise.then(() => true),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs)),
+    ]);
+  }, []);
+
   const startCall = async (phone: string, from: string, contactId: string) => {
     if (isCalling) return;
+
     if (!deviceRef.current) {
-      toast.error('Twilio device is not ready yet.');
+      // Setup never got as far as constructing a Device — kick it again rather
+      // than leaving the agent with a button that does nothing.
+      toast.error('Phone is still connecting — try again in a moment.');
+      void setupDeviceRef.current?.();
       return;
+    }
+
+    if (!isDeviceReadyRef.current) {
+      setAppStatus('Connecting phone…');
+      const ready = await waitForDeviceReady(DEVICE_READY_TIMEOUT_MS);
+      if (!ready) {
+        toast.error('Phone did not finish connecting. Reload the page and try again.');
+        setAppStatus('Phone Not Connected');
+        return;
+      }
     }
 
     setIsPostCall(false);
@@ -663,7 +772,7 @@ export const TwilioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <TwilioContext.Provider value={{
-      device, activeCall, isCalling, appStatus, activeCallSid,
+      device, activeCall, isCalling, isDeviceReady, appStatus, activeCallSid,
       startCall, endCall, toggleMute, toggleSpeaker, toggleHold,
       sendDtmf,
       isMuted, isSpeakerOn, isHold, transcriptionLogs, callStatus,
