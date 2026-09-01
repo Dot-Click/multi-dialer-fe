@@ -13,19 +13,77 @@ interface Props {
     onClose: () => void;
 }
 
+/**
+ * Twilio's Voice Integrity `use_case` enum — every accepted value, copied
+ * verbatim from Twilio's rejection copy so submissions pass validation.
+ * These are the strings we send; the label is what we render (same string).
+ */
 const USE_CASE_OPTIONS = [
-    { value: 'sales_dialer', label: 'Sales / Outbound Dialer' },
-    { value: 'customer_care', label: 'Customer Care' },
-    { value: 'appointment_reminders', label: 'Appointment Reminders' },
-    { value: 'debt_collection', label: 'Debt Collection' },
-    { value: 'other', label: 'Other' },
+    'Outbound Dialer',
+    'Telemarketing',
+    'Lead Generation',
+    'Lead Management',
+    'Lead Nurturing',
+    'Lead Alerts',
+    'Lead Distribution',
+    'Marketing Events',
+    'Rewards Program',
+    'Call Tracking',
+    'Click to Call',
+    'Customer Support',
+    'Self-Service',
+    'Automated Support',
+    'Appointment Reminders',
+    'Appointment Scheduling',
+    'Remote appointments',
+    'Employee Notifications',
+    'Delivery Notifications',
+    'Emergency Notifications',
+    'Contactless Delivery',
+    'Order Notifications',
+    'Service Alerts',
+    'Purchase Confirmation',
+    'Mass Alerts',
+    'Fraud Alerts',
+    'Contact Tracing',
+    'Abandoned Cart',
+    'Phone System',
+    'Meetings/Collaboration',
+    'Telehealth',
+    'Distance Learning',
+    'Shift Management',
+    'Field Notifications',
+    'Dating/Social',
+    'Group Messaging',
+    'Exam Proctoring',
+    'Tutoring',
+    'Therapy (Individual+Group)',
+    'Pharmacy',
+    'First Responder',
+    'Survey/Research',
+    'Identify & Verification',
+    'Asset Management',
+    'Intelligent Routing',
+];
+
+/**
+ * Twilio expects `average_business_day_call_volume` as a range string,
+ * not a raw integer. Values match the ones the Twilio Console offers.
+ */
+const CALL_VOLUME_RANGES = [
+    { value: '0-100',           label: 'Less than 100' },
+    { value: '101-1000',        label: '101 – 1,000' },
+    { value: '1001-10000',      label: '1,001 – 10,000' },
+    { value: '10001-100000',    label: '10,001 – 100,000' },
+    { value: '100000+',         label: 'More than 100,000' },
 ];
 
 const defaultFormData: VoiceIntegrityAttributes = {
-    useCase: 'sales_dialer',
+    useCase: 'Outbound Dialer',
     businessEmployeeCount: 1,
-    averageBusinessDayCallVolume: 100,
+    averageBusinessDayCallVolume: '0-100',
     notes: '',
+    notificationEmail: '',
 };
 
 /**
@@ -65,10 +123,9 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]:
-                name === 'businessEmployeeCount' || name === 'averageBusinessDayCallVolume'
-                    ? Number(value)
-                    : value,
+            // Only businessEmployeeCount is a real integer now — call volume
+            // is a Twilio range string ("0-100", etc.).
+            [name]: name === 'businessEmployeeCount' ? Number(value) : value,
         }));
     };
 
@@ -244,17 +301,20 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
                                     className="bg-transparent text-[#111] outline-none"
                                 >
                                     {USE_CASE_OPTIONS.map((o) => (
-                                        <option key={o.value} value={o.value}>
-                                            {o.label}
+                                        <option key={o} value={o}>
+                                            {o}
                                         </option>
                                     ))}
                                 </select>
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Primary usage of the registered phone numbers.
+                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
                                     <label className="text-[12px] font-[500] text-[#6B7280]">
-                                        Employees
+                                        Company size (employees)
                                     </label>
                                     <input
                                         type="number"
@@ -269,15 +329,37 @@ const VoiceIntegrityOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => 
                                     <label className="text-[12px] font-[500] text-[#6B7280]">
                                         Avg. calls / business day
                                     </label>
-                                    <input
-                                        type="number"
-                                        min={1}
+                                    <select
                                         name="averageBusinessDayCallVolume"
                                         value={formData.averageBusinessDayCallVolume}
                                         onChange={handleInputChange}
                                         className="bg-transparent text-[#111] outline-none"
-                                    />
+                                    >
+                                        {CALL_VOLUME_RANGES.map((r) => (
+                                            <option key={r.value} value={r.value}>
+                                                {r.label}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
+                                <label className="text-[12px] font-[500] text-[#6B7280]">
+                                    Notification email
+                                </label>
+                                <input
+                                    type="email"
+                                    name="notificationEmail"
+                                    value={formData.notificationEmail || ''}
+                                    onChange={handleInputChange}
+                                    className="bg-transparent text-[#111] outline-none"
+                                    placeholder="you@company.com"
+                                />
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Twilio emails this address when your registration is approved.
+                                    Leave blank to use your account email.
+                                </p>
                             </div>
 
                             <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">

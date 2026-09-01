@@ -24,8 +24,14 @@ export type VoiceIntegrityStatus =
 export interface VoiceIntegrityAttributes {
     useCase: string;
     businessEmployeeCount: number;
-    averageBusinessDayCallVolume: number;
+    // Twilio wants a range string (e.g. "0-100", "101-1000") — not a raw
+    // number. We send the string verbatim; the backend forwards it to
+    // Trust Hub as average_business_day_call_volume.
+    averageBusinessDayCallVolume: string;
     notes?: string;
+    // Email Twilio pings when the trust product review completes. Falls
+    // back to the admin's own email on the backend if left blank.
+    notificationEmail?: string;
 }
 
 interface VoiceIntegrityState {
