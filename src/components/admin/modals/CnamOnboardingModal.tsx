@@ -68,8 +68,8 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg overflow-hidden rounded-[24px] bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-8 py-6">
+            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-[24px] bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-100 px-8 py-6">
                     <div className="flex items-start gap-3">
                         <div className="mt-1 rounded-full bg-[#E6F4EA] p-2">
                             <ShieldCheck className="h-5 w-5 text-[#0F7A3D]" />
@@ -94,7 +94,7 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                <div className="p-8">
+                <div className="flex-1 overflow-y-auto p-8">
                     {error && (
                         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
                             {error}
@@ -269,7 +269,7 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     )}
                 </div>
 
-                <div className="border-t border-gray-100 bg-gray-50 px-8 py-4 text-center">
+                <div className="shrink-0 border-t border-gray-100 bg-gray-50 px-8 py-4 text-center">
                     <p className="text-[12px] text-[#6B7280]">
                         You can continue to use calling features while your CNAM registration is
                         under review.
