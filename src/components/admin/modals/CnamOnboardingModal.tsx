@@ -33,6 +33,10 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
     );
     const [formData, setFormData] = useState<CnamAttributes>({
         displayName: '',
+        longDisplayName: '',
+        callPurposeCode: 'SALES',
+        callReason: '',
+        logoName: '',
         notificationEmail: '',
         statusCallbackUrl: '',
         consent: false,
@@ -218,6 +222,73 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
                             <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
                                 <label className="text-[12px] font-[500] text-[#6B7280]">
+                                    Long display name
+                                </label>
+                                <input
+                                    name="longDisplayName"
+                                    value={formData.longDisplayName}
+                                    onChange={handleChange}
+                                    maxLength={100}
+                                    className="bg-transparent text-[#111] outline-none"
+                                    placeholder="Slingvo Realty LLC"
+                                />
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Longer version shown in richer UIs (iOS Branded Calling).
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
+                                    <label className="text-[12px] font-[500] text-[#6B7280]">
+                                        Call purpose
+                                    </label>
+                                    <select
+                                        name="callPurposeCode"
+                                        value={formData.callPurposeCode}
+                                        onChange={handleChange}
+                                        className="bg-transparent text-[#111] outline-none"
+                                    >
+                                        <option value="SALES">Sales</option>
+                                        <option value="SUPPORT">Support</option>
+                                        <option value="MARKETING">Marketing</option>
+                                        <option value="APPOINTMENT_REMINDER">Appointment reminder</option>
+                                        <option value="DELIVERY">Delivery</option>
+                                        <option value="EMERGENCY">Emergency</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
+                                    <label className="text-[12px] font-[500] text-[#6B7280]">
+                                        Logo name
+                                    </label>
+                                    <input
+                                        name="logoName"
+                                        value={formData.logoName}
+                                        onChange={handleChange}
+                                        className="bg-transparent text-[#111] outline-none"
+                                        placeholder="slingvo-logo"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
+                                <label className="text-[12px] font-[500] text-[#6B7280]">
+                                    Call reason
+                                </label>
+                                <input
+                                    name="callReason"
+                                    value={formData.callReason}
+                                    onChange={handleChange}
+                                    className="bg-transparent text-[#111] outline-none"
+                                    placeholder="Following up on your inquiry"
+                                />
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Shown beneath the display name on Branded Calling devices.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
+                                <label className="text-[12px] font-[500] text-[#6B7280]">
                                     Notification email
                                 </label>
                                 <input
@@ -275,6 +346,10 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
                                     disabled={
                                         loading ||
                                         !formData.displayName.trim() ||
+                                        !formData.longDisplayName.trim() ||
+                                        !formData.callPurposeCode.trim() ||
+                                        !formData.callReason.trim() ||
+                                        !formData.logoName.trim() ||
                                         !formData.notificationEmail.trim() ||
                                         !formData.consent
                                     }

@@ -18,8 +18,16 @@ export type CnamStatus =
     | 'blocked-plan-not-eligible';
 
 export interface CnamAttributes {
-    /** Max 15 chars — the branded caller name recipients see on their phone. */
+    /** Short branded caller name — max 15 chars. */
     displayName: string;
+    /** Longer business name for richer UIs (iOS Branded Calling). */
+    longDisplayName: string;
+    /** Purpose-of-call category (SALES, SUPPORT, etc.). */
+    callPurposeCode: string;
+    /** Free-text reason for the call. */
+    callReason: string;
+    /** Name of the logo asset registered with the branded-calling provider. */
+    logoName: string;
     /** Required. Twilio emails this address when review completes. */
     notificationEmail: string;
     /** Optional webhook for real-time status transitions. */
