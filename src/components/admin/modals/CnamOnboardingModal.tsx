@@ -33,8 +33,9 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
     );
     const [formData, setFormData] = useState<CnamAttributes>({
         displayName: '',
-        useCase: 'sales_dialer',
-        notes: '',
+        notificationEmail: '',
+        statusCallbackUrl: '',
+        consent: false,
     });
 
     // Seed the form with the last-submitted display name when transitioning
@@ -48,11 +49,13 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: name === 'displayName' ? value.slice(0, CNAM_MAX) : value,
-        }));
+        const { name, value, type } = e.target;
+        // Checkbox → use `.checked`; displayName → hard cap at 15 chars.
+        const next =
+            type === 'checkbox' ? (e.target as HTMLInputElement).checked
+            : name === 'displayName' ? value.slice(0, CNAM_MAX)
+            : value;
+        setFormData((prev) => ({ ...prev, [name]: next }));
     };
 
     const handleSubmit = async () => {
@@ -215,39 +218,66 @@ const CnamOnboardingModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
                             <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
                                 <label className="text-[12px] font-[500] text-[#6B7280]">
-                                    Use case
+                                    Notification email
                                 </label>
-                                <select
-                                    name="useCase"
-                                    value={formData.useCase}
+                                <input
+                                    type="email"
+                                    name="notificationEmail"
+                                    value={formData.notificationEmail}
                                     onChange={handleChange}
+                                    required
                                     className="bg-transparent text-[#111] outline-none"
-                                >
-                                    <option value="sales_dialer">Sales / Outbound Dialer</option>
-                                    <option value="customer_care">Customer Care</option>
-                                    <option value="appointment_reminders">Appointment Reminders</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                    placeholder="you@company.com"
+                                />
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Twilio emails this address when your registration is approved
+                                    or rejected.
+                                </p>
                             </div>
 
                             <div className="flex flex-col gap-1 rounded-[12px] bg-[#F3F4F6] px-4 py-2">
                                 <label className="text-[12px] font-[500] text-[#6B7280]">
-                                    Notes for reviewers (optional)
+                                    Status callback URL (optional)
                                 </label>
-                                <textarea
-                                    name="notes"
-                                    value={formData.notes}
+                                <input
+                                    type="url"
+                                    name="statusCallbackUrl"
+                                    value={formData.statusCallbackUrl}
                                     onChange={handleChange}
-                                    rows={3}
-                                    className="bg-transparent text-[#111] outline-none resize-none"
-                                    placeholder="Anything the reviewers should know…"
+                                    className="bg-transparent text-[#111] outline-none"
+                                    placeholder="https://example.com/webhook"
                                 />
+                                <p className="text-[11px] text-[#9CA3AF]">
+                                    Webhook that receives real-time status transitions. Leave
+                                    blank if you don't run one.
+                                </p>
                             </div>
+
+                            <label className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-gray-200 bg-white px-4 py-3">
+                                <input
+                                    type="checkbox"
+                                    name="consent"
+                                    checked={formData.consent}
+                                    onChange={handleChange}
+                                    className="mt-0.5 h-4 w-4 shrink-0 accent-[#FFCA06]"
+                                />
+                                <span className="text-[13px] text-[#374151]">
+                                    <span className="font-semibold text-[#111]">Yes, enable CNAM.</span>{' '}
+                                    I certify that the business associated with the selected
+                                    compliance profile will be the originator of the phone calls,
+                                    and that the CNAM display name provided represents my business.
+                                </span>
+                            </label>
 
                             <div className="flex gap-3">
                                 <button
                                     onClick={handleSubmit}
-                                    disabled={loading || !formData.displayName.trim()}
+                                    disabled={
+                                        loading ||
+                                        !formData.displayName.trim() ||
+                                        !formData.notificationEmail.trim() ||
+                                        !formData.consent
+                                    }
                                     className="flex-1 rounded-xl bg-[#FFCA06] py-3.5 font-semibold text-black transition-all hover:shadow-lg disabled:opacity-50"
                                 >
                                     {loading

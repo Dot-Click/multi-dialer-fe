@@ -18,9 +18,14 @@ export type CnamStatus =
     | 'blocked-plan-not-eligible';
 
 export interface CnamAttributes {
+    /** Max 15 chars — the branded caller name recipients see on their phone. */
     displayName: string;
-    useCase?: string;
-    notes?: string;
+    /** Required. Twilio emails this address when review completes. */
+    notificationEmail: string;
+    /** Optional webhook for real-time status transitions. */
+    statusCallbackUrl?: string;
+    /** Certification that the admin's business is the caller of record. */
+    consent: boolean;
 }
 
 interface CnamState {
