@@ -37,14 +37,20 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   </div>
 );
 
-// ────────────────────────────────────────────────
+// ────────────────────────────────
 // Main Appearance component
-// ────────────────────────────────────────────────
+//
+// Booleans only. The Appearance model is a pure feature-toggle row — the
+// timeZone, lockGroups, birthdays and homeCloseDate columns were dropped
+// from it (see slingvo-be#28), so anything sent for them is discarded by the
+// API without an error. The company timezone lives on the Compliance & DNC
+// page (TimeZoneSetting.tsx), which is the one control that actually writes
+// it.
+// ────────────────────────────────
 const Appearance: React.FC = () => {
   const dispatch = useAppDispatch();
   const { settings } = useAppSelector((state) => state.appearance);
 
-  // Separate boolean toggles from string values
   const [toggles, setToggles] = useState({
     calendar: true,
     hotlist: true,
@@ -62,12 +68,8 @@ const Appearance: React.FC = () => {
     callingGroupsAiSidekick: true,
     agentImprovementScores: true,
     pipelineAccelerationIndex: true,
-    lockGroups: true,
-    birthdays: true,
-    homeCloseDate: true,
   });
 
-  const [timeZone, setTimeZone] = useState("Central Standard Time (CST)");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -76,34 +78,20 @@ const Appearance: React.FC = () => {
 
   useEffect(() => {
     if (settings) {
-      // Spread only boolean fields
       setToggles((prev) => ({ ...prev, ...settings }));
-
-      // Handle timeZone separately if it exists in settings
-      if ("timeZone" in settings && typeof settings.timeZone === "string") {
-        setTimeZone(settings.timeZone);
-      }
     }
   }, [settings]);
 
   const handleToggleChange = (key: keyof typeof toggles, value: boolean) => {
     const updated = { ...toggles, [key]: value };
     setToggles(updated);
-
-    // Save both toggles + current timeZone
-    saveAppearance({ ...updated, timeZone });
+    saveAppearance(updated);
   };
 
-  
-
-  const saveAppearance = async (payload: typeof toggles & { timeZone: string }) => {
+  const saveAppearance = async (payload: typeof toggles) => {
     try {
       setIsSaving(true);
-      
-      // Do not send lockGroups and timeZone in API
-      const { lockGroups, timeZone, ...apiPayload } = payload;
-      
-      await dispatch(createAppearance(apiPayload as any)).unwrap();
+      await dispatch(createAppearance(payload as any)).unwrap();
       toast.success("Appearance settings saved successfully");
     } catch (error) {
       console.error("Save failed", error);
@@ -134,8 +122,6 @@ const Appearance: React.FC = () => {
     { key: "agentImprovementScores", label: "Agent Improvement Score" },
     { key: "pipelineAccelerationIndex", label: "Pipeline Acceleration Index" },
   ] as const;
-
-  
 
   return (
     <div className="flex flex-col gap-5 pb-6">
@@ -181,77 +167,6 @@ const Appearance: React.FC = () => {
             onChange={(enabled) => handleToggleChange(item.key, enabled)}
           />
         ))}
-
-        {/*
-        <div className="mb-6 flex flex-col mt-6 gap-1">
-          <h1 className="text-[18px] text-[#000] dark:text-gray-300 font-[500] work-sans">
-            Lock Groups
-          </h1>
-          <p className="text-[14px] font-[400] text-[#2B3034] dark:text-gray-400 work-sans">
-            If enabled, groups will be displayed in alphanumeric order, regardless of your selection.
-          </p>
-        </div>
-        <div className="mt-6">
-          <label className="flex items-center text-[#495057] dark:text-gray-400 font-[400] inter text-[16px] gap-2">
-            <input
-              type="checkbox"
-              checked={toggles.lockGroups}
-              onChange={(e) => handleToggleChange("lockGroups", e.target.checked)}
-              className="accent-black dark:accent-yellow-400 h-4 w-4"
-            />
-            Lock Groups
-          </label>
-        </div>
-
-        <div className="flex gap-3 flex-col mt-6">
-          <h1 className="text-[18px] font-[500] text-[#000000] dark:text-gray-300">
-            Time Zone
-          </h1>
-          <div className="flex items-center gap-5">
-            <label
-              htmlFor="timeZone"
-              className="text-[#495057] dark:text-gray-400 font-[500] text-[14px]"
-            >
-              Time Zone
-            </label>
-            <div className="relative w-72 min-w-[240px]">
-              <select
-                id="timeZone"
-                value={timeZone}
-                onChange={(e) => handleTimeZoneChange(e.target.value)}
-                className={`
-                  w-full appearance-none
-                  rounded-lg border px-4 py-2.5 pr-10
-                  text-sm font-medium
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-offset-1
-                  bg-white text-gray-900 border-gray-300
-                  hover:border-gray-400 hover:shadow-sm
-                  focus:border-[#FFCB05] focus:ring-[#FFCB0522]
-                  dark:bg-slate-700 dark:text-gray-100 dark:border-slate-600
-                  dark:hover:border-slate-500 dark:hover:shadow-md
-                  dark:focus:border-[#FFCB05] dark:focus:ring-[#FFCB0522]
-                  cursor-pointer
-                `}
-              >
-                {timeZones.map((tz) => (
-                  <option
-                    key={tz}
-                    value={tz}
-                    className="bg-white text-gray-900 dark:bg-slate-800 dark:text-gray-100"
-                  >
-                    {tz}
-                  </option>
-                ))}
-              </select>
-
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
-                <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-        */}
       </div>
 
       {/* <div className="bg-white dark:bg-slate-800 rounded-md shadow px-7 py-4 mt-6">
