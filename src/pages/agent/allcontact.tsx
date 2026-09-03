@@ -138,7 +138,7 @@ const AllContact = () => {
       </div>
 
       {/* Table / Contact List */}
-      <div className="flex-1 ml-0 sm:-ml-10 mt-2">
+      <div className="flex-1 overflow-hidden mt-2">
         <AllContactComponent
           onSelectionChange={setSelectedContacts}
           listId={activeItem.type === "list" ? activeItem.id : undefined}
