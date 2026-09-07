@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePlan, usePlanTargets, useSavePlan, type BusinessPlanInputs } from "@/hooks/useTracker";
+import { usePlan, useSavePlan, type BusinessPlanInputs, type PlanTargets } from "@/hooks/useTracker";
+import { planForPeriod, roundTargets, type PeriodKey } from "@/domain/prospecting/businessPlan";
 import { formatCount, formatHours, formatMoney } from "@/utils/prospectingFormat";
 
 const FIELDS: Array<{ key: keyof BusinessPlanInputs; label: string; suffix?: string }> = [
@@ -50,8 +51,27 @@ export function BusinessPlanTab() {
   const { data: plan, isLoading } = usePlan(currentYear);
   const savePlan = useSavePlan();
   const [inputs, setInputs] = useState<BusinessPlanInputs | null>(null);
-  const [targetPeriod, setTargetPeriod] = useState<"yearly" | "monthly" | "weekly" | "daily">("yearly");
-  const { data: targets, isLoading: targetsLoading } = usePlanTargets(currentYear, targetPeriod);
+  const [targetPeriod, setTargetPeriod] = useState<PeriodKey>("yearly");
+
+  // Derived from the CURRENT form state, not the saved row — the panel says
+  // "Derived live from the inputs on the left" and has to mean it. The server
+  // endpoint (GET /tracker/plan/targets) can only see what's been saved, so it
+  // left the column frozen until Save. See businessPlan.ts on keeping the two
+  // copies of this arithmetic in sync.
+  const lastValidTargets = useRef<PlanTargets | null>(null);
+  const targets = useMemo(() => {
+    if (!inputs) return null;
+    try {
+      const next = roundTargets(planForPeriod(inputs, targetPeriod));
+      lastValidTargets.current = next;
+      return next;
+    } catch {
+      // Mid-typing a field can transiently be 0 or empty, and the domain layer
+      // throws RangeError on any rate <= 0. Hold the last good figures rather
+      // than blanking the column on every keystroke through zero.
+      return lastValidTargets.current;
+    }
+  }, [inputs, targetPeriod]);
 
   useEffect(() => {
     if (plan) setInputs(plan.inputs);
@@ -188,7 +208,7 @@ export function BusinessPlanTab() {
             </div>
           </CardHeader>
           <CardContent>
-            {targetsLoading || !targets ? (
+            {!targets ? (
               <p className="text-sm text-muted-foreground">Computing…</p>
             ) : (
               <div className="flex flex-col">
