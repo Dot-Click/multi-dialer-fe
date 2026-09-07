@@ -295,7 +295,6 @@ import GoogleMapsLogo from '@/assets/googlemap.png';
 import toast from 'react-hot-toast'
 import { TbEdit } from "react-icons/tb";
 import api from "@/lib/axios";
-import ApplyDispositionModal from "@/components/modal/ApplyDispositionModal";
 import { normalizeTags } from "@/utils/contact";
 
 
@@ -361,9 +360,6 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
     const [selectedListId, setSelectedListId] = useState<string>('');
     const [_tagsInput, setTagsInput] = useState<string>('');
 
-    const [_savedDisp, setSavedDisp] = useState<string | null>(null);
-    const [showApplyModal, setShowApplyModal] = useState(false);
-
     // ── Custom-disposition state — every non-system disposition (including
     // folder-movers like Trash) toggles through the ContactDisposition join
     // table, so more than one can stay highlighted at once (see
@@ -388,14 +384,6 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
         window.addEventListener('contact-action-toast', handler);
         return () => window.removeEventListener('contact-action-toast', handler);
     }, []);
-
-    // Sync savedDisp (read by ApplyDispositionModal's onSuccess) when the
-    // contact changes or a saved disposition arrives.
-    useEffect(() => {
-        if (currentContact) {
-            setSavedDisp(currentContact.disposition ?? null);
-        }
-    }, [currentContact?.id, currentContact?.disposition]);
 
     // Load this contact's currently-applied tag dispositions
     useEffect(() => {
@@ -822,13 +810,6 @@ const Detail = ({ hideQualifications = false, activePhoneIndex }: DetailProps) =
             )}
 
             {showModal && <EditModal onClose={() => setShowModal(false)} />}
-            {showApplyModal && currentContact?.id && (
-                <ApplyDispositionModal
-                    contactId={currentContact.id}
-                    onClose={() => setShowApplyModal(false)}
-                    onSuccess={() => setSavedDisp(currentContact?.disposition ?? null)}
-                />
-            )}
             {phoneModal && (
                 <PhoneModal
                     isOpen={phoneModal}
