@@ -208,10 +208,21 @@ export function useChannels(from: string, to: string) {
 
 /* --------------------------------------------------------------- sessions */
 
+/** Which slice of the activity log a response actually covers. */
+export interface SessionWindow {
+  from: string | null;
+  to: string;
+  /** No bounds were requested, so the server applied its default window. */
+  defaulted: boolean;
+  limit: number;
+  /** The row limit cut the list short — there is older activity than this. */
+  truncated: boolean;
+}
+
 export function useSessions(from?: string, to?: string) {
   return useQuery({
     queryKey: [TRACKER_KEY, "sessions", from, to],
-    queryFn: async (): Promise<SessionRowResponse[]> => {
+    queryFn: async (): Promise<{ sessions: SessionRowResponse[]; window: SessionWindow }> => {
       const res = await api.get(`/tracker/sessions`, { params: { from, to } });
       return res.data.data;
     },

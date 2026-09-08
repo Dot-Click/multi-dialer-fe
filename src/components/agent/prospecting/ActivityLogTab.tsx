@@ -8,7 +8,9 @@ import { useDeleteSession, useSessions } from "@/hooks/useTracker";
 import { formatMoney } from "@/utils/prospectingFormat";
 
 export function ActivityLogTab() {
-  const { data: sessions, isLoading } = useSessions();
+  const { data, isLoading } = useSessions();
+  const sessions = data?.sessions;
+  const shownWindow = data?.window;
   const deleteSession = useDeleteSession();
 
   const handleDelete = async (id: string) => {
@@ -28,6 +30,20 @@ export function ActivityLogTab() {
           Manual entries only — what you logged by hand, on top of the dialer and
           CRM figures. One row per day and channel; deleting a row removes only
           what was logged here.
+          {/* Say which slice this is. An unbounded request now returns a recent
+              window rather than everything, and a truncated list that looks
+              complete is worse than a short one that admits it. */}
+          {shownWindow?.defaulted && (
+            <span className="block pt-1">
+              Showing the last 90 days
+              {shownWindow.truncated ? ` (first ${shownWindow.limit} entries)` : ""}.
+            </span>
+          )}
+          {!shownWindow?.defaulted && shownWindow?.truncated && (
+            <span className="block pt-1">
+              Showing the first {shownWindow.limit} entries for the selected range.
+            </span>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
