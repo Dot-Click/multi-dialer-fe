@@ -71,6 +71,11 @@ export interface DashboardResponse {
     gciToDate: number; gciTarget: number; elapsedFraction: number | null;
     projectedGci: number | null; onPace: boolean | null;
   };
+  /** Dialer sessions whose length could not be established at all (no duration,
+   *  no end time, no finished call) — e.g. the dialer crashed or the tab was
+   *  closed. Counted nowhere rather than as zero hours, so hours here are a
+   *  floor when this is > 0. Disclosed rather than silently dropped. */
+  excludedSessions: number;
 }
 
 export interface FunnelResponse {

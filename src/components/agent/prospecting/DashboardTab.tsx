@@ -47,6 +47,13 @@ export function DashboardTab({ period }: { period: DashboardPeriod }) {
               );
             })}
           </div>
+          {!!data?.excludedSessions && (
+            <p className="pt-3 text-[10.5px] text-muted-foreground">
+              {data.excludedSessions} session{data.excludedSessions === 1 ? "" : "s"} excluded — no
+              recorded end time (the dialer closed unexpectedly). Hours above are a floor, so
+              per-hour rates may read high.
+            </p>
+          )}
         </CardContent>
       </Card>
 
