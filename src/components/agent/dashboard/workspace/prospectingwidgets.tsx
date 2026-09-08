@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Fragment } from "react";
 import { useDashboard, useFunnel } from "@/hooks/useTracker";
-import { formatCount, formatHours, formatMoney } from "@/utils/prospectingFormat";
+import { formatCount, formatHours, formatMoney, formatPct, formatRate, STAGE_LABEL } from "@/utils/prospectingFormat";
 
 /**
  * Three cards added to the existing Dashboard per Figma V2, placed alongside
@@ -112,18 +113,51 @@ export function ProspectingFunnelWidget() {
       {isLoading || !funnel ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
-        <div className="flex items-end gap-2 h-24">
-          {countable.map((stage) => (
-            <div key={stage.id} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex-1 flex items-end">
-                <div
-                  className="w-full bg-[#FFCA06] rounded-t-md min-h-[4px]"
-                  style={{ height: `${Math.max(4, (stage.value / max) * 100)}%` }}
-                />
-              </div>
-              <span className="text-xs font-semibold">{stage.value}</span>
-            </div>
-          ))}
+        // Bars carry their stage name and the conversion into them, per Figma V2.
+        // Without the labels this read as a sparkline — no way to tell Leads
+        // from Closed. Scrolls horizontally rather than crushing the labels:
+        // "Under Contract" does not fit in a seventh of a dashboard widget.
+        <div className="overflow-x-auto">
+          <div className="flex items-end gap-1 h-32 min-w-max">
+            {countable.map((stage, i) => {
+              // The step INTO this stage — same lookup the tracker page's
+              // ConversionFunnel uses, off the same payload, so the two can
+              // never disagree.
+              const step = funnel.steps.find((s) => s.to === stage.id);
+              return (
+                <Fragment key={stage.id}>
+                  {i > 0 && step && (
+                    <div className="flex flex-col items-center shrink-0 w-12">
+                      <div className="flex-1 flex items-end justify-center pb-1">
+                        <span className="text-[9px] leading-tight text-muted-foreground whitespace-nowrap">
+                          →{" "}
+                          {step.display === "pct"
+                            ? formatPct(step.value, 1)
+                            : formatRate(step.value)}
+                        </span>
+                      </div>
+                      {/* Invisible spacers keep this column's baseline aligned
+                          with the value/label rows of the bars either side. */}
+                      <span className="text-xs font-semibold invisible">0</span>
+                      <span className="text-[9px] invisible">.</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col items-center gap-1 shrink-0 w-16">
+                    <div className="w-full flex-1 flex items-end">
+                      <div
+                        className="w-full bg-[#FFCA06] rounded-t-md min-h-[4px]"
+                        style={{ height: `${Math.max(4, (stage.value / max) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold">{stage.value}</span>
+                    <span className="text-[9px] leading-tight text-center text-muted-foreground">
+                      {STAGE_LABEL[stage.id]}
+                    </span>
+                  </div>
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>
