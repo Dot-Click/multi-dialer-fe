@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Notes from "@/components/agent/contactdetail/notes";
 import SMS from "@/components/agent/contactdetail/sms";
 import TouchPoint from "@/components/agent/contactdetail/touchpoint";
@@ -13,6 +13,33 @@ import Email from "./email";
 
 const BottomContactDetail = () => {
     const [openStatus, setOpenStatus] = useState("Profile");
+    const tabStripRef = useRef<HTMLDivElement>(null);
+
+    // A vertical wheel gesture does not scroll a horizontally-overflowing
+    // container. Browsers only scroll sideways for shift+wheel, a tilt wheel,
+    // or a trackpad's two-finger sideways swipe — so with an ordinary mouse the
+    // tab strip showed a scrollbar that did nothing when you scrolled on it.
+    // Translate vertical wheel movement into horizontal scrolling.
+    useEffect(() => {
+        const strip = tabStripRef.current;
+        if (!strip) return;
+
+        const onWheel = (event: WheelEvent) => {
+            // Leave real horizontal gestures alone — the browser handles those.
+            if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+            // Nothing overflowing: let the gesture fall through to the page,
+            // otherwise a wide viewport would swallow vertical scrolling here.
+            if (strip.scrollWidth <= strip.clientWidth) return;
+
+            event.preventDefault();
+            strip.scrollBy({ left: event.deltaY, behavior: "auto" });
+        };
+
+        // Must be non-passive: preventDefault() is ignored on a passive
+        // wheel listener, which is the default for wheel events.
+        strip.addEventListener("wheel", onWheel, { passive: false });
+        return () => strip.removeEventListener("wheel", onWheel);
+    }, []);
 
     const stages = [
         { id: 8, name: "Profile" },
@@ -53,7 +80,20 @@ const BottomContactDetail = () => {
                 to reach it either. px-4 and whitespace-nowrap already size each
                 tab to its label. custom-scrollbar so a narrower viewport that
                 does overflow still has something to grab. */}
-            <div className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto custom-scrollbar p-2 shrink-0">
+            <div
+                ref={tabStripRef}
+                /* .custom-scrollbar sets `scroll-behavior: smooth`, and under
+                   that value a programmatic scroll of this element is dropped
+                   rather than animated — measured: `scrollLeft = 200` stays 0
+                   with smooth and lands on 200 with auto, and passing
+                   `behavior: "auto"` to scrollBy does NOT override the CSS.
+                   Native scrollbar dragging still works under smooth, which is
+                   why this went unnoticed until a horizontal strip needed to be
+                   scrolled from script. Overridden here rather than globally so
+                   the rest of the app keeps its scrolling feel. */
+                style={{ scrollBehavior: "auto" }}
+                className="flex bg-gray-50 dark:bg-slate-900/50 gap-1 overflow-x-auto custom-scrollbar p-2 shrink-0"
+            >
                 {stages.map((stg) => (
                     <button
                         key={stg.id}

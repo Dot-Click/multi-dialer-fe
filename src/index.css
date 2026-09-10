@@ -226,9 +226,15 @@ rgb(228, 212, 192)
   display: none;
 }
 
-/* Styling the rest of the scrollbar in WebKit for consistency */
+/* Styling the rest of the scrollbar in WebKit for consistency.
+   `width` sizes a VERTICAL scrollbar; a HORIZONTAL one is sized by `height`.
+   Once ::-webkit-scrollbar is styled at all, the dimension you leave out is
+   not left at the browser default — so with only `width` set, horizontal
+   scrollbars on .custom-scrollbar containers collapsed and could not be
+   grabbed. Both are set now. */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px; /* Make scrollbar width similar to Firefox 'thin' */
+  width: 8px; /* vertical scrollbar thickness */
+  height: 8px; /* horizontal scrollbar thickness */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
