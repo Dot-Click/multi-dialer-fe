@@ -66,9 +66,13 @@ const EditUserModal = ({ isOpen, onClose, onSuccess, user }: EditUserModalProps)
   // Pre-select the user's current plan once both user data and plans list are available
   useEffect(() => {
     if (!user || plans.length === 0) return;
+    // Subscription first. billings[0].planName is the newest INVOICE's product
+    // name, which for a Lead Store purchase is the lead service (e.g. "FRBO") —
+    // that matches no plan in the list, so the selector silently pre-selected
+    // nothing and a save could change the customer's plan by accident.
     const currentPlanName =
-      user.billings?.[0]?.planName ||
       user.userSubscriptions?.[0]?.plan ||
+      user.billings?.[0]?.planName ||
       null;
     if (!currentPlanName) return;
     const match = plans.find(
