@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
+import type { ResolvedAccountStatus } from "@/components/common/AccountStatusBadge";
 
 export interface UserOverviewData {
   newUsers: number;
@@ -40,7 +41,10 @@ export interface UserSubscriptionData {
   userName: string;
   email: string;
   subscriptionPlan: string;
+  /** Plain label. Kept for display fallback; prefer `accountStatus`. */
   status: string;
+  /** Canonical resolved status from the backend — the single source of truth. */
+  accountStatus?: ResolvedAccountStatus;
   createdAt: string;
 }
 
@@ -48,9 +52,14 @@ export interface BillingReportDetail {
   userName: string;
   email: string;
   plan: string;
+  /** Raw subscription status. Prefer `accountStatus`. */
   status: string;
+  /** Canonical resolved account status from the backend. */
+  accountStatus?: ResolvedAccountStatus;
   totalBilled: number;
   lastPayment: string;
+  /** Invoice-ledger status (PAID / PENDING / FAILED) — a DIFFERENT thing from
+   *  account status, and deliberately still styled on its own. */
   invoiceStatus: string;
 }
 

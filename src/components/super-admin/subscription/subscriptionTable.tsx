@@ -6,6 +6,7 @@ import { getAllSubscriptions, type Subscription } from "@/store/slices/subscript
 import Loader from "@/components/common/Loader";
 import ChangePlanModal from "./ChangePlanModal";
 import InvoicesModal from "./InvoicesModal";
+import AccountStatusBadge, { ACCOUNT_STATUS_FILTERS, matchesAccountStatusFilter } from "@/components/common/AccountStatusBadge";
 
 
 interface CustomSelectProps {
@@ -74,36 +75,15 @@ const SubscriptionTable = () => {
   const [invoicesSub, setInvoicesSub] = useState<Subscription | null>(null);
 
   const plans = ["All Plans", "STARTER", "PROFESSIONAL", "ENTERPRISE"];
-  const statuses = ["All Status", "ACTIVE", "TRIAL", "CANCELLED", "EXPIRED", "PENDING"];
+  // Options come from the shared list so the dropdown can only ever offer
+  // statuses the backend actually produces. The old list offered TRIAL (which
+  // never rendered) and EXPIRED, and omitted the payment-failed case entirely.
+  const statuses = ACCOUNT_STATUS_FILTERS.map((f) => f.label);
 
   useEffect(() => {
     dispatch(getAllSubscriptions());
   }, [dispatch]);
 
-  const getEffectiveStatus = (item: Subscription) => {
-    const isCancelled = ["CANCELLED", "CANCELED", "canceled"].includes(item.status);
-    const isOnTrial = item.user?.trialStatus === "ACTIVE" && !item.user?.isSubscribed;
-    return isOnTrial && !isCancelled ? "TRIAL" : item.status;
-  };
-
-  const getPaymentStatusStyles = (status: string) => {
-    switch (status.toUpperCase()) {
-      case "ACTIVE":
-      case "PAID":
-        return "bg-[#D0FAE5] text-[#428E43]";
-      case "TRIAL":
-        return "bg-[#E0F0FF] text-[#1D6FA8]";
-      case "PENDING":
-        return "bg-[#FFF3C4] text-[#9A7B00]";
-      case "CANCELLED":
-        return "bg-[#F3F4F6] text-[#6B7280]";
-      case "EXPIRED":
-      case "OVERDUE":
-        return "bg-[#FFE2E2] text-[#FB0000]";
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
-  };
 
   const filteredData = subscriptions.filter((item) => {
     const username = item.user?.fullName || "";
@@ -115,9 +95,8 @@ const SubscriptionTable = () => {
     const matchesPlan =
       selectedPlan === "All Plans" || item.plan.toUpperCase() === selectedPlan.toUpperCase();
 
-    const effectiveStatus = getEffectiveStatus(item);
-    const matchesStatus =
-      selectedStatus === "All Status" || effectiveStatus.toUpperCase() === selectedStatus.toUpperCase();
+    const selectedFilter = ACCOUNT_STATUS_FILTERS.find((f) => f.label === selectedStatus)?.value ?? "";
+    const matchesStatus = matchesAccountStatusFilter(item.accountStatus, selectedFilter);
 
     return matchesSearch && matchesPlan && matchesStatus;
   });
@@ -224,13 +203,7 @@ const SubscriptionTable = () => {
                     {row.usersCount}
                   </td>
                   <td className="px-5 py-4">
-                    <span
-                      className={`px-3 py-1 text-[13.53px] rounded-[75.17px] ${getPaymentStatusStyles(
-                        getEffectiveStatus(row),
-                      )}`}
-                    >
-                      {getEffectiveStatus(row)}
-                    </span>
+                    <AccountStatusBadge accountStatus={row.accountStatus} showDaysRemaining />
                   </td>
                   <td className="px-5 py-4 text-[13.53px] text-[#2C2C2C] dark:text-white">
                     {row.billingCycle}

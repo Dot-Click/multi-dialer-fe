@@ -4,6 +4,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { getUserSubscriptions } from "@/store/slices/reportsSlice";
 import type { RootState, AppDispatch } from "@/store/store";
 import Loader from "@/components/common/Loader";
+import AccountStatusBadge from "@/components/common/AccountStatusBadge";
 
 const UserOverviewTable = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -23,18 +24,15 @@ const UserOverviewTable = () => {
         dispatch(getUserSubscriptions());
     }, [dispatch]);
 
-    const getStatusClass = (status: string) => {
-        const normalized = status.toUpperCase();
-        if (normalized === "ACTIVE") return "bg-[#D0FAE5] text-[#428E43]";
-        if (normalized === "EXPIRING") return "bg-[#FEF9C2] text-[#894B1F]";
-        if (normalized === "EXPIRED") return "bg-[#FEE2E2] text-[#991B1B]";
-        return "bg-gray-200 text-gray-700";
-    };
+    // "Active" now means billing is live (paying or trialing), not the manual
+    // `User.status` field these tabs used to read — that value never varied,
+    // so the Inactive tab was always empty.
+    const isLive = (user: (typeof userSubscriptions)[number]) =>
+        user.accountStatus?.status === "ACTIVE" || user.accountStatus?.status === "TRIALING";
 
     const filteredUsers = userSubscriptions.filter((user) => {
-        if (activeTab === 1) return true;
-        if (activeTab === 2) return user.status.toUpperCase() === "ACTIVE";
-        if (activeTab === 3) return user.status.toUpperCase() !== "ACTIVE";
+        if (activeTab === 2) return isLive(user);
+        if (activeTab === 3) return !isLive(user);
         return true;
     });
 
@@ -93,9 +91,7 @@ const UserOverviewTable = () => {
                                     <td className="px-4 py-3 text-[#2C2C2C] dark:text-white text-[13.5px] font-[400] whitespace-nowrap">{user.email}</td>
                                     <td className="px-4 py-3 text-[#2C2C2C] dark:text-white text-[13.5px] font-[400] whitespace-nowrap">{user.subscriptionPlan}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`px-2 py-1.5 rounded-[75px] text-[10.5px] font-[400] uppercase ${getStatusClass(user.status)}`}>
-                                            {user.status}
-                                        </span>
+                                        <AccountStatusBadge accountStatus={user.accountStatus} />
                                     </td>
                                     <td className="px-4 py-3 text-[#2C2C2C] dark:text-white text-[13.5px] font-[400] whitespace-nowrap">{user.createdAt}</td>
                                     <td className="px-4 py-3 text-[#6B7280] dark:text-white text-[16px] font-[500] whitespace-nowrap cursor-pointer">

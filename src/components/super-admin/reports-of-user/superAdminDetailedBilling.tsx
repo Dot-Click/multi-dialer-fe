@@ -5,6 +5,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import Loader from "@/components/common/Loader";
 import searchIcon from "@/assets/searchIcon.png";
 import downarrow from "@/assets/downarrow.png";
+import AccountStatusBadge from "@/components/common/AccountStatusBadge";
 
 const SuperAdminDetailedBilling = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -186,9 +187,7 @@ const SuperAdminDetailedBilling = () => {
                   <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">{row.email}</td>
                   <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">{row.plan}</td>
                   <td className="py-1 px-2 text-center">
-                    <span className={`px-2 py-1 rounded-[75.17px] text-[13.53px] font-[400] uppercase ${getStatusStyles(row.status)}`}>
-                      {row.status}
-                    </span>
+                    <AccountStatusBadge accountStatus={row.accountStatus} />
                   </td>
                   <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                     ${row.totalBilled?.toLocaleString()}

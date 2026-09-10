@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../lib/axios';
+import type { ResolvedAccountStatus } from "@/components/common/AccountStatusBadge";
 
 export interface Subscription {
     id: string;
@@ -32,6 +33,13 @@ export interface Subscription {
         trialStatus?: 'ACTIVE' | 'EXPIRED' | 'NONE';
         isSubscribed?: boolean;
     };
+    /**
+     * Resolved by the backend (services/accountStatus.service.ts) — the single
+     * source of truth for status. Prefer this over deriving anything from
+     * `status`, `trialStatus` or `isSubscribed`, which are raw Stripe mirrors
+     * and can be stale.
+     */
+    accountStatus?: ResolvedAccountStatus;
 }
 
 export interface FailedPaymentRecord {

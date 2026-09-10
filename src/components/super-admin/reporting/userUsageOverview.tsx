@@ -3,6 +3,7 @@ import searchIcon from "@/assets/searchIcon.png";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getAllSubscriptions } from "@/store/slices/subscriptionSlice";
 import Loader from "@/components/common/Loader";
+import AccountStatusBadge, { ACCOUNT_STATUS_FILTERS, matchesAccountStatusFilter } from "@/components/common/AccountStatusBadge";
 
 interface UserUsageOverviewProps {
   fromDate?: string;
@@ -28,19 +29,6 @@ const UserUsageOverview = ({
     dispatch(getAllSubscriptions());
   }, [dispatch]);
 
-  // Status color helper
-  const getStatusStyles = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case "ACTIVE":
-        return "bg-[#1D2C45] text-[#fff]";
-      case "EXPIRED":
-      case "SUSPENDED":
-        return "bg-[#D4183D] text-[#fff]";
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
-  };
-
   const filteredData = subscriptions.filter((item) => {
     const fullName = item.user?.fullName || "";
     const email = item.user?.email || "";
@@ -54,10 +42,8 @@ const UserUsageOverview = ({
       selectedPlan === "All Plans" ||
       item.plan.toUpperCase() === selectedPlan.toUpperCase();
 
-    const matchesStatus =
-      !selectedStatus ||
-      selectedStatus === "All Status" ||
-      item.status.toUpperCase() === selectedStatus.toUpperCase();
+    const selectedFilter = ACCOUNT_STATUS_FILTERS.find((o) => o.label === selectedStatus)?.value ?? "";
+    const matchesStatus = matchesAccountStatusFilter(item.accountStatus, selectedFilter);
 
     // Date filtering
     let matchesDate = true;
@@ -157,11 +143,7 @@ const UserUsageOverview = ({
                   ${row.amount || 0}
                 </td>
                 <td className="py-1 px-2 text-center">
-                  <span
-                    className={`px-3 py-1 rounded-[5px] outfit text-[13.53px] font-[500] ${getStatusStyles(row.status)}`}
-                  >
-                    {row.status}
-                  </span>
+                  <AccountStatusBadge accountStatus={row.accountStatus} />
                 </td>
                 <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
                   {new Date(row.createdAt).toLocaleDateString()}

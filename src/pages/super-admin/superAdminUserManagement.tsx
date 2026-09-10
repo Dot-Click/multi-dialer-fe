@@ -14,26 +14,12 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { getAllUsers } from "@/store/slices/userSlice";
 import Loader from "@/components/common/Loader";
+import AccountStatusBadge, { ACCOUNT_STATUS_FILTERS, matchesAccountStatusFilter } from "@/components/common/AccountStatusBadge";
 
-const getStatusStyles = (status?: string | null) => {
-  const normalizedStatus = status?.toUpperCase() || "";
-  switch (normalizedStatus) {
-    case "ACTIVE":
-      return "bg-[#D0FAE5] text-[#428E43]";
-    case "PENDING":
-      return "bg-[#FEF9C2] text-[#BA5F44]";
-    case "SUSPENDED":
-      return "bg-[#FEE9EA] text-[#C10057]";
-    case "EXPIRING SOON":
-      return "bg-[#FFF0E6] text-[#D43500]";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
-};
-
-const formatStatus = (status?: string | null) => {
-  if (!status) return "-";
-  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+/** "ADMIN" -> "Admin". Used for the Role column. */
+const formatRole = (role?: string | null) => {
+  if (!role) return "-";
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 };
 
 const formatDate = (dateString?: string | null) => {
@@ -111,7 +97,7 @@ const SuperAdminUserManagement = () => {
       u.fullName?.toLowerCase().includes(q) ||
       u.email?.toLowerCase().includes(q) ||
       u.role?.toLowerCase().includes(q) ||
-      u.status?.toLowerCase().includes(q)
+      u.accountStatus?.label?.toLowerCase().includes(q)
     );
   };
 
@@ -134,9 +120,8 @@ const SuperAdminUserManagement = () => {
     const role = (user.role || "").toUpperCase();
     if (role !== "ADMIN" && role !== "OWNER") return false;
 
-    const matchesStatus =
-      selectedStatus === "All Status" ||
-      user.status?.toUpperCase() === selectedStatus.toUpperCase();
+    const selectedFilter = ACCOUNT_STATUS_FILTERS.find((o) => o.label === selectedStatus)?.value ?? "";
+    const matchesStatus = matchesAccountStatusFilter(user.accountStatus, selectedFilter);
     const matchesRole =
       selectedRole === "All Roles" ||
       selectedRole.toUpperCase() === "AGENT" ||
@@ -196,7 +181,7 @@ const SuperAdminUserManagement = () => {
           {user.email}
         </td>
         <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-          {formatStatus(user.role || "")}
+          {formatRole(user.role || "")}
         </td>
         <td className="px-5 py-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
           {isAdmin ? (
@@ -208,11 +193,7 @@ const SuperAdminUserManagement = () => {
           )}
         </td>
         <td className="px-5 py-4">
-          <span
-            className={`px-3 py-1 font-[400] text-[13.53px] font-[400] rounded-[75.17px] ${getStatusStyles(user.status || "")}`}
-          >
-            {formatStatus(user.status || "")}
-          </span>
+          <AccountStatusBadge accountStatus={user.accountStatus} showDaysRemaining />
         </td>
         <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C] dark:text-white">
           {formatDate(user?.lastLogin)}
@@ -296,13 +277,10 @@ const SuperAdminUserManagement = () => {
     );
   };
 
-  const statusOptions = [
-    "All Status",
-    "Active",
-    "Pending",
-    "Suspended",
-    "Expiring Soon",
-  ];
+  // From the shared list, so the dropdown only offers statuses that can
+  // actually occur. "Expiring Soon" used to be offered here but could never
+  // match: a Prisma middleware rewrites that value to ACTIVE on every write.
+  const statusOptions = ACCOUNT_STATUS_FILTERS.map((opt) => opt.label);
   const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
 
   const closeDeleteModal = () => {
