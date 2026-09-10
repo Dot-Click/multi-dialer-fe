@@ -41,8 +41,16 @@ import { TbAlertTriangle, TbCircleCheck, TbCircleX } from "react-icons/tb";
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 const fmt = (n: number) => n.toLocaleString();
-const fmtUSD = (n: number) =>
+// Two different units flow into this dashboard, and conflating them is what
+// made the MRR card read "$6":
+//   Billing.amount            -> CENTS  (Stripe minor units)
+//   UserSubscription.amount   -> DOLLARS (a decimal string)
+// businessOverview.mrr is derived from the latter, so it is already dollars.
+// Dividing it by 100 turned $555 into $5.55, rendered as "$6".
+const fmtUSDFromCents = (n: number) =>
   "$" + (n / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtUSDFromDollars = (n: number) =>
+  "$" + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
 // ─── reusable card shell ─────────────────────────────────────────────────────
 
@@ -383,7 +391,7 @@ const SuperAdminDashboardSections = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <MoneyTile
             label="MRR (Monthly Revenue)"
-            value={fmtUSD(derived.mrr)}
+            value={fmtUSDFromDollars(derived.mrr)}
             sub="Monthly recurring"
             accent="green"
           />
@@ -485,7 +493,7 @@ const SuperAdminDashboardSections = () => {
           />
           <UsageStat
             label="Total Revenue (MTD)"
-            value={fmtUSD(derived.totalRevenueMTD)}
+            value={fmtUSDFromCents(derived.totalRevenueMTD)}
             icon={<MdOutlineAttachMoney />}
           />
 
@@ -609,7 +617,7 @@ const SuperAdminDashboardSections = () => {
               dataKey="revenue"
               color="#10B981"
               title="Revenue Over Time"
-              value={fmtUSD(derived.mrr)}
+              value={fmtUSDFromDollars(derived.mrr)}
             />
           </div>
           <div className="pt-4 md:pt-0 md:px-6">

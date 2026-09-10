@@ -21,7 +21,15 @@ export interface DashboardAlertsData {
 }
 
 export interface BusinessOverviewData {
+  /** Monthly recurring revenue in DOLLARS (not cents) — trials excluded. */
   mrr: number;
+  /**
+   * Contracted monthly value of trials that have not converted yet, in
+   * dollars. Deliberately not part of `mrr`; available for a pipeline card so
+   * the money is visible somewhere rather than simply absent.
+   */
+  trialPipelineMrr?: number;
+  /** Paying subscriptions only — trials excluded, so this agrees with `mrr`. */
   activeSubscriptions: number;
   activeUsers: number;
   totalAgents: number;
