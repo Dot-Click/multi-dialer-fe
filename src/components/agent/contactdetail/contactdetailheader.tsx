@@ -17,6 +17,43 @@ import TakeActionModal from "@/components/modal/takeactionmodal";
 import DncSelectionModal from "@/components/modal/dncselectionmodal";
 import api from "@/lib/axios";
 import { normalizeTags } from "@/utils/contact";
+import { printDocument, type PrintSection } from "@/utils/printDocument";
+import { useMiscFields } from "@/hooks/useSystemSettings";
+
+// Mirrors QUAL_FIELDS in qualifytab.tsx so the printout uses the same labels
+// the user sees on the Qualify tab.
+const QUALIFY_FIELDS = [
+  { label: "Permission", key: "permission" },
+  { label: "Want", key: "want" },
+  { label: "Why", key: "why" },
+  { label: "Status Quo", key: "statusQuo" },
+  { label: "Timeline", key: "timeline" },
+  { label: "Agent", key: "agent" },
+] as const;
+
+/** Renders any stored field value as printable text; "" means "omit this row". */
+const formatFieldValue = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) return value.map(String).filter(Boolean).join(", ");
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value).trim();
+};
+
+/** "purchaseTimeline" / "purchase_timeline" -> "Purchase Timeline". */
+const humanizeKey = (key: string): string =>
+  key
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatDate = (value?: string | null): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString(undefined, { dateStyle: "medium" });
+};
 
 const ContactDetailHeader = () => {
   const dispatch = useAppDispatch();
@@ -30,6 +67,9 @@ const ContactDetailHeader = () => {
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const { currentContact, folders, lists } = useAppSelector((state) => state.contacts);
+
+  // User-defined field definitions, needed to label miscValues in the printout.
+  const { data: miscFields } = useMiscFields();
 
   // Fetch folders and lists if not already available
   useEffect(() => {
@@ -112,9 +152,117 @@ const ContactDetailHeader = () => {
     setShowActionMenu(false);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
     setShowActionMenu(false);
+    if (!currentContact) return;
+
+    // Same resolution as handleExport — folder and list are relationships, not
+    // fields on the contact.
+    const currentList = lists.find(l => l.contactIds.includes(currentContact.id));
+    const currentFolder = currentList ? folders.find(f => f.listIds.includes(currentList.id)) : null;
+
+    const joinAddress = (...parts: (string | undefined | null)[]) =>
+      parts.map(p => (p || "").trim()).filter(Boolean).join(", ");
+
+    const tags = normalizeTags(currentContact.tags);
+
+    const qualifyRows = QUALIFY_FIELDS
+      .filter(f => currentContact[f.key] !== undefined && currentContact[f.key] !== null)
+      .map(f => ({ label: f.label, value: currentContact[f.key] ? "Yes" : "No" }));
+
+    // Misc fields are user-defined; miscValues is keyed by field id, so the
+    // definitions are what turn it into something readable on paper.
+    const miscRows = (miscFields || [])
+      .map(field => ({
+        label: field.fieldName,
+        value: formatFieldValue(currentContact.miscValues?.[field.id]),
+      }))
+      .filter(row => row.value !== "");
+
+    const leadsheetRows = Object.entries(
+      (currentContact.leadsheetValues || {}) as Record<string, unknown>,
+    )
+      .map(([key, value]) => ({ label: humanizeKey(key), value: formatFieldValue(value) }))
+      .filter(row => row.value !== "");
+
+    const notes = (Array.isArray(currentContact.notes) ? currentContact.notes : [])
+      .map((n: any) => (typeof n === "string" ? n : n?.text ?? n?.note ?? ""))
+      .filter((n: string) => n && n.trim());
+
+    const sections: PrintSection[] = [
+      {
+        title: "Contact Information",
+        type: "fields",
+        rows: [
+          { label: "Full Name", value: currentContact.fullName || currentContact.name || "" },
+          { label: "Status", value: currentContact.status || "" },
+          { label: "Disposition", value: currentContact.disposition || "" },
+          { label: "Source", value: currentContact.source || "" },
+          { label: "Folder", value: currentFolder?.name || "" },
+          { label: "List", value: currentList?.name || "" },
+          { label: "Tags", value: tags.join(", ") },
+          { label: "Last Dialed", value: formatDate(currentContact.lastDialedDate) },
+        ],
+      },
+      {
+        title: "Phone Numbers",
+        type: "table",
+        columns: ["Number", "Type", "Primary", "Best"],
+        rows: (currentContact.phones || []).map((p: any) => [
+          p.number || "",
+          p.type || "",
+          p.isPrimary ? "Yes" : "",
+          p.isBestNumber ? "Yes" : "",
+        ]),
+      },
+      {
+        title: "Email Addresses",
+        type: "table",
+        columns: ["Email", "Primary"],
+        rows: (currentContact.emails || []).map((e: any) => [e.email || "", e.isPrimary ? "Yes" : ""]),
+      },
+      {
+        title: "Property Address",
+        type: "fields",
+        rows: [
+          { label: "Street", value: joinAddress(currentContact.address, currentContact.address2) },
+          { label: "City", value: currentContact.city || "" },
+          { label: "State", value: currentContact.state || "" },
+          { label: "Zip", value: currentContact.zip || "" },
+        ],
+      },
+      {
+        title: "Mailing Address",
+        type: "fields",
+        rows: [
+          { label: "Street", value: joinAddress(currentContact.mailingAddress, currentContact.mailingAddress2) },
+          { label: "City", value: currentContact.mailingCity || "" },
+          { label: "State", value: currentContact.mailingState || "" },
+          { label: "Zip", value: currentContact.mailingZip || "" },
+        ],
+      },
+      { title: "Qualification", type: "fields", rows: qualifyRows },
+      { title: "Lead Sheet", type: "fields", rows: leadsheetRows },
+      { title: "Additional Fields", type: "fields", rows: miscRows },
+      { title: "Description", type: "text", text: currentContact.description || "" },
+      { title: "Agent Remarks", type: "text", text: currentContact.agentRemarks || "" },
+      { title: "Notes", type: "list", items: notes },
+    ];
+
+    const name = currentContact.fullName || currentContact.name || "Contact";
+
+    try {
+      await printDocument({
+        title: `Contact - ${name}`,
+        heading: name,
+        subheading: [currentFolder?.name, currentList?.name].filter(Boolean).join(" / ") || undefined,
+        sections,
+        logoUrl: `${window.location.origin}/images/logo.png`,
+        footerNote: "Slingvo contact record",
+      });
+    } catch {
+      toast.error("Could not open the print dialog");
+    }
   };
 
   // const handleEmail = () => {
