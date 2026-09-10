@@ -262,6 +262,11 @@ export interface AvailableNumbersResponse {
     isWithinIncludedCount: boolean;
     effectivePriceCents: number;
     effectiveCurrency: string;
+    // True when the account is on a trial and already holds trialNumberCap
+    // numbers. The extra can't be bought at any price — the UI should offer
+    // an upgrade instead of the confirm-the-charge dialog.
+    trialCapReached?: boolean;
+    trialNumberCap?: number;
   };
 }
 

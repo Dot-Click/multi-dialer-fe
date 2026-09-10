@@ -36,6 +36,11 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     // the exact charge, and only proceed once the user explicitly confirms.
     const [overageConfirm, setOverageConfirm] = useState<{ priceCents: number; currency: string } | null>(null);
 
+    // Trial accounts are capped at a fixed number of caller-ids and can't buy
+    // past it at any price, so this is an upgrade prompt rather than the
+    // confirm-the-charge dialog above.
+    const [trialUpgrade, setTrialUpgrade] = useState<{ message: string } | null>(null);
+
     // Backend returns { numbers, pricing, billing } — billing.effectivePriceCents
     // is what a purchase will actually be charged right now (0 if still within
     // the plan's included free count, otherwise the super-admin-configured
@@ -44,9 +49,11 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const billing = availableNumbers.data?.billing;
 
     const pricingInfo = billing
-        ? billing.isWithinIncludedCount
-            ? 'Free (included in plan)'
-            : `$${(billing.effectivePriceCents / 100).toFixed(2)}/mo`
+        ? billing.trialCapReached
+            ? 'Trial limit reached — upgrade to add more'
+            : billing.isWithinIncludedCount
+                ? 'Free (included in plan)'
+                : `$${(billing.effectivePriceCents / 100).toFixed(2)}/mo`
         : null;
 
     if (!isOpen) return null;
@@ -74,6 +81,13 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
             // this was still free, the server is the source of truth — if it
             // comes back requiring payment, show the same confirm dialog
             // instead of just failing.
+            // Trial cap — no price to confirm, the only way forward is an
+            // upgrade. Checked before requiresPayment since a trial account
+            // must never be offered the pay-per-extra-number path.
+            if (error.response?.data?.requiresUpgrade) {
+                setTrialUpgrade({ message: error.response.data.message });
+                return;
+            }
             if (error.response?.data?.requiresPayment) {
                 setOverageConfirm({
                     priceCents: error.response.data.priceCents,
@@ -90,6 +104,15 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
     const handleAddNumber = () => {
         if (!selectedNumber) {
             toast.error('Please select a number first');
+            return;
+        }
+
+        // On a trial and already at the cap — offer the upgrade instead of a
+        // purchase. The server enforces this too; this just saves a round trip.
+        if (billing?.trialCapReached) {
+            setTrialUpgrade({
+                message: `Trial accounts can have up to ${billing.trialNumberCap ?? 2} phone numbers. Upgrade to your paid plan to add more.`,
+            });
             return;
         }
 
@@ -299,6 +322,32 @@ const AddCallScoutNumberModal: React.FC<AddCallScoutNumberModalProps> = ({ isOpe
                                     </>
                                 ) : 'Pay & Add Number'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {trialUpgrade && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl p-6">
+                        <h3 className="text-[16px] font-bold text-gray-900 dark:text-white mb-2">
+                            Trial Number Limit
+                        </h3>
+                        <p className="text-[13px] text-gray-600 dark:text-gray-300 mb-4">
+                            {trialUpgrade.message}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setTrialUpgrade(null)}
+                                className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-gray-900 dark:text-white text-[13px] font-bold py-3 rounded-2xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                            >
+                                Not Now
+                            </button>
+                            <a
+                                href="/admin/billing"
+                                className="flex-1 bg-[#FECD56] text-gray-900 text-[13px] font-bold py-3 rounded-2xl shadow-sm hover:bg-[#F0D500] transition-colors flex items-center justify-center"
+                            >
+                                Upgrade Plan
+                            </a>
                         </div>
                     </div>
                 </div>
