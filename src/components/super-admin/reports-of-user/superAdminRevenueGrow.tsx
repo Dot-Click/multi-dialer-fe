@@ -27,10 +27,16 @@ const SuperAdminRevenueGrow = () => {
   }, [dispatch]);
 
   // Transform data for BarChart — show both contracted (MRR) and collected revenue.
+  //
+  // Both series come straight from Billing.amount, which is stored in CENTS
+  // (Stripe minor units). Plotting them raw made this chart read 100x high —
+  // $197 rendered as 19,700. The dashboard's own revenue chart and fmtUSD in
+  // SuperAdminBillingWidgets already divide; this one did not.
+  const CENTS_PER_DOLLAR = 100;
   const barData = revenueGrowth?.labels.map((label, index) => ({
     name: label,
-    contracted: revenueGrowth.revenue[index] || 0,
-    collected: revenueGrowth.collected?.[index] || 0,
+    contracted: (revenueGrowth.revenue[index] || 0) / CENTS_PER_DOLLAR,
+    collected: (revenueGrowth.collected?.[index] || 0) / CENTS_PER_DOLLAR,
   })) || [];
 
   // Transform data for LineChart

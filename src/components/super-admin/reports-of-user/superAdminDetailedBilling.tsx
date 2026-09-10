@@ -190,7 +190,7 @@ const SuperAdminDetailedBilling = () => {
                     <AccountStatusBadge accountStatus={row.accountStatus} />
                   </td>
                   <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">
-                    ${row.totalBilled?.toLocaleString()}
+                    ${((row.totalBilled ?? 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="py-4 px-4 text-[13.53px] font-[400] text-[#2C2C2C] dark:text-white">{row.lastPayment}</td>
                   <td className="py-1 px-2 text-center">
