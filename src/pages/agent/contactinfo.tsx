@@ -1024,7 +1024,13 @@ const ContactInfo = () => {
                                 activePhoneIndex={currentPhoneIndex}
                             />
                         </div>
-                        <div className="flex-1 min-h-0 overflow-hidden">
+                        {/* flex flex-col so BottomContactDetail's `flex-1` has a
+                            flex parent to resolve against. Without it the section
+                            was a block child with auto height: it grew to its
+                            content, overflowed this fixed-height column, and got
+                            clipped by overflow-hidden — leaving the lower part of
+                            the panel unreachable with no scrollbar to get there. */}
+                        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                             <BottomContactDetail />
                         </div>
                     </div>

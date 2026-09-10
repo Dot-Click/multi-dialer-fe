@@ -56,24 +56,24 @@ const BottomContactDetail = () => {
     ];
 
     return (
-        // flex-1, not h-full. The parent page is `flex flex-col h-full` holding
-        // the header, the detail card and this section; h-full here asked for
-        // 100% of a container the siblings had already taken 451px of, and a
-        // flex item with a percentage height still shrinks — so this collapsed
-        // to the ~90px left over. Nothing overflowed, so the page's
-        // overflow-y-auto had nothing to scroll and no scrollbar appeared: the
-        // panel was compressed in place rather than pushed off-screen.
+        // flex-1 min-h-0, and NO height floor of its own.
         //
-        // The min-height is the floor that makes the page overflow instead of
-        // squashing this. On a tall viewport flex-1 wins and the panel scrolls
-        // internally, as designed; on a short one the page scrolls. 460px is
-        // the 60px tab strip plus a panel worth reading.
+        // This component has two hosts with opposite height semantics:
+        //   contactdetail.tsx  the page scrolls; this section needs a minimum
+        //                      height so it pushes the page into overflow
+        //                      instead of being squashed into the leftovers.
+        //   contactinfo.tsx    the dialer column has a FIXED height and clips
+        //                      with overflow-hidden; this section must be
+        //                      exactly that tall and scroll internally.
         //
-        // min-h-0 is deliberately NOT also present. Two min-height utilities on
-        // one element is settled by stylesheet order, not by which you wrote
-        // last. The inner content div below keeps its own flex-1 min-h-0, which
-        // is what actually lets it scroll.
-        <section className="bg-white dark:bg-slate-800 flex flex-col flex-1 min-h-[460px] w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
+        // A `min-h-[460px]` baked in here served the first and broke the
+        // second: the section grew past its bounded column, the overflow was
+        // clipped away, and because the inner panel was never constrained it
+        // never overflowed — so no scrollbar appeared and the bottom of Profile
+        // was simply unreachable. min-h-0 lets the section be constrained where
+        // it must be; the 460px floor now lives at the one call site that wants
+        // it (contactdetail.tsx).
+        <section className="bg-white dark:bg-slate-800 flex flex-col flex-1 min-h-0 w-full mx-auto rounded-[24px] shadow-sm overflow-hidden border border-gray-100 dark:border-slate-700">
             {/* Tabs — no min-width floor. Eleven tabs at min-w-[100px] plus gaps
                 and padding came to 1156px inside a 1095px strip, which cut
                 "Action Plans" in half; with no-scrollbar there was no scrollbar
