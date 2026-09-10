@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { getUserSubscriptions } from "@/store/slices/reportsSlice";
 import type { RootState, AppDispatch } from "@/store/store";
 import Loader from "@/components/common/Loader";
@@ -77,7 +76,6 @@ const UserOverviewTable = () => {
                             <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Subscription Plan</th>
                             <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Status</th>
                             <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]">Created On</th>
-                            <th className="text-left font-[500] whitespace-nowrap px-4 py-3 text-[15px]"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,15 +92,12 @@ const UserOverviewTable = () => {
                                         <AccountStatusBadge accountStatus={user.accountStatus} />
                                     </td>
                                     <td className="px-4 py-3 text-[#2C2C2C] dark:text-white text-[13.5px] font-[400] whitespace-nowrap">{user.createdAt}</td>
-                                    <td className="px-4 py-3 text-[#6B7280] dark:text-white text-[16px] font-[500] whitespace-nowrap cursor-pointer">
-                                        <BsThreeDotsVertical />
-                                    </td>
                                 </tr>
                             ))
                         ) : (
                             !tableLoading && (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-10 text-gray-500">
+                                    <td colSpan={5} className="text-center py-10 text-gray-500">
                                         No subscription data found.
                                     </td>
                                 </tr>
