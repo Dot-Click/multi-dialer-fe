@@ -15,6 +15,8 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { getAllUsers } from "@/store/slices/userSlice";
 import Loader from "@/components/common/Loader";
 import AccountStatusBadge, { ACCOUNT_STATUS_FILTERS, matchesAccountStatusFilter } from "@/components/common/AccountStatusBadge";
+import api from "@/lib/axios";
+import toast from "react-hot-toast";
 
 /** "ADMIN" -> "Admin". Used for the Role column. */
 const formatRole = (role?: string | null) => {
@@ -50,6 +52,8 @@ const SuperAdminUserManagement = () => {
   const [phoneNumbersUser, setPhoneNumbersUser] = useState<any | null>(null);
   const [changeCardUser, setChangeCardUser] = useState<any | null>(null);
   const [deletingUser, setDeletingUser] = useState<any | null>(null);
+  const [endTrialUser, setEndTrialUser] = useState<any | null>(null);
+  const [isEndingTrial, setIsEndingTrial] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const menuRefs = useRef<{ [key: string]: HTMLTableCellElement | null }>({});
@@ -264,6 +268,22 @@ const SuperAdminUserManagement = () => {
               >
                 Change Card
               </button>
+              {/* Only meaningful while an account is on a trial. Disabled
+                  rather than hidden so it is discoverable, with the reason
+                  in the tooltip. The server enforces the same rule — this is
+                  a convenience, not the check. */}
+              <button
+                disabled={user.accountStatus?.status !== "TRIALING"}
+                title={
+                  user.accountStatus?.status === "TRIALING"
+                    ? "End the free trial and charge this customer now"
+                    : `Only available while an account is on a trial — this one is "${user.accountStatus?.label ?? "not on a trial"}"`
+                }
+                onClick={() => { setEndTrialUser(user); setOpenMenuUserId(null); }}
+                className="w-full text-left px-4 py-2 text-[14px] font-medium transition-colors enabled:hover:bg-gray-50 dark:enabled:hover:bg-slate-800 enabled:text-gray-700 dark:enabled:text-white disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed"
+              >
+                End Trial
+              </button>
               <button
                 onClick={() => { setDeletingUser(user); setOpenMenuUserId(null); }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-red-600 text-[14px] font-medium transition-colors"
@@ -282,6 +302,24 @@ const SuperAdminUserManagement = () => {
   // match: a Prisma middleware rewrites that value to ACTIVE on every write.
   const statusOptions = ACCOUNT_STATUS_FILTERS.map((opt) => opt.label);
   const roleOptions = ["All Roles", "Admin", "Agent", "Owner"];
+
+  // One-way: Stripe charges the card the moment this runs, and switching the
+  // trial back on afterwards does not undo it. Hence a confirmation that names
+  // the amount rather than a switch that looks reversible.
+  const confirmEndTrial = async () => {
+    if (!endTrialUser) return;
+    setIsEndingTrial(true);
+    try {
+      const { data } = await api.post(`/user/${endTrialUser.id}/end-trial`);
+      toast.success(data?.message || "Trial ended — the customer has been billed.");
+      setEndTrialUser(null);
+      await fetchUsers();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Could not end the trial.");
+    } finally {
+      setIsEndingTrial(false);
+    }
+  };
 
   const closeDeleteModal = () => {
     setDeletingUser(null);
@@ -314,6 +352,54 @@ const SuperAdminUserManagement = () => {
         onClose={() => setEditingUser(null)}
         onSuccess={fetchUsers}
       />
+
+      {endTrialUser && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4"
+          onClick={() => !isEndingTrial && setEndTrialUser(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 w-full max-w-[440px] rounded-[16px] shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-[18px] font-bold text-gray-900 dark:text-white mb-2">
+              End trial and bill now?
+            </h3>
+            {/* States the consequence in money terms. This charges a real card
+                the moment it is confirmed, and there is no undo — reversing it
+                means issuing a refund in Stripe. */}
+            <p className="text-[14px] text-gray-600 dark:text-gray-300 mb-2">
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {endTrialUser.fullName || endTrialUser.email}
+              </span>{" "}
+              will be charged{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                ${endTrialUser.userSubscriptions?.[0]?.amount ?? "their plan amount"}
+              </span>{" "}
+              immediately, and their trial ends now.
+            </p>
+            <p className="text-[13px] text-[#B3123A] dark:text-[#FF8FA8] mb-5">
+              This cannot be undone — reversing it means refunding them in Stripe.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEndTrialUser(null)}
+                disabled={isEndingTrial}
+                className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-gray-900 dark:text-white text-[14px] font-bold py-2.5 rounded-[10px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmEndTrial}
+                disabled={isEndingTrial}
+                className="flex-1 bg-[#FFCA06] text-gray-900 text-[14px] font-bold py-2.5 rounded-[10px] hover:bg-[#F0BC00] transition-colors disabled:opacity-50"
+              >
+                {isEndingTrial ? "Billing…" : "End trial & bill"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deletingUser && (
         <div

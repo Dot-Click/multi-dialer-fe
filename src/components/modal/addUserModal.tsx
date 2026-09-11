@@ -36,6 +36,9 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedPlanLabel, setSelectedPlanLabel] = useState("Select Subscription Plan");
   const [localError, setLocalError] = useState("");
+  // Defaults to true: creating a user keeps today's behaviour unless a
+  // super-admin deliberately withholds the trial.
+  const [startWithTrial, setStartWithTrial] = useState(true);
 
   const roleOptions = ["Agent", "Admin"];
   const statusOptions = ["Active", "Pending", "Suspended", "Expiring Soon"];
@@ -85,6 +88,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           status: selectedStatus.toUpperCase().replace(/\s+/g, "_"),
           password,
           planId: selectedPlanId,
+          startWithTrial,
           ...(companyName.trim() ? { companyName: companyName.trim() } : {}),
         }),
       );
@@ -101,6 +105,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         setSelectedStatus("Select Status");
         setSelectedPlanId(null);
         setSelectedPlanLabel("Select Subscription Plan");
+        setStartWithTrial(true);
       }
     } catch (err) {
       console.error("User creation failed:", err);
@@ -216,6 +221,28 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
               </div>
             )}
           </div>
+
+          {/* Free-trial toggle. Sits under the plan because it changes what the
+              payment link the user receives actually does: with a trial it
+              starts free, without one it charges at checkout. */}
+          <label className="flex items-start gap-3 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={startWithTrial}
+              onChange={(e) => setStartWithTrial(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#FFCA06] cursor-pointer"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[14px] font-[500] text-[#111] dark:text-white">
+                Start with free trial
+              </span>
+              <span className="text-[12px] text-[#6B7280] dark:text-gray-400">
+                {startWithTrial
+                  ? "Their payment link starts a free trial — no charge today."
+                  : "No trial. Their payment link charges them as soon as they complete it."}
+              </span>
+            </span>
+          </label>
 
           {/* Role Dropdown */}
           <div className="relative">
