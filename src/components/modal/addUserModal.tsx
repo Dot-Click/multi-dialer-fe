@@ -127,7 +127,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           Without the cap the card grew to its content, so on a shorter screen
           the Cancel / Add User buttons were pushed off the bottom with no way
           to reach them. */}
-      <div className="bg-white dark:bg-slate-800 w-full max-w-[450px] max-h-full flex flex-col rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[720px] max-h-full flex flex-col rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="shrink-0 flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700">
           <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">Add New User</h2>
@@ -137,8 +137,11 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
-          {localError && <p className="text-red-500 text-xs">{localError}</p>}
+        {/* Two columns from `sm` up, one below it — the fields are fixed-height
+            boxes, so a single column on a narrow screen is still readable while
+            two columns roughly halve the height on a normal one. */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
+          {localError && <p className="text-red-500 text-xs sm:col-span-2">{localError}</p>}
           {apiError && <p className="text-red-500 text-xs">{apiError}</p>}
 
           {/* Username */}
@@ -230,7 +233,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
           {/* Free-trial toggle. Sits under the plan because it changes what the
               payment link the user receives actually does: with a trial it
               starts free, without one it charges at checkout. */}
-          <label className="flex items-start gap-3 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-3 cursor-pointer select-none">
+          <label className="sm:col-span-2 flex items-start gap-3 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-3 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={startWithTrial}
@@ -275,18 +278,6 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
             )}
           </div>
 
-          {/* Company Name */}
-          <div className="flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
-            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Company Name (Optional)</label>
-            <input
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Enter company name"
-              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
-            />
-          </div>
-
           {/* Status Dropdown */}
           <div className="relative">
             <div
@@ -311,6 +302,18 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Company Name */}
+          <div className="sm:col-span-2 flex flex-col gap-1 bg-[#F3F4F6] dark:bg-slate-700 rounded-[12px] px-4 py-2">
+            <label className="text-[#6B7280] dark:text-gray-400 text-[12px] font-[500]">Company Name (Optional)</label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Enter company name"
+              className="bg-transparent outline-none text-[#111] dark:text-white text-[15px] font-[400]"
+            />
           </div>
         </div>
 
