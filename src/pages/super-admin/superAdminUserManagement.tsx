@@ -199,6 +199,39 @@ const SuperAdminUserManagement = () => {
         <td className="px-5 py-4">
           <AccountStatusBadge accountStatus={user.accountStatus} showDaysRemaining />
         </td>
+        <td className="px-5 py-4">
+          {(() => {
+            const onTrial = user.accountStatus?.status === "TRIALING";
+            // Interactive only while a trial is actually running. Switching it
+            // off charges the customer immediately and cannot be switched back
+            // on — the confirmation behind it says so before anything happens.
+            const title = onTrial
+              ? "Trial running — switch off to end it and bill this customer now"
+              : `No trial to switch off — this account is "${user.accountStatus?.label ?? "not on a trial"}"`;
+            return (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={onTrial}
+                aria-label="Free trial"
+                disabled={!onTrial}
+                title={title}
+                onClick={() => onTrial && setEndTrialUser(user)}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  onTrial
+                    ? "bg-[#FFCA06] cursor-pointer"
+                    : "bg-gray-200 dark:bg-slate-600 cursor-not-allowed opacity-60"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    onTrial ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            );
+          })()}
+        </td>
         <td className="px-5 py-4 font-[400] text-[13.53px] text-[#2C2C2C] dark:text-white">
           {formatDate(user?.lastLogin)}
         </td>
@@ -267,22 +300,6 @@ const SuperAdminUserManagement = () => {
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-white text-[14px] font-medium transition-colors"
               >
                 Change Card
-              </button>
-              {/* Only meaningful while an account is on a trial. Disabled
-                  rather than hidden so it is discoverable, with the reason
-                  in the tooltip. The server enforces the same rule — this is
-                  a convenience, not the check. */}
-              <button
-                disabled={user.accountStatus?.status !== "TRIALING"}
-                title={
-                  user.accountStatus?.status === "TRIALING"
-                    ? "End the free trial and charge this customer now"
-                    : `Only available while an account is on a trial — this one is "${user.accountStatus?.label ?? "not on a trial"}"`
-                }
-                onClick={() => { setEndTrialUser(user); setOpenMenuUserId(null); }}
-                className="w-full text-left px-4 py-2 text-[14px] font-medium transition-colors enabled:hover:bg-gray-50 dark:enabled:hover:bg-slate-800 enabled:text-gray-700 dark:enabled:text-white disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed"
-              >
-                End Trial
               </button>
               <button
                 onClick={() => { setDeletingUser(user); setOpenMenuUserId(null); }}
@@ -588,7 +605,7 @@ const SuperAdminUserManagement = () => {
 
         <div className="overflow-x-auto">
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-            <table className="w-full min-w-[1050px] border-separate border-spacing-y-3">
+            <table className="w-full min-w-[1140px] border-separate border-spacing-y-3">
               <thead>
                 <tr>
                   {[
@@ -597,6 +614,7 @@ const SuperAdminUserManagement = () => {
                     "Role",
                     "Agents",
                     "Status",
+                    "Trial",
                     "Last Login",
                     "Card",
                     "Actions",
@@ -623,7 +641,7 @@ const SuperAdminUserManagement = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <Loader fullPage={false} />
                     </td>
                   </tr>
@@ -652,7 +670,7 @@ const SuperAdminUserManagement = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="text-center py-10 text-gray-500 dark:text-white"
                     >
                       {error ? `Error: ${error}` : "No users found."}
