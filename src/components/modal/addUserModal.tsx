@@ -121,10 +121,15 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white dark:bg-slate-800 w-full max-w-[450px] rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 py-6">
+      {/* Capped to the viewport and laid out as a column: header and footer
+          keep their size, the form body takes what is left and scrolls.
+          Without the cap the card grew to its content, so on a shorter screen
+          the Cancel / Add User buttons were pushed off the bottom with no way
+          to reach them. */}
+      <div className="bg-white dark:bg-slate-800 w-full max-w-[450px] max-h-full flex flex-col rounded-[24px] shadow-xl relative animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700">
+        <div className="shrink-0 flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-slate-700">
           <h2 className="text-[#111] dark:text-white text-[20px] font-[600]">Add New User</h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">
             <IoClose className="text-[22px] text-gray-500 dark:text-gray-400" />
@@ -132,7 +137,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         </div>
 
         {/* Form Body */}
-        <div className="p-6 flex flex-col gap-4">
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
           {localError && <p className="text-red-500 text-xs">{localError}</p>}
           {apiError && <p className="text-red-500 text-xs">{apiError}</p>}
 
@@ -310,7 +315,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }: AddUserModalProps) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-5 flex gap-3 border-t border-gray-100 dark:border-slate-700">
+        <div className="shrink-0 px-6 py-5 flex gap-3 border-t border-gray-100 dark:border-slate-700">
           <button type="button" onClick={() => { closeAllDropdowns(); onClose(); }} disabled={loading}
             className="flex-1 bg-[#F3F4F6] dark:bg-slate-700 text-[#374151] dark:text-white font-[500] py-3 rounded-[12px] hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50">
             Cancel
